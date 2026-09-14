@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / web
+node_modules/
+.next/
+.svelte-kit/
+
+# Segredos e ambiente
+.env
+.env.*
+!.env.example
+
+# Dados brutos nunca versionados (ver PROMPT: data/ é só scripts)
+data/raw/
+knowledge/raw/
+*.pdf
+
+# Recursos externos em avaliação
+externos/
+
+# SO / IDE
+.DS_Store
+.idea/
+.vscode/

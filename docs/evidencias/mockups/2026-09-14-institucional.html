@@ -1,0 +1,419 @@
+<title>AprovaOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --bg-2: #F3F5F8;
+    --ink: #131B2E;
+    --ink-2: #4A5470;
+    --ink-3: #7C86A2;
+    --line: #D6DCE7;
+    --accent: #2F46B8;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E4E9FA;
+    --why: #B7791F;
+    --why-soft: #FBF3E3;
+    --good: #1F7A4D;
+    --bad: #B3261E;
+    --deep: #131B2E;
+    --deep-ink: #E6EAF4;
+    --deep-ink-2: #A9B3CC;
+    --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1524; --bg-2: #171F33; --ink: #EEF1F8; --ink-2: #B6BED3; --ink-3: #7F89A6; --line: #2C3650;
+      --accent: #8EA0F0; --accent-ink: #0F1524; --accent-soft: #24305C; --why: #E0B15C; --why-soft: #3A2E15;
+      --good: #6FCF97; --bad: #F08A83; --deep: #0A0F1C; --deep-ink: #E6EAF4; --deep-ink-2: #A9B3CC;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1524; --bg-2: #171F33; --ink: #EEF1F8; --ink-2: #B6BED3; --ink-3: #7F89A6; --line: #2C3650;
+    --accent: #8EA0F0; --accent-ink: #0F1524; --accent-soft: #24305C; --why: #E0B15C; --why-soft: #3A2E15;
+    --good: #6FCF97; --bad: #F08A83; --deep: #0A0F1C; --deep-ink: #E6EAF4; --deep-ink-2: #A9B3CC;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -.012em; }
+  h1 { font-size: clamp(34px, 5vw, 56px); }
+  h2 { font-size: clamp(26px, 3.2vw, 36px); }
+  h3 { font-size: 18px; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  button { font: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .lead { font-size: 19px; color: var(--ink-2); max-width: 58ch; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 14px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+  section { padding-block: 88px; }
+  section.tight { padding-block: 56px; }
+  .sec-head { display: flex; flex-direction: column; gap: 12px; max-width: 64ch; margin-bottom: 40px; }
+  .sec-head p { color: var(--ink-2); font-size: 17px; }
+
+  /* top */
+  .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand b { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+  .brand span { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+  .top nav { display: flex; gap: 20px; font-size: 14px; flex-wrap: wrap; }
+  .top nav a { color: var(--ink-2); text-decoration: none; }
+  .top nav a:hover { color: var(--ink); }
+  .notice { background: var(--why-soft); color: var(--why); font-size: 13px; text-align: center; padding: 6px 16px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; padding: 12px 20px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); color: var(--ink); background: var(--bg); font-size: 15px; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn:hover { border-color: var(--ink-3); }
+
+  /* hero */
+  .hero { padding-block: 96px 80px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+  .hero h1 { max-width: 16ch; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .stack { display: flex; flex-direction: column; gap: 24px; }
+  .hero .actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .hero .actions .small { color: var(--ink-3); }
+
+  /* "o cartão do agente" — objeto-tese */
+  .agent-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 48px -24px rgba(19,27,46,.25); }
+  .agent-card .hd { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--ink-3); }
+  .agent-card .hd b { color: var(--ink); font-family: var(--font-display); font-weight: 600; }
+  .plan-line { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .plan-line .t { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .plan-line .k { color: var(--ink-3); font-size: 12px; display: block; }
+  .plan-line .d { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .why { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; background: var(--why-soft); border-left: 3px solid var(--why); border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 14px; }
+  .why .tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--why); padding-top: 3px; white-space: nowrap; }
+  .why .act { grid-column: 2; display: flex; gap: 8px; }
+  .why .act button { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+
+  /* problema */
+  .problema { background: var(--deep); color: var(--deep-ink); }
+  .problema .eyebrow { color: #A9B7F5; }
+  .problema h2 { color: #fff; }
+  .problema .sec-head p { color: var(--deep-ink-2); }
+  .contrast { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .contrast > div { border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .contrast .them { background: rgba(255,255,255,.04); }
+  .contrast .us { background: rgba(47,70,184,.28); border-color: rgba(142,160,240,.5); }
+  .contrast h3 { color: #fff; font-size: 20px; }
+  .contrast ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: var(--deep-ink-2); }
+  .contrast .us ul { color: var(--deep-ink); }
+  .contrast .quote { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: #fff; line-height: 1.3; }
+  .contrast .quote span { color: #A9B7F5; }
+
+  /* dia */
+  .dia { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .dia > div { display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 14px; background: var(--bg-2); }
+  .dia .h { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .dia h3 { font-size: 17px; }
+  .dia p { color: var(--ink-2); font-size: 15px; }
+
+  /* funcionalidades */
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 32px; }
+  .feat { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 2px solid var(--ink); }
+  .feat .n { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .feat p { color: var(--ink-2); font-size: 15px; }
+  .feat .ex { font-size: 13px; color: var(--ink); background: var(--bg-2); border-radius: 8px; padding: 10px 12px; margin-top: 4px; }
+  .feat .ex b { color: var(--why); font-family: var(--font-mono); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+
+  /* diferencial */
+  .diff { background: var(--bg-2); }
+  .diff-table { width: 100%; border-collapse: collapse; background: var(--bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .diff-table th, .diff-table td { padding: 16px 18px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .diff-table th { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  .diff-table th:last-child, .diff-table td:last-child { background: var(--accent-soft); }
+  .diff-table th:last-child { color: var(--accent); }
+  .diff-table tr:last-child td { border-bottom: 0; }
+  .diff-table td:first-child { font-weight: 600; width: 22%; }
+  .diff-table td:nth-child(2) { color: var(--ink-2); }
+  .table-wrap { overflow-x: auto; }
+
+  /* base */
+  .base { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .base > div { border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .base h3 { display: flex; align-items: center; gap: 10px; }
+  .base h3 i { font-style: normal; font-family: var(--font-mono); font-size: 12px; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 6px; }
+  .base p { color: var(--ink-2); font-size: 15px; }
+  .base .src { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  /* compromissos */
+  .promises { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .promises > div { display: flex; flex-direction: column; gap: 8px; }
+  .promises .n { font-family: var(--font-display); font-size: 34px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .promises b { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+  .promises p { font-size: 14px; color: var(--ink-2); }
+
+  /* preços */
+  .prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .prices > div { border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .prices .pro { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .prices .v { font-family: var(--font-display); font-size: 30px; font-weight: 600; }
+  .prices .v small { font-family: var(--font-body); font-size: 13px; font-weight: 400; color: var(--ink-2); }
+  .prices p { color: var(--ink-2); font-size: 14px; }
+
+  /* faq */
+  .faq { display: flex; flex-direction: column; border-top: 1px solid var(--line); max-width: 72ch; }
+  .faq details { border-bottom: 1px solid var(--line); }
+  .faq summary { cursor: pointer; padding: 18px 0; font-family: var(--font-display); font-weight: 600; font-size: 17px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; font-family: var(--font-mono); color: var(--ink-3); }
+  .faq details[open] summary::after { content: "−"; }
+  .faq .a { padding: 0 0 20px; color: var(--ink-2); max-width: 66ch; }
+
+  /* cta */
+  .cta { background: var(--deep); color: var(--deep-ink); text-align: center; }
+  .cta h2 { color: #fff; max-width: 22ch; margin-inline: auto; }
+  .cta p { color: var(--deep-ink-2); max-width: 56ch; margin: 16px auto 28px; }
+  .cta .btn.primary { background: #fff; color: var(--deep); border-color: #fff; }
+  .cta .btn.ghost { color: #fff; border-color: rgba(255,255,255,.35); background: transparent; }
+  footer { padding-block: 28px; font-size: 13px; color: var(--ink-3); border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    section { padding-block: 64px; }
+    .hero { padding-block: 56px 48px; }
+    .hero .wrap, .contrast, .base, .dia, .feats, .prices { grid-template-columns: 1fr; }
+    .promises { grid-template-columns: 1fr 1fr; }
+    .top nav { display: none; }
+  }
+</style>
+
+<div class="notice">Produto em construção. "AprovaOS" é nome provisório. Números nesta página são exemplos, não medições.</div>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>AprovaOS</b><span>codinome</span></div>
+    <nav aria-label="Seções">
+      <a href="#problema">O problema</a>
+      <a href="#como">Como funciona</a>
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#diferenca">Por que é diferente</a>
+      <a href="#base">No que se baseia</a>
+      <a href="#precos">Preços</a>
+      <a href="#faq">Perguntas</a>
+    </nav>
+    <a class="btn primary" href="https://claude.ai/artifact/Sf7LcctQV7DDPShsTMFDdd" target="_blank" rel="noopener">Ver o protótipo</a>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="stack">
+      <span class="eyebrow">Para quem estuda para concurso</span>
+      <h1>Um agente que <em>assume a responsabilidade</em> pela sua aprovação.</h1>
+      <p class="lead">Ele decide o que você estuda hoje, gera o material no padrão da sua banca, mede se está funcionando e reajusta amanhã. Você estuda. Ele carrega o resto — e explica cada decisão.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://claude.ai/artifact/Sf7LcctQV7DDPShsTMFDdd" target="_blank" rel="noopener">Ver o protótipo clicável</a>
+        <a class="btn" href="#como">Como funciona</a>
+        <span class="small">Cebraspe e FGV primeiro. Outras bancas depois.</span>
+      </div>
+    </div>
+    <div class="agent-card" aria-label="Exemplo do plano de um dia">
+      <div class="hd"><b>Terça, 15 de setembro</b><span class="mono">93 dias para a prova · 2h00</span></div>
+      <div class="plan-line"><span class="t">06:40</span><span><span class="k">Aula · 35 min</span>Competências do TCU (art. 71 da CF)</span><span class="d">Cebraspe</span></div>
+      <div class="plan-line"><span class="t">07:15</span><span><span class="k">Questões · 20 itens</span>Controle Externo, certo/errado</span><span class="d">2019–2024</span></div>
+      <div class="plan-line"><span class="t">07:45</span><span><span class="k">Revisão · 18 cartões</span>Dir. Administrativo e AFO</span><span class="d">vencidos hoje</span></div>
+      <div class="why">
+        <span class="tag">Por quê</span>
+        <p>Hoje mais Controle Externo porque seu erro em "competências do TCU" subiu para 41% nos últimos 7 dias, e a matéria pesa 22% da prova.</p>
+        <div class="act"><button type="button">Aceitar</button><button type="button">Discordar</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROBLEMA ===== -->
+<section class="problema" id="problema">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">O problema</span>
+      <h2>Toda ferramenta de estudo hoje espera você pedir.</h2>
+      <p>Banco de questões, videoaula, cronograma pronto, chat com IA. Todos funcionam do mesmo jeito: você pergunta, eles respondem. A decisão mais difícil — <em>o que estudar hoje, com o tempo e a energia que eu tenho, para a prova que eu vou fazer</em> — continua sendo sua, todo dia, sozinha.</p>
+    </div>
+    <div class="contrast">
+      <div class="them">
+        <h3>Como funciona hoje</h3>
+        <p class="quote">"Você pede <span>→</span> a IA responde."</p>
+        <ul>
+          <li>Você monta o cronograma. Se errar o peso, descobre na prova.</li>
+          <li>Você escolhe as questões. Costuma escolher a matéria que gosta, não a que cai.</li>
+          <li>Você adivinha se está na curva. Ninguém diz "vai dar" ou "não vai dar" com número.</li>
+          <li>A ferramenta não sabe se você dormiu mal, se trabalhou até tarde, se errou o mesmo tema três vezes.</li>
+        </ul>
+      </div>
+      <div class="us">
+        <h3>Como o AprovaOS funciona</h3>
+        <p class="quote">"O agente tem um objetivo <span>→</span> age antes de você pedir."</p>
+        <ul>
+          <li>Ele monta o plano de hoje, à noite, com o que aprendeu sobre você ontem.</li>
+          <li>Ele escolhe as questões pelo peso real da prova e pelo seu padrão de erro.</li>
+          <li>Ele diz onde você está em relação ao corte — com intervalo e nível de confiança.</li>
+          <li>Ele registra tudo: acerto, tempo, horário, energia. E muda de ideia quando o dado muda.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMO FUNCIONA ===== -->
+<section id="como">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Como funciona</span>
+      <h2>Um dia da Ana, que trabalha e tem duas horas.</h2>
+      <p>Ana Beatriz tem 31 anos, é analista administrativa e estuda para Auditora do TCU. Ela não tem tempo para planejar o estudo — só para estudar.</p>
+    </div>
+    <div class="dia">
+      <div><span class="h">05:00 · sem ela</span><h3>O agente monta o dia</h3><p>De madrugada, ele lê o que Ana fez ontem, o que venceu para revisar, o peso de cada matéria no DNA do concurso e quanto falta para a curva de aprovação. Gera o plano.</p></div>
+      <div><span class="h">06:35 · 30 segundos</span><h3>Check-in</h3><p>"Como você está?" Energia, sono, tempo real de hoje. Dormiu mal? O plano encolhe e vira revisão leve. Tem uma hora a mais? Ele fecha a matéria mais atrasada, não a que já vai bem.</p></div>
+      <div><span class="h">06:40 → 21:00</span><h3>Ela estuda, ele acompanha</h3><p>Aula densa de manhã (ou em áudio, no ônibus), 20 questões no padrão da banca, cartões de revisão. Cada resposta vira um dado: acerto, tempo, horário. Ela pode pular qualquer bloco; ele mostra o impacto e recalcula.</p></div>
+      <div><span class="h">à noite · sem ela</span><h3>Ele mede e recalibra</h3><p>O painel atualiza: proficiência por matéria, curva atual contra a necessária, padrões de erro. Se ela está saindo da curva, um alerta — no máximo um por dia, sempre com uma proposta concreta.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FUNCIONALIDADES ===== -->
+<section id="funcionalidades" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Funcionalidades</span>
+      <h2>O que existe na primeira versão.</h2>
+      <p>Seis peças, na ordem em que você as encontra. Nada aqui é promessa de fase futura.</p>
+    </div>
+    <div class="feats">
+      <div class="feat"><span class="n">01</span><h3>DNA do concurso</h3><p>Antes de você chegar, o sistema leu o edital e as provas anteriores da banca. Sabe o peso real de cada matéria, a incidência por tópico, o estilo da banca, as pegadinhas típicas e a nota de corte histórica. Cada afirmação aponta para a prova de onde veio.</p><div class="ex"><b>exemplo</b>Cebraspe/TCU: Controle Externo pesa 22%. A banca inverte "apreciar" por "julgar" nas contas do Presidente em quase toda prova.</div></div>
+      <div class="feat"><span class="n">02</span><h3>Diagnóstico adaptativo</h3><p>Até 30 questões, escolhidas uma a uma pelo que ainda está incerto sobre você. Termina quando já sabe. Sai uma proficiência por matéria com a margem de erro à mostra, mais um questionário de rotina: horas por dia, horário, energia típica, data da prova.</p><div class="ex"><b>exemplo</b>AFO: 44 ± 14. Português: 72 ± 5. Português fechou em 4 itens; AFO precisa de mais dados.</div></div>
+      <div class="feat"><span class="n">03</span><h3>Plano vivo</h3><p>Gerado toda noite, reajustado no check-in da manhã. Cada bloco diz o que fazer, por quanto tempo e por quê. Pode recomendar descanso. Pular ou trocar um bloco é um toque — o agente registra, explica o impacto e recalcula, sem sermão.</p><div class="ex"><b>exemplo</b>"Energia 2 e 5h de sono: tiro a aula nova, deixo os 18 cartões. Estudar conteúdo novo assim gasta o tópico sem fixar."</div></div>
+      <div class="feat"><span class="n">04</span><h3>Aula do dia + questões da banca</h3><p>A mesma aula em três formatos: texto denso para estudar, áudio para o trajeto, versão leiga para entender de primeira. Toda afirmação de lei tem a fonte visível. As questões vêm da base validada, no padrão da banca, com justificativa dos dois lados.</p><div class="ex"><b>exemplo</b>Item certo/errado sobre sustação de ato (art. 71, X). Errou? A justificativa explica exatamente qual confusão a banca plantou.</div></div>
+      <div class="feat"><span class="n">05</span><h3>Revisão espaçada</h3><p>Qualquer questão errada vira cartão em um toque. O algoritmo (FSRS, o mesmo do Anki moderno) decide quando você vai rever cada um, ajustado ao seu histórico com aquele tema. Os cartões vencidos entram no plano do dia sozinhos.</p><div class="ex"><b>exemplo</b>"Bom" → próxima revisão em 6 dias. "Errei" → daqui a 10 minutos, ainda hoje.</div></div>
+      <div class="feat"><span class="n">06</span><h3>Painel e previsão</h3><p>Curva atual contra a curva necessária até a prova. Padrões de erro cruzando tópico, horário e energia — só os que têm dado suficiente. Previsão de nota e probabilidade de aprovação sempre com intervalo e nível de confiança. Modo semana da prova: nada novo, só revisão cirúrgica e descanso.</p><div class="ex"><b>exemplo</b>"Nota líquida prevista 62–71 (80%). Probabilidade 34% (22–47%). Confiança baixa: 3 semanas de dados."</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DIFERENCIAL ===== -->
+<section class="diff" id="diferenca" style="background:var(--bg)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Por que é diferente</span>
+      <h2>Ferramenta vende acesso. Isto vende resultado acompanhado.</h2>
+      <p>Não é uma funcionalidade a mais. É uma inversão de quem carrega a responsabilidade pelo estudo. Abaixo, o que muda na prática — sem citar concorrente por nome, porque a comparação justa exige preço e funcionalidade medidos, e isso está sendo levantado.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="diff-table">
+        <thead><tr><th>Situação</th><th>Ferramenta comum</th><th>AprovaOS</th></tr></thead>
+        <tbody>
+          <tr><td>O que estudar hoje</td><td>Você decide. O cronograma pronto ignora como você acordou.</td><td>O agente decide com base no peso da prova, no seu erro recente e no seu check-in. Você discorda em um toque.</td></tr>
+          <tr><td>Questões</td><td>Banco enorme. Você filtra. Justificativa quando alguém escreveu.</td><td>Escolhidas pelo DNA da banca e pelo seu padrão de erro. Sempre com justificativa dos dois lados e fonte.</td></tr>
+          <tr><td>"Estou na curva?"</td><td>Porcentagem de acerto e um gráfico de horas estudadas.</td><td>Curva atual × necessária até o corte, previsão com intervalo e confiança, alerta com proposta concreta.</td></tr>
+          <tr><td>Conteúdo gerado por IA</td><td>Gerado na hora, quando você pede. Sem validação, sem fonte.</td><td>Gerado antes, em lote, validado e versionado. Nada chega a você sem passar pelo validador. Toda lei tem fonte.</td></tr>
+          <tr><td>Quando a lei muda</td><td>Material desatualiza em silêncio.</td><td>O coletor detecta, marca o que depende daquela lei, regenera e despublica o antigo.</td></tr>
+          <tr><td>Dia ruim</td><td>Streak quebrado. Culpa.</td><td>"Descansar hoje custa menos do que reaprender depois." Descanso é recomendação válida.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BASE ===== -->
+<section id="base" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">No que se baseia</span>
+      <h2>Nada aqui é opinião do agente. É fonte, padrão e medição.</h2>
+      <p>A inteligência artificial é o operador. O que dá sustentação são seis fundamentos, cada um com origem clara.</p>
+    </div>
+    <div class="base">
+      <div><h3><i>1</i>Fontes oficiais</h3><p>Editais e provas anteriores direto das bancas, legislação do Planalto, jurisprudência do STF e do STJ. Livros, apostilas e cursos de terceiros são referência bibliográfica — nunca conteúdo copiado para dentro.</p><span class="src">cebraspe.org.br · fgv.br · planalto.gov.br · stf.jus.br</span></div>
+      <div><h3><i>2</i>O padrão real da banca</h3><p>O "DNA" não é um resumo de edital. É o cruzamento de provas reais: quais tópicos caem, com que frequência, com que redação, com quais pegadinhas. As questões geradas seguem esse padrão e são conferidas contra ele.</p><span class="src">peso, incidência e estilo calculados por prova/ano</span></div>
+      <div><h3><i>3</i>Diagnóstico adaptativo</h3><p>Cada item do diagnóstico é escolhido pelo que mais reduz a incerteza sobre você — o mesmo princípio dos testes adaptativos usados em exames como o ENEM. Por isso termina em até 30 questões e entrega margem de erro.</p><span class="src">proficiência por matéria com intervalo</span></div>
+      <div><h3><i>4</i>Repetição espaçada (FSRS)</h3><p>A agenda de revisão usa o FSRS, algoritmo aberto adotado pelo Anki, que estima quando cada memória vai falhar e marca a revisão para pouco antes. Ajustado ao seu histórico, não a uma tabela fixa.</p><span class="src">github.com/open-spaced-repetition</span></div>
+      <div><h3><i>5</i>Dados longitudinais seus</h3><p>Cada resposta grava acerto, tempo, horário e energia declarada — não só certo/errado. É desse histórico que saem os padrões de erro ("você erra 2× mais Controle Externo depois das 21h") e a calibração do plano.</p><span class="src">só padrões com amostra mínima aparecem</span></div>
+      <div><h3><i>6</i>Validação antes de publicar</h3><p>Um pipeline separado gera, valida e calibra o conteúdo. Questão com taxa de erro reportado acima do limite sai do ar. Você pode reportar qualquer coisa e acompanhar o status.</p><span class="src">meta: menos de 2% de reporte por questão</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPROMISSOS ===== -->
+<section id="compromissos">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Compromissos</span>
+      <h2>Cinco regras que o produto não quebra.</h2>
+    </div>
+    <div class="promises">
+      <div><span class="n">1</span><b>O agente decide; você discorda em um toque.</b><p>E ele nunca esconde o porquê de uma decisão.</p></div>
+      <div><span class="n">2</span><b>Nada gerado chega sem validação.</b><p>Toda afirmação de lei ou jurisprudência tem fonte visível.</p></div>
+      <div><span class="n">3</span><b>Previsão sempre com intervalo.</b><p>E nível de confiança. Nunca promete o que não mede.</p></div>
+      <div><span class="n">4</span><b>Descansar é uma recomendação válida.</b><p>Dia ruim não é falha sua. É dado para o plano.</p></div>
+      <div><span class="n">5</span><b>Não promete aprovação.</b><p>Promete carregar o estudo e dizer, com número, se está funcionando.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PREÇOS ===== -->
+<section id="precos" style="background:var(--bg-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Preços</span>
+      <h2>Preço claro no primeiro dia. Cancela em um clique.</h2>
+      <p>Valores em validação. Pix e cartão desde o lançamento; anual com desconto. No limite do plano, o agente degrada para um modelo mais barato — nunca para o silêncio no meio de uma sessão.</p>
+    </div>
+    <div class="prices">
+      <div><span class="eyebrow">Free</span><span class="v">R$ 0</span><p>Diagnóstico completo, DNA de 1 concurso, plano diário básico, 20 questões por dia, painel com curva atual.</p></div>
+      <div class="pro"><span class="eyebrow">Pro</span><span class="v">R$ 49<small>/mês</small></span><p>O agente completo: check-in e reajuste diário, questões sem limite (uso justo), aulas em texto, áudio e versão leiga, previsão com intervalo, modo semana da prova.</p></div>
+      <div><span class="eyebrow">Elite · futuro</span><span class="v">R$ 149<small>/mês</small></span><p>Pro + mentor humano mensal e análise profunda do mês. Não existe no lançamento.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Perguntas frequentes</span>
+      <h2>O que uma concurseira perguntaria.</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>Vocês garantem aprovação?</summary><div class="a">Não, e desconfie de quem garante. O que o produto assume é a responsabilidade pelo <em>processo</em>: decidir, executar, medir e ajustar todo dia. A previsão mostra a probabilidade com intervalo e confiança — se estiver ruim, ela diz que está ruim.</div></details>
+      <details><summary>De onde vem o conteúdo? É a IA inventando?</summary><div class="a">A IA escreve, mas a partir de fontes oficiais (edital, provas anteriores, lei, jurisprudência) e do padrão medido da banca. Tudo passa por um validador antes de aparecer para você, e toda afirmação jurídica mostra a fonte. Material de cursinho ou livro nunca é copiado para dentro.</div></details>
+      <details><summary>Serve para qual concurso?</summary><div class="a">Na primeira versão, concursos com bancas Cebraspe e FGV — escolhidos pelo volume de provas públicas e pelo padrão bem definido. Concurso fora do catálogo? Você sobe o edital em PDF e o DNA fica pronto em até 10 minutos. ENEM, OAB e outros entram depois.</div></details>
+      <details><summary>E se eu não concordar com o plano?</summary><div class="a">Discorde. Pule, troque, peça descanso. O agente registra, mostra o impacto na sua curva e recalcula — sem sermão e sem streak quebrado. A regra é que ele decide primeiro e explica sempre, mas a última palavra é sua.</div></details>
+      <details><summary>Funciona no celular?</summary><div class="a">Sim, pelo navegador, com notificação para o check-in da manhã e a aula em áudio para o trajeto. Aplicativo instalável só se os dados mostrarem que ele retém melhor do que a versão web.</div></details>
+      <details><summary>O que vocês fazem com meus dados de energia e humor?</summary><div class="a">São usados só para ajustar o seu plano e os seus padrões de erro. Consentimento separado para esse tipo de dado, exportação e exclusão completa em um clique, e nunca venda para terceiros.</div></details>
+      <details><summary>Quando lança?</summary><div class="a">Está em construção. Esta página e o protótipo existem para ouvir quem estuda antes de escrever a primeira linha do produto final.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta">
+  <div class="wrap">
+    <h2>Você estuda. Ele carrega o resto.</h2>
+    <p>Veja o protótipo clicável: dez telas com um dia inteiro da Ana, do check-in à previsão. Depois diga o que faltou, o que sobrou e o que você pagaria.</p>
+    <div class="hero actions" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding:0">
+      <a class="btn primary" href="https://claude.ai/artifact/Sf7LcctQV7DDPShsTMFDdd" target="_blank" rel="noopener">Abrir o protótipo</a>
+      <a class="btn ghost" href="#problema">Reler do início</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>AprovaOS · nome provisório · produto em construção</span>
+    <span>Números desta página são exemplos ilustrativos. A comparação com o mercado está sendo medida.</span>
+  </div>
+</footer>

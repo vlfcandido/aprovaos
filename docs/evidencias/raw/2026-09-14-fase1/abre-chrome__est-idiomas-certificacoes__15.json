@@ -1,0 +1,63 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/british-council-brazil/incoerencia-e-procedimento-abusivo-na-aplicacao-do-ielts_x9VpTidePYHjx4ws/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Reclamação resolvida, com resposta da empresa e feedback do cliente",
+   "trechos": [
+    {
+     "trecho": "Na ocasião fui impedida de fazer as avaliações em virtude de não estar portando meu RG. Eu tinha comigo apenas a licença de motorista (CNH), uma vez que pela lei a carteira de habilitação é considerado documento de identificação civil válido no território brasileiro.",
+     "autor": "Cliente (anônimo)",
+     "data": "11/10/2016",
+     "contexto": "Relato da negação de acesso ao exame IELTS — procedimento inconsistente com lei federal"
+    },
+    {
+     "trecho": "Qual não foi minha surpresa quando apresentei o B.O. conforme solicitado e a funcionária Cacau disse que mesmo assim o British Council havia negado meu acesso à realização da prova.",
+     "autor": "Cliente",
+     "data": "11/10/2016",
+     "contexto": "Mudança de critério após supervisor ter solicitado o documento — abuso processual"
+    },
+    {
+     "trecho": "Gastei cerca de R$30,00 em táxi para dirigir-me à delegacia e voltar, despesa que não precisaria ter se não tivessem me dado a esperança de fazer a prova apresentando B.O.",
+     "autor": "Cliente",
+     "data": "11/10/2016",
+     "contexto": "Custo material causado por procedimento abusivo e mudança de critério"
+    },
+    {
+     "trecho": "Aqui falta a premissa da razoabilidade e existe abuso de poder da instituição. Parte-se do princípio que isto ocorre por que no contrato de adesão o consumidor é hipossuficiente.",
+     "autor": "Cliente",
+     "data": "11/10/2016",
+     "contexto": "Crítica ao abuso contratual e falta de escolha do candidato (monopólio do IELTS)"
+    }
+   ]
+  },
+  {
+   "url": "https://www.workana.com/pt/job/arte-para-panfleto-reforco-escolar-preparatorio-e-idiomas",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Projeto aberto de freelance — pedido de design para panfleto com foco em certificações de idiomas",
+   "trechos": [
+    {
+     "trecho": "Criar design para panfleto para promover a divulgação de cursos. Reforço Escolar para todas as disciplinas e níveis escolares; Preparatório de concursos; Idiomas: Inglês e Espanhol.",
+     "autor": "Contratante (anônimo)",
+     "data": "Não especificada",
+     "contexto": "Descrição de escopo do projeto — serviços oferecidos incluem cursos de idiomas"
+    },
+    {
+     "trecho": "Idiomas: Inglês e Espanhol com preparação para os exames de Cambridge (KET, PET, FCE, CAE, CPE), IELTS, TOEFL E DELE",
+     "autor": "Contratante",
+     "data": "Não especificada",
+     "contexto": "Foco em preparação para certificações — demanda por divulgação e marketing"
+    }
+   ]
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/responder-30-licoes-do-site-mais-ingles-568464",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página carregou com título válido, mas conteúdo dinâmico não acessível via extração de texto (apenas cookie banner retornado)",
+   "trechos": []
+  }
+ ]
+}

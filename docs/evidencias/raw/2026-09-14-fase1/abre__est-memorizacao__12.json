@@ -1,0 +1,50 @@
+{
+ "paginas": [
+  {
+   "url": "https://hotmart.com/pt-br/marketplace/produtos/baralho-anki-flashcards-criminologia/W69198265B",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página não contém reclamações de usuários, preços visíveis com autoria/data, ou tarefas manuais descritas — apenas descrição do produto e instruções de uso"
+  },
+  {
+   "url": "https://ankidodelta.com/",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém informações sobre produtos e FAQs, mas sem reclamações de usuários, preços específicos com datas/autores, ou descrições de tarefas manuais"
+  },
+  {
+   "url": "https://community.ankihub.net/t/completed-cards-full-sync-lost-two-days-of-data/588249",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "Today when I opened my laptop anki I was prompted to conduct a full sync and it appears that I have lost all of the progress on the cards I have completed in the past two days",
+     "autor": "ethangstoll",
+     "data": "14 de fevereiro de 2026",
+     "contexto": "Reclamação de perda de progresso após sincronização forçada"
+    },
+    {
+     "trecho": "lost my review streak (544 days). Ideally, I would like to rectify the review count on my laptop anki, preferably not lose the reviews I have done in the past two days",
+     "autor": "ethangstoll",
+     "data": "14 de fevereiro de 2026",
+     "contexto": "Reclamação de perda de streak e pedido para recuperar dados"
+    },
+    {
+     "trecho": "On iOS: Tap the red sync button. If you see a message about a full sync / one-way sync or a conflict (Upload vs Download): Choose Upload to AnkiWeb.",
+     "autor": "AnkiHub_AI_bot",
+     "data": "14 de fevereiro de 2026",
+     "contexto": "Instruções técnicas (tarefa manual) para resolução do problema no iOS"
+    },
+    {
+     "trecho": "On laptop Anki: First, create a local backup: File → Export → All decks with scheduling and media → save the .colpkg somewhere safe.",
+     "autor": "AnkiHub_AI_bot",
+     "data": "14 de fevereiro de 2026",
+     "contexto": "Instruções técnicas (tarefa manual) para criar backup em laptop"
+    }
+   ],
+   "observacao": "Relato de bug de sincronização com perda de dados (tarefas manuais de resolução documentadas)"
+  }
+ ]
+}

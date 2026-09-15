@@ -1,0 +1,212 @@
+{
+ "buscas_feitas": [
+  "Cebraspe provas anteriores concursos site oficial",
+  "FGV Conhecimento provas anteriores concursos",
+  "INEP ENEM provas e gabaritos download gov.br",
+  "OAB FGV exame de ordem provas anteriores oab.fgv.br",
+  "Diário Oficial da União in.gov.br API RSS editais",
+  "pciconcursos.com.br termos de uso política",
+  "concursosnobrasil.com.br termos de uso",
+  "Qconcursos termos de uso extração automatizada robô",
+  "\"conecta.gov.br\" OR servicos.gov.br API Diário Oficial da União consulta",
+  "concursosnobrasil.com.br \"termos de uso\" OR \"política de privacidade\" site"
+ ],
+ "fontes_motor": [
+  {
+   "nome": "Cebraspe — banca de concursos",
+   "url": "https://www.cebraspe.org.br/concursos/",
+   "tipo": "banca",
+   "formato": "desconhecido",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Não localizei aviso explícito de copyright ou termos de uso restritivos nesta sessão. O site institucional renderiza conteúdo via JavaScript: o WebFetch só devolveu o texto de cabeçalho, sem lista de concursos/provas nem seção de termos.",
+   "volume_estimado": "não medido",
+   "termos_de_uso": "não localizado nesta sessão — a URL /politica-de-privacidade/ retornou 404 e a página de concursos só expôs o texto 'Cebraspe | O melhor em avaliação de pessoas'",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "tipo": "oficial",
+     "trecho": "Cebraspe | O melhor em avaliação de pessoas",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "FGV Conhecimento — banca de concursos",
+   "url": "https://conhecimento.fgv.br/node/141",
+   "tipo": "banca",
+   "formato": "desconhecido",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Página 'Provas aplicadas' funciona como hub de navegação (emissão de certificado), sem listar provas nem exibir termos de uso ou aviso de copyright no conteúdo aberto nesta sessão.",
+   "volume_estimado": "não medido",
+   "termos_de_uso": "não localizado nesta sessão",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "tipo": "oficial",
+     "trecho": "Provas aplicadas / Realizado / Solicite aqui seu Certificado de Aprovação da FGV para concursos e provas realizadas.",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "INEP — Provas e Gabaritos do ENEM",
+   "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos",
+   "tipo": "enem_inep",
+   "formato": "pdf",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Conteúdo publicado sob licença Creative Commons Atribuição-SemDerivações 3.0 Não Adaptada: permite reprodução com atribuição, mas proíbe obras derivadas — um Motor de Conhecimento que reprocessa/reorganiza esse conteúdo pode esbarrar na cláusula 'SemDerivações' e merece checagem jurídica.",
+   "volume_estimado": "página organizada em abas por ano, de 2025 até 1998 (conteúdo de cada aba carrega via JS e não foi aberto individualmente nesta sessão para contagem exata de arquivos)",
+   "termos_de_uso": "Todo o conteúdo deste site está publicado sob a licença Creative Commons Atribuição-SemDerivações 3.0 Não Adaptada",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos",
+     "tipo": "oficial",
+     "trecho": "Todo o conteúdo deste site está publicado sob a licença Creative Commons Atribuição-SemDerivações 3.0 Não Adaptada",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "OAB/FGV — Exame de Ordem Unificado",
+   "url": "https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0",
+   "tipo": "oab",
+   "formato": "desconhecido",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Não localizei aviso de copyright ou termos de uso na página consultada; a titularidade dos direitos autorais das provas do Exame de Ordem não foi confirmada nesta sessão.",
+   "volume_estimado": "47 edições do Exame de Ordem Unificado listadas na página, do mais recente até 2010.2, com download individual ou em pacote único",
+   "termos_de_uso": "não localizado nesta sessão",
+   "evidencias": [
+    {
+     "url": "https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0",
+     "tipo": "oficial",
+     "trecho": "Selecione na lista abaixo o Exame de Ordem Unificado que deseja pesquisar, e faça o download das provas e editais individualmente, ou aproveite e faça o download de todas as provas e editais em um único arquivo",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Diário Oficial da União (Imprensa Nacional)",
+   "url": "https://www.in.gov.br/servicos/diario-oficial-da-uniao",
+   "tipo": "edital_diario_oficial",
+   "formato": "desconhecido",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Não verificado nesta sessão: a tentativa de WebFetch falhou (socket hang up). Resultados de busca (não confirmados por abertura direta, logo não usados como evidência) indicam que a API oficial WS-INCom é restrita e requer autorização por órgão público, sem acesso público automatizado.",
+   "volume_estimado": "não medido",
+   "termos_de_uso": "não localizado — WebFetch falhou nesta sessão; requer nova tentativa em sessão futura",
+   "evidencias": []
+  },
+  {
+   "nome": "PCI Concursos (agregador de editais)",
+   "url": "https://www.pciconcursos.com.br/",
+   "tipo": "agregador_terceiro",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "Agregador de terceiros que republica editais oficiais; risco de direitos autorais sobre o texto do edital pertence ao órgão emissor, não ao PCI. Termos de uso do próprio site sobre extração automatizada não localizados nesta sessão.",
+   "volume_estimado": "não medido",
+   "termos_de_uso": "não localizado nesta sessão — tentativa em /termos-de-uso/ retornou 404",
+   "evidencias": []
+  },
+  {
+   "nome": "Concursos no Brasil (agregador de editais)",
+   "url": "https://www.concursosnobrasil.com.br/",
+   "tipo": "agregador_terceiro",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "não localizado nesta sessão",
+   "volume_estimado": "não medido",
+   "termos_de_uso": "não localizado — nem busca nem tentativa direta encontraram página de termos de uso indexada",
+   "evidencias": []
+  }
+ ],
+ "fatos": [
+  {
+   "id": "fontes-provas-01",
+   "afirmacao": "O portal do INEP publica provas e gabaritos do ENEM organizados por ano (abas de 1998 até 2025) sob licença Creative Commons Atribuição-SemDerivações 3.0 Não Adaptada.",
+   "valor": "licença CC BY-ND 3.0 Não Adaptada",
+   "unidade_ou_periodo": "1998–2025",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos",
+     "tipo": "oficial",
+     "trecho": "Todo o conteúdo deste site está publicado sob a licença Creative Commons Atribuição-SemDerivações 3.0 Não Adaptada",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "A cláusula 'SemDerivações' pode restringir reprocessamento/reorganização automatizada do conteúdo por um Motor de Conhecimento; merece checagem jurídica antes de ingestão em massa."
+  },
+  {
+   "id": "fontes-provas-02",
+   "afirmacao": "A OAB/FGV disponibiliza no site examedeordem.oab.org.br as provas e editais de 47 edições do Exame de Ordem Unificado (do mais recente até 2010.2), com download individual ou em pacote único.",
+   "valor": "47 edições listadas",
+   "unidade_ou_periodo": "2010.2 até a edição mais recente",
+   "evidencias": [
+    {
+     "url": "https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0",
+     "tipo": "oficial",
+     "trecho": "Selecione na lista abaixo o Exame de Ordem Unificado que deseja pesquisar, e faça o download das provas e editais individualmente, ou aproveite e faça o download de todas as provas e editais em um único arquivo",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta"
+  },
+  {
+   "id": "fontes-provas-03",
+   "afirmacao": "O site institucional da Cebraspe (cebraspe.org.br) renderiza seu conteúdo via JavaScript: uma abertura direta por HTTP simples não expõe lista de concursos anteriores nem seção de termos de uso.",
+   "valor": "conteúdo não exposto em HTML estático simples",
+   "unidade_ou_periodo": "verificado em 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "tipo": "oficial",
+     "trecho": "Cebraspe | O melhor em avaliação de pessoas",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Isso não significa ausência de termos/copyright — só que esta sessão não conseguiu confirmá-los; um crawler com renderização JS (ou navegação com claude-in-chrome) provavelmente resolve."
+  },
+  {
+   "id": "fontes-provas-04",
+   "afirmacao": "A página 'Provas aplicadas' do FGV Conhecimento é um hub de navegação (emissão de certificado de aprovação), sem lista textual direta de provas nem termos de uso visíveis na página raiz.",
+   "valor": "hub sem listagem/termos expostos",
+   "unidade_ou_periodo": "verificado em 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "tipo": "oficial",
+     "trecho": "Provas aplicadas / Realizado / Solicite aqui seu Certificado de Aprovação da FGV para concursos e provas realizadas.",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media"
+  },
+  {
+   "id": "fontes-provas-05",
+   "afirmacao": "Os termos de uso do Tec Concursos (agregador de questões, não é fonte do Motor) proíbem expressamente robôs, scripts, crawlers, scrapers e ferramentas de IA para coleta/extração/reprodução automatizada do conteúdo da plataforma.",
+   "valor": "cláusula de proibição de extração automatizada",
+   "unidade_ou_periodo": "Seção 18, item 8.1 — 'Ferramentas Automatizadas' dos Termos de Uso",
+   "evidencias": [
+    {
+     "url": "https://www.tecconcursos.com.br/termos-de-uso",
+     "tipo": "oficial",
+     "trecho": "É expressamente proibida a utilização de robôs, scripts, crawlers, spiders, scrapers, agentes autônomos, sistemas automatizados, ferramentas de inteligência artificial... que realizem... a coleta, extração, captura, leitura, reprodução... automatizada de conteúdos disponibilizados na plataforma.",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Registrado apenas como risco de mercado (agregador de questões comentadas), não como fonte do Motor de Conhecimento — o Motor deve coletar das bancas/órgãos oficiais, não do Tec Concursos."
+  }
+ ],
+ "lacunas": [
+  "Cebraspe: não consegui abrir via WebFetch a lista real de concursos anteriores nem os termos de uso/política de privacidade (site JS-heavy, /politica-de-privacidade/ retornou 404). Precisa nova tentativa com renderização JS (ex.: claude-in-chrome) ou localizar a URL exata dos termos.",
+  "FGV Conhecimento: não localizei página com lista efetiva de provas anteriores nem termos de uso/copyright explícitos nesta sessão — apenas o hub 'Provas aplicadas' (conhecimento.fgv.br/node/141) e a página conhecimento.fgv.br/concursos, não abertas em detalhe.",
+  "OAB/FGV: não confirmei formato de arquivo (PDF presumido, não citado literalmente) nem aviso de direitos autorais/termos de uso na página de editais e provas.",
+  "Diário Oficial da União (in.gov.br): WebFetch falhou por erro de conexão (socket hang up); não confirmei se existe RSS/sitemap público para editais, nem abri os termos de uso do site — só há indicação (via snippet de busca, não usada como evidência) de que a API oficial WS-INCom é restrita a órgãos públicos.",
+  "PCI Concursos: tentativa de abrir /termos-de-uso/ retornou 404; termos de uso reais não localizados nesta sessão.",
+  "Concursos no Brasil (concursosnobrasil.com.br): não encontrei página de termos de uso nem por busca nem por tentativa direta de acesso.",
+  "Qconcursos: WebFetch em qconcursos.com/termos-de-uso retornou 403 Forbidden; não consegui confirmar literalmente a cláusula sobre extração automatizada (um snippet de busca mencionava proibição de robôs/scraping, mas não é evidência válida por regra desta pesquisa).",
+  "Volume estimado real de provas/anos disponíveis (Cebraspe, FGV, OAB) não medido: as páginas não expuseram contagem exata dentro do orçamento de aberturas desta sessão.",
+  "Não verificado: existência de sitemap.xml ou feed RSS em nenhuma das bancas/portais oficiais consultados — necessário para decidir o mecanismo de detecção de novidade do Motor."
+ ]
+}

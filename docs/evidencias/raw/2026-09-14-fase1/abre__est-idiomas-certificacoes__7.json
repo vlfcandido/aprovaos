@@ -1,0 +1,42 @@
+{
+ "paginas": [
+  {
+   "url": "https://github.com/filipedeschamps/tabnews.com.br/issues/1456",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "acreditava que o Tabnews seria uma plataforma de conhecimento, semelhante ao Reddit e ao Medium, que focaria principalmente em artigos elaborados por profissionais",
+     "contexto": "Issue #1456 - discussão sobre qualidade/uso do TabNews como fórum"
+    },
+    {
+     "trecho": "quantidade considerável de posts muito breves e repetitivos, com um conteúdo bastante superficial. Surpreendentemente, essas publicações de baixa qualidade acabam alcançando posições de destaque",
+     "contexto": "Reclamação sobre qualidade de conteúdo na plataforma"
+    },
+    {
+     "trecho": "Uma sugestão para evitar postagens repetidas seria a implementação de uma funcionalidade de busca de assuntos relacionados durante a criação do título do post",
+     "contexto": "Pedido de funcionalidade para reduzir trabalho manual de moderação"
+    },
+    {
+     "trecho": "implementar a classificação dos posts, tornando obrigatório para o autor informar o tipo de postagem que está escrevendo no momento da criação",
+     "contexto": "Pedido de categorização automática para reduzir tarefa manual"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.vagas.com.br/vagas/v2693215/professor-de-ingles",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém apenas informações descritivas da vaga de Professor de Inglês. Sem reclamações de usuário, pedidos de serviço, descrição de tarefas manuais ou preços explícitos."
+  },
+  {
+   "url": "https://www.vagas.com.br/vagas/v2683527/professor-de-ingles",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página sem conteúdo relevante para extração (reclamações, tarefas manuais, preços ou solicitações de serviço)."
+  }
+ ]
+}

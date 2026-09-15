@@ -1,0 +1,70 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/pmtotal-2020/pmp-simulado_F05KwchFA8R1iV2O/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "O PMPTOTAL tem um simulado para o t PMP, PMI, que segundo informação do site e centros de treinamento, quem conseguir tirar notas 85 ou maior, passa no exame. Acontece que isso não é verdade.",
+     "data": "02/10/2020",
+     "autor": "Roberto",
+     "contexto": "Reclamação de propaganda enganosa: usuário obteve notas acima de 85 no simulado mas reprovou no exame real; questões do PMI totalmente diferentes"
+    },
+    {
+     "trecho": "Sempre mantive notas acima de 85 fazendo xxxxxxx/xxxxxxx questões e não foi possível passar no exame PMI. As perguntas elaborados pelo PMI são totalmente diferentes do simulado PMPTOTAL.",
+     "data": "02/10/2020",
+     "autor": "Roberto",
+     "contexto": "Detalhe da reclamação: dissociação entre conteúdo do simulado e questões reais do PMI"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/ets-toefl/lista-reclamacoes/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Realizei o agendamento do TOEFL iBT Home Edition, porém não consegui realizar a prova devido a problemas durante o processo de check-in. Antes mesmo do exame, enfrentei diversas falhas no sistema de verificação de identidade pelo aplicativo IDVaaS.",
+     "data": "30/08/2026",
+     "autor": "Não identificado",
+     "contexto": "Problemas técnicos no Home Edition: sistema IDVaaS não reconhecia documento, apresentava mensagens de erro repetidamente"
+    },
+    {
+     "trecho": "Realizei as verificações necessárias no computador e avancei no processo, chegando ao momento em que estava prestes a iniciar a prova. Somente então fui informado de que determinados aplicativos instalados no computador não eram permitidos, e o exame foi interrompido.",
+     "data": "30/08/2026",
+     "autor": "Não identificado",
+     "contexto": "Falta de comunicação clara: requisitos técnicos não informados antecipadamente; prova interrompida após passar pelos checks"
+    },
+    {
+     "trecho": "Após fazer o teste e receber a nota, aparece o botão para baixar em PDF. Ao clicar o botão, o download não é disponibilizado.",
+     "data": "30/08/2026",
+     "autor": "Não identificado",
+     "contexto": "Problema técnico: download de PDF do resultado bloqueado após aprovação, exigindo documentos adicionais"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/british-council-brazil/alerta-ielts-online-e-paguei-r-1000-e-fui-impedido-de-fazer-o-teste_ox-LHzAfCcv86xgd/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Realizei a inscrição para o teste IELTS e efetuei o pagamento de R$*******. No dia e horário agendados, conectei-me ao aplicativo. Durante o teste, notei uma leve oscilação na tela. O examinador encerrou a sessão.",
+     "data": "17/09/2023",
+     "autor": "Jefferson Abreu",
+     "contexto": "Problema técnico menor (oscilação de tela) levou ao encerramento da sessão e impedimento de fazer o teste"
+    },
+    {
+     "trecho": "Posteriormente, recebi um e-mail informando que deveria pagar novamente R$******* para reagendar o exame. Sinto-me injustiçado com essa situação e acredito que há práticas questionáveis por parte dessa empresa.",
+     "data": "17/09/2023",
+     "autor": "Jefferson Abreu",
+     "contexto": "Cobrança dupla: após falha técnica, cobrado novamente sem reembolso da primeira taxa; usuário considera prática questionável"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

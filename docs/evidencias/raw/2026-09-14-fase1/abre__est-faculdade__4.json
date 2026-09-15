@@ -1,0 +1,25 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/preco/revisao-de-tcc",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página carregou com avaliações (Eduardo Filipe, Roberto, Ana Cristina) e faixas de preço estimadas, mas sem datas/autores específicos nos trechos conforme solicitado."
+  },
+  {
+   "url": "https://www.getninjas.com.br/anuncios/aulas/ensino-superior/aulas-de-reforco-e-monitoria-para-estudantes-do-ensino-fundamental-medio-e-de-engenharia",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "WebFetch não recuperou conteúdo relevante (resposta vazia); possível restrição de acesso ou formato dinâmico."
+  },
+  {
+   "url": "https://boletimrzero.substack.com/p/amadorismo-nas-provas-de-residencia",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página carregou com conteúdo sobre residência médica (Santa Casa SP, FELUMA, FMABC, datas de inscrições), mas não contém reclamações de usuário, pedidos de serviço recorrentes, tarefas manuais ou preços conforme critério."
+  }
+ ]
+}

@@ -1,0 +1,73 @@
+{
+ "paginas": [
+  {
+   "url": "https://play.google.com/store/apps/details?id=com.braiinstorm.correcao&hl=pt_PT&gl=US",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "URL retornou HTTP 404 Not Found — página não acessível."
+  },
+  {
+   "url": "https://uk.trustpilot.com/review/cambly.com?page=4",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "SLAVE WAGE As many other tutors have already mentioned, the pay is absolutely abysmal. Cambly advertises that tutors can earn UP TO $10.20 USD per hour",
+     "autor": "Luna",
+     "data": "Aug 10, 2024",
+     "contexto": "Reclamação sobre salário muito baixo para tutores"
+    },
+    {
+     "trecho": "This company is the worst! It has a toxic work environment, unfair low pay, and engages in unfair business practices.",
+     "autor": "John",
+     "data": "Aug 7, 2024",
+     "contexto": "Reclamação sobre ambiente de trabalho tóxico e remuneração injusta"
+    },
+    {
+     "trecho": "The pay. It's unbelievable how low it is! Especially with the current conditions we are living in. Cambly also takes on average 2/3 of what the students pay.",
+     "autor": "Bev",
+     "data": "Aug 5, 2024",
+     "contexto": "Reclamação sobre retirada excessiva de comissão pela plataforma"
+    },
+    {
+     "trecho": "Signed up one week ago, Cambly charged my credit card already but never can take a class. Called them but only get a machine answer",
+     "autor": "Mike",
+     "data": "Jun 22, 2024",
+     "contexto": "Reclamação sobre cobrança sem acesso ao serviço e atendimento deficiente"
+    }
+   ]
+  },
+  {
+   "url": "https://uk.trustpilot.com/review/www.openenglish.com?page=7",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "Open English are a bunch of crooks; they lie to people just to get customers. They call incessantly, begging you to sign up",
+     "autor": "Niki",
+     "data": "Sep 7, 2026",
+     "contexto": "Reclamação sobre mentiras em vendas e assédio por chamadas telefônicas"
+    },
+    {
+     "trecho": "They have an outdated platform, and there are unexpected charges that are not disclosed at the time of purchase. On top of that...you need to pay extra",
+     "autor": "Bryam Muñoz",
+     "data": "Mar 31, 2026",
+     "contexto": "Reclamação sobre plataforma desatualizada e cobranças extras não informadas"
+    },
+    {
+     "trecho": "They also make up to eight intrusive calls every day, pressuring me to purchase additional products and extra classes.",
+     "autor": "Bryam Muñoz",
+     "data": "Mar 31, 2026",
+     "contexto": "Reclamação sobre assédio telefônico para venda de produtos adicionais"
+    },
+    {
+     "trecho": "My experience was not good; it did not meet my expectations.",
+     "autor": "Angelica Maria Barrera Lopeteg",
+     "data": "Apr 8, 2026",
+     "contexto": "Reclamação sobre experiência não atender expectativas (1 estrela)"
+    }
+   ]
+  }
+ ]
+}

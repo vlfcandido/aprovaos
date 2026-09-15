@@ -1,0 +1,387 @@
+{
+ "gaps": [
+  {
+   "id": "est-piloto-01",
+   "titulo": "Anki e apps de repetição espaçada são difíceis de configurar e de alimentar — criar e organizar flashcards manualmente desmotiva mais que o próprio estudo",
+   "nicho": "Estudo autodirigido — flashcards e repetição espaçada (concursos, ENEM/vestibular, universitários)",
+   "dor": "Quem tenta adotar repetição espaçada por conta própria (Anki e afins) trava em dois pontos: (1) o esforço manual de transformar conteúdo estudado em cartões de revisão é, para muitos, mais desmotivador que o próprio estudo; (2) a interface e a configuração (organização de baralhos, algoritmo de intervalos/FSRS) são pouco amigáveis, geram perda de dados relatada e levam ao abandono da ferramenta mesmo entre quem reconhece o método como o melhor para retenção.",
+   "quem_sofre": "Concurseiros, vestibulandos e universitários que tentam adotar repetição espaçada por conta própria, sem suporte de curso pago",
+   "evidencias": [
+    {
+     "url": "https://www.tabnews.com.br/gabibits/como-utilizar-o-anki-para-reter-o-que-voce-vem-estudando",
+     "tipo": "forum",
+     "trecho": "é mais difícil criar o hábito de criar os flashcards que o hábito de estudar programação",
+     "data": "comentário de HugoNicolau, ~2022",
+     "contexto": "Comentário em post do TabNews sobre como usar o Anki para reter conteúdo estudado"
+    },
+    {
+     "url": "https://apps.apple.com/us/app/flashcards-maker-kardsai/id6462700482?l=pt-BR",
+     "tipo": "oficial",
+     "trecho": "Diga adeus às horas de criação manual de flashcards / Crie flashcards instantaneamente a partir de PDFs, textos e prompts",
+     "data": "ficha atual do app na App Store",
+     "contexto": "Descrição oficial do app KardsAI, cujo posicionamento de venda confirma a dor de criação manual"
+    },
+    {
+     "url": "https://www.trustpilot.com/review/anki.com",
+     "tipo": "review",
+     "trecho": "When I attempted to search for additional decks, I spent ages trying to find them on the app. When, eventually, I found them, I duly spent hours filling in the decks with cards, saving them, only to find the additional 'saved' decks had all disappeared.",
+     "data": "16 de dezembro de 2024, autor: Dr Christopher Nicol",
+     "contexto": "Review de 1 estrela do Anki no Trustpilot"
+    },
+    {
+     "url": "https://www.tabnews.com.br/gabibits/como-utilizar-o-anki-para-reter-o-que-voce-vem-estudando",
+     "tipo": "forum",
+     "trecho": "Anki é muito bom, mas o design dele não é nada agradável / não criar muitos baralhos, pois dificulta na hora de fazer as lições",
+     "data": "comentários de messiasolimpio e WesleyJw, ~2022",
+     "contexto": "Comentários no mesmo post do TabNews sobre uso do Anki"
+    },
+    {
+     "url": "https://www.reddit.com/r/concursospublicos/comments/1t3guln/mais_algu%C3%A9m_acha_o_anki_meio_complicado_demais/",
+     "tipo": "reddit",
+     "trecho": "Já tentei usar algumas vezes, mas sempre travo na organização dos cards e acabo largando. Fora que é chato revisar e tem hora que parece que só acumula coisas lá e dá uma preguiça de revisar aquilo... Sou Dev e Tô pensando em criar algo mais simples, tipo revisão automática baseada nos erros...",
+     "data": "post de ~maio/2026, coletado em 14/09/2026",
+     "contexto": "Autor Wrong-Tangerine-4136, 38 votos, 67 comentários, r/concursospublicos"
+    },
+    {
+     "url": "https://forums.ankiweb.net/t/problema-com-tempo-para-revisao-dos-cards/37694",
+     "tipo": "forum",
+     "trecho": "quando crio um novo cartão e termino de revisá-lo, aparecem intervalos diferentes para o cartão aparecer novamente (<1min; <10min e no máximo 5 dias)",
+     "data": "27 de novembro de 2023",
+     "contexto": "Usuário 'franco' relata confusão nos intervalos de revisão após backup/troca de computador"
+    }
+   ],
+   "quem_paga_hoje": "Usuários que já pagam em créditos/assinatura de apps de flashcard com geração por IA (ex.: sistema de 'gems' do KardsAI) para não montar os cartões na mão; a maioria não paga nada (Anki é gratuito) mas perde tempo reconfigurando ou migra para apps como AnkiApp/SmartCards+",
+   "solucoes_atuais": [
+    {
+     "nome": "KardsAI (Flashcards Maker)",
+     "preco": "freemium com créditos (\"gems\") pagos, valor exato não confirmado",
+     "url": "https://apps.apple.com/us/app/flashcards-maker-kardsai/id6462700482?l=pt-BR",
+     "por_que_falha": "Geração genérica a partir de PDF/texto, sem filtro por edital, banca ou matéria de concurso"
+    },
+    {
+     "nome": "Anki + add-ons manuais / FSRS",
+     "preco": "gratuito",
+     "url": "https://forums.ankiweb.net/",
+     "por_que_falha": "Exige criar cada cartão manualmente e entender configuração técnica de algoritmo que o usuário leigo não domina"
+    },
+    {
+     "nome": "AnkiApp / SmartCards+",
+     "preco": "não confirmado por fonte oficial de preços",
+     "url": "https://apps.apple.com/BR/app/id689185915",
+     "por_que_falha": "Sacrificam parte do algoritmo original ou não resolvem a organização inicial por matéria/banca"
+    }
+   ],
+   "por_que_falham": "As soluções de IA para gerar flashcards são genéricas (texto/PDF para cartão), sem entender o formato específico de edital, banca ou estrutura de prova; as manuais dependem 100% do esforço do usuário; as alternativas mais simples abrem mão de parte do algoritmo de repetição espaçada real.",
+   "palavras_chave": [
+    "criar flashcards automaticamente",
+    "flashcards para concurso",
+    "anki gerador de cartões",
+    "flashcard maker IA",
+    "anki concurso complicado",
+    "spaced repetition automática"
+   ],
+   "ia_aplicavel": "Um LLM pode gerar flashcards diretamente do material de estudo (PDF, edital, resumo, questão errada) já formatados no padrão do nicho, e também organizar baralhos/intervalos automaticamente — eliminando os dois pontos de atrito que hoje levam ao abandono.",
+   "sinais_de_tamanho": "não medido — não foi encontrada fonte oficial com número de usuários ativos de Anki/apps de flashcard no Brasil",
+   "risco_regulatorio": "baixo — não envolve dado sensível, conselho profissional ou atividade regulada",
+   "apelo_global": "Alto: a reclamação do Trustpilot é em inglês, de usuário fora do Brasil, e o Anki tem base de usuários global — o mesmo produto serviria além do público brasileiro de concursos.",
+   "fundiu": [
+    "Criação manual de flashcards trava quem estuda para concurso/ENEM/vestibular",
+    "Anki é difícil de configurar, tem UX ruim e perde dados salvos — usuários abandonam a repetição espaçada",
+    "Anki é complicado demais para o dia a dia de concurseiro"
+   ],
+   "observacoes": "Cinco fontes distintas (TabNews, App Store, Trustpilot, Reddit, fórum oficial do Anki) convergem no mesmo padrão de dor — criação manual + configuração/UX ruim — vindas de públicos diferentes (comunidade técnica BR, usuário internacional avulso, concurseiro BR). É o gap com maior diversidade de evidência do lote."
+  },
+  {
+   "id": "est-piloto-02",
+   "titulo": "Correção de redação ENEM/vestibular vira trabalho manual mal pago",
+   "nicho": "ENEM / vestibular — redação",
+   "dor": "Plataformas e estudantes precisam de correção de redação nos moldes ENEM (5 competências) em volume, e hoje isso é feito por freelancers humanos cobrando valores muito baixos (R$ 3 a R$ 20 por redação) ou por empresas que contratam corretores autônomos em regime avulso — não existe ferramenta madura e confiável de correção assistida que dê escala com qualidade.",
+   "quem_sofre": "Estudantes de ENEM/vestibular que querem feedback rápido e barato; plataformas de curso que precisam terceirizar correção em massa; freelancers que fazem esse trabalho repetitivo por preço baixo",
+   "evidencias": [
+    {
+     "url": "https://www.freelancer.com/projects/nubelo/corretor-de-redacao-enem-e-vestibulares",
+     "tipo": "freelancer",
+     "trecho": "Preciso de corretores de redação para um site. As redações serão corrigidas em um padrão estabelecido voltado ao ENEM e Vestibulares.",
+     "data": "não informada no pedido (coletado 14/09/2026)",
+     "contexto": "Pedido aberto no Freelancer.com; freelancers propuseram cerca de €250 com prazos de 1 a 14 dias"
+    },
+    {
+     "url": "https://vagas.solides.com.br/vaga/535824/corretor-de-redacao-28banco-de-talentos29",
+     "tipo": "vaga",
+     "trecho": "Realizar correções on-line de redações em plataforma automatizada, nos modelos Enem e vestibulares, com indicação de nota e comentários",
+     "data": "vaga ativa em 14/09/2026",
+     "contexto": "Vaga da empresa APROVA TOTAL EDUCACAO S.A., regime autônomo, exige graduação em Letras/Linguística"
+    },
+    {
+     "url": "https://www.vintepila.com.br/servicos/escrita-e-traducao/eu-vou-corrigir-uma-redacao-enem-pra-voce/",
+     "tipo": "freelancer",
+     "trecho": "Análise detalhada de sua redação do ENEM, detalhando os pontos fortes e fracos, evidenciando a nota final",
+     "data": "anúncio ativo em 14/09/2026",
+     "contexto": "Serviço avulso na VintePila por R$ 20,00 + R$ 4,00 de taxa, prazo de 1 dia"
+    }
+   ],
+   "quem_paga_hoje": "Estudantes individuais pagando R$ 3 a R$ 20 por redação avulsa a freelancers; plataformas educacionais contratando corretores autônomos em 'banco de talentos' por demanda",
+   "solucoes_atuais": [
+    {
+     "nome": "Corretores freelancer avulsos (Freelancer.com, VintePila, Workana)",
+     "preco": "R$ 3 a R$ 20 por redação",
+     "url": "https://www.vintepila.com.br/servicos/escrita-e-traducao/eu-vou-corrigir-uma-redacao-enem-pra-voce/",
+     "por_que_falha": "Não escala, depende de gente disponível e barata, qualidade inconsistente"
+    },
+    {
+     "nome": "coRedação (corretor de IA gratuito)",
+     "preco": "gratuito",
+     "url": "https://coredacao.com/",
+     "por_que_falha": "Genérico, não substitui a demanda de plataformas por correção 'em massa com identidade própria'"
+    }
+   ],
+   "por_que_falham": "O modelo humano avulso não escala (depende de gente disponível e barata, qualidade inconsistente); os corretores de IA gratuitos existentes são genéricos e não substituem a demanda de plataformas por correção em massa com identidade visual própria.",
+   "palavras_chave": [
+    "corretor de redação enem",
+    "correção de redação online",
+    "nota da redação enem",
+    "corretor de redação ia",
+    "competências enem redação"
+   ],
+   "ia_aplicavel": "Sim — LLM pode corrigir pelas 5 competências do ENEM com justificativa textual, no volume e velocidade que hoje só freelancers baratos conseguem sustentar.",
+   "sinais_de_tamanho": "Enem 2025 teve cerca de 5,5 milhões de inscritos, segundo o Ministério da Educação — cada um precisa escrever ao menos uma redação.",
+   "risco_regulatorio": "baixo — não há regulação sobre correção de redação; atenção apenas a promessas de 'nota garantida' (publicidade enganosa, CDC)",
+   "observacoes": "Três fontes de naturezas diferentes (pedido freelancer, vaga de emprego, serviço avulso) confirmando a mesma dor de forma independente."
+  },
+  {
+   "id": "est-piloto-03",
+   "titulo": "Desespero e ansiedade na reta final do TCC levam a pagar terceiros para escrever o trabalho, e formatação ABNT vira serviço pago à parte",
+   "nicho": "TCC / monografia universitária",
+   "dor": "Estudantes sem boa orientação didática nas disciplinas de TCC I/II chegam à desistência de fazer o trabalho sozinhos, pagam para outra pessoa escrever o TCC completo e depois sofrem ansiedade/pânico na defesa por não dominarem o próprio texto; paralelamente, a formatação nas normas ABNT (citações, margens, referências NBR 6023) é vista como tarefa manual chata que vira serviço pago à parte.",
+   "quem_sofre": "Graduandos no semestre de conclusão de curso, principalmente em cursos com orientação de TCC deficiente",
+   "evidencias": [
+    {
+     "url": "https://www.reddit.com/r/askacademico/comments/1wc0tcn/para_quem_pagou_o_tcc/",
+     "tipo": "reddit",
+     "trecho": "Enfim, eventualmente, desesperado, eu tive que pagar alguém para fazer o TCC pra mim. [...] Eu estou tendo ataque de ansiedade e pânico só de pensar na apresentação. Por causa dessa apresentação, minha vida tá estagnada.",
+     "data": "há 5 dias (coletado em 14/09/2026)",
+     "contexto": "Autor u/S4Y10HOI, r/askacademico, relata professor de TCC 'horrível de explicar' como causa raiz"
+    },
+    {
+     "url": "https://tccsolutionsgroup.com.br/quanto-custa-orientacao-e-revisao-de-tcc/",
+     "tipo": "oficial",
+     "trecho": "quanto maior o trabalho, mais horas de leitura, orientação e revisão ele consome",
+     "data": "página ativa em 14/09/2026",
+     "contexto": "Tabela de preços: artigos de 10 páginas R$297 até 30+ páginas R$597"
+    },
+    {
+     "url": "https://www.vintepila.com.br/servicos/escrita-e-traducao/eu-vou-revisar-o-seu-tcc-artigo-e-adequa-lo-as-normas-abnt/",
+     "tipo": "freelancer",
+     "trecho": "Formatação de trabalhos de até 25 páginas — Ajuste de citações diretas (curtas e longas com recuo de 4 cm) e indiretas — Bibliografia conforme NBR 6023",
+     "data": "anúncio ativo em 14/09/2026",
+     "contexto": "Serviço avulso de formatação ABNT por R$ 80,00 + taxa, prazo de 15 dias"
+    }
+   ],
+   "quem_paga_hoje": "Graduandos pagando de R$ 80 (só formatação ABNT) a R$ 297–2.000+ (orientação/redação completa) para terceiros",
+   "solucoes_atuais": [
+    {
+     "nome": "TCC Solutions Group",
+     "preco": "R$ 297 a R$ 597+",
+     "url": "https://tccsolutionsgroup.com.br/quanto-custa-orientacao-e-revisao-de-tcc/",
+     "por_que_falha": "Resolve a entrega mas não a compreensão do aluno sobre o próprio trabalho"
+    },
+    {
+     "nome": "Serviço de formatação ABNT avulso (VintePila)",
+     "preco": "R$ 80,00 + taxa",
+     "url": "https://www.vintepila.com.br/servicos/escrita-e-traducao/eu-vou-revisar-o-seu-tcc-artigo-e-adequa-lo-as-normas-abnt/",
+     "por_que_falha": "Tarefa mecânica vendida como serviço humano caro e manual"
+    }
+   ],
+   "por_que_falham": "Serviços de 'TCC pronto'/orientação paga resolvem a entrega mas não a compreensão do aluno sobre o próprio trabalho — o problema reaparece na defesa oral; a formatação ABNT manual é tediosa mas mecânica, um encaixe natural para automação ainda vendido como trabalho humano caro.",
+   "palavras_chave": [
+    "revisão abnt tcc",
+    "formatação abnt automática",
+    "orientação de tcc online",
+    "ansiedade tcc defesa",
+    "tcc pronto preço"
+   ],
+   "ia_aplicavel": "Sim — formatação ABNT (citações, referências, estrutura) é mecânica e automatizável por IA; e um assistente de orientação socrática poderia reduzir a dependência de pagar para terceiros escreverem o trabalho.",
+   "sinais_de_tamanho": "não medido — não foi encontrado número oficial de concluintes de graduação/TCCs produzidos por ano no Brasil dentro do orçamento de busca",
+   "risco_regulatorio": "médio — serviços de 'fazer o TCC pronto' esbarram em regras de integridade acadêmica das universidades (plágio, autoria); uma ferramenta de apoio (não substituição) evita esse risco"
+  },
+  {
+   "id": "est-piloto-04",
+   "titulo": "Cancelamento de assinatura de cursinho/app de estudo é difícil e gera cobrança indevida mesmo após o cancelamento",
+   "nicho": "Concursos públicos, ENEM/vestibular, universitários, idiomas — plataformas e apps de estudo por assinatura",
+   "dor": "Assinantes tentam cancelar (às vezes dentro do prazo legal de arrependimento de 7 dias) e enfrentam falha no sistema/atendimento que impede o registro do cancelamento, sendo cobrados mesmo assim pela renovação automática; em outros casos a cobrança continua meses ou até um ano depois do cancelamento efetivo, ou a conta é suspensa ao remover o cartão — obrigando o usuário a recorrer a Reclame Aqui ou à loja de apps para conseguir estorno.",
+   "quem_sofre": "Concurseiros e estudantes assinantes de plataformas de questões/videoaulas (Estratégia Concursos, QConcursos) e de apps de flashcards/resumos (Revisely, Passei Direto, RemNote) que esqueceram de cancelar antes da renovação ou tiveram o cancelamento mal processado",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/cobranca-indevida-e-dificuldade-no-cancelamento-de-assinatura-do-estrategia-concursos_tuBLQvskZY3G32Ra/",
+     "tipo": "review",
+     "trecho": "fui informado via chat que não localizaram meu cadastro no sistema, o que impediu a formalização do cancelamento. [...] Ainda assim, o valor foi devidamente cobrado, sem que meu pedido fosse processado.",
+     "data": "14/02/2026",
+     "contexto": "Reclamação sobre Estratégia Concursos, respondida pela empresa admitindo a renovação automática"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/qconcursos/cancelamento-de-assinatura_xUTNdBd0lg3xlyXK/",
+     "tipo": "review",
+     "trecho": "Contratei a Qconcursos [...] porém não estou utilizando o serviço e quero cancelar. Não consegui cancelar pelo APP e dessa forma estou solicitando ajuda para cancelar por aqui.",
+     "data": "15/05/2026",
+     "contexto": "Caso marcado como 'Resolvido' só depois da reclamação pública"
+    },
+    {
+     "url": "https://br.trustpilot.com/review/revisely.com",
+     "tipo": "review",
+     "trecho": "Come to find out they just charged me again even though I cancelled a year ago. Horrible. Do not get. Waste of money.",
+     "data": "9 out. 2025",
+     "contexto": "Cobrança mesmo um ano após cancelamento"
+    },
+    {
+     "url": "https://br.trustpilot.com/review/revisely.com",
+     "tipo": "review",
+     "trecho": "They cut the money after cancellation. If you remove the card from the account, they suspend your account.",
+     "data": "1 ago. 2026",
+     "contexto": "Suspensão de conta ao remover cartão após cancelamento"
+    },
+    {
+     "url": "https://support.google.com/googleplay/thread/365166432/eu-havia-cancelado-via-google-play-a-conta-premium-do-passei-direto-por%C3%A9m-ainda-est%C3%A3o-me-cobrando?hl=pt-BR",
+     "tipo": "forum",
+     "trecho": "eu havia cancelado via google play, a conta premium do passei direto, porém ainda estão me cobrando",
+     "data": "não informado",
+     "contexto": "Cobrança contínua no Passei Direto mesmo após cancelamento via Google Play"
+    }
+   ],
+   "quem_paga_hoje": "O próprio assinante paga a mensalidade/anuidade renovada indevidamente e perde tempo abrindo reclamação pública ou disputa com a loja de apps para conseguir o estorno",
+   "solucoes_atuais": [
+    {
+     "nome": "Reclame Aqui (canal de pressão pública)",
+     "preco": "gratuito para o consumidor",
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/lista-reclamacoes/",
+     "por_que_falha": "Resolve caso a caso e depende de exposição pública, não previne o problema"
+    }
+   ],
+   "por_que_falham": "O fluxo de cancelamento não está integrado de forma confiável com a plataforma de pagamento (loja de apps ou gateway próprio), e o suporte não automatiza o encerramento real da cobrança recorrente, deixando o ônus da prova e da disputa para o usuário.",
+   "palavras_chave": [
+    "cancelar assinatura estratégia concursos",
+    "cobrança indevida curso online",
+    "renovação automática cursinho",
+    "estorno assinatura Google Play",
+    "subscription still charged after cancel"
+   ],
+   "ia_aplicavel": "Parcial — um agente/lembrete pode monitorar datas de renovação e gerar automaticamente a solicitação de cancelamento/carta de arrependimento, mas não substitui a ação da empresa",
+   "sinais_de_tamanho": "Estratégia Concursos registra 1.160 reclamações no Reclame Aqui com 99,8% de resposta (resumo da busca no site, não trecho literal aberto)",
+   "risco_regulatorio": "médio — direito de arrependimento do CDC (art. 49) e práticas de renovação automática são objeto de fiscalização do Procon/CDC; uma ferramenta de terceiros que 'cancela por você' pode esbarrar em termos de uso das plataformas",
+   "fundiu": [
+    "Cancelamento de assinatura de cursinho online (Estratégia Concursos, QConcursos) é difícil e gera cobrança indevida por renovação automática",
+    "Cobrança continua ou conta é suspensa mesmo após cancelamento de assinatura de app de estudo"
+   ],
+   "observacoes": "Cinco reclamações de quatro produtos distintos (Estratégia Concursos, QConcursos, Revisely, Passei Direto) no mesmo padrão de falha de cancelamento/cobrança — é o gap com maior recorrência entre produtos diferentes."
+  },
+  {
+   "id": "est-piloto-05",
+   "titulo": "Bugs recorrentes em recursos de plataformas de curso online (cronograma automático, app/banco de questões) frustram alunos e provocam migração para concorrentes",
+   "nicho": "Concursos públicos — plataformas de videoaulas e banco de questões",
+   "dor": "Recursos que deveriam ajudar o aluno a se organizar (cronograma automático) ou revisar (app de banco de questões) falham de forma estrutural e persistente: o cronograma reorganiza aulas sozinho e marca conteúdo concluído como pendente; o app de questões trava com limite de cadernos e não recebe correção por anos. O suporte não resolve mesmo após múltiplos contatos, e parte dos alunos migra para concorrentes só por causa disso.",
+   "quem_sofre": "Concurseiro assinante de curso online (Gran Cursos Online, Estratégia Concursos) que estuda por conta própria e depende desses recursos para organizar e revisar o estudo",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/cronograma-que-so-atrapalha_bP1klv814AzzDBFV/",
+     "tipo": "review",
+     "trecho": "Não consigo estudar um único curso em sequência. O cronograma que a plataforma oferece que deveria ajudar o aluno, só faz mesmo é atrapalhar",
+     "data": "16/03/2021",
+     "contexto": "Reclamação sobre cronograma que atrapalha em vez de ajudar"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/instabilidade-e-falhas-no-cronograma-da-plataforma-gran-cursos-online_3b06CuFmIoJ8WDF8/",
+     "tipo": "review",
+     "trecho": "Aulas já assistidas voltam a aparecer como pendentes; O cronograma reorganiza automaticamente a ordem das aulas; A plataforma deixa de indicar corretamente qual foi a última aula concluída",
+     "data": "23/02/2026",
+     "contexto": "Falhas recorrentes no cronograma reportadas mais de 10 vezes ao suporte"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/app-estrategia-questoes-todo-bugado_3Y9D96KVErPRunjI/",
+     "tipo": "review",
+     "trecho": "o APP não carrega mais que 9 cadernos de questões, tenho vários cadernos que criei com conteúdo especifico para melhorar o rendimento e não consigo utilizar",
+     "data": "28/12/2020",
+     "contexto": "Bug de limite de cadernos de questões sem solução após vários chamados"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/aplicativo_0pzaFHTAZs7VrHb0/",
+     "tipo": "review",
+     "trecho": "Tenho vários amigos que migraram para outros cursos pra falta do aplicativo e eu estou quase fazendo o mesmo",
+     "data": "06/01/2023",
+     "contexto": "Churn de alunos por ausência de aplicativo mobile"
+    }
+   ],
+   "quem_paga_hoje": "Assinante de cursinho preparatório online que já paga pelo curso e ainda perde tempo reorganizando manualmente o planejamento ou considera trocar de fornecedor",
+   "solucoes_atuais": [
+    {
+     "nome": "Módulo de cronograma automático do Gran Cursos Online",
+     "por_que_falha": "Reorganiza aulas sozinho, marca conteúdo concluído como pendente e não segue a sequência definida pelo aluno; suporte não resolve mesmo após múltiplos contatos"
+    },
+    {
+     "nome": "App Estratégia Concursos (banco de questões)",
+     "por_que_falha": "Limite técnico de cadernos carregados não corrigido por anos; nota baixa na Play Store"
+    }
+   ],
+   "por_que_falham": "Esses recursos são módulos internos do curso, não produtos de estudo autônomos; correções dependem do roadmap do curso e não da necessidade do aluno, e o suporte não dá prazo de correção para bugs estruturais.",
+   "palavras_chave": [
+    "cronograma de estudos automático",
+    "plano de estudos concurso",
+    "banco de questões concurso app",
+    "app de questões concurso trava",
+    "study schedule app"
+   ],
+   "ia_aplicavel": "Um assistente de IA poderia gerar e replanejar automaticamente o cronograma com base no progresso real (aulas concluídas, desempenho em questões), e um app independente de banco de questões com IA poderia gerar cadernos ilimitados e adaptar a dificuldade — ambos sem depender do cursinho de origem.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — relação de consumo comum (CDC), sem exigência de conselho profissional envolvida",
+   "fundiu": [
+    "Cronograma automático de plataforma de curso online desorganiza o estudo em vez de ajudar",
+    "App de questões e app mobile de cursinho preparatório bugado ou inexistente gera migração de alunos"
+   ],
+   "observacoes": "Quatro reclamações contra duas empresas distintas (Gran Cursos, Estratégia Concursos) em datas espalhadas de 2020 a 2026, mostrando persistência do problema ao longo do tempo."
+  },
+  {
+   "id": "est-piloto-06",
+   "titulo": "Apps de estudo escondem recursos essenciais atrás de paywall depois de o usuário já ter investido tempo no conteúdo",
+   "nicho": "Estudo para concursos, universitários, estudo autodirigido (flashcards e resumos com IA)",
+   "dor": "O app libera parte do resultado (ex.: resumo gerado a partir de foto/scan) mas esconde o conteúdo completo atrás de assinatura paga, ou passa a bloquear funcionalidades que antes eram abertas, depois que o usuário já criou seu material de estudo na ferramenta.",
+   "quem_sofre": "Estudante com orçamento limitado que usa apps freemium de flashcards/resumos para revisão",
+   "evidencias": [
+    {
+     "url": "https://www.trustpilot.com/review/remnote.com",
+     "tipo": "review",
+     "trecho": "they started locking most of the functionalities behind a paywall, and it was disappointing. As a student on a budget, it felt like a bait-and-switch",
+     "data": "18 de abril de 2023",
+     "contexto": "Funcionalidades antes abertas passaram a exigir pagamento"
+    },
+    {
+     "url": "https://br.trustpilot.com/review/revisely.com",
+     "tipo": "review",
+     "trecho": "It let's me scan an image and have a very far fetched result whil showing me the result I want but hiding it behind a pay wall in a very scummy way.",
+     "data": "14 mar. 2026",
+     "contexto": "Resultado do scan mostrado parcialmente, escondido atrás de paywall"
+    }
+   ],
+   "quem_paga_hoje": "Estudante que já usa a versão gratuita do app (RemNote, Revisely) e investiu tempo criando conteúdo, sentindo-se forçado a pagar para acessar o que já parecia disponível",
+   "solucoes_atuais": [
+    {
+     "nome": "RemNote",
+     "por_que_falha": "Bloqueou funcionalidades que antes eram gratuitas, gerando sensação de 'bait-and-switch'"
+    },
+    {
+     "nome": "Revisely",
+     "por_que_falha": "Mostra o resultado do scan mas esconde o conteúdo completo atrás de paywall de forma considerada enganosa pelo usuário"
+    }
+   ],
+   "por_que_falham": "O modelo de monetização freemium muda as regras depois que o usuário já depende da ferramenta para seu material de estudo, sem alternativa de exportar ou migrar o conteúdo criado, criando lock-in percebido como abusivo.",
+   "palavras_chave": [
+    "flashcards app pago",
+    "resumo automático de texto grátis",
+    "app estudo sem paywall",
+    "study app no paywall"
+   ],
+   "ia_aplicavel": "Um produto poderia diferenciar-se oferecendo geração de resumos/flashcards por IA com limites de uso transparentes desde o início, sem ocultar resultado já processado atrás de paywall.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo/médio — publicidade enganosa sobre funcionalidade gratuita pode ser questionada sob o CDC",
+   "observacoes": "Duas evidências de produtos concorrentes distintos (RemNote e Revisely) descrevendo o mesmo padrão de paywall percebido como enganoso."
+  }
+ ],
+ "descartados": []
+}

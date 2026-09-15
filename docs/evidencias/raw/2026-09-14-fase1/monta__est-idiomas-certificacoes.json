@@ -1,0 +1,230 @@
+{
+ "gaps": [
+  {
+   "titulo": "Falhas técnicas e processos abusivos em provas de certificação de idiomas online (TOEFL/IELTS)",
+   "nicho": "Estudos — certificações de idiomas (TOEFL/IELTS)",
+   "dor": "Candidatos pagam taxas altas (relato de R$1000 no IELTS) para provas online (TOEFL iBT Home Edition, IELTS) e enfrentam falhas do sistema de verificação de identidade (IDVaaS), requisitos técnicos não comunicados antes do exame (apps proibidos descobertos só na hora), interrupção da prova por oscilação de tela e cobrança de nova taxa para reagendar sem reembolso da primeira. Há também relato de negação de acesso presencial por aplicação inconsistente da regra de documento de identidade (RG exigido, CNH recusada apesar de ser documento civil válido).",
+   "quem_sofre": "Candidatos individuais a certificações internacionais de inglês (TOEFL, IELTS), muitos buscando visto de estudo/trabalho ou pontuação para processos seletivos.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/empresa/ets-toefl/lista-reclamacoes/",
+     "tipo": "review",
+     "trecho": "Realizei o agendamento do TOEFL iBT Home Edition, porém não consegui realizar a prova devido a problemas durante o processo de check-in. Antes mesmo do exame, enfrentei diversas falhas no sistema de verificação de identidade pelo aplicativo IDVaaS.",
+     "data": "30/08/2026",
+     "contexto": "Problemas técnicos no Home Edition"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/british-council-brazil/alerta-ielts-online-e-paguei-r-1000-e-fui-impedido-de-fazer-o-teste_ox-LHzAfCcv86xgd/",
+     "tipo": "review",
+     "trecho": "Realizei a inscrição para o teste IELTS e efetuei o pagamento de R$*******. No dia e horário agendados, conectei-me ao aplicativo. Durante o teste, notei uma leve oscilação na tela. O examinador encerrou a sessão.",
+     "data": "17/09/2023",
+     "contexto": "Cobrança dupla após falha técnica não coberta por reembolso"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/british-council-brazil/incoerencia-e-procedimento-abusivo-na-aplicacao-do-ielts_x9VpTidePYHjx4ws/",
+     "tipo": "review",
+     "trecho": "Na ocasião fui impedida de fazer as avaliações em virtude de não estar portando meu RG. Eu tinha comigo apenas a licença de motorista (CNH), uma vez que pela lei a carteira de habilitação é considerado documento de identificação civil válido no território brasileiro.",
+     "data": "11/10/2016",
+     "contexto": "Negação de acesso ao exame por critério de documento aplicado de forma inconsistente"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1",
+     "tipo": "review",
+     "trecho": "Contratei a aplicação da prova de proficiência em inglês TOEFL Home Edition, oferecida pela empresa ETS (Educational Testing Service), por meio da plataforma MASTERTEST.",
+     "data": "Há 1 ano",
+     "contexto": "Falha técnica e recusa de reembolso via revendedor brasileiro"
+    }
+   ],
+   "quem_paga_hoje": "O próprio candidato paga a taxa de inscrição da prova (centenas a mais de R$1000) e, quando há falha da plataforma, é obrigado a pagar novamente para reagendar sem reembolso da primeira tentativa.",
+   "solucoes_atuais": [
+    {
+     "nome": "ETS TOEFL (iBT Home Edition)",
+     "preco": "não medido nesta rodada",
+     "url": "https://www.reclameaqui.com.br/empresa/ets-toefl/lista-reclamacoes/"
+    },
+    {
+     "nome": "British Council (IELTS online/presencial)",
+     "preco": "≈R$1000 (relato de cliente)",
+     "url": "https://www.reclameaqui.com.br/british-council-brazil/alerta-ielts-online-e-paguei-r-1000-e-fui-impedido-de-fazer-o-teste_ox-LHzAfCcv86xgd/"
+    },
+    {
+     "nome": "MASTERTEST (revenda/aplicação no Brasil)",
+     "preco": "não medido nesta rodada",
+     "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1"
+    }
+   ],
+   "por_que_falham": "Sistemas de verificação de identidade e ambiente (IDVaaS, checagem de apps abertos) são frágeis e falham sem aviso prévio claro; a política de reembolso é rígida mesmo quando a falha é comprovadamente da plataforma; critérios de aceitação de documento variam entre atendentes, gerando abuso processual.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — envolve relação de consumo (CDC) sobre cobrança e reembolso de serviço não prestado por falha técnica da própria empresa; sem conselho profissional regulador direto.",
+   "palavras_chave": [
+    "TOEFL home edition falha",
+    "IELTS reembolso reagendamento",
+    "MASTERTEST reclamação",
+    "IDVaaS erro TOEFL",
+    "IELTS documento RG CNH"
+   ],
+   "ia_aplicavel": "Um checklist/simulador com IA que valida antecipadamente ambiente, documento e requisitos técnicos do candidato antes do agendamento reduziria reprovas técnicas evitáveis.",
+   "apelo_global": "TOEFL e IELTS são certificações aplicadas globalmente; a dor de falha técnica em provas remotas e política de reembolso se replica em outros países.",
+   "observacoes": "Todas as 4 evidências vêm de reclameaqui (acessado via chrome, não bloqueado nesta sessão apesar da regra geral de evitar o domínio)."
+  },
+  {
+   "titulo": "Simulados desalinhados da prova real e burocracia manual para reemissão de documentos oficiais em certificações profissionais",
+   "nicho": "Estudos — certificações profissionais (PMP, TOEFL)",
+   "dor": "Candidatos a PMP usam simulado pago (PMPTOTAL) que não reflete o estilo real das questões do PMI — nota consistente acima de 85 no simulado não impediu reprovação no exame oficial. Em paralelo, candidatos de TOEFL via revenda (MASTERTEST) enfrentam processo manual e travado para reemitir o 'Score Report': pagamento via PIX exigido e documento não entregue.",
+   "quem_sofre": "Profissionais em preparação para certificações internacionais (PMP do PMI, TOEFL) que dependem de terceiros para simulados e emissão de documentos oficiais.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/pmtotal-2020/pmp-simulado_F05KwchFA8R1iV2O/",
+     "tipo": "review",
+     "trecho": "Sempre mantive notas acima de 85 fazendo questões e não foi possível passar no exame PMI. As perguntas elaboradas pelo PMI são totalmente diferentes do simulado PMPTOTAL.",
+     "data": "02/10/2020",
+     "contexto": "Simulado não reflete o exame real do PMI"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1",
+     "tipo": "review",
+     "trecho": "Solicitei a 2a via do meu Score Report e fui informada que tão logo o pagamento via PIX fosse efetuado eu receberia.",
+     "data": "não especificada",
+     "contexto": "Reemissão de documento oficial travada em processo manual de conferência de pagamento"
+    }
+   ],
+   "quem_paga_hoje": "Candidato paga pelo simulado (PMPTOTAL) confiando na nota como preditor de aprovação, e paga taxa extra via PIX para reemitir documento oficial que não é entregue no prazo.",
+   "solucoes_atuais": [
+    {
+     "nome": "PMPTOTAL (simulados PMP)",
+     "preco": "não medido nesta rodada",
+     "url": "https://www.reclameaqui.com.br/pmtotal-2020/pmp-simulado_F05KwchFA8R1iV2O/"
+    },
+    {
+     "nome": "MASTERTEST (score report/serviços associados a TOEFL)",
+     "preco": "não medido nesta rodada",
+     "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1"
+    }
+   ],
+   "por_que_falham": "Banco de questões do simulado desatualizado ou não calibrado ao formato real do exame oficial, dando falsa confiança; processo de emissão de documento depende de conferência manual humana de pagamento, sem automação, gerando atraso e reclamação recorrente.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — PMP é certificação internacional do PMI sem conselho regulador brasileiro; risco limitado a relação de consumo.",
+   "palavras_chave": [
+    "simulado PMP não reflete prova",
+    "PMPTOTAL reclamação",
+    "MASTERTEST score report",
+    "reemissão score report TOEFL"
+   ],
+   "ia_aplicavel": "Geração de banco de questões calibrado por IA a partir do guia oficial (PMBOK/PMI) com estimativa de probabilidade real de aprovação, e automação do fluxo de verificação de pagamento/emissão de documento para eliminar a etapa manual.",
+   "apelo_global": "PMP é certificação internacional; a dor de simulados desalinhados tende a existir em qualquer mercado que revenda preparatório para certificações do PMI.",
+   "observacoes": ""
+  },
+  {
+   "titulo": "Comissão alta e remuneração baixa a tutores em plataformas de tutoria de inglês online, com cobrança sem entrega de aula",
+   "nicho": "Estudos — tutoria de idiomas online (marketplace de professores)",
+   "dor": "Tutores da Cambly reclamam de pagamento muito baixo e de a plataforma reter em média 2/3 do valor pago pelo aluno; alunos reclamam de terem sido cobrados no cartão sem conseguir acessar nenhuma aula e de suporte que só responde com mensagem automática. Em outra plataforma (Open English), há relato de vendas por até 8 ligações intrusivas por dia e cobranças extras não informadas no momento da compra.",
+   "quem_sofre": "Tutores freelance de inglês que dependem da renda da plataforma, e alunos consumidores de cursos/tutoria online.",
+   "evidencias": [
+    {
+     "url": "https://uk.trustpilot.com/review/cambly.com?page=4",
+     "tipo": "review",
+     "trecho": "The pay. It's unbelievable how low it is! Especially with the current conditions we are living in. Cambly also takes on average 2/3 of what the students pay.",
+     "data": "Aug 5, 2024",
+     "contexto": "Comissão alta retida pela plataforma sobre pagamento do aluno"
+    },
+    {
+     "url": "https://uk.trustpilot.com/review/cambly.com?page=4",
+     "tipo": "review",
+     "trecho": "Signed up one week ago, Cambly charged my credit card already but never can take a class. Called them but only get a machine answer",
+     "data": "Jun 22, 2024",
+     "contexto": "Cobrança sem entrega de serviço e suporte automatizado ineficaz"
+    },
+    {
+     "url": "https://uk.trustpilot.com/review/www.openenglish.com?page=7",
+     "tipo": "review",
+     "trecho": "They also make up to eight intrusive calls every day, pressuring me to purchase additional products and extra classes.",
+     "data": "Mar 31, 2026",
+     "contexto": "Vendas agressivas por telefone"
+    },
+    {
+     "url": "https://uk.trustpilot.com/review/www.openenglish.com?page=7",
+     "tipo": "review",
+     "trecho": "They have an outdated platform, and there are unexpected charges that are not disclosed at the time of purchase.",
+     "data": "Mar 31, 2026",
+     "contexto": "Cobrança extra não informada na compra"
+    }
+   ],
+   "quem_paga_hoje": "Alunos pagam mensalidade/pacote de aulas no cartão; tutores recebem repasse baixo (cerca de 1/3 do valor pago pelo aluno, segundo relato).",
+   "solucoes_atuais": [
+    {
+     "nome": "Cambly",
+     "preco": "até US$10,20/hora para o tutor (valor anunciado, contestado como não cumprido)",
+     "url": "https://uk.trustpilot.com/review/cambly.com?page=4"
+    },
+    {
+     "nome": "Open English",
+     "preco": "não medido nesta rodada (cobranças extras não divulgadas no ato da compra, segundo relato)",
+     "url": "https://uk.trustpilot.com/review/www.openenglish.com?page=7"
+    }
+   ],
+   "por_que_falham": "Modelo de marketplace com comissão alta desestimula bons tutores a permanecerem; processo comercial de call center agressivo e cobrança oculta gera desconfiança do consumidor; suporte ao cliente automatizado não resolve falhas de cobrança/acesso em tempo hábil.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — cobrança não informada e renovação/venda agressiva podem configurar prática abusiva sob o Código de Defesa do Consumidor.",
+   "palavras_chave": [
+    "Cambly reclamação pagamento",
+    "tutor de inglês online remuneração baixa",
+    "Open English cobrança oculta",
+    "curso de inglês ligação insistente"
+   ],
+   "ia_aplicavel": "Matching e precificação transparente via IA entre tutor e aluno, com contrato de comissão explícito, e um agente de suporte que resolve falhas de cobrança/acesso em tempo real sem depender de atendimento humano lento.",
+   "apelo_global": "Cambly e Open English operam internacionalmente (reviews em inglês, domínio uk.trustpilot.com), então a dor de comissão de marketplace e vendas agressivas tem apelo além do Brasil.",
+   "observacoes": ""
+  },
+  {
+   "titulo": "Ausência de plataforma formal para prática de conversação em inglês — grupos informais de WhatsApp recriados e mal-sucedidos",
+   "nicho": "Estudos — prática de conversação em idiomas",
+   "dor": "Usuários pedem repetidamente, em datas distintas (2020 e 2023), por grupos de WhatsApp para praticar conversação em inglês por não encontrarem solução formal; quando o grupo informal existe, falha na prática porque os participantes acabam falando português entre si por falta de moderação/estrutura.",
+   "quem_sofre": "Estudantes autodidatas de inglês que buscam prática de conversação de baixo custo e não sustentam o uso de apps de idioma sozinhos.",
+   "evidencias": [
+    {
+     "url": "https://hinative.com/questions/15716160",
+     "tipo": "forum",
+     "trecho": "Alguém tem algum grupo pra prática de conversação em inglês no WhatsApp?",
+     "data": "2020-03-19",
+     "contexto": "Pedido por grupo formal de prática, sem solução de produto disponível"
+    },
+    {
+     "url": "https://hinative.com/questions/23331192",
+     "tipo": "forum",
+     "trecho": "Infelizmente grupos de conversação em inglês não funcionam. Brasileiros gostam de falar português...",
+     "data": "2023-01-11",
+     "contexto": "Falha estrutural do grupo informal: ausência de moderação que force o uso do idioma"
+    }
+   ],
+   "quem_paga_hoje": "Ninguém paga hoje de forma estruturada — a demanda é resolvida (mal) de graça em grupos informais de WhatsApp, ou perdida em apps que os usuários desinstalam ('já baixei vários aplicativos... sempre desinstalo').",
+   "solucoes_atuais": [
+    {
+     "nome": "Grupos informais de WhatsApp criados por usuários",
+     "preco": "grátis",
+     "url": "https://hinative.com/questions/23331192"
+    }
+   ],
+   "por_que_falham": "Sem moderação, sem estrutura de nível/tema, sem regra que force o uso do inglês — o grupo tende a virar conversa em português; a mesma demanda reaparece anos depois sem produto formal ter resolvido o problema.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — não há conselho profissional envolvido.",
+   "palavras_chave": [
+    "grupo whatsapp para praticar inglês",
+    "grupo de conversação em inglês",
+    "app para treinar inglês que funciona",
+    "prática de conversação em inglês grátis"
+   ],
+   "ia_aplicavel": "Matching por nível/tema com moderação automática via IA (força o uso do inglês, corrige erros em tempo real, sugere tópicos) resolveria diretamente a falha relatada de grupos virarem conversa em português.",
+   "apelo_global": "O modelo de language exchange tem apelo internacional (comparável a Tandem/HelloTalk), mas a dor aqui é específica de grupos informais em português que não sustentam o idioma-alvo.",
+   "observacoes": "Evidências vêm de hinative.com, acessado via chrome (não listado nas regras gerais de bloqueio, mas fora da lista de sites recomendados)."
+  }
+ ],
+ "fontes_sem_resultado": [
+  "https://play.google.com/store/apps/details?id=com.braiinstorm.correcao&hl=pt_PT&gl=US — HTTP 404 Not Found, página não acessível.",
+  "https://www.quora.com/Which-is-the-best-IELTS-writing-correction-website — bloqueada por 403 Forbidden (WebFetch) e Permission denied (Chrome).",
+  "https://silabe.com.br/blog/professor-ganhe-dinheiro-corrigindo-redacao/ — HTTP 522 (serviço indisponível), conteúdo não recuperado.",
+  "https://www.vagas.com.br/vagas/v2693215/professor-de-ingles — carregou mas contém apenas descrição da vaga, sem reclamações, tarefas manuais ou preços.",
+  "https://www.vagas.com.br/vagas/v2683527/professor-de-ingles — carregou mas sem conteúdo relevante para extração.",
+  "https://www.getninjas.com.br/aulas/concursos/outros/sp/sao-paulo/orcamentos/950122-procuro-professores-freelancer-para — carregou mas sem reclamações, pedidos específicos ou preços.",
+  "https://www.99freelas.com.br/project/responder-30-licoes-do-site-mais-ingles-568464 — carregou apenas banner de cookies, conteúdo dinâmico não acessível via extração de texto."
+ ]
+}

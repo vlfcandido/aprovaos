@@ -1,0 +1,126 @@
+{
+ "candidatas": [
+  {
+   "url": "https://play.google.com/store/apps/details?id=com.braiinstorm.correcao&hl=pt_PT&gl=US",
+   "fonte": "reviews",
+   "por_que": "Snippet indica reclamação de usuário: atraso em receber códigos de correção mensal e falta de resposta por e-mail, feedback pouco detalhado.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/pmtotal-2020/pmp-simulado_F05KwchFA8R1iV2O/",
+   "fonte": "reviews",
+   "por_que": "Reclamação literal: simulado promete aprovação com nota 85+ mas usuário reprovou na prova real do PMI, questões muito diferentes do simulado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/ets-toefl/lista-reclamacoes/",
+   "fonte": "reviews",
+   "por_que": "Lista de reclamações da ETS Toefl com menos de 50% respondidas — problemas técnicos na versão home edition e agendamento.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/british-council-brazil/alerta-ielts-online-e-paguei-r-1000-e-fui-impedido-de-fazer-o-teste_ox-LHzAfCcv86xgd/",
+   "fonte": "reviews",
+   "por_que": "Relato literal: pagou R$1000 pelo IELTS online e foi impedido de fazer o teste por suposto problema de internet.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/british-council-brazil/incoerencia-e-procedimento-abusivo-na-aplicacao-do-ielts_x9VpTidePYHjx4ws/",
+   "fonte": "reviews",
+   "por_que": "Relato de procedimento abusivo/incoerente na aplicação do exame IELTS, exigindo pagar novamente para remarcar.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://uk.trustpilot.com/review/cambly.com?page=4",
+   "fonte": "reviews",
+   "por_que": "Reviews 1 estrela sobre qualidade de tutores de conversação irregular (loteria), sem credenciais exigidas, reembolso não honrado.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://uk.trustpilot.com/review/www.openenglish.com?page=7",
+   "fonte": "reviews",
+   "por_que": "Reclamação de plataforma desatualizada e cobranças extras não esperadas para progresso real.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.quora.com/Which-is-the-best-IELTS-writing-correction-website",
+   "fonte": "comunidades",
+   "por_que": "Pergunta literal buscando recomendação de site de correção de redação IELTS — indica demanda não atendida.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://hinative.com/questions/15716160",
+   "fonte": "comunidades",
+   "por_que": "Pedido literal de grupo de WhatsApp para prática de conversação em inglês — sinal de solução manual/informal sendo buscada.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://hinative.com/questions/23331192",
+   "fonte": "comunidades",
+   "por_que": "Outro pedido literal de grupo de WhatsApp para falar inglês, mesma dor de acesso a prática de conversação.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://github.com/filipedeschamps/tabnews.com.br/issues/1456",
+   "fonte": "comunidades",
+   "por_que": "Discussão sobre qualidade/uso do TabNews como fórum, contexto de comunidade de praticantes.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.vagas.com.br/vagas/v2693215/professor-de-ingles",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga descreve aplicação manual de provas substitutivas e correção com feedback construtivo — processo repetitivo feito à mão.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.vagas.com.br/vagas/v2683527/professor-de-ingles",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga na Cultura Inglesa envolvendo aplicação de provas e correção manual de testes.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.workana.com/pt/job/arte-para-panfleto-reforco-escolar-preparatorio-e-idiomas",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido de freelancer para divulgação de curso preparatório de idiomas/certificações (Cambridge, IELTS, TOEFL) incluindo correção de redação.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.getninjas.com.br/aulas/concursos/outros/sp/sao-paulo/orcamentos/950122-procuro-professores-freelancer-para",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido literal de cliente buscando professores freelancer para aulas/correção, indicando processo manual de contratação avulsa.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/responder-30-licoes-do-site-mais-ingles-568464",
+   "fonte": "trabalho-manual",
+   "por_que": "Projeto pedindo alguém para responder manualmente 30 lições de site de inglês — trabalho repetitivo terceirizado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://silabe.com.br/blog/professor-ganhe-dinheiro-corrigindo-redacao/",
+   "fonte": "trabalho-manual",
+   "por_que": "Descreve modelo de professores corrigindo redações manualmente como fonte de renda, evidenciando processo não automatizado.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1",
+   "fonte": "reviews",
+   "por_que": "Lista de reclamações contra plataforma de simulados (Mastertest) para certificações.",
+   "bloqueada": true
+  }
+ ],
+ "buscas_feitas": [
+  "\"não corrige\" OR \"correção de redação\" reclamação site:play.google.com inglês curso preparatório",
+  "Reclame Aqui simulado TOEFL OR IELTS OR PMP reclamação",
+  "Duolingo OR Cambly OR \"Open English\" review 1 star complaint \"speaking practice\" trustpilot",
+  "Capterra OR GetApp review complaint \"certification exam\" prep software \"no feedback\"",
+  "reddit \"language learning\" OR \"IELTS\" \"wish there was an app\" OR \"does anyone know a tool\" correction feedback",
+  "site:reddit.com PMP OR CFP OR CPA-20 simulado \"não encontro\" OR \"queria\" OR \"alguém sabe de\"",
+  "TabNews OR \"grupo de whatsapp\" \"correção de redação\" OR \"conversação em inglês\" cobrando caro reclamação",
+  "Product Hunt OR Quora \"IELTS writing correction\" tool request \"I wish\" OR \"is there a tool\"",
+  "site:workana.com professor OR \"correção de redação\" inglês OR IELTS OR TOEFL",
+  "site:99freelas.com.br professor inglês OR preparatório certificação correção",
+  "vaga \"professor de inglês\" OR \"preparatório para certificação\" \"planilha\" OR \"manualmente\" correção provas site:linkedin.com/jobs OR site:vagas.com.br",
+  "GetNinjas \"professor de inglês\" OR \"correção de redação\" OR \"simulado\" pedido freelancer"
+ ]
+}

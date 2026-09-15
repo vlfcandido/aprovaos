@@ -1,0 +1,301 @@
+{
+ "buscas_feitas": [
+  "Qconcursos planos preços assinatura",
+  "Gran Cursos Online IA assistente inteligência artificial planos preços",
+  "Estratégia Concursos IA planos assinatura preço",
+  "Tec Concursos planos preços questões",
+  "\"Concursa AI\" concursos aplicativo",
+  "\"EstudaIA\" concursos app inteligência artificial",
+  "GoConcursos planos preços IA",
+  "\"Aprova Concursos\" planos preços assinatura app",
+  "\"Mister Concursos\" planos preços IA",
+  "Clipping.ai concursos preços planos reclamação"
+ ],
+ "concorrentes": [
+  {
+   "nome": "Estratégia Concursos",
+   "url": "https://www.estrategiaconcursos.com.br/assinaturas/",
+   "publico": "Concurseiros generalistas buscando estabilidade e altos salários, inclusive carreiras sem exigência de diploma (posicionamento de marketing da própria página).",
+   "planos_e_precos": "Básica 1 ano: 12x R$109,90-139,90 (cartão) ou R$1.186,92 à vista/PIX. Básica 2 anos: 12x R$169,90-209,90 ou R$1.834,92. Premium 1 ano: 12x R$219,90-269,90 ou R$2.374,92. Premium 2 anos: 12x R$369,90-449,90 ou R$3.994,92. Platinum é modalidade mensal separada e mais completa (não teve preço listado nesta página).",
+   "url_precos": "https://www.estrategiaconcursos.com.br/assinaturas/",
+   "funcionalidades_ia": "A própria página nega uso de IA nos comentários de questões, atribuindo-os a professores humanos.",
+   "o_que_promete": "Trilhas Estratégicas, Passo Estratégico, monitorias, salas VIP, rodadas avançadas de simulados, correções ilimitadas de discursivas e coaching no plano Platinum.",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://www.estrategiaconcursos.com.br/assinaturas/",
+     "tipo": "pagina_produto",
+     "trecho": "Questões comentadas criteriosamente por Professores (não é IA!)",
+     "secundaria": false
+    },
+    {
+     "url": "https://www.estrategiaconcursos.com.br/assinaturas/",
+     "tipo": "pagina_produto",
+     "trecho": "Básica 1 ano 12x R$139,90 (cartão) / 12x R$109,90; Premium 2 anos 12x R$449,90 (cartão) / 12x R$369,90",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Tec Concursos",
+   "url": "https://www.tecconcursos.com.br/assinar",
+   "publico": "Concurseiros que estudam por banco de questões filtrado, incluindo OAB, CFC, ENEM e vestibulares.",
+   "planos_e_precos": "Padrão: R$39,90 a cada 30 dias (questões ilimitadas, 3 aulas/dia, estatísticas padrão). Avançado: R$79,80 a cada 30 dias (questões e aulas ilimitadas, estatísticas avançadas).",
+   "url_precos": "https://www.tecconcursos.com.br/assinar",
+   "funcionalidades_ia": "\"Comentário de Inteligência Artificial\" limitado a 5 por dia nos planos grátis/padrão; plano avançado troca isso por comentário de professor em vídeo sem limite diário.",
+   "o_que_promete": "Melhor sistema de filtros do mercado para montar cadernos e simulados personalizados, mais de 2 milhões de questões cadastradas.",
+   "onde_ia_e_rasa": "A própria estrutura de planos trata o comentário por IA como substituto inferior ao comentário humano em vídeo, reservado para quem não paga o plano avançado — sinal de que a IA é vista como versão limitada, não como diferencial premium.",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://www.tecconcursos.com.br/assinar",
+     "tipo": "pagina_produto",
+     "trecho": "Padrão R$ 39,90 a cada 30 dias; Avançado R$ 79,80 a cada 30 dias",
+     "secundaria": false
+    },
+    {
+     "url": "https://www.tecconcursos.com.br/assinar",
+     "tipo": "pagina_produto",
+     "trecho": "Comentário de Inteligência Artificial: 5 por dia (grátis/padrão); Comentário do Professor em vídeo sem limite (avançado)",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Gran Cursos Online",
+   "url": "https://www.grancursosonline.com.br/assinatura-ilimitada",
+   "publico": "Candidatos a carreiras públicas em geral, com acesso multi-carreira via assinatura ilimitada.",
+   "planos_e_precos": "Assinatura Ilimitada: 12x R$61,90 (~R$743,80/ano); versão Pro: 12x R$99,90.",
+   "url_precos": "https://www.grancursosonline.com.br/assinatura-ilimitada",
+   "funcionalidades_ia": "MAIA (assistente de IA do Gran) recomenda cursos, concilia conteúdo entre concursos simultâneos, transforma aulas/PDFs em audiobooks, gera legendas automáticas e produz comentários explicativos em questões — descrição obtida via search, página oficial da central de ajuda (Zendesk) retornou 403 e não pôde ser confirmada por WebFetch nesta rodada.",
+   "o_que_promete": "Acesso a mais de 25 mil cursos para todas as carreiras públicas, +3 milhões de questões (Gran Questões), videoaulas de 600+ professores, garantia de atualização pós-edital.",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://www.grancursosonline.com.br/assinatura-ilimitada",
+     "tipo": "pagina_produto",
+     "trecho": "12x R$ 61,90; Acesso a +25 mil cursos para todas as carreiras públicas; +3 milhões de questões",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Clipping.ai (Clipping Concursos)",
+   "url": "https://clipping.ai/",
+   "publico": "Candidatos a concursos municipais e editais menores 'que ninguém cobre', não priorizados pelos grandes cursos.",
+   "planos_e_precos": "Plano único: R$99/mês, sem downgrade nem plano intermediário.",
+   "url_precos": "https://clipping.ai/",
+   "funcionalidades_ia": "Geração infinita de questões no estilo de cada banca, flashcards e resumos automáticos, correção de redação por IA, chatbot especialista 24/7, plano de estudos a partir do edital enviado pelo usuário.",
+   "o_que_promete": "Colar o edital e gerar questões infinitas para qualquer concurso, inclusive municipais; mais de 30.000 alunos ativos em 100+ concursos.",
+   "onde_ia_e_rasa": "Reclame Aqui (bloqueado nesta pesquisa por regra) lista reclamações da 'Clipping CACD' — produto correlato da mesma marca — sobre 'qualidade inferior e uso excessivo de IA' e material insuficiente; não confirmado por fonte primária aberta nesta rodada.",
+   "reclamacoes_recorrentes": "não medido (Reclame Aqui bloqueado; título de reclamação encontrado via search menciona 'uso excessivo de IA' e 'material insuficiente', mas não foi aberto/verificado)",
+   "evidencias": [
+    {
+     "url": "https://clipping.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "Cole seu edital. Gere questões infinitas. Para qualquer concurso, até os municipais que ninguém cobre. R$99/mês.",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Aprova Concursos (Aprova Questões+)",
+   "url": "https://www.aprovaconcursos.com.br/questoes-de-concurso-mais/planos",
+   "publico": "Concurseiros focados em banco de questões com videoaulas de resolução, sem foco declarado em IA.",
+   "planos_e_precos": "Mensal R$14,90; Semestral R$64,90 (~R$11/mês); Anual R$99,90 (~R$8,50/mês).",
+   "url_precos": "https://www.aprovaconcursos.com.br/questoes-de-concurso-mais/planos",
+   "funcionalidades_ia": "Nenhuma menção a IA/inteligência artificial encontrada na página de planos.",
+   "o_que_promete": "270 mil questões atualizadas diariamente, videoaulas de resolução, acompanhamento de desempenho, ranking e simulados.",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://www.aprovaconcursos.com.br/questoes-de-concurso-mais/planos",
+     "tipo": "pagina_produto",
+     "trecho": "Mensal R$14,90 - Acesse por 1 mês; Anual R$99,90 - Acesse por 12 meses; 270 mil questões atualizadas",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "MisterConcursos",
+   "url": "https://misterconcursos.com/",
+   "publico": "Concurseiros que querem plano de estudos automatizado a partir do próprio edital, produto IA-first.",
+   "planos_e_precos": "Mensal R$49,90 (promo R$24,90/mês) ou R$149,90/6 meses; Anual R$406,80 (promo R$33,90/mês ou R$249,90/ano); Consultoria IA avulsa R$49,90.",
+   "url_precos": "https://misterconcursos.com/",
+   "funcionalidades_ia": "Analisa qualquer edital em segundos, identifica matérias mais cobradas, cria cronograma até o dia da prova, gera flashcards automáticos, questões personalizadas, simulados inteligentes adaptativos e correção automática com feedback.",
+   "o_que_promete": "IA que lê o edital e monta o plano de aprovação em menos de 60 segundos; alega 58.000+ alunos ativos e 2.800+ aprovações, com 'previsão de aprovação' explicitamente rotulada como estimativa, não garantia.",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://misterconcursos.com/",
+     "tipo": "pagina_produto",
+     "trecho": "Analisa qualquer edital em segundos, Identifica as matérias mais cobradas, Cria seu cronograma até o dia da prova",
+     "secundaria": false
+    },
+    {
+     "url": "https://misterconcursos.com/",
+     "tipo": "pagina_produto",
+     "trecho": "58.000+ alunos ativos, 2.800+ aprovações; Previsão de Aprovação (estimativa, não garantia)",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Concursa.ai",
+   "url": "https://www.concursa.ai/",
+   "publico": "Concurseiros de qualquer área jurídica/administrativa buscando tutor de IA 24h e simulados adaptativos, com tier gratuito para captação.",
+   "planos_e_precos": "Grátis: R$0 sempre (5 questões diárias por IA, plano genérico). Early Access: R$29,90/mês vitalício para os primeiros 500 usuários. Aspirante: R$49,90/mês após o early access, cancelável a qualquer momento.",
+   "url_precos": "https://www.concursa.ai/",
+   "funcionalidades_ia": "Monta cronograma priorizando o que mais cai e reajusta quando o usuário perde um dia; tutor 24/7 que responde com citação de lei/súmula; simulados adaptativos que sobem a dificuldade a cada acerto e reforçam o tópico a cada erro.",
+   "o_que_promete": "Acompanhar o candidato 'até a aprovação' com planejamento personalizado e suporte imediato, diferenciando-se de bancos de questões convencionais.",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": [
+    {
+     "url": "https://www.concursa.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "monta seu cronograma priorizando o que mais cai, e reajusta quando você perde um dia",
+     "secundaria": false
+    },
+    {
+     "url": "https://www.concursa.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "Grátis R$ 0 sempre; Early Access R$ 29,90/mês vitalício; Aspirante R$ 49,90/mês",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Qconcursos",
+   "url": "https://www.qconcursos.com/planos-de-assinatura",
+   "publico": "não medido (fonte primária não abriu nesta rodada)",
+   "planos_e_precos": "não medido — WebFetch retornou HTTP 403 na página oficial de planos; dado de preço visto apenas em snippet de busca (não conta como evidência pelas regras desta pesquisa: Básico anual 12x R$19,90, Avançado anual 12x R$34,90, segundo o snippet — não confirmado por abertura direta).",
+   "url_precos": "https://www.qconcursos.com/planos-de-assinatura",
+   "funcionalidades_ia": "não medido",
+   "o_que_promete": "não medido",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": []
+  },
+  {
+   "nome": "GoConcursos",
+   "url": "https://goconcursos.com/",
+   "publico": "não medido",
+   "planos_e_precos": "não medido — página do domínio goconcursos.com abriu vazia/aparentando estar parqueada ou à venda, sem conteúdo de produto no momento do fetch.",
+   "url_precos": "não medido",
+   "funcionalidades_ia": "não medido — busca indicou posicionamento como 'Plataforma #1 de IA para Concursos' com gabaritos comentados, flashcards e análise de padrões, mas não confirmado por WebFetch (conteúdo da página vazio).",
+   "o_que_promete": "não medido",
+   "onde_ia_e_rasa": "não medido",
+   "reclamacoes_recorrentes": "não medido",
+   "evidencias": []
+  }
+ ],
+ "fatos": [
+  {
+   "id": "concorrentes-br-01",
+   "afirmacao": "Entre os incumbentes tradicionais de banco de questões, a Estratégia Concursos afirma explicitamente NÃO usar IA nos comentários de questões, atribuindo-os só a professores humanos, mesmo cobrando os planos mais caros do grupo mapeado.",
+   "valor": "\"Questões comentadas criteriosamente por Professores (não é IA!)\"",
+   "unidade_ou_periodo": "preço de referência: Básica 1 ano 12x R$109,90-139,90; Premium 2 anos 12x R$369,90-449,90",
+   "observacao": "Mostra que pelo menos um incumbente grande trata ausência de IA como selo de qualidade, oposto à tese de que todo o setor já migrou para IA.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.estrategiaconcursos.com.br/assinaturas/",
+     "tipo": "pagina_produto",
+     "trecho": "Questões comentadas criteriosamente por Professores (não é IA!)",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "id": "concorrentes-br-02",
+   "afirmacao": "Tec Concursos trata IA como funcionalidade de entrada limitada (5 comentários/dia), reservando o recurso 'premium' (comentário humano em vídeo) para quem paga o plano avançado — ou seja, IA é posicionada como versão inferior ao conteúdo humano, não como diferencial de topo de linha.",
+   "valor": "Comentário de IA: 5/dia (padrão, R$39,90/30 dias); comentário de professor em vídeo sem limite (avançado, R$79,80/30 dias)",
+   "unidade_ou_periodo": "por dia / a cada 30 dias",
+   "observacao": "Indício de que ao menos um concorrente grande usa IA como redutor de custo no plano barato, não como argumento de venda do plano caro.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.tecconcursos.com.br/assinar",
+     "tipo": "pagina_produto",
+     "trecho": "Comentário de Inteligência Artificial: 5 por dia (grátis/padrão); Comentário do Professor em vídeo sem limite (avançado)",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "id": "concorrentes-br-03",
+   "afirmacao": "Produtos 'IA-first' recém-chegados (MisterConcursos, Concursa.ai, Clipping.ai) convergem numa faixa de preço de entrada bem abaixo das assinaturas anuais dos incumbentes tradicionais, com tier gratuito ou promocional agressivo para aquisição.",
+   "valor": "Concursa.ai: R$0 (grátis, 5 questões/dia) a R$29,90-49,90/mês; MisterConcursos: R$24,90-33,90/mês (promocional); Clipping.ai: plano único R$99/mês",
+   "unidade_ou_periodo": "mensal",
+   "observacao": "Compare com Estratégia Premium 2 anos (R$369,90/mês em 12x) e Gran Ilimitada (R$61,90-99,90/mês) — os IA-first miram um ticket de entrada bem menor.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.concursa.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "Grátis R$ 0 sempre; Early Access R$ 29,90/mês vitalício; Aspirante R$ 49,90/mês",
+     "secundaria": false
+    },
+    {
+     "url": "https://misterconcursos.com/",
+     "tipo": "pagina_produto",
+     "trecho": "Mensal: R$ 49,90 com desconto de 50% para R$ 24,90/mês",
+     "secundaria": false
+    },
+    {
+     "url": "https://clipping.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "Cole seu edital. Gere questões infinitas. Para qualquer concurso, até os municipais que ninguém cobre. R$99/mês.",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "id": "concorrentes-br-04",
+   "afirmacao": "A funcionalidade de IA mais repetida entre os concorrentes IA-first mapeados é 'ler o edital e montar automaticamente um cronograma/plano de estudos', não a geração de questões em si (que também aparece, mas como segunda função).",
+   "valor": "MisterConcursos: 'Analisa qualquer edital em segundos... Cria seu cronograma até o dia da prova' (60 segundos); Concursa.ai: 'monta seu cronograma priorizando o que mais cai'; Clipping.ai: 'plano de estudos a partir do edital enviado'",
+   "unidade_ou_periodo": "não aplicável",
+   "observacao": "Os três produtos que se anunciam como 'copiloto de IA' (não banco de questões tradicional) convergem na mesma promessa central de automação de plano de estudos a partir do edital.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://misterconcursos.com/",
+     "tipo": "pagina_produto",
+     "trecho": "Analisa qualquer edital em segundos, Identifica as matérias mais cobradas, Cria seu cronograma até o dia da prova",
+     "secundaria": false
+    },
+    {
+     "url": "https://www.concursa.ai/",
+     "tipo": "pagina_produto",
+     "trecho": "monta seu cronograma priorizando o que mais cai, e reajusta quando você perde um dia",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "id": "concorrentes-br-05",
+   "afirmacao": "Nem toda 'IA para concursos' anunciada em busca corresponde a um produto vivo e verificável: dois nomes citados no briefing (GoConcursos, EstudaIA) e um concorrente descoberto (AprovaIA) não puderam ser confirmados como produtos operacionais nesta rodada.",
+   "valor": "goconcursos.com retornou página vazia/aparentemente parqueada; estudaia.com.br não resolveu no DNS; aprovaia.app teve erro de certificado SSL",
+   "unidade_ou_periodo": "não aplicável",
+   "observacao": "Sinal de fragmentação/rotatividade alta no nicho de 'IA para concursos' — nomes de marca aparecem em conteúdo de terceiros/imprensa mas o site pode já ter saído do ar ou mudado de domínio.",
+   "confianca": "media",
+   "evidencias": []
+  }
+ ],
+ "lacunas": [
+  "Qconcursos: página oficial de planos (qconcursos.com/planos-de-assinatura) retornou HTTP 403 no WebFetch; preços vistos só em snippet de busca, não confirmados por abertura direta.",
+  "GoConcursos: domínio goconcursos.com abriu com conteúdo vazio/aparentando estar parqueado ou à venda; não foi possível confirmar preços nem funcionalidades de IA reais do produto.",
+  "EstudaIA: domínio estudaia.com.br não resolve (erro de DNS); não foi possível localizar ou confirmar a existência atual do produto citado no briefing.",
+  "AprovaIA (aprovaia.app), concorrente descoberto na busca: certificado SSL inválido impediu o WebFetch; funcionalidades e preço não confirmados.",
+  "MAIA (assistente de IA do Gran Cursos Online): página oficial da central de ajuda (Zendesk) retornou HTTP 403; descrição das funcionalidades disponível só via snippet de busca, não verificada por WebFetch.",
+  "Reclamações recorrentes de 1-2 estrelas (Google Play/App Store, Capterra) para todos os concorrentes mapeados: não coletadas nesta rodada — orçamento de WebFetch (12) se esgotou nas páginas de preço/produto antes de chegar às lojas de app; Reclame Aqui está bloqueado por regra desta pesquisa.",
+  "Onde a IA 'parece rasa' (evidência de review/demo/post) para Estratégia Concursos, Gran Cursos Online, Aprova Concursos, MisterConcursos e Concursa.ai: não medido — nenhuma fonte de review independente foi aberta nesta rodada por limite de orçamento.",
+  "Clipping CACD (mencionado em reclamações do Reclame Aqui sobre 'uso excessivo de IA' num curso para o CNU 2025) pode ser produto/marca distinta de Clipping.ai/Clipping Concursos — relação entre as marcas não confirmada nesta rodada.",
+  "1-2 concorrentes adicionais além dos 10 do briefing (ex.: ConcursoAI em concursoai.com.br, Concurseiros.AI) foram identificados na busca mas não abertos por WebFetch dentro do orçamento de 12 aberturas."
+ ]
+}

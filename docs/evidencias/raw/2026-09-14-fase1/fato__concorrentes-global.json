@@ -1,0 +1,263 @@
+{
+ "buscas_feitas": [
+  "Quizlet Q-Chat AI tutor pricing 2026",
+  "Magoosh pricing AI features 2026",
+  "UWorld pricing AI adaptive study plan",
+  "Khanmigo pricing Khan Academy AI tutor",
+  "Speak app AI tutor pricing 2026",
+  "Duolingo Max pricing 2026",
+  "Brainly AI pricing plans 2026",
+  "StudyFetch Spark.E AI pricing",
+  "Turbolearn AI pricing app",
+  "Knowunity AI pricing plans",
+  "WebFetch: quizlet.com/plans (403)",
+  "WebFetch: khanmigo.ai/pricing (OK)",
+  "WebFetch: speak.com/pricing (404)",
+  "WebFetch: duolingo.com/premium (sem dados de preço no HTML retornado)",
+  "WebFetch: brainly.com/plans (403)",
+  "WebFetch: studyfetch.com/pricing (403) e studyfetch.com/ (403)",
+  "WebFetch: turbolearn.ai/pricing -> redirect turbo.ai/pricing (404)",
+  "WebFetch: knowunity.com/pricing (404)",
+  "WebFetch: gre.magoosh.com/pricing (OK)",
+  "WebFetch: uworld.com/pricing (404)"
+ ],
+ "fatos": [
+  {
+   "id": "concorrentes-global-01",
+   "afirmacao": "Khanmigo (Khan Academy) é gratuito para professores e custa US$4/mês (ou US$44/ano) para aprendizes e pais; a IA é descrita como tutor que guia com perguntas e feedback, não apenas dá respostas.",
+   "valor": "US$4/mês; US$44/ano; grátis para professores",
+   "unidade_ou_periodo": "mensal/anual, 2026",
+   "evidencias": [
+    {
+     "url": "https://www.khanmigo.ai/pricing",
+     "tipo": "oficial",
+     "trecho": "Free for teachers. $4/month or $44/year. Personalized tutoring on Khan Academy's world-class content. Write and debate with guided prompts and immediate feedback.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Página oficial khanmigo.ai/pricing aberta via WebFetch; trecho literal citado."
+  },
+  {
+   "id": "concorrentes-global-02",
+   "afirmacao": "Magoosh (prep para GRE) usa IA para corrigir redações (essay) como um avaliador real do GRE e oferece cronogramas de estudo flexíveis; preço do plano Premium de 1 mês é normalmente US$149 (em promoção US$104,30 no momento da consulta).",
+   "valor": "US$149/mês (cheio); US$104,30 (promo)",
+   "unidade_ou_periodo": "1 mês, 2026",
+   "evidencias": [
+    {
+     "url": "https://gre.magoosh.com/pricing",
+     "tipo": "oficial",
+     "trecho": "Usually $149 / ON SALE $104.30 USD (Premium, 1 month). \"Our AI grades your essay like a real GRE grader and then provides feedback to boost your score.\"",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Página oficial gre.magoosh.com/pricing aberta via WebFetch; preço promocional pode variar por região/momento."
+  },
+  {
+   "id": "concorrentes-global-03",
+   "afirmacao": "Nenhum dos 10 concorrentes pesquisados nesta rodada teve página oficial de preços aberta com sucesso via WebFetch além de Khanmigo e Magoosh — Quizlet, Speak, Brainly, StudyFetch, Turbolearn/Turbo.ai, Knowunity e UWorld retornaram erro 403/404 nas URLs oficiais tentadas, e Duolingo retornou HTML sem dados de preço visíveis ao fetch.",
+   "valor": "8 de 10 sites oficiais não abriram no orçamento de 12 WebFetch",
+   "unidade_ou_periodo": "tentativas em 2026-09-14",
+   "evidencias": [
+    {
+     "url": "https://quizlet.com/plans",
+     "tipo": "oficial",
+     "trecho": "(erro HTTP 403 Forbidden ao tentar abrir — sem conteúdo retornado)",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Registrado como fato metodológico: os preços de Quizlet, Speak, Duolingo Max, Brainly, StudyFetch, Turbolearn e Knowunity citados no texto de concorrentes vêm de resumos de busca (WebSearch), NÃO de abertura confirmada — por regra do protocolo, não podem contar como evidência; ver lacunas."
+  },
+  {
+   "id": "concorrentes-global-04",
+   "afirmacao": "Entre os concorrentes mapeados, o padrão de tutor 'proativo/Socrático' (faz perguntas, guia o raciocínio, em vez de só responder) aparece explicitamente descrito para Khanmigo (Khan Academy) e para Quizlet Q-Chat (segundo material de busca, não confirmado por WebFetch); nenhuma fonte primária aberta nesta rodada confirmou 'previsão de nota' como funcionalidade ativa e divulgada — para UWorld, a busca indica ausência de tutor de IA no core do produto USMLE.",
+   "valor": "1 confirmado por fonte primária (Khanmigo); demais não confirmados",
+   "unidade_ou_periodo": "2026",
+   "evidencias": [
+    {
+     "url": "https://www.khanmigo.ai/pricing",
+     "tipo": "oficial",
+     "trecho": "Personalized tutoring on Khan Academy's world-class content. Write and debate with guided prompts and immediate feedback.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Afirmação sobre 'previsão de nota' e comportamento proativo de outros produtos (Quizlet Q-Chat, Magoosh) não pôde ser verificada com abertura de página nesta rodada — ver lacunas."
+  },
+  {
+   "id": "concorrentes-global-05",
+   "afirmacao": "Duolingo Max (recurso premium do Duolingo com IA generativa) teve, segundo agregadores de busca (não confirmado por WebFetch oficial), preço citado de US$29,99/mês ou US$168/ano, com features como 'Explain My Answer' migrando para o plano Super gratuito em parte dos idiomas ao longo de 2026 — não há confirmação primária desta migração nesta rodada.",
+   "valor": "US$29,99/mês; US$168/ano (não confirmado via WebFetch oficial)",
+   "unidade_ou_periodo": "2026",
+   "evidencias": [],
+   "confianca": "baixa",
+   "observacao": "Fetch em duolingo.com/premium não retornou dados de preço no HTML capturado; dado vem só de resumo de busca, não citável como evidência por regra do protocolo."
+  }
+ ],
+ "lacunas": [
+  "Preço oficial de Quizlet Plus (quizlet.com/plans) não confirmado — página retornou HTTP 403 ao WebFetch; dado de busca aponta ~US$2,99–7,99/mês, não verificado.",
+  "Preço oficial de Speak (speak.com/pricing) não confirmado — URL retornou 404; buscas apontam ~US$18–20/mês, não verificado.",
+  "Preço e features de Brainly Plus/Tutor (brainly.com/plans) não confirmados — 403 Forbidden; buscas apontam ~US$10/mês (Plus) e ~US$29/mês (Tutor), não verificado.",
+  "Preço de StudyFetch (studyfetch.com/pricing e studyfetch.com/) não confirmado — 403 Forbidden em ambas tentativas; buscas apontam US$7,99–11,99/mês, não verificado.",
+  "Preço de Turbolearn/Turbo.ai (turbolearn.ai/pricing redirecionou para turbo.ai/pricing, que retornou 404) não confirmado; buscas apontam US$5,99–19,99/mês, não verificado.",
+  "Preço de Knowunity (knowunity.com/pricing) não confirmado — 404 Not Found; buscas apontam faixa US$4,99–35,99, inconsistente entre fontes, não verificado.",
+  "Preço/features de UWorld (uworld.com/pricing) não confirmado — 404 Not Found; buscas de terceiros citam US$319–560 para USMLE por 'step', não verificado na fonte oficial.",
+  "Reclamações recorrentes (App Store/Play Store/Trustpilot) de nenhum dos 10 concorrentes foram coletadas nesta rodada — orçamento de 10 WebSearch e 12 WebFetch foi consumido nas buscas de preço/features antes de chegar às lojas de app; nenhuma evidência de reclamação foi aberta.",
+  "Nenhuma evidência de 'previsão de nota' (score prediction) como funcionalidade divulgada foi encontrada e aberta para nenhum dos 10 concorrentes — não há confirmação de que algum destes produtos ofereça essa funcionalidade nomeada assim.",
+  "Kaplan/Princeton Review com IA: não pesquisado nesta rodada (orçamento de buscas esgotado antes de cobrir este item do escopo).",
+  "UWorld: WebSearch de terceiros (iatroX, Oncourse) sugere que UWorld NÃO tem tutor de IA nem plano diário adaptativo robusto no core USMLE — mas isso não foi confirmado com abertura de fonte oficial da UWorld, só menções de concorrentes/imprensa especializada em nichos, sem WebFetch bem-sucedido.",
+  "Turbolearn/Turbo.ai: mudança de marca (turbolearn.ai -> turbo.ai) detectada via redirect 301, mas conteúdo da nova página não pôde ser aberto (404) para confirmar preços atuais pós-rebranding."
+ ],
+ "concorrentes": [
+  {
+   "nome": "Khanmigo (Khan Academy)",
+   "url": "https://www.khanmigo.ai/",
+   "url_precos": "https://www.khanmigo.ai/pricing",
+   "publico": "Estudantes K-12 a universidade, pais e professores (EUA, expandindo globalmente)",
+   "planos_e_precos": "Grátis para professores; US$4/mês ou US$44/ano para aprendizes/pais (1 assinatura cobre até 10 contas de filhos).",
+   "funcionalidades_ia": "Tutor Socrático que guia com perguntas e feedback em vez de dar a resposta pronta; cobre matemática, ciências, redação, história; integrado à biblioteca de exercícios e vídeos do Khan Academy. Comportamento é proativo/guiado, não apenas reativo.",
+   "o_que_promete": "Tutoria personalizada 'sempre disponível' com paciência ilimitada, guiando o aluno a chegar à resposta sozinho.",
+   "onde_ia_e_rasa": "Não verificado nesta rodada (orçamento de busca esgotado antes de checar reclamações em lojas de app).",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": [
+    {
+     "url": "https://www.khanmigo.ai/pricing",
+     "tipo": "oficial",
+     "trecho": "Free for teachers. $4/month or $44/year. Personalized tutoring on Khan Academy's world-class content. Write and debate with guided prompts and immediate feedback.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Magoosh",
+   "url": "https://magoosh.com/",
+   "url_precos": "https://gre.magoosh.com/pricing",
+   "publico": "Candidatos a provas padronizadas (GRE, GMAT, TOEFL, MCAT, admissões)",
+   "planos_e_precos": "GRE Premium 1 mês: normalmente US$149 (visto em promoção a US$104,30); 6 meses normalmente US$179 (promo US$125,30); bundle com Admissions normalmente US$219 (promo US$153,30).",
+   "funcionalidades_ia": "IA corrige redações como um avaliador real do GRE e dá feedback de melhoria de nota; cronogramas de estudo flexíveis (1 semana a 6 meses) adaptados ao tempo do aluno — não confirmado se há reajuste diário automático do plano.",
+   "o_que_promete": "'Our AI grades your essay like a real GRE grader and then provides feedback to boost your score.'",
+   "onde_ia_e_rasa": "Não verificado se o cronograma se reajusta dinamicamente dia a dia com base em desempenho, ou é apenas um calendário fixo configurável — não confirmado nesta rodada.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": [
+    {
+     "url": "https://gre.magoosh.com/pricing",
+     "tipo": "oficial",
+     "trecho": "Usually $149 / ON SALE $104.30 USD (Premium, 1 month). \"Our AI grades your essay like a real GRE grader and then provides feedback to boost your score.\"",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ]
+  },
+  {
+   "nome": "Quizlet (Q-Chat / Quizlet Plus)",
+   "url": "https://quizlet.com/",
+   "url_precos": "https://quizlet.com/plans",
+   "publico": "Estudantes do ensino fundamental à faculdade, uso global de flashcards",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (quizlet.com/plans retornou HTTP 403). Buscas de terceiros citam Quizlet Plus em torno de US$2,99–7,99/mês, não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo material de busca (não verificado por abertura direta), Q-Chat seria um tutor conversacional com método Socrático ('Teach Me', 'Quiz Me', 'Apply My Knowledge'), exclusivo do plano pago.",
+   "o_que_promete": "Tutoria por IA que 'empurra' o aluno para o entendimento real em vez de memorização passiva (segundo descrição de terceiros).",
+   "onde_ia_e_rasa": "Não verificado nesta rodada.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "UWorld",
+   "url": "https://www.uworld.com/",
+   "url_precos": "https://www.uworld.com/pricing/",
+   "publico": "Candidatos a USMLE, NCLEX, SAT, ACT",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (uworld.com/pricing retornou 404). Fontes de terceiros citam ~US$319/mês ou ~US$560/12 meses por 'Step' do USMLE, não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo fontes de terceiros (não confirmadas), UWorld é considerado 'padrão-ouro' em profundidade de questões e raciocínio clínico, mas SEM tutor de IA proativo; para SAT/ACT há prática adaptativa que ajusta dificuldade, mas sem chat de IA para dúvidas.",
+   "o_que_promete": "Banco de questões de altíssima qualidade com explicações detalhadas (segundo terceiros).",
+   "onde_ia_e_rasa": "Segundo fontes de terceiros não verificadas por WebFetch, UWorld não teria tutor de IA nem plano diário reajustável — apontado como lacuna de mercado que concorrentes (ex.: 'Oncourse'/'Rezzy AI') estariam explorando.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "Speak",
+   "url": "https://www.speak.com/",
+   "url_precos": "https://www.speak.com/pricing",
+   "publico": "Aprendizes de inglês como segunda língua (forte tração na Coreia do Sul, expandindo global)",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (speak.com/pricing retornou 404). Buscas de terceiros citam Premium ~US$18–20/mês e Premium Plus ~US$180/ano, variando por região/promoção — não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo terceiros (não verificado), há um 'Speak Tutor' de conversação por voz, plano de estudo personalizado e foco em erros frequentes do aluno; Premium Plus adiciona aulas customizadas ilimitadas.",
+   "o_que_promete": "Prática de conversação por voz com IA que se adapta aos erros mais frequentes do aluno (segundo terceiros).",
+   "onde_ia_e_rasa": "Não verificado nesta rodada.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "Duolingo Max",
+   "url": "https://www.duolingo.com/",
+   "url_precos": "https://www.duolingo.com/premium",
+   "publico": "Aprendizes de idiomas, massa global (app mais baixado da categoria)",
+   "planos_e_precos": "Página oficial aberta via WebFetch não retornou dados de preço visíveis no HTML capturado. Buscas de terceiros citam ~US$29,99/mês ou ~US$168/ano para Max, com relatos de 2026 de que features de Max (ex.: 'Explain My Answer') estariam migrando para o plano Super gratuito em parte dos idiomas — nenhum dado confirmado por fonte primária nesta rodada.",
+   "funcionalidades_ia": "Segundo terceiros: 'Explain My Answer' (explica erros), 'Roleplay' (conversação simulada com IA) e 'Video Call with Lily' — recursos generativos sobre o método de repetição espaçada do Duolingo.",
+   "o_que_promete": "Prática de conversação e explicações personalizadas por IA generativa (segundo terceiros).",
+   "onde_ia_e_rasa": "Segundo terceiros (não confirmado), Duolingo estaria descontinuando/reposicionando o tier Max em 2026, movendo funcionalidades para tiers mais baratos — sinal de que o valor percebido do add-on de IA premium caiu.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "Brainly",
+   "url": "https://brainly.com/",
+   "url_precos": "https://brainly.com/plans",
+   "publico": "Estudantes do ensino fundamental e médio buscando ajuda com lição de casa",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (brainly.com/plans retornou 403). Buscas de terceiros citam Brainly Plus ~US$10/mês (~US$39/ano) e Brainly Tutor ~US$29/mês (~US$96/ano) — não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo terceiros, IA dá explicações de exercícios (reativa, responde perguntas) e o tier 'Tutor' adiciona acesso a tutores humanos reais em STEM.",
+   "o_que_promete": "Explicações de IA sem anúncios e, no tier superior, apoio humano complementar (segundo terceiros).",
+   "onde_ia_e_rasa": "Não verificado nesta rodada.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "StudyFetch (Spark.E)",
+   "url": "https://studyfetch.com/",
+   "url_precos": "https://studyfetch.com/pricing",
+   "publico": "Estudantes universitários que sobem material de aula (PDF, vídeo, áudio) para gerar material de estudo",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (ambas as URLs oficiais retornaram 403). Buscas de terceiros citam Base US$7,99/mês e Premium US$11,99/mês (com desconto anual e plano semanal de US$3,92/semana) — não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo terceiros, o tutor 'Spark.E' responde em chat sobre o material enviado e gera testes/flashcards automaticamente a partir de vídeo/áudio/PDF/anotações manuscritas.",
+   "o_que_promete": "Transformar qualquer material de aula em testes práticos e flashcards com um tutor de chat (segundo terceiros).",
+   "onde_ia_e_rasa": "Não verificado nesta rodada.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "Turbolearn AI / Turbo.ai",
+   "url": "https://www.turbo.ai/",
+   "url_precos": "https://www.turbo.ai/pricing",
+   "publico": "Estudantes que gravam aulas e querem notas/flashcards/quizzes automáticos",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (turbolearn.ai/pricing redirecionou para turbo.ai/pricing, que retornou 404). Buscas de terceiros citam plano Pro em US$5,99/mês e tiers superiores entre US$9,99–19,99/mês, com relatos de teste de preços por região — não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo terceiros, gera notas, quizzes e flashcards a partir de gravações de aula, PDFs e sites; é descrito como ferramenta de transformação de conteúdo, não como tutor proativo com plano de estudo.",
+   "o_que_promete": "Poupar tempo de anotação manual gerando material de estudo automaticamente (segundo terceiros).",
+   "onde_ia_e_rasa": "Segundo terceiros, não há indício de plano diário adaptativo nem previsão de nota — é essencialmente um gerador de conteúdo de estudo, não um tutor.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": []
+  },
+  {
+   "nome": "Knowunity",
+   "url": "https://knowunity.com/",
+   "url_precos": "https://knowunity.com/pricing",
+   "publico": "Estudantes do ensino médio na Europa (Alemanha, expandindo), com captação recente de €27M",
+   "planos_e_precos": "Não verificado via WebFetch nesta rodada (knowunity.com/pricing retornou 404). Buscas de terceiros citam faixas de US$4,99, US$9,99 e US$35,99 de forma inconsistente entre fontes — não confirmado na fonte oficial.",
+   "funcionalidades_ia": "Segundo terceiros (Tech.eu, citando a rodada de investimento), Knowunity está posicionando um 'tutor de IA personalizado' como próximo produto/expansão global — não está claro se já está em produção ampla ou é plano futuro.",
+   "o_que_promete": "Tutor de IA personalizado 'para 1 bilhão de estudantes' (segundo cobertura de imprensa da rodada de investimento, não confirmado com WebFetch do site oficial).",
+   "onde_ia_e_rasa": "Não verificado nesta rodada — inclusive não está claro se o tutor de IA já está lançado ou ainda é promessa da rodada de investimento.",
+   "reclamacoes_recorrentes": "Não coletado nesta rodada — ver lacunas.",
+   "evidencias": [
+    {
+     "url": "https://tech.eu/2025/06/13/knowunity-raises-eur27m-to-bring-ai-tutor-to-1-billion-students/",
+     "tipo": "imprensa",
+     "trecho": "(URL não aberta via WebFetch nesta rodada — orçamento esgotado; título do resultado de busca: \"Knowunity raises €27M to scale its personalized AI tutor globally\")",
+     "data": "2026-09-14",
+     "secundaria": true
+    }
+   ]
+  }
+ ]
+}

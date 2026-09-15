@@ -1,0 +1,49 @@
+{
+ "paginas": [
+  {
+   "url": "https://forums.ankiweb.net/t/losing-review-data-when-syncing-without-warning/43493",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página carregada mas sem trechos relevantes. Conteúdo é discussão técnica sobre sincronização, não apresenta reclamações de usuário, pedidos de serviço, tarefas manuais ou preços nos critérios especificados."
+  },
+  {
+   "url": "https://community.ankihub.net/t/completed-cards-full-sync-lost-two-days-of-data/588249",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "On both of the past two days I have started my anki reviews on my laptop and finished my cards on the ios app. Today when I opened my laptop anki I was prompted to conduct a full sync and it appears that I have lost all of the progress on the cards I have completed in the past two days and lost my review streak (544 days).",
+     "autor": "ethangstoll",
+     "data": "14 fev 2026",
+     "contexto": "Reclamação de perda de dados após full sync"
+    },
+    {
+     "trecho": "Ideally, I would like to rectify the review count on my laptop anki, preferably not lose the reviews I have done in the past two days, and hopefully fix my streak",
+     "autor": "ethangstoll",
+     "data": "14 fev 2026",
+     "contexto": "Pedido de serviço/resolução"
+    },
+    {
+     "trecho": "On iOS: 1. Go to the deck list. 2. Tap the gear icon → Export → export all decks with scheduling (and media if offered), and save the .apkg file somewhere safe",
+     "autor": "AnkiHub_AI_bot",
+     "data": "14 fev 2026",
+     "contexto": "Descrição de tarefa manual de backup"
+    },
+    {
+     "trecho": "When the sync button is red, it will always ask whether you want to upload or download. If you want to force this prompt to appear, go to Preferences and enable One-Way Sync.",
+     "autor": "MarcosZan",
+     "data": "14 fev 2026",
+     "contexto": "Descrição de tarefa manual para força sincronização"
+    }
+   ]
+  },
+  {
+   "url": "https://forums.ankiweb.net/t/reviews-lost-after-syncing-deck-with-130-ease-with-ankiweb/6932",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página carregada mas sem trechos relevantes. Conteúdo é tópico técnico sobre sincronização com Anki, contém soluções de desenvolvedor mas não reclamações de usuário, pedidos de serviço, tarefas manuais ou preços nos critérios."
+  }
+ ]
+}

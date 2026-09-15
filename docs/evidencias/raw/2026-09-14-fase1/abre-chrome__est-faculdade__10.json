@@ -1,0 +1,80 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/passei-direto/cobranca-indevida-e-dificuldade-de-cancelamento-de-assinatura_tHPBvuKVTVe0CmCd/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Renovaram automaticamente minha assinatura me cobraram multa de 44 reais + dias de uso 27 dias 59 reais sendo que o valor mensal é 19 reais.",
+     "data": "29/07/2025 às 14:37",
+     "contexto": "Campo Grande - MS, ID 223262063, Categoria: Cadastro e Assinatura / Cobrança indevida"
+    },
+    {
+     "trecho": "Sem falar que não vai de debitar do meu cartão as parcelas como solicitei.",
+     "data": "29/07/2025",
+     "contexto": "Dificuldade de cancelamento; continuação de débitos não solicitados"
+    },
+    {
+     "trecho": "Não tem telefone a atendente e limitada, sem e sem suporte.",
+     "data": "29/07/2025",
+     "contexto": "Crítica ao suporte; impossibilidade de contato por telefone"
+    }
+   ]
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/esa-oab-sp/nao-consigo-acessar-o-curso-que-eu-comprei_b9BDoMmHOB8pcbfK/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "PORÉM NÃO CONSIGO TER ACESSO AS AULAS.",
+     "data": "05/02/2021 às 12:47",
+     "contexto": "Barueri - SP, ID 119230533, Compra: Curso Prático Tribunal do Júri"
+    },
+    {
+     "trecho": "JÁ MANDEI EMAIL, NINGUEM RESPONDE",
+     "data": "05/02/2021",
+     "contexto": "Tentativa de suporte por email sem resposta"
+    },
+    {
+     "trecho": "JÁ LIGUEI NA CENTRAL, NINGUEM ATENDE",
+     "data": "05/02/2021",
+     "contexto": "Impossibilidade de contato por telefone; central não atende"
+    },
+    {
+     "trecho": "SE DEMORAR MUITO VOU PERDER O PRAZO PARA INSCRIÇÃO E FAZER AS ATIVIDADES E VOU QUERER MEU DINHEIRO DE VOLTA",
+     "data": "05/02/2021",
+     "contexto": "Urgência; risco de perder prazo de inscrição; ameaça de reembolso"
+    }
+   ]
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/comprei-o-curso-mais-nao-consigo-acessar_D7vKWimmCPtUgM8F/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Comprei o pacote 2 fase penal e não consigo acessar a mentoria, simulados, salas vip, em fim, NADA!",
+     "data": "24/06/2021 às 10:34",
+     "contexto": "Vitória - ES, ID 125711087, Produto: OAB XXXII Exame 2ª Fase Pacote Completo Direito Penal"
+    },
+    {
+     "trecho": "NAO CONSIGO NEM VER AS AULA QUE JÁ FORAM DADAS DE MENTORIA E QUESTAO CERTA.",
+     "data": "24/06/2021",
+     "contexto": "Inacessibilidade total a conteúdos já gravados"
+    },
+    {
+     "trecho": "Desde a data da compra do meu curso estou tentando uma solução para o problema no site de vocês e ninguém me retorna.",
+     "data": "24/06/2021",
+     "contexto": "Ausência de resposta desde a compra; suporte ineficaz"
+    },
+    {
+     "trecho": "Ja tentei inúmeras vezes pelo chat e além de cancelarem meu atendimento não resolvem, sequer tentam dar uma solução.",
+     "data": "24/06/2021",
+     "contexto": "Chat cancelado unilateralmente; suporte não oferece solução"
+    }
+   ]
+  }
+ ]
+}

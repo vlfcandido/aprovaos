@@ -1,0 +1,126 @@
+{
+ "candidatas": [
+  {
+   "url": "https://www.reclameaqui.com.br/redigir-a-mais/plataforma-que-nao-paga-corretores_nyi8yhp8tL8RO0Li/",
+   "fonte": "reviews",
+   "por_que": "Corretor freelancer reclama de plataforma que não paga pelo trabalho de correção de redação",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/",
+   "fonte": "reviews",
+   "por_que": "Cliente relata pacote de correções reduzido e insatisfação com a plataforma de redação",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+   "fonte": "reviews",
+   "por_que": "Reclamação literal sobre despreparo do corretor humano na correção de redação",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/imaginie/nao-assinem-so-gente-despreparada-corrige-a-sua-redacao_BhXq3hy0E2MN1078/",
+   "fonte": "reviews",
+   "por_que": "Relato de correções desconexas e pedidos de recorreção que somem na plataforma",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/corrija-me-servicos-educacionais/pessimo-servico-de-correcao-de-redacao_b5iloJLwkB7gc_yT/",
+   "fonte": "reviews",
+   "por_que": "Reclamação direta de péssimo serviço de correção de redação em plataforma paga",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/correcao-horrivel_h0WDcK3LOrnU80xW/",
+   "fonte": "reviews",
+   "por_que": "Relato de correção superficial que não segue critérios de banca, feita às pressas",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/hotmart/dificuldade-no-suporte_x7SBv2QIZc9fqbZ5/",
+   "fonte": "reviews",
+   "por_que": "Produtor/comprador de curso relata suporte ruim na plataforma usada por professores para vender curso",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.trustpilot.com/review/superprof.com",
+   "fonte": "reviews",
+   "por_que": "Reviews com reclamações literais de cobrança oculta de assinatura mensal e dificuldade de cancelamento na plataforma de aulas particulares",
+   "bloqueada": false
+  },
+  {
+   "url": "https://superprof.pissedconsumer.com/review.html",
+   "fonte": "reviews",
+   "por_que": "Reclamações de consumidores sobre pagamento e transparência na plataforma de professores particulares",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.productreview.com.au/listings/superprof",
+   "fonte": "reviews",
+   "por_que": "Reviews negativas de usuários sobre a plataforma de aulas particulares Superprof",
+   "bloqueada": false
+  },
+  {
+   "url": "https://blog.flexge.com/plataformas-cobranca-professores-particulares/",
+   "fonte": "comunidades",
+   "por_que": "Lista de dores reais de cobrança manual de professor particular que motivam ferramentas dedicadas (indício indireto de gap)",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.atados.com.br/vaga/corretor-de-redacao-303235",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga de corretor de redação exige atualização contínua de planilha manual para controlar o trabalho",
+   "bloqueada": false
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "fonte": "trabalho-manual",
+   "por_que": "Página de recrutamento de corretores freelancer descreve fluxo manual de pacotes de redações por banca",
+   "bloqueada": false
+  },
+  {
+   "url": "https://vagaseditoradialetica.vagas.solides.com.br/vaga/699942",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga de revisor(a) freelancer banco de talentos, remoto, sem jornada fixa — trabalho manual de correção/revisão de texto",
+   "bloqueada": false
+  },
+  {
+   "url": "https://br.indeed.com/q-professor-elaborador-de-quest%C3%B5es-vagas.html",
+   "fonte": "trabalho-manual",
+   "por_que": "Listagem de vagas para 'professor elaborador de questões', indicando processo manual de criação de itens para concursos/cursinhos",
+   "bloqueada": true
+  },
+  {
+   "url": "https://treinamentosaf.com.br/corrigir-30-redacoes-em-20-minutos-com-esse-prompt-sim/",
+   "fonte": "comunidades",
+   "por_que": "Conteúdo indica que corrigir redações manualmente é lento a ponto de gerar prompt/tutorial para acelerar via IA — evidência indireta do gap de correção em lote",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/hotmart/curso-nao-disponivel-e-falta-de-suporte_XM73JY4CRcSDF_Wf/",
+   "fonte": "reviews",
+   "por_que": "Comprador relata curso indisponível e professor sem resposta há semanas na plataforma usada por produtores de curso",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reviews.io/company-reviews/store/superprof.co.uk",
+   "fonte": "reviews",
+   "por_que": "Reviews de clientes da Superprof com reclamações de cobrança e atendimento",
+   "bloqueada": false
+  }
+ ],
+ "buscas_feitas": [
+  "\"corretor de redação\" 1 estrela reclamação plataforma",
+  "reclameaqui Hotmart professor curso reclamação suporte",
+  "Superprof reviews complaint app 1 star payment",
+  "\"Google Classroom\" reclamação professor correção em massa dificuldade",
+  "site:reddit.com professor \"correção de redação\" cansativo ferramenta",
+  "tabnews professor particular cobrança agenda alunos sistema",
+  "reddit teacher \"grading is so time consuming\" tool wish existed",
+  "quora \"elaborar questões\" prova professor demora manual concurso",
+  "vaga \"corretor de redação\" freelance processo manual planilha remoto",
+  "workana OR 99freelas \"material didático\" \"banco de questões\" freelancer pedido",
+  "gupy vaga \"elaborador de questões\" concurso cursinho descrição",
+  "GetNinjas \"correção de redação em lote\" OR \"corrigir redações\" contratar"
+ ]
+}

@@ -1,0 +1,233 @@
+{
+ "buscas_feitas": [
+  "Cebraspe provas e gabaritos site oficial concursos anteriores",
+  "Cebraspe concursos em andamento 2026 lista",
+  "FGV Conhecimento provas anteriores gabaritos site",
+  "Cebraspe certo errado pontuação penalização item errado",
+  "concursos previstos 2026 Cebraspe FGV calendário Folha Dirigida",
+  "FCC banca concursos 2025 2026 quantidade editais organizados",
+  "Vunesp concursos 2025 2026 quantos editais organizados",
+  "Cesgranrio concursos 2025 2026 quantidade editais",
+  "Instituto AOCP concursos 2025 2026 quantidade editais formato prova",
+  "cebraspe.org.br provas e gabaritos página concursos anteriores"
+ ],
+ "fatos": [
+  {
+   "id": "bancas-01",
+   "afirmacao": "Nas provas do Cebraspe, cada item é julgado como certo (C) ou errado (E); a metodologia recomendada pela banca atribui +1 ponto por acerto, -1 por erro, e 0 para item em branco ou com dupla marcação.",
+   "valor": "+1/-1/0",
+   "unidade_ou_periodo": "por item",
+   "evidencias": [
+    {
+     "url": "https://cj.estrategia.com/portal/como-dominar-estilo-cebraspe-certo-errado/",
+     "tipo": "imprensa",
+     "trecho": "Nas provas do Cebraspe, cada item deve ser julgado como C (certo) ou E (errado). Acerto: +1 ponto / Erro: –1 ponto / Questão em branco ou com dupla marcação: 0 ponto",
+     "secundaria": true,
+     "data": ""
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Fonte secundária (blog de curso preparatório); trecho descreve regra 'um erro anula um acerto', mas o mesmo blog observa que a aplicação varia por edital."
+  },
+  {
+   "id": "bancas-02",
+   "afirmacao": "O critério 'uma questão errada anula uma certa' não é aplicado em todos os editais do Cebraspe — a instituição contratante tem a faculdade de adotar ou não essa metodologia.",
+   "valor": "variável por edital",
+   "unidade_ou_periodo": "",
+   "evidencias": [
+    {
+     "url": "https://blogs.correiobraziliense.com.br/papodeconcurseiro/7549-2/",
+     "tipo": "imprensa",
+     "trecho": "Cebraspe nem sempre aplica critério 'uma errada anula uma certa'",
+     "secundaria": true,
+     "data": ""
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Título de matéria de imprensa; não foi possível abrir o corpo do texto para trecho mais longo dentro do orçamento de fetches."
+  },
+  {
+   "id": "bancas-03",
+   "afirmacao": "O Instituto de pesquisa PCI Concursos lista dezenas de editais ativos organizados pela Cebraspe simultaneamente (ex.: SEFAZ-AL, ADEAL, PM-AL, Polícia Civil-AL), somando aproximadamente 50+ editais ativos no momento da consulta.",
+   "valor": "~50+ editais ativos",
+   "unidade_ou_periodo": "setembro de 2026 (momento da consulta)",
+   "evidencias": [
+    {
+     "url": "https://www.pciconcursos.com.br/organizadoras/cebraspe",
+     "tipo": "outro",
+     "trecho": "SEFAZ-AL (Auditor Fiscal) - inscrições até 21/10/2026; ADEAL (Fiscal Estadual Agropecuário) - até 20/10/2026; PM-AL (Soldado e Oficial) - reabertura até 16/10/2026; Polícia Civil-AL (Agente e Escrivão) - até 11/09/2026",
+     "secundaria": true,
+     "data": "2026-09-14"
+    },
+    {
+     "url": "https://www.direcaoconcursos.com.br/noticias/concursos-cebraspe-marco-2026",
+     "tipo": "imprensa",
+     "trecho": "10 editais abertos e previstos para março, com Ansa – 126 vagas; PGE RN – 22 vagas; Seplag AL – 37 vagas; PGM Porto Alegre – 20 vagas; PCDF Delegado – 150 vagas; CGE AL – 10 vagas",
+     "secundaria": true,
+     "data": "2026-03"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Números aproximados de agregadores de imprensa/portal especializado; não confirmado no site oficial cebraspe.org.br por bloqueio de raspagem via WebFetch (página retornou apenas slogan institucional, sem conteúdo dinâmico renderizado)."
+  },
+  {
+   "id": "bancas-04",
+   "afirmacao": "O site institucional cebraspe.org.br não expôs, via WebFetch, conteúdo além do slogan 'Cebraspe | O melhor em avaliação de pessoas' — a página é fortemente dependente de JavaScript/renderização client-side, impedindo confirmar diretamente pelo canal oficial a seção de provas e gabaritos, contagem de concursos e formato de questões.",
+   "valor": "não confirmável via fetch direto",
+   "unidade_ou_periodo": "",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/",
+     "tipo": "oficial",
+     "trecho": "Cebraspe | O melhor em avaliação de pessoas",
+     "secundaria": false,
+     "data": ""
+    },
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "tipo": "oficial",
+     "trecho": "Cebraspe | O melhor em avaliação de pessoas",
+     "secundaria": false,
+     "data": ""
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Fato é sobre a limitação metodológica, não sobre o conteúdo do site em si. Recomenda-se checagem manual (navegador) numa próxima sessão para mapear a seção real de provas e gabaritos, ex. via claude-in-chrome."
+  },
+  {
+   "id": "bancas-05",
+   "afirmacao": "A FGV Conhecimento publica provas e gabaritos por concurso em subdomínios dedicados por edital (ex.: enare2026.conhecimento.fgv.br/provas/), e não em uma única seção central genérica.",
+   "valor": "subdomínio por concurso",
+   "unidade_ou_periodo": "",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "tipo": "oficial",
+     "trecho": "Provas aplicadas — Solicite aqui seu Certificado de Aprovação da FGV para concursos e provas realizadas",
+     "secundaria": false,
+     "data": ""
+    }
+   ],
+   "confianca": "media",
+   "observacao": "A página node/141 ('Provas aplicadas') não lista diretamente provas para download; ela remove foco para emissão de certificado de aprovação, sugerindo que provas/gabaritos ficam em microsites por edital."
+  },
+  {
+   "id": "bancas-06",
+   "afirmacao": "A página de listagem de concursos da FGV Conhecimento (conhecimento.fgv.br/concursos) mostra concursos em andamento incluindo Concurso Público Nacional Unificado 2 e seleções para tribunais estaduais (RS, PE), secretarias estaduais (RJ, PA, TO), polícia civil e defensoria pública, com paginação para concursos já realizados.",
+   "valor": "~20 concursos em andamento listados na primeira página",
+   "unidade_ou_periodo": "setembro de 2026",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/concursos",
+     "tipo": "oficial",
+     "trecho": "Concurso Público Nacional Unificado 2, concursos para tribunais estaduais (Rio Grande do Sul, Pernambuco), secretarias de estado (Rio de Janeiro, Pará, Tocantins), polícia civil e defensoria pública",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "O trecho fetched é um resumo do fetcher (modelo pequeno), não citação bruta do HTML — mantido por ser a melhor evidência oficial obtida dentro do orçamento; não há confirmação de formato de prova nesta página."
+  },
+  {
+   "id": "bancas-07",
+   "afirmacao": "A FCC (Fundação Carlos Chagas) tem, em setembro de 2026, concursos em andamento citados pela imprensa especializada para Secretaria da Fazenda do Ceará, Ministério Público de Alagoas, Defensoria Pública do Maranhão e da Bahia, e Assembleia Legislativa de Mato Grosso do Sul, além de edital previsto para a PM do Piauí no 1º semestre de 2026.",
+   "valor": "múltiplos editais simultâneos citados",
+   "unidade_ou_periodo": "2025-2026",
+   "evidencias": [
+    {
+     "url": "https://www.proximosconcursos.com/concurso-pm-pi-2026-fcc-e-a-banca/",
+     "tipo": "imprensa",
+     "trecho": "Concurso da Polícia Militar do Piauí (PM PI), com a FCC escolhida como banca organizadora, com expectativa de publicação do edital no primeiro semestre de 2026",
+     "secundaria": true,
+     "data": "2026"
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Trecho vem de resumo de busca (WebSearch), não de WebFetch direto ao artigo — não atende ao critério de evidência 'aberta e literal' desta pesquisa; registrado apenas como indicativo de atividade da banca, não como fato com evidência primária forte. Contagem exata de editais não obtida (qconcursos.com bloqueou com HTTP 403)."
+  },
+  {
+   "id": "bancas-08",
+   "afirmacao": "Não foi possível obter, dentro do orçamento de buscas/aberturas, um número consolidado e verificado de quantos concursos a FCC, Vunesp, Cesgranrio e Instituto AOCP organizaram nos últimos 12-24 meses — as páginas agregadoras que citam totais (qconcursos.com) bloquearam o acesso com HTTP 403 Forbidden.",
+   "valor": "não confirmado",
+   "unidade_ou_periodo": "",
+   "evidencias": [
+    {
+     "url": "https://www.qconcursos.com/questoes-de-concursos/bancas/fcc",
+     "tipo": "outro",
+     "trecho": "HTTP 403 Forbidden",
+     "secundaria": true,
+     "data": "2026-09-14"
+    },
+    {
+     "url": "https://www.qconcursos.com/questoes-de-concursos/bancas/cesgranrio",
+     "tipo": "outro",
+     "trecho": "HTTP 403 Forbidden",
+     "secundaria": true,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Fato sobre a limitação metodológica em si, registrado para transparência. Números como '583 concursos FCC', '474 concursos Vunesp' e '147 concursos Instituto AOCP' apareceram em resumos de WebSearch (não em WebFetch aberto com trecho literal) e por isso foram DESCARTADOS deste relatório, não incluídos como fato — ver lacunas."
+  },
+  {
+   "id": "bancas-09",
+   "afirmacao": "A Fundação Cesgranrio foi escolhida para organizar o processo seletivo do IBGE, com edital previsto até outubro de 2026 para contratação de 27.279 recenseadores temporários; também administra concursos do Transpetro (4 editais, 4.171 vagas Terra e Mar) e tem contrato vigente com a Petrobras para próximos editais (mínimo 1.100 vagas esperadas).",
+   "valor": "27.279 vagas (IBGE); 4.171 vagas (Transpetro)",
+   "unidade_ou_periodo": "2025-2026",
+   "evidencias": [
+    {
+     "url": "https://blog.grancursosonline.com.br/concurso-ibge-temporarios/",
+     "tipo": "imprensa",
+     "trecho": "27.279 recenseadores temporários, com publicação do novo edital prevista para ocorrer até outubro de 2026",
+     "secundaria": true,
+     "data": "2026"
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Trecho obtido via resumo de WebSearch, não WebFetch direto (não abri o artigo por orçamento). Marcado como confiança baixa por não atender ao critério estrito de trecho literal aberto via WebFetch desta pesquisa; mantido apenas como indicativo direcional."
+  },
+  {
+   "id": "bancas-10",
+   "afirmacao": "Cebraspe possui múltiplos concursos com contratos e vagas previstas para 2026 no Distrito Federal e Alagoas, incluindo PCDF Delegado (150 vagas), PM-AL (1.000 praças + 60 oficiais, edital pendente), Sefaz-DF (115 imediatas + 150 reserva, edital pendente) e ISS Porto Velho (Auditor, 10+10 reserva, edital pendente).",
+   "valor": "múltiplos concursos previstos citados",
+   "unidade_ou_periodo": "2026",
+   "evidencias": [
+    {
+     "url": "https://www.direcaoconcursos.com.br/noticias/concursos-cebraspe-marco-2026",
+     "tipo": "imprensa",
+     "trecho": "PCDF Delegado – 150 vacancies; ISS Porto Velho (Auditor: 10+10 reserve); Sefaz DF (115 immediate + 150 reserve); PM AL (1,000 Praças + 60 Officers)",
+     "secundaria": true,
+     "data": "2026-03"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho de WebFetch real sobre artigo de imprensa especializada (Direção Concursos), citando calendário previsto — não é fonte oficial da banca, mas cumpre o critério de imprensa secundária aceitável."
+  },
+  {
+   "id": "bancas-11",
+   "afirmacao": "A FGV Conhecimento opera múltiplos microsites por concurso para gestão de vagas e materiais (ex.: mapa-vagas-enare-ebserh.conhecimento.fgv.br para Provas e Gabaritos de residência médica, enare2026.conhecimento.fgv.br/provas/ para o Enare 2026), sugerindo estrutura de TI descentralizada por edital em vez de um repositório único e centralizado no domínio raiz.",
+   "valor": "estrutura descentralizada por subdomínio",
+   "unidade_ou_periodo": "",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "tipo": "oficial",
+     "trecho": "Provas aplicadas — Solicite aqui seu Certificado de Aprovação da FGV para concursos e provas realizadas",
+     "secundaria": false,
+     "data": ""
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Inferência baseada nos títulos de busca (enare2026.conhecimento.fgv.br, mapa-vagas-enare-ebserh.conhecimento.fgv.br) que não foram abertos via WebFetch dentro do orçamento — registrado como hipótese a validar, não fato fechado."
+  }
+ ],
+ "lacunas": [
+  "Não foi possível confirmar no site oficial cebraspe.org.br (via WebFetch) a URL exata da seção 'Provas e Gabaritos', pois o WebFetch só retornou o slogan institucional — a página parece depender de JavaScript client-side. Recomenda-se checar manualmente com navegador (ex. claude-in-chrome) em sessão futura, incluindo busca por 'site:cebraspe.org.br provas e gabaritos'.",
+  "Número exato de concursos organizados pela Cebraspe nos últimos 12-24 meses: não confirmado com fonte primária ou trecho literal aberto; qconcursos.com (que teria esse dado agregado) retornou HTTP 403 em todas as tentativas de WebFetch.",
+  "Número exato de concursos organizados por FCC, Vunesp, Cesgranrio e Instituto AOCP nos últimos 12-24 meses: buscado em qconcursos.com, pciconcursos.com e sites oficiais das próprias bancas (concursosfcc.com.br, vunesp.com.br, institutoaocp.org.br) — qconcursos bloqueou (403); os demais não foram abertos por orçamento de fetches esgotado antes de conseguir números consolidados.",
+  "Formato exato das questões da FGV Conhecimento (múltipla escolha A-E vs. discursiva, penalização) não confirmado com trecho literal do site oficial — a página node/141 e a listagem /concursos não mencionaram esse detalhe; seria necessário abrir um edital específico ou página de 'como se preparar' da FGV.",
+  "Calendário oficial de concursos previstos para os próximos 12 meses (Cebraspe e FGV) com fonte primária (banca) não obtido — só há trechos de imprensa especializada (Direção Concursos, Folha Dirigida/qconcursos) citando editais individuais; a listagem consolidada não foi aberta por orçamento.",
+  "Padrões notórios de banca citados por professores/aprovados com URL e trecho aberto: não coletado nesta rodada — nenhuma busca foi dedicada a isso além do achado genérico sobre certo/errado; ficou de fora por priorização do orçamento de 10 buscas.",
+  "Volume aproximado e formato de FCC, Vunesp, Cesgranrio e Instituto AOCP 'de passagem': dados de contagem total (583, 474, 147 concursos) apareceram apenas em resumos de WebSearch, nunca confirmados por WebFetch literal — por isso foram excluídos dos fatos reportados, conforme a regra de não usar snippet do WebSearch como evidência."
+ ]
+}

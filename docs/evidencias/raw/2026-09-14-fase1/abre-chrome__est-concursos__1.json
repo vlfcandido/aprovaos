@@ -1,0 +1,82 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/tentativa-de-cancelamento-de-assinatura-com-cobranca-de-taxa-editado-pelo-reclame-aqui-e-falta-de-resposta-dos-canais-de-atendimento_O4emBdDPG4iuh4vJ/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Reclamação resolvida sobre cobrança de taxa para cancelar e falta de resposta no atendimento.",
+   "trechos": [
+    {
+     "trecho": "No ano de 2025 tentei fazer o cancelamento porem tive que continuar pagando, mas esse ano decidi cancelar e quando fui cancelar pediram o valor de 200 reais",
+     "autor": "Viviane",
+     "data": "18/03/2026 às 20:54",
+     "contexto": "Reclamação principal, categorizada como Cobrança indevida na plataforma"
+    },
+    {
+     "trecho": "pedi para baixar pois não faz sentido pagar pata cancelar uma assinatura",
+     "autor": "Viviane",
+     "data": "18/03/2026 às 20:54",
+     "contexto": "Continuação da reclamação sobre taxa de cancelamento"
+    },
+    {
+     "trecho": "Já entrei em contato por outros canais e não obtive resposta",
+     "autor": "Viviane",
+     "data": "18/03/2026 às 20:54",
+     "contexto": "Queixa sobre falta de resposta nos canais de atendimento"
+    }
+   ]
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/tec-concursos/tec-concursos-faz-propaganda-enganosa-sobre-cancelamento-e-cobra-indevidame_EykVz1DoUJv8ZUe5/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Reclamação resolvida de 2019 sobre propaganda enganosa e cobrança após cancelamento confirmado.",
+   "trechos": [
+    {
+     "trecho": "Eles dizem, antes mesmo de efetivar a assinatura, que o cancelamento é rápido e fácil, feito através de sua plataforma",
+     "autor": "Walter",
+     "data": "22/03/2019 às 17:58",
+     "contexto": "Descrição da promessa de cancelamento no site antes de contratar"
+    },
+    {
+     "trecho": "De fato, encontrei facilmente a opção de cancelamento e , seguindo os passos indicados, encerrei o contrato. Recebi um email de confirmação de cancelamento logo em seguida. O problema é que a assinatura não foi cancelada",
+     "autor": "Walter",
+     "data": "22/03/2019 às 17:58",
+     "contexto": "Descrição do bug que confirmou cancelamento mas não processou"
+    },
+    {
+     "trecho": "Prestem atenção: assinatura cancelada em 06/03 e cobrança indevida em 22/03",
+     "autor": "Walter",
+     "data": "22/03/2019 às 17:58",
+     "contexto": "Constatação de cobrança recorrente mesmo após cancelamento"
+    }
+   ]
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/tec-concursos/cobranca-indevida-e-dificuldade-de-cancelamento-te-concursos_8MwcDnrYYxs7yPOn/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Reclamação resolvida de 2025 sobre impossibilidade de contratar prazo determinado, bug no cancelamento e cobrança duplicada.",
+   "trechos": [
+    {
+     "trecho": "Me incomodou a impossibilidade de contratar por prazo determinado, ficando obrigado a cancelar a assinatura logo após a contratação",
+     "autor": "Lucas",
+     "data": "24/07/2025 às 12:54",
+     "contexto": "Queixa sobre renovação automática obrigatória, categorizado como Cobrança duplicada"
+    },
+    {
+     "trecho": "O problema é que também não consegui cancelar a assinatura devido a um bug no site, onde só aparecia um balão vermelho no canto superior da tela com uma mensagem de erro",
+     "autor": "Lucas",
+     "data": "24/07/2025 às 12:54",
+     "contexto": "Descrição do bug técnico impedindo cancelamento"
+    },
+    {
+     "trecho": "hoje foi feita uma nova cobrança por um serviço que pouco usei, e me sinto [Editado] como consumidor pela dificuldade de realizar o cancelamento",
+     "autor": "Lucas",
+     "data": "24/07/2025 às 12:54",
+     "contexto": "Relato de cobrança recorrente após tentativa frustrada de cancelamento"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,126 @@
+{
+ "candidatas": [
+  {
+   "url": "https://forums.ankiweb.net/t/losing-review-data-when-syncing-without-warning/43493",
+   "fonte": "comunidades",
+   "por_que": "Usuário relata perda de dados de revisão ao sincronizar, sem aviso, e reclama que Anki mudou comportamento antigo que avisava",
+   "bloqueada": false
+  },
+  {
+   "url": "https://community.ankihub.net/t/completed-cards-full-sync-lost-two-days-of-data/588249",
+   "fonte": "comunidades",
+   "por_que": "Relato literal de usuário que perdeu 2 dias de progresso e um streak de 544 dias após full sync",
+   "bloqueada": false
+  },
+  {
+   "url": "https://forums.ankiweb.net/t/reviews-lost-after-syncing-deck-with-130-ease-with-ankiweb/6932",
+   "fonte": "comunidades",
+   "por_que": "Reclamação de perda de revisões ao sincronizar deck com AnkiWeb",
+   "bloqueada": false
+  },
+  {
+   "url": "https://github.com/ankidroid/Anki-Android/issues/3574",
+   "fonte": "comunidades",
+   "por_que": "Issue relatando coleção fora de sincronia sem poder ser mesclada, mesmo em uso num único dispositivo",
+   "bloqueada": false
+  },
+  {
+   "url": "https://forums.ankiweb.net/t/review-sync-issue-review-counter-remains-at-0/51950",
+   "fonte": "comunidades",
+   "por_que": "Relato de bug onde contador de revisão fica travado em 0 após sync",
+   "bloqueada": false
+  },
+  {
+   "url": "https://github.com/ankidroid/Anki-Android/issues/5666",
+   "fonte": "comunidades",
+   "por_que": "Issue descrevendo coleção em estado inconsistente a cada sincronização",
+   "bloqueada": false
+  },
+  {
+   "url": "https://groups.google.com/g/anki-android/c/cdXHTo87fGs",
+   "fonte": "comunidades",
+   "por_que": "Thread de usuário relatando 'Lost progress' no AnkiDroid",
+   "bloqueada": false
+  },
+  {
+   "url": "https://ca.trustpilot.com/review/www.quizlet.com",
+   "fonte": "reviews",
+   "por_que": "Reviews reais dando nota 1.4/5 ao Quizlet, reclamando de paywall e remoção de exportação de flashcards",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.trustpilot.com/review/remnote.com",
+   "fonte": "reviews",
+   "por_que": "Reviews de usuários do RemNote no Trustpilot com reclamações sobre monetização",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/faixa-preta-concursos/flashcards-desatualizados-e-falta-de-suporte_8UT3ADlW-4pQvtEK/",
+   "fonte": "reviews",
+   "por_que": "Reclamação literal: flashcards de concurso desatualizados e sem suporte, sem resposta da empresa",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/revisacards-concursos/flashcards-desatualizado_PFGZHbSsccwwthOt/",
+   "fonte": "reviews",
+   "por_que": "Reclamação de flashcards de concurso desatualizados vendidos com promessa de atualização",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/nao-joguem-seu-dinheiro-fora-com-esses-flashcards_gNX1pGedNvyjVjgJ/",
+   "fonte": "reviews",
+   "por_que": "Reclamação enfática de cliente insatisfeito com produto de flashcards pago para concurso",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/reembolso-de-flashcards_H4RIRoH9aqhPX_Lx/",
+   "fonte": "reviews",
+   "por_que": "Pedido de reembolso por flashcards de concurso que não atenderam ao prometido",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/flashcards-brasil/lista-reclamacoes/",
+   "fonte": "reviews",
+   "por_que": "Lista de reclamações de clientes contra empresa 'Flashcards Brasil'",
+   "bloqueada": true
+  },
+  {
+   "url": "https://hotmart.com/pt-br/marketplace/produtos/baralho-anki-flashcards-criminologia/W69198265B",
+   "fonte": "trabalho-manual",
+   "por_que": "Produto pago mostrando que pessoas compram baralhos de Anki prontos em vez de fazer na mão (evidência de mercado, não relato de dor, mas indica demanda paga)",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.freelancer.com/job-search/anki-app/",
+   "fonte": "trabalho-manual",
+   "por_que": "Listagem de vagas/projetos freelance pedindo criação manual de cartões Anki a partir de PDFs e bancos de questões",
+   "bloqueada": true
+  },
+  {
+   "url": "https://ankidodelta.com/",
+   "fonte": "trabalho-manual",
+   "por_que": "Serviço vendendo baralhos de Anki .apkg prontos e atualizados manualmente para concursos, evidenciando processo manual repetitivo por trás",
+   "bloqueada": false
+  },
+  {
+   "url": "https://community.ankihub.net/t/completed-cards-full-sync-lost-two-days-of-data/588249",
+   "fonte": "comunidades",
+   "por_que": "(duplicata proposital de reforço) relato de perda de progresso por bug de sincronização",
+   "bloqueada": false
+  }
+ ],
+ "buscas_feitas": [
+  "Anki review 1 estrela reclamação sincronização perdeu dados",
+  "\"Anki\" review \"lost my data\" OR \"sync error\" complaint Google Play",
+  "Quizlet OR RemNote review reclamação Trustpilot ruim",
+  "app flashcards mnemônico reclame aqui review negativo",
+  "reddit r/Anki \"does anyone know\" OR \"is there a way\" tedious making cards by hand",
+  "\"baralho de anki pronto\" OR \"flashcards anki prontos\" concurso vender",
+  "TabNews OR Quora \"criar flashcards\" manual demorado ferramenta",
+  "Product Hunt \"flashcard\" OR \"spaced repetition\" complaint request feature missing",
+  "workana OR 99freelas \"flashcards\" OR \"cartões de memorização\" OR \"mapa mental\" criar projeto",
+  "vaga \"criar flashcards\" OR \"material de revisão\" concurso Gupy OR Catho descrição",
+  "freelancer.com \"anki deck\" OR \"spaced repetition\" job create cards",
+  "GetNinjas \"resumo\" OR \"flashcards\" OR \"mapa mental\" para concurso contratar"
+ ]
+}

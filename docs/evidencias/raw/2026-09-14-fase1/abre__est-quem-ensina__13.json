@@ -1,0 +1,100 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.trustpilot.com/review/superprof.com",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "I was charged $49 per month automatically for a subscription I never knowingly signed up for or authorized.",
+     "autor": "Romain Thievin",
+     "data": "5 dias atrás",
+     "contexto": "Review no Trustpilot — cobrança oculta de assinatura mensal"
+    },
+    {
+     "trecho": "The customer service never responded, they charged me for the whole month of services though I was not interested aftet a day of using it.",
+     "autor": "Anna Geva Myers",
+     "data": "6 dias atrás",
+     "contexto": "Review no Trustpilot — cobrança integral sem cancelamento"
+    },
+    {
+     "trecho": "they scam the hell out of students (hint: the first lesson is 'free' when/if they sign up for a $45/Month subscription - charged the first month)",
+     "autor": "James",
+     "data": "31 ago 2026",
+     "contexto": "Review no Trustpilot — aula grátis condicional a assinatura"
+    },
+    {
+     "trecho": "They ask for your credit card, which appears to be for paying the tutor, and then immediately charge you a $49 subscription fee.",
+     "autor": "Benoit Marsot",
+     "data": "29 ago 2026",
+     "contexto": "Review no Trustpilot — cartão solicitado com múltiplas cobranças"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://superprof.pissedconsumer.com/review.html",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "My payment method on my profile is PayPal. Please revert all pending payments from Superprof on my account to this PayPal account ASAP.",
+     "autor": "Oluchukwu Stanley Solumbi",
+     "data": "14 jan 2026",
+     "contexto": "Review PissedConsumer — pedido de reembolso de pagamentos pendentes"
+    },
+    {
+     "trecho": "Signed up to get a tennis coach and had to give CC# right away. The tennis coach got in touch and was too far from my home so didn't use service. Next morning my card was charged 49.00.",
+     "autor": "Anônimo",
+     "data": "27 mar 2024",
+     "contexto": "Review PissedConsumer — cobrança mesmo sem usar serviço"
+    },
+    {
+     "trecho": "I was redirected to a company called Wiingy. They offered to complete an assignment on my behalf, specifying a completion date of 19th October 2023, and charging a hefty fee of $266 Australian dollars.",
+     "autor": "Ching W Bbx",
+     "data": "23 out 2023",
+     "contexto": "Review PissedConsumer — redirecionamento para serviço terceirizado com preço alto"
+    },
+    {
+     "trecho": "booked tutors who never show up, I suspect many tutor profiles are fake. They deducted over $400 for did absolutely nothing.",
+     "autor": "Renee Q Pgs",
+     "data": "27 ago 2023",
+     "contexto": "Review PissedConsumer — tutores fantasma e cobrança sem serviço"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.productreview.com.au/listings/superprof",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "Dont sign up they will take money even if you dont go ahead with the service",
+     "autor": "Tracey R",
+     "data": "2 dias atrás",
+     "contexto": "Review ProductReview — cobrança mesmo sem prosseguir com serviço"
+    },
+    {
+     "trecho": "Scam Scam Scam - They take your money - Terrible service - Do not use them",
+     "autor": "Tom G.",
+     "data": "3 meses atrás",
+     "contexto": "Review ProductReview — reclamação de serviço terrível"
+    },
+    {
+     "trecho": "They took my $375 and never turned up. So I now spend time disputing rather than getting my lessons",
+     "autor": "Quinn O.",
+     "data": "6 meses atrás",
+     "contexto": "Review ProductReview — tutores ausentes e disputa de cobrança"
+    },
+    {
+     "trecho": "BEWARE Scammers there are NO tutors when you book a tutor they keep changing you every month",
+     "autor": "Kerry Z.",
+     "data": "7 meses atrás",
+     "contexto": "Review ProductReview — perfis de tutores fake e rotação mensal"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

@@ -1,0 +1,199 @@
+{
+ "gaps": [
+  {
+   "titulo": "Cancelamento de assinatura de cursinho online é negado, escondido ou ignorado",
+   "nicho": "ESTUDOS — ENEM e vestibular",
+   "dor": "Estudantes e pais que contratam planos de cursinho online (Descomplica, Aprova Total/Biologia Total) tentam cancelar por insatisfação com o conteúdo ou dificuldade financeira e encontram: prazo de 7 dias escondido nos Termos de Uso, cancelamento só por e-mail com demora de dias para resposta, cobrança de parcelas mesmo após pedido formal de cancelamento, e renovação automática antecipada antes do vencimento.",
+   "quem_sofre": "Estudante (frequentemente menor de idade) e o responsável financeiro (pai/mãe) que assinou o plano anual ou mensal.",
+   "evidencias": [
+    {
+     "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00849582-56",
+     "tipo": "review",
+     "trecho": "me disseram que não vão cancelar alegando taxas de cartão de crédito",
+     "data": "18/03/2020",
+     "contexto": "Descomplica recusa cancelamento inicialmente"
+    },
+    {
+     "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00127639-84",
+     "tipo": "review",
+     "trecho": "o cancelamento só pode ser efetuado se o pedido for feito em até 7 dias após a compra",
+     "data": "01/03/2017",
+     "contexto": "Resposta oficial da Descomplica limitando cancelamento a 7 dias"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/descomplica/cancelar-contrato_3H2A4Ih4j3Eo6EFH/",
+     "tipo": "review",
+     "trecho": "E o Descomplica até escreve que o plano pode ser cancelado até o sétimo dia, mas esquece de escrever nos Termos de Uso que APÓS O SÉTIMO DIA O PLANO NÃO PODE MAIS SER CANCELADO PELO RESTO DO ANO.",
+     "data": "24/03/2021",
+     "contexto": "Omissão de informação crítica sobre trava de cancelamento"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/descomplica-pos-graduacao/cobranca-indevida-e-problemas-tecnicos-apos-cancelamento-de-curso-na-descomplica_cNo8n29Pcp01NRxG/",
+     "tipo": "review",
+     "trecho": "Cancelei o curso dia 1 de Agosto, mas a Faculdade está sendo desonesta comigo, ao me cobrar taxa de cancelamento de algo que eu nem comecei a usar.",
+     "data": "11/08/2025",
+     "contexto": "Cobrança continuada após cancelamento formal"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/descomplica/quero-cancelar-e-receber-meu-dinheiro-de-volta_9qNfrm5aqe0fx0UU/",
+     "tipo": "review",
+     "trecho": "O site também não possui botão para cancelar automaticamente mesmo os concorrentes deles tendo, ou seja, eles preferem que não tenha é o que parece.",
+     "data": "06/06/2017",
+     "contexto": "Ausência deliberada de autoatendimento de cancelamento"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-de-curso-online-aprova-total-por-falta-de-adaptacao-e-cobranca-indevida_K1hGXXVO5yjie9JX/",
+     "tipo": "review",
+     "trecho": "a cobrança por serviço não utilizado configura prática abusiva, podendo o consumidor solicitar cancelamento e cessação imediata das cobranças.",
+     "data": "14/03/2026",
+     "contexto": "Consumidor cita CDC para forçar cancelamento de curso Aprova Total"
+    }
+   ],
+   "quem_paga_hoje": "Pais/responsáveis que contratam planos anuais ou mensais de cursinho online (valores citados: parcelas de R$80,00 a R$83,00/mês no Aprova Total; planos anuais na Descomplica na faixa de milhares de reais).",
+   "solucoes_atuais": [
+    {
+     "nome": "Descomplica",
+     "preco": "não medido (plano anual, valor não informado nos trechos)",
+     "por_que_falha": "cancelamento só por e-mail, sem botão de autoatendimento, política de 7 dias oculta nos Termos de Uso, renovação automática antes do vencimento"
+    },
+    {
+     "nome": "Aprova Total / Biologia Total",
+     "preco": "parcelas de R$80–83/mês citadas nas reclamações",
+     "por_que_falha": "cobrança continua mesmo após pedido de cancelamento por falta de uso; resolução só via Reclame Aqui/CDC"
+    }
+   ],
+   "por_que_falham": "O processo de cancelamento é manual (e-mail, sem confirmação formal), a política restritiva fica escondida nos Termos de Uso, e a cobrança recorrente não é interrompida automaticamente quando o aluno para de usar — o consumidor só consegue reverter escalando publicamente (Proteste, Reclame Aqui) e citando o CDC.",
+   "palavras_chave": [
+    "cancelar assinatura descomplica",
+    "cancelamento curso enem",
+    "cobrança indevida curso online",
+    "reembolso cursinho online"
+   ],
+   "ia_aplicavel": "não — o gap é de processo/política comercial e direito do consumidor, não de tecnologia; IA poderia no máximo automatizar a triagem de pedidos de cancelamento no atendimento.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — reclamantes citam diretamente o Código de Defesa do Consumidor (CDC) contra cobrança por serviço não utilizado; exposição a Procon e ações de reembolso.",
+   "observacoes": "Padrão se repete em múltiplas empresas de cursinho (Descomplica, Aprova Total/Biologia Total) e ao longo de vários anos (2017 a 2026), indicando prática estrutural do setor, não incidente isolado."
+  },
+  {
+   "titulo": "Correção de redação ENEM terceirizada é inconsistente e mal remunerada",
+   "nicho": "ESTUDOS — ENEM e vestibular",
+   "dor": "Cursinhos terceirizam a correção de redações para freelancers pagos por peça a valores baixos (R$3,00/redação), com prazo curto (24h), e alunos relatam corretores despreparados que não identificam erros, mudam nota sem solicitação e são inconsistentes entre si.",
+   "quem_sofre": "Estudantes que pagam mensalidade esperando correção de redação de qualidade segundo os critérios do ENEM, e os próprios corretores freelancer mal remunerados.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+     "tipo": "review",
+     "trecho": "Após enviar, apareceram diversos erros que o corretor não havia relatado anteriormente no método ENEM.",
+     "data": "11/02/2022",
+     "contexto": "Aluno relata despreparo do corretor de redação"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+     "tipo": "review",
+     "trecho": "atribuir uma diferença de 16% sobre o desenvolvimento da redação, além de acessar a redação na qual não solicitei revisão e alterar a nota",
+     "data": "11/02/2022",
+     "contexto": "Inconsistência entre avaliadores e alteração de nota não solicitada"
+    },
+    {
+     "url": "https://www.workana.com/pt/job/corretor-de-redacao-1",
+     "tipo": "freelancer",
+     "trecho": "Estamos lançando um projeto de correção de redação conforme critérios do ENEM, oferecemos inicialmente o valor de R$ 3,00 por redação corrigida.",
+     "data": "não especificada na página",
+     "contexto": "Vaga de freelancer para correção de redação em massa, baixo valor por peça"
+    },
+    {
+     "url": "https://www.workana.com/pt/job/corretor-de-redacao-1",
+     "tipo": "freelancer",
+     "trecho": "As redações são enviadas conforme chegam ao nosso sistema e tem um prazo de 24hs para serem corrigidas.",
+     "data": "não especificada na página",
+     "contexto": "Processo manual repetitivo com prazo apertado"
+    }
+   ],
+   "quem_paga_hoje": "Empresas de cursinho pagam freelancers cerca de R$3,00 por redação corrigida; alunos pagam mensalidade do curso esperando correção de qualidade incluída.",
+   "solucoes_atuais": [
+    {
+     "nome": "Corretor humano freelancer (via Workana)",
+     "preco": "R$3,00 por redação corrigida",
+     "por_que_falha": "remuneração baixa não atrai/retém corretores qualificados, prazo de 24h força volume sobre qualidade"
+    },
+    {
+     "nome": "Biologia Total / Aprova Total — corretor de redação",
+     "preco": "não medido",
+     "por_que_falha": "corretor não identifica erros reais, altera notas sem solicitação, inconsistência entre avaliadores"
+    }
+   ],
+   "por_que_falham": "A correção é feita por humanos contratados como mão de obra barata e volumosa (R$3/redação, 24h de prazo), sem padronização suficiente dos critérios ENEM entre diferentes corretores, gerando notas inconsistentes e erros não identificados.",
+   "palavras_chave": [
+    "corretor de redação enem",
+    "correção de redação online",
+    "freelancer correção redação enem",
+    "essay grading AI"
+   ],
+   "ia_aplicavel": "sim — um LLM treinado nos critérios das 5 competências do ENEM pode padronizar a correção, eliminar variação entre avaliadores humanos e operar a custo marginal muito menor que R$3,00/redação com prazo quase instantâneo.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — não há conselho profissional regulando correção de redação; risco reside apenas em precisão pedagógica, não em barreira legal.",
+   "observacoes": "Evidência combina o lado da demanda (aluno insatisfeito com qualidade) e o lado da oferta (vaga de freelancer mostrando como o processo é montado hoje: manual, em lote, mal pago)."
+  },
+  {
+   "titulo": "Gabaritos de simulados e livros de questões saem com erros não revisados",
+   "nicho": "ESTUDOS — ENEM e vestibular",
+   "dor": "Estudantes compram livros de questões e simulados de cursinho para treinar para o ENEM/concursos e encontram gabaritos errados ou questões confusas, com múltiplos alunos relatando o mesmo erro na mesma questão, sem controle de qualidade evidente antes da publicação.",
+   "quem_sofre": "Estudantes de ENEM e concurseiros que usam simulados e livros de questões como ferramenta principal de treino.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/editora-escala-ltda/gabarito-do-simulado-todo-errado_VgdeeqNBjRQq1Q-S/",
+     "tipo": "review",
+     "trecho": "Comprei o livro de ******* questões de prapararoria do enem e o gabarito do simulado estaca todo errado, lamentavel a atitude a empresa",
+     "data": "03/07/2017",
+     "contexto": "Gabarito de livro de questões ENEM inteiramente incorreto"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/simulado-gabarito-errado-questoes-mal-elaboradas-e-confusas_6KZmvcy3UhDlWHn9/",
+     "tipo": "review",
+     "trecho": "os simulados contêm questões confusas, gabarito totalmente equivocado, o que prejudica a preparação para o concurso.",
+     "data": "01/10/2022",
+     "contexto": "Simulados de curso preparatório com gabarito e questões com problemas"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/simulado-gabarito-errado-questoes-mal-elaboradas-e-confusas_6KZmvcy3UhDlWHn9/",
+     "tipo": "review",
+     "trecho": "Vários alunos possuem as mesmas queixas. Por exemplo, a questão (vide anexo) Q1561305 e muitas outras.",
+     "data": "01/10/2022",
+     "contexto": "Erro recorrente confirmado por múltiplos alunos, não caso isolado"
+    }
+   ],
+   "quem_paga_hoje": "Estudantes que compram livros de questões de editoras (ex.: Editora Escala) e assinaturas de cursos com banco de simulados (ex.: Gran Cursos Online).",
+   "solucoes_atuais": [
+    {
+     "nome": "Editora Escala — livro de questões ENEM",
+     "preco": "não medido",
+     "por_que_falha": "gabarito publicado integralmente incorreto, sem processo de revisão perceptível"
+    },
+    {
+     "nome": "Gran Cursos Online — banco de simulados",
+     "preco": "não medido",
+     "por_que_falha": "questões confusas e gabarito errado confirmado por vários alunos na mesma questão"
+    }
+   ],
+   "por_que_falham": "A produção de gabaritos e questões é feita manualmente sem uma segunda camada de verificação cruzada antes da publicação, permitindo que erros sistemáticos cheguem ao produto final e afetem múltiplos alunos simultaneamente.",
+   "palavras_chave": [
+    "gabarito errado simulado enem",
+    "questões enem erradas",
+    "simulado enem gabarito",
+    "banco de questões concurso"
+   ],
+   "ia_aplicavel": "sim — um LLM pode gerar e/ou validar cruzadamente gabaritos de questões objetivas antes da publicação, sinalizando divergências entre a resposta declarada e uma resolução automática independente.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — problema de qualidade de produto editorial, sem órgão regulador específico envolvido.",
+   "observacoes": "Duas fontes distintas (editora de livros e curso online de simulados) e anos diferentes (2017 e 2022) mostram que o problema não é de uma única empresa, mas de um processo comum ao setor de preparação para provas."
+  }
+ ],
+ "fontes_sem_resultado": [
+  "https://aprovatotal.com.br/corretor-de-redacao/ — bloqueado, HTTP 403 Forbidden",
+  "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/ — abriu mas trata de problema de acesso à plataforma (corretor removido sem explicação), não de despreparo na correção; não usado como evidência",
+  "https://www.reclameaqui.com.br/descomplica/corretor-de-redacao_XaVpQVyqrQAYb3-x/ — abriu mas trata de problema técnico (plataforma travando ao enviar redação), não de despreparo do corretor; não usado como evidência",
+  "https://www.reclameaqui.com.br/curso-e-colegio-poliedro/cobranca-abusiva-e-descaso-total-da-escola_tibxIOs1-4i2_pAK/ — abriu, tema relevante (cobrança abusiva de material didático), mas só havia 1 URL sobre esse ângulo específico, insuficiente para formar gap com 2 evidências distintas",
+  "https://www.reclameaqui.com.br/descomplica/tentativa-de-cancelamento-negada_UXI9lokMgGTTdzhY/ — abriu e reforça o gap de cancelamento, mas não citada individualmente por já haver evidências suficientes de outras URLs do mesmo tema",
+  "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-do-curso-aprova-total-plano-ate-o-enem-e-interrupcao-de-cobrancas_cAdGNHaVGCfFSHWy/ — abriu, caso similar ao já citado de Cristiane, resolvido rapidamente; não citada individualmente por redundância"
+ ]
+}

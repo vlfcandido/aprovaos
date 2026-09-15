@@ -1,0 +1,50 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Após enviar, apareceram diversos erros que o corretor não havia relatado anteriormente no método ENEM.",
+     "contexto": "Reclamação na seção principal do ticket",
+     "autor": "Henrique",
+     "data": "11/02/2022"
+    },
+    {
+     "trecho": "Quando o aluno solicita revisão da nota e passa a visualizar diversos erros que não foram corrigidos anteriormente, é DESPREPARO do profissional corretor.",
+     "contexto": "Consideração final do consumidor",
+     "autor": "Henrique",
+     "data": "11/02/2022"
+    },
+    {
+     "trecho": "se possível, não atribua mais minhas solicitações/redações a ele. Gostaria muito que minhas redações fossem atribuídas a corretores sérios e atenciosos",
+     "contexto": "Réplica do consumidor solicitando mudança de corretor",
+     "autor": "Henrique",
+     "data": "11/02/2022"
+    },
+    {
+     "trecho": "atribuir uma diferença de 16% sobre o desenvolvimento da redação, além de acessar a redação na qual não solicitei revisão e alterar a nota",
+     "contexto": "Réplica relatando inconsistência entre avaliadores",
+     "autor": "Henrique",
+     "data": "11/02/2022"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [],
+   "observacao": "Página trata de problema de acesso: ex-corretor retirado da plataforma sem explicação e sem retorno ao solicitar reativação. Não se refere a despreparo na avaliação de redações."
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/corretor-de-redacao_XaVpQVyqrQAYb3-x/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [],
+   "observacao": "Página sobre problema técnico (plataforma travando, site não aceitando redações) que impediu envio por 4 meses. Problema foi resolvido pela empresa. Não refere despreparo do corretor em avaliar."
+  }
+ ]
+}

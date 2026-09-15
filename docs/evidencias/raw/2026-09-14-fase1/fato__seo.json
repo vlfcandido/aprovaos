@@ -1,0 +1,430 @@
+{
+ "buscas_feitas": [
+  "WebSearch: \"como estudar para concurso\" plano de estudos",
+  "WebSearch: questões cebraspe como a banca cobra",
+  "WebSearch: edital verticalizado cronograma de estudos concurso",
+  "WebSearch: simulado enem online gratuito",
+  "WebSearch: como passar na OAB primeira fase dicas",
+  "WebSearch: como a FGV cobra direito administrativo concurso",
+  "WebFetch: https://ahrefs.com/keyword-generator/br/pt/como-estudar-para-concurso (404)",
+  "WebFetch: https://www.estrategiaconcursos.com.br/blog/como-estudar-para-concurso/",
+  "WebFetch: https://radardeconcursos.com/banca/cebraspe",
+  "WebFetch: https://www.deltinha.com.br/ (429)",
+  "WebFetch: https://cadernossistematizados.com.br/edital-verticalizado/",
+  "WebFetch: https://www.direcaoconcursos.com.br/artigos/como-a-fgv-cobra-direito-constitucional-concursos-publicos/",
+  "WebFetch: https://www.tecconcursos.com.br/blog/noticias/10-assuntos-mais-cobrados-fgv-direito-administrativo-5-anos/",
+  "WebFetch: https://www.todamateria.com.br/enem/simulados/",
+  "WebFetch: https://oab.estrategia.com/portal/como-passar-na-oab/",
+  "WebFetch: https://ceisc.com.br/blog/post/plano-de-estudos-para-concurso-como-fazer",
+  "WebFetch: https://ahrefs.com/keyword-generator",
+  "WebFetch: https://folha.qconcursos.com/n/cebraspe"
+ ],
+ "fatos": [
+  {
+   "id": "seo-01",
+   "afirmacao": "Termos do tipo \"como a banca X cobra Y\" (Cebraspe, FGV) são ranqueados no topo por portais/cursinhos especializados (Radar de Concursos, Direção Concursos, TEC Concursos, Folha Dirigida/qconcursos), não por fóruns nem por produtos de IA — indicando que esse nicho de conteúdo já é disputado por players de conteúdo, não de produto.",
+   "valor": "top 3 dominado por conteúdo editorial de cursinho/portal",
+   "evidencias": [
+    {
+     "url": "https://radardeconcursos.com/banca/cebraspe",
+     "tipo": "pagina_produto",
+     "trecho": "a banca utiliza o formato Certo/Errado, onde \"um erro anula um acerto\". As provas apresentam \"Enunciados longos e cheios de 'pegadinhas' de interpretação\" e valorizam a \"literalidade da lei\" e da jurisprudência",
+     "secundaria": false,
+     "data": "2026-09-14"
+    },
+    {
+     "url": "https://www.direcaoconcursos.com.br/artigos/como-a-fgv-cobra-direito-constitucional-concursos-publicos/",
+     "tipo": "pagina_produto",
+     "trecho": "a FGV apresenta estilo de cobrança abrangente em Direito Constitucional [...] \"Às vezes, questões mais literais, outras, questões de doutrina e jurisprudência.\"",
+     "secundaria": false,
+     "data": "2026-09-14"
+    },
+    {
+     "url": "https://www.tecconcursos.com.br/blog/noticias/10-assuntos-mais-cobrados-fgv-direito-administrativo-5-anos/",
+     "tipo": "pagina_produto",
+     "trecho": "\"Contratação Direta, Inexigibilidade e Dispensa\" (Arts. 72 a 75 da Lei nº 14.133/2021) - registrando 3.82% de frequência total com 121 questões nos últimos 5 anos",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Amostra de 3 buscas de cabeça \"como a banca X cobra Y\"; padrão consistente mas não exaustivo."
+  },
+  {
+   "id": "seo-02",
+   "afirmacao": "A banca Cebraspe usa sistema certo/errado com anulação de ponto por erro, fato repetido de forma consistente em múltiplas fontes de conteúdo do nicho — é o dado técnico mais citado sobre a banca.",
+   "valor": "erro anula acerto (certo/errado)",
+   "evidencias": [
+    {
+     "url": "https://radardeconcursos.com/banca/cebraspe",
+     "tipo": "pagina_produto",
+     "trecho": "um erro anula um acerto",
+     "secundaria": false,
+     "data": "2026-09-14"
+    },
+    {
+     "url": "https://folha.qconcursos.com/n/cebraspe",
+     "tipo": "imprensa",
+     "trecho": "Evite chutar: Uma resposta errada anula uma correta, portanto é fundamental ter segurança nas respostas.",
+     "secundaria": true,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta",
+   "observacao": ""
+  },
+  {
+   "id": "seo-03",
+   "afirmacao": "Já existe concorrência gratuita e sem cadastro para \"edital verticalizado com cronograma automático\", incluindo geração por email com ciclos de revisão pré-definidos (24h/7 dias/30 dias) — reduz o espaço de diferenciação de um produto novo nesse recurso isolado.",
+   "valor": "ferramenta gratuita, sem cadastro, ciclos de revisão 24h/7d/30d",
+   "evidencias": [
+    {
+     "url": "https://cadernossistematizados.com.br/edital-verticalizado/",
+     "tipo": "pagina_produto",
+     "trecho": "O usuário seleciona sua carreira jurídica, data da prova e disponibilidade semanal. O sistema então gera um cronograma em fases com ciclos de revisão (24h, 7 dias, 30 dias) e envia tudo por email, sem necessidade de cadastro ou instalação.",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Concorrente focado em carreiras jurídicas, o que se sobrepõe parcialmente à hipótese OAB do produto."
+  },
+  {
+   "id": "seo-04",
+   "afirmacao": "O nicho \"simulado ENEM online gratuito\" já tem múltiplos portais grandes com dezenas de simulados completos por ano, sugerindo alta dificuldade de SEO para ENEM comparado a nichos mais verticais de banca de concurso.",
+   "valor": "16 simulados completos 2021-2024 (1 concorrente) / 180 questões inéditas (outro concorrente)",
+   "evidencias": [
+    {
+     "url": "https://www.todamateria.com.br/enem/simulados/",
+     "tipo": "pagina_produto",
+     "trecho": "Resolva provas no formato do ENEM, teste seus conhecimentos e descubra onde precisa reforçar seus estudos [...] 16 complete simulated exams covering years 2021-2024, each divided into four subject areas",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho extraído já veio parcialmente traduzido pelo WebFetch; conteúdo original em português confirmado pela citação direta entre aspas."
+  },
+  {
+   "id": "seo-05",
+   "afirmacao": "A OAB tem um dado numérico simples e replicável (50% de acerto = 40 de 80 questões na 1ª fase) que é usado como gancho de conteúdo informacional por sites de cursinho — bom padrão de \"featured snippet\" para uma página do produto.",
+   "valor": "40/80 questões (50%) na 1ª fase; nota mínima 6,0/10,0 na 2ª fase",
+   "evidencias": [
+    {
+     "url": "https://oab.estrategia.com/portal/como-passar-na-oab/",
+     "tipo": "pagina_produto",
+     "trecho": "Para ser aprovado na primeira fase da OAB, é necessário acertar pelo menos 50% da prova, o que equivale a 40 questões corretas. [...] Na segunda fase, a nota mínima é 6,0 em 10,0.",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta",
+   "observacao": ""
+  }
+ ],
+ "palavras_chave": [
+  {
+   "termo": "como estudar para concurso",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta (cabeça de nicho, muitos players grandes)",
+   "quem_ranqueia": "estrategiaconcursos.com.br, ceisc.com.br, novaconcursos.com.br"
+  },
+  {
+   "termo": "plano de estudos para concurso",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta",
+   "quem_ranqueia": "ceisc.com.br, estudaqui.com, magistrarcursos.com.br"
+  },
+  {
+   "termo": "cronograma de estudos para concurso",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "appmeututor.com, ceisc.com.br"
+  },
+  {
+   "termo": "como montar um plano de estudos eficiente",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "novaconcursos.com.br"
+  },
+  {
+   "termo": "edital verticalizado",
+   "intencao": "informacional/transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "grancursosonline.com.br, cadernossistematizados.com.br, deltinha.com.br"
+  },
+  {
+   "termo": "edital verticalizado grátis",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "cadernossistematizados.com.br, iapcursosonline.com"
+  },
+  {
+   "termo": "como fazer edital verticalizado",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "iapcursosonline.com, revolucao.com.br"
+  },
+  {
+   "termo": "cronômetro de estudos concurso",
+   "intencao": "transacional (ferramenta)",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa-media",
+   "quem_ranqueia": "deltinha.com.br"
+  },
+  {
+   "termo": "questões cebraspe",
+   "intencao": "informacional/transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta",
+   "quem_ranqueia": "adrianafigueiredocursos.com.br, estrategiaconcursos.com.br"
+  },
+  {
+   "termo": "como a banca cebraspe cobra",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "radardeconcursos.com, proximosconcursos.com"
+  },
+  {
+   "termo": "cebraspe certo ou errado",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "ceisc.com.br, radardeconcursos.com"
+  },
+  {
+   "termo": "como estudar para o cebraspe",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "folha.qconcursos.com"
+  },
+  {
+   "termo": "perfil da banca cebraspe",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "estrategiaconcursos.com.br (cespe-unb-cebraspe)"
+  },
+  {
+   "termo": "como a fgv cobra direito administrativo",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "tecconcursos.com.br"
+  },
+  {
+   "termo": "como a fgv cobra direito constitucional",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "direcaoconcursos.com.br"
+  },
+  {
+   "termo": "assuntos mais cobrados fgv direito administrativo",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa-media (nicho)",
+   "quem_ranqueia": "tecconcursos.com.br"
+  },
+  {
+   "termo": "banca fgv perfil",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "novaconcursos.com.br, grancursosonline.com.br"
+  },
+  {
+   "termo": "como gabaritar a banca fgv",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "novaconcursos.com.br"
+  },
+  {
+   "termo": "topicos mais cobrados receita federal fgv",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa (nicho de concurso especifico)",
+   "quem_ranqueia": "estrategiaconcursos.com.br"
+  },
+  {
+   "termo": "simulado enem online gratuito",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta",
+   "quem_ranqueia": "todamateria.com.br, estuda.com"
+  },
+  {
+   "termo": "simulado enem 2026",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta (sazonal)",
+   "quem_ranqueia": "estuda.com, vaidebolsa.com.br, respostacerta.com"
+  },
+  {
+   "termo": "simulado enem com nota tri",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "respostacerta.com"
+  },
+  {
+   "termo": "simulado enem por área de conhecimento",
+   "intencao": "informacional/transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "todamateria.com.br"
+  },
+  {
+   "termo": "simulado enem com gabarito",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "cursoenemgratuito.com.br, blogdoenem.com.br"
+  },
+  {
+   "termo": "como passar na oab primeira fase",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "alta",
+   "quem_ranqueia": "oab.estrategia.com"
+  },
+  {
+   "termo": "dicas para 1a fase da oab",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media-alta",
+   "quem_ranqueia": "fsa.br, provadaordem.com.br"
+  },
+  {
+   "termo": "quantas questões precisa acertar na oab",
+   "intencao": "informacional/navegacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "oab.estrategia.com, estacio.br"
+  },
+  {
+   "termo": "método de estudo para primeira fase da oab",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "ceisc.com.br"
+  },
+  {
+   "termo": "como estudar para a 2a fase da oab",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "provadaordem.com.br"
+  },
+  {
+   "termo": "nota minima segunda fase oab",
+   "intencao": "informacional/navegacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa-media",
+   "quem_ranqueia": "oab.estrategia.com"
+  },
+  {
+   "termo": "ciclo de estudos para concurso",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "estrategiaconcursos.com.br"
+  },
+  {
+   "termo": "como criar um ciclo de estudos",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "estrategiaconcursos.com.br"
+  },
+  {
+   "termo": "plano de estudos vs cronograma de estudos",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa (nicho)",
+   "quem_ranqueia": "ceisc.com.br"
+  },
+  {
+   "termo": "app edital verticalizado concurso",
+   "intencao": "transacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa-media",
+   "quem_ranqueia": "deltinha.com.br"
+  },
+  {
+   "termo": "edital verticalizado carreira juridica",
+   "intencao": "transacional (nicho)",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa",
+   "quem_ranqueia": "cadernossistematizados.com.br"
+  },
+  {
+   "termo": "quantas questões tem a prova cebraspe",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "baixa-media",
+   "quem_ranqueia": "adrianafigueiredocursos.com.br"
+  },
+  {
+   "termo": "cronograma para oab primeira fase",
+   "intencao": "informacional",
+   "volume": "não medido",
+   "volume_medido": false,
+   "dificuldade": "media",
+   "quem_ranqueia": "fsa.br"
+  }
+ ],
+ "lacunas": [
+  "Volume real de busca por termo (não medido nesta rodada): ahrefs.com/keyword-generator/br/pt/como-estudar-para-concurso retornou HTTP 404, e a página genérica ahrefs.com/keyword-generator não expôs números sem interação de busca ao vivo — dono deve medir volume real no Google Keyword Planner.",
+  "deltinha.com.br (concorrente de cronômetro de estudos + edital verticalizado) retornou HTTP 429 (bloqueio/rate limit) — não foi possível confirmar se é gratuito, freemium ou pago, nem preço.",
+  "A regra de distribuição de tempo \"70/20/10\" apareceu apenas no snippet do WebSearch sobre plano de estudos; o WebFetch direto de ceisc.com.br não confirmou esse trecho literal na página — por isso não foi incluída como fato, só citada como possível padrão de mercado a re-verificar.",
+  "Não foram abertas fichas de loja de app (Google Play / App Store) para medir concorrência direta de apps de estudo para concurso/ENEM/OAB — ficou fora do orçamento de 12 aberturas desta rodada; recomenda-se pesquisa dedicada de app store como próximo passo.",
+  "Dificuldade de palavra-chave (KD) não foi medida numericamente para nenhum termo — estimativas na coluna \"dificuldade\" são qualitativas, baseadas em quantos players grandes/estabelecidos aparecem no top de resultados, não em ferramenta de KD real."
+ ]
+}

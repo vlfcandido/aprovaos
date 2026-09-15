@@ -1,0 +1,69 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/hotmart/dificuldade-no-suporte_x7SBv2QIZc9fqbZ5/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "",
+   "trechos": [
+    {
+     "trecho": "Tenho tentado contato de diversas formas para realizar a quitação do meu curso, e não consigo. Considerando o tamanho da hotmart e tudo que ela oferece, chega a ser feio não ter um suporte digno de seu porte.",
+     "autor": "Emy",
+     "data": "06/01/2024",
+     "contexto": "Reclamação inicial sobre dificuldade em obter suporte para quitação de curso"
+    },
+    {
+     "trecho": "A central de ajuda não tem nada sobre o assunto, o robô do atendimento manda para a central de ajuda. E fica nesse looping.",
+     "autor": "Emy",
+     "data": "06/01/2024",
+     "contexto": "Descrição do problema: sistema de suporte circular sem solução"
+    },
+    {
+     "trecho": "Pedi ajuda ao suporte do curso, mas eles falaram que era com vocês.",
+     "autor": "Emy",
+     "data": "06/01/2024",
+     "contexto": "Falta de clareza sobre quem é responsável pelo atendimento"
+    },
+    {
+     "trecho": "Abro essa reclamação com o intuito de resolver minha solicitação e de alertar vocês a criarem um suporte melhor.",
+     "autor": "Emy",
+     "data": "06/01/2024",
+     "contexto": "Pedido de melhoria no sistema de suporte da plataforma"
+    }
+   ]
+  },
+  {
+   "url": "https://br.indeed.com/q-professor-elaborador-de-quest%C3%B5es-vagas.html",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página de resultados genéricos de vagas em educação; nenhuma vaga específica para 'professor elaborador de questões' foi encontrada.",
+   "trechos": []
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/hotmart/curso-nao-disponivel-e-falta-de-suporte_XM73JY4CRcSDF_Wf/",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "",
+   "trechos": [
+    {
+     "trecho": "COMPREI AS AULAS DO CURSO DO PROFESSOR 'DESAFIO DO LEITOR INTELIGENTE' E VERIFIQUEI QUE NAO ESTÁ MAIS NA PLATAFORMA DA EMPRESA E NEM O PROFESSOR ATÉ HOJE HÁ MAIS DE 2 SEMANAS ME RESPONDEU.",
+     "autor": "Araujo",
+     "data": "02/06/2025",
+     "contexto": "Reclamação sobre curso removido da plataforma e professor sem resposta há 2 semanas"
+    },
+    {
+     "trecho": "NÃO ESTÃO NEM AI PARA O CONSUMIDOR. DESCASO TOTAL. GOSTARIA QUE ME DEVOLVESSEM MEU DINHEIRO.",
+     "autor": "Araujo",
+     "data": "02/06/2025",
+     "contexto": "Expressão de insatisfação com atendimento e solicitação de reembolso"
+    },
+    {
+     "trecho": "O prazo de garantia do produto é de 7 dias. Como a sua compra foi realizada em 23/05, o prazo expirou em 30/05. Reembolsos fora do prazo devem ser autorizados pelo produtor.",
+     "autor": "Breno (Hotmart)",
+     "data": "02/06/2025",
+     "contexto": "Resposta da empresa negando reembolso por estar fora do prazo de garantia"
+    }
+   ]
+  }
+ ]
+}

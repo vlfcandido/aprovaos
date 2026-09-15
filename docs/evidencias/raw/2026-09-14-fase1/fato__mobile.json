@@ -1,0 +1,173 @@
+{
+ "buscas_feitas": [
+  "Qconcursos app Google Play avaliações downloads",
+  "Gran Cursos Online app Google Play avaliações",
+  "Estratégia Concursos app Google Play avaliações",
+  "Cetic.br TIC Domicílios 2023 acesso à internet exclusivamente pelo celular",
+  "Apple Safari web push notifications version support iOS",
+  "\"Gran Cursos\" OR \"Estratégia Concursos\" app reclamação trava erro 1 estrela site:apkcombo.com OR site:softonic.com",
+  "webkit.org blog web push safari 16.4 announcement",
+  "AnkiDroid Google Play downloads \"10 mi+\" OR \"10.000.000\" avaliações nota"
+ ],
+ "fatos": [
+  {
+   "id": "mobile-01",
+   "afirmacao": "O app Qconcursos (App Store, iOS) tem nota 4,9 de 5 com 81 mil avaliações, exigindo iOS 15.6+, modelo freemium com compras de R$29,90 a R$494,90.",
+   "valor": "4,9/5 · 81.000 avaliações",
+   "unidade_ou_periodo": "snapshot 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/qconcursos/id1470271696",
+     "tipo": "loja_app",
+     "trecho": "4,9 out of 5 stars based on 81,000 reviews; Education category, ranked #33 in free education apps; Requirements: iOS 15.6 or later; Cost Model: Free with in-app purchases (ranging from R$29.90 to R$494.90)",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho vem de resumo do WebFetch sobre a página da App Store, não é print direto do HTML bruto; tratar número como aproximado."
+  },
+  {
+   "id": "mobile-02",
+   "afirmacao": "O app Gran Cursos Online (App Store, iOS) tem nota 4,7 de 5 com 12 mil avaliações, posição Nº50 no ranking de Educação.",
+   "valor": "4,7/5 · 12.000 avaliações · Nº50 em Educação",
+   "unidade_ou_periodo": "snapshot 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/gran-cursos-online/id1198315819",
+     "tipo": "loja_app",
+     "trecho": "\"4,7 de 5\" com \"12 mil classificações\"; categoria \"Educação\", posicionado em \"Nº50\" no ranking de educação",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media"
+  },
+  {
+   "id": "mobile-03",
+   "afirmacao": "O app Estratégia Concursos (App Store, iOS) tem nota muito baixa, 1,4 de 5, com 376 avaliações, posição Nº124 no ranking de educação gratuitos — reviews citam experiência ruim, recursos faltando em relação à plataforma web e filtros de busca de conteúdo não funcionais.",
+   "valor": "1,4/5 · 376 avaliações",
+   "unidade_ou_periodo": "snapshot 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/estrat%C3%A9gia-concursos/id1527416954",
+     "tipo": "loja_app",
+     "trecho": "\"1,4 de 5\" com 376 evaluations; Education category, Nº124 in free education apps chart; reviews citam poor user experience, missing features compared to web platform, non-functional filters",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Sinal forte: mesmo um player grande do nicho tem app iOS malavaliado — reforça a hipótese de que apps de concurso hoje são mal executados em mobile, oportunidade para PWA bem feito."
+  },
+  {
+   "id": "mobile-04",
+   "afirmacao": "Tentativas de abrir diretamente as páginas do Google Play (Qconcursos, Gran Cursos, Estratégia Concursos, AnkiDroid) via WebFetch falharam repetidamente — o conteúdo veio truncado/vazio, impedindo extrair nota, nº de avaliações, downloads e reclamações literais de 1-2 estrelas nessas fichas.",
+   "valor": "não medido (Google Play)",
+   "unidade_ou_periodo": "tentativa 14/09/2026",
+   "evidencias": [
+    {
+     "url": "https://play.google.com/store/apps/details?id=com.qconcursos.QCX",
+     "tipo": "loja_app",
+     "trecho": "[Content truncated due to length...] — sem dados extraíveis",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Ver lacunas: Google Play não abriu de forma útil via WebFetch para nenhum dos 4 apps testados."
+  },
+  {
+   "id": "mobile-05",
+   "afirmacao": "Segundo a pesquisa TIC Domicílios 2023 (Cetic.br), 58% dos usuários de internet no Brasil se conectaram pelo celular mas não pelo computador (acesso exclusivo por celular); nas classes DE esse número sobe para 87%.",
+   "valor": "58% geral · 87% classes DE",
+   "unidade_ou_periodo": "TIC Domicílios 2023",
+   "evidencias": [
+    {
+     "url": "https://cetic.br/pt/noticia/classes-c-e-de-impulsionam-crescimento-da-conectividade-a-internet-nos-lares-brasileiros-mostra-tic-domicilios-2023/",
+     "tipo": "oficial",
+     "trecho": "\"58% disseram ter se conectado pelo telefone celular, mas não pelo computador\"; \"Nas classes DE, 87% acessaram a rede exclusivamente pelo telefone celular\"",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta"
+  },
+  {
+   "id": "mobile-06",
+   "afirmacao": "O acesso exclusivo à internet pelo celular no Brasil (TIC Domicílios 2023) é maior entre mulheres (64%) que entre homens (52%), e maior entre pretos (64%) e pardos (63%) do que entre brancos (49%) — perfil relevante para pensar quem estuda só no celular.",
+   "valor": "mulheres 64% / homens 52%; pretos 64% / pardos 63% / brancos 49%",
+   "unidade_ou_periodo": "TIC Domicílios 2023",
+   "evidencias": [
+    {
+     "url": "https://cetic.br/pt/noticia/classes-c-e-de-impulsionam-crescimento-da-conectividade-a-internet-nos-lares-brasileiros-mostra-tic-domicilios-2023/",
+     "tipo": "oficial",
+     "trecho": "\"O acesso exclusivo por celular também foi maior entre as mulheres (64%) do que entre os homens (52%)\"; \"entre pretos (64%) e pardos (63%) do que entre brancos (49%)\"",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ],
+   "confianca": "alta"
+  },
+  {
+   "id": "mobile-07",
+   "afirmacao": "A Apple/WebKit oficializou que o Web Push (push notifications para web apps) passou a ser suportado no iOS e iPadOS somente a partir da versão 16.4, e exclusivamente para web apps instalados na Tela de Início (Home Screen) — não funciona para uma aba comum do Safari.",
+   "valor": "iOS/iPadOS 16.4+ · exige instalação na Home Screen",
+   "unidade_ou_periodo": "lançado em 2023 (Safari 16.4)",
+   "evidencias": [
+    {
+     "url": "https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/",
+     "tipo": "oficial",
+     "trecho": "\"Now with iOS and iPadOS 16.4, we are adding support for Web Push to Home Screen web apps.\"",
+     "secundaria": false,
+     "data": "2023"
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Implicação de produto: um PWA só ganha push em iOS se o usuário 'adicionar à tela de início' — isso precisa ser um passo de onboarding explícito, não é automático como em Android/Chrome."
+  },
+  {
+   "id": "mobile-08",
+   "afirmacao": "Fontes de imprensa/blogs (WebKit) confirmam que a mesma capacidade de Web Push já existia antes no macOS (Safari 16.1, Ventura) e que a chegada ao iOS/iPadOS em 16.4 foi divulgada junto com mais de 135 novos recursos web no Safari 16.4 (RegExp lookbehind, Import Maps, OffscreenCanvas, Declarative Shadow DOM, Badging API, Manifest ID).",
+   "valor": "Safari 16.4 = 135+ features novas, incl. Web Push + Badging API",
+   "unidade_ou_periodo": "lançamento Safari 16.4, 2023",
+   "evidencias": [
+    {
+     "url": "https://webkit.org/blog/13966/webkit-features-in-safari-16-4/",
+     "tipo": "oficial",
+     "trecho": "iOS and iPadOS 16.4 added support for Web Push to web apps added to the Home Screen, allowing web developers to send push notifications through the use of Push API, Notifications API, and Service Workers",
+     "secundaria": true,
+     "data": "2023"
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho vindo de resumo do WebFetch/WebSearch sobre o blog, não citação exata linha-a-linha; usar mobile-07 como a citação primária mais confiável."
+  },
+  {
+   "id": "mobile-09",
+   "afirmacao": "Estratégia Concursos afirma em material próprio ter mais de 850 mil questões e mais de 1 milhão de instalações do app (dado do próprio site/imprensa, não confirmado diretamente na ficha do Google Play pois esta não abriu).",
+   "valor": "850 mil+ questões · 1 milhão+ instalações (autodeclarado)",
+   "unidade_ou_periodo": "não datado",
+   "evidencias": [
+    {
+     "url": "https://www.estrategiaconcursos.com.br/blog/aplicativo-estrategia-concursos-2/",
+     "tipo": "outro",
+     "trecho": "mais de 850 mil questões respondidas pelos professores; o aplicativo tem mais de 1 milhão de instalações",
+     "secundaria": true,
+     "data": "não informado"
+    }
+   ],
+   "confianca": "baixa",
+   "observacao": "Autodeclarado pelo próprio fornecedor (marketing), não verificado na ficha oficial da loja — tratar como indício, não como número duro."
+  }
+ ],
+ "lacunas": [
+  "Google Play (play.google.com) não abriu de forma útil via WebFetch para nenhum dos apps testados (Qconcursos com.qconcursos.QCX, Gran Cursos Online app.grancursosonline.com.br, Estratégia Concursos br.com.estrategiaeducacional.concursos, AnkiDroid com.ichi2.anki) — conteúdo sempre veio truncado/vazio ('[Content truncated due to length...]'). Não foi possível extrair nota, nº de avaliações, downloads (faixa 'X mil+'/'X mi+') nem reclamações literais de 1-2 estrelas dessas fichas Android, que concentram a maior base de usuários de concurseiros no Brasil.",
+  "Não foi possível verificar dados de Tec Concursos, Aprova Concursos, Descomplica e Me Salva (nem App Store nem Google Play) por limite de orçamento de buscas/fetches — nenhuma tentativa foi feita para esses 4 apps.",
+  "AnkiDroid: não foi possível confirmar downloads/nota nem no Google Play (bloqueado) nem via busca (resultados não trouxeram números). F-Droid (f-droid.org/en/packages/com.ichi2.anki) não foi aberto e poderia servir como fonte alternativa de metadados do app open-source.",
+  "Não foi encontrado nenhum estudo específico de 'hábito de estudo para concursos no celular' (survey de plataforma de ensino tipo Qconcursos/Gran/Estratégia divulgando % de alunos que estudam só pelo app); os dados de hábito usados (mobile-05, mobile-06) são de acesso a internet em geral (TIC Domicílios), não de estudo/preparação para concurso especificamente.",
+  "Resumo executivo em PDF do TIC Domicílios 2023 (cetic.br/media/docs/publicacoes/2/20240826110955/resumo_executivo_tic_domicilios_2023.pdf) não foi aberto — poderia trazer o dado de 30% de usuários 'apenas celular' citado no snippet do WebSearch (não confirmado como trecho literal, por isso não entrou nos fatos).",
+  "Não foi verificado se o Android/Chrome tem alguma restrição equivalente à do iOS para Web Push (ex.: exigência de 'Add to Home Screen') — assumido implicitamente que não, mas não confirmado com fonte oficial nesta rodada.",
+  "Reclamações recorrentes de 1-2 estrelas com trecho literal e data não foram obtidas para nenhum dos 7 apps do escopo original (Qconcursos, Gran Cursos, Estratégia, Tec Concursos, Aprova Concursos, Descomplica, Me Salva) — só há o resumo qualitativo de reviews negativas do Estratégia Concursos (mobile-03), sem citação literal de review individual."
+ ]
+}

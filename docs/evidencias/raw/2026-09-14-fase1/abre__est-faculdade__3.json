@@ -1,0 +1,25 @@
+{
+ "paginas": [
+  {
+   "url": "https://br.trustpilot.com/review/www.passeidireto.com",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém apenas avaliações positivas (9 e 5 estrelas) sobre a plataforma Passei Direto. Sem reclamações recorrentes, pedidos de serviço ou descrição de tarefas manuais."
+  },
+  {
+   "url": "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/ms/campo-grande/orcamentos/1861636-desejo-orcamento-para-formatar-tcc",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página sem conteúdo relevante acessível via WebFetch (reclamações, pedidos de serviço, tarefas manuais ou preço)."
+  },
+  {
+   "url": "https://www.getninjas.com.br/consultoria/pesquisas-em-geral/go/goiania/orcamentos/5973673-preciso-de-alguem-que-faca-tcc-com",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página de marketplace com perfis profissionais e depoimentos genéricos. Sem reclamações recorrentes, pedidos específicos de TCC ou informações de preço com autor e data."
+  }
+ ]
+}

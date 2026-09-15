@@ -1,0 +1,49 @@
+{
+ "paginas": [
+  {
+   "url": "https://github.com/ankidroid/Anki-Android/issues/3574",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém relatório técnico de bug mas sem reclamações de usuário, pedidos de serviço ou tarefas manuais estruturados"
+  },
+  {
+   "url": "https://forums.ankiweb.net/t/review-sync-issue-review-counter-remains-at-0/51950",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "Every now and then, especially when I make reviews with the official iPhone Anki app, they are synchronized but no due dates are set and the review counter remains at 0",
+     "autor": "beambe",
+     "data": "14 de novembro de 2024",
+     "contexto": "Relato de revisões sincronizadas sem ajuste de datas de vencimento"
+    },
+    {
+     "trecho": "Both times, I reviewed 200+ cards using the official iPad app, synchronised the progress right after only to find all progress I made to be non-existent the next day.",
+     "autor": "beambe",
+     "data": "17 de novembro de 2024",
+     "contexto": "Relatório de progresso desaparecendo após sincronização"
+    },
+    {
+     "trecho": "Today I again noticed that cards that I reviewed yesterday were registered as 'reviewed', but no new due date was set for these.",
+     "autor": "beambe",
+     "data": "15 de dezembro de 2024",
+     "contexto": "Revisões registradas mas sem atualização de datas de vencimento"
+    },
+    {
+     "trecho": "I am currently working towards a big exam and my cards are piling up because reviews are not properly registered.",
+     "autor": "beambe",
+     "data": "15 de julho de 2025",
+     "contexto": "Impacto direto em produtividade do usuário por falha de sincronização"
+    }
+   ]
+  },
+  {
+   "url": "https://github.com/ankidroid/Anki-Android/issues/5666",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém relatório de bug técnico sobre estado inconsistente mas sem reclamações de usuário, pedidos de serviço ou tarefas manuais estruturados"
+  }
+ ]
+}

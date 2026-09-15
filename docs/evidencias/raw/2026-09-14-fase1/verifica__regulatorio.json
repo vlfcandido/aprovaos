@@ -1,0 +1,100 @@
+{
+ "vereditos": [
+  {
+   "id": "regulatorio-01",
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://modeloinicial.com.br/lei/L-9610-1998/lei-direitos-autorais/art-8",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página traz: \"Art. 8º Não são objeto de proteção como direitos autorais de que trata esta Lei\""
+    }
+   ],
+   "sustentado": true
+  },
+  {
+   "id": "regulatorio-02",
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://modeloinicial.com.br/lei/L-9610-1998/lei-direitos-autorais/art-8",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Inciso IV confere exatamente: \"os textos de tratados ou convenções, leis, decretos, regulamentos, decisões judiciais e demais atos oficiais\""
+    }
+   ],
+   "sustentado": true
+  },
+  {
+   "id": "regulatorio-03",
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://ids.org.br/noticia/segundo-tjsp-questoes-de-prova-nao-estao-sujeitas-por-si-so-a-protecao-por-direito-autoral/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página confirma o trecho e cita nominalmente \"Apelação nº 1112376-68.2021.8.26.0100\" do TJ-SP"
+    }
+   ],
+   "sustentado": true
+  },
+  {
+   "id": "regulatorio-04",
+   "correcao": "URL fornecida (com \"27-de-27-de-janeiro\", duplicado) retorna 404; URL correta é https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022, encontrada via WebSearch e verificada com sucesso.",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "abre": false,
+     "trecho_confere": false,
+     "observacao": "HTTP 404 — URL contém duplicação errada \"27-de-27-de-janeiro\""
+    },
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Art. 2º, I confere: \"agentes de tratamento de pequeno porte: microempresas, empresas de pequeno porte, startups, pessoas jurídicas de direito privado, inclusive sem fins lucrativos\""
+    }
+   ],
+   "sustentado": true
+  },
+  {
+   "id": "regulatorio-05",
+   "correcao": "Mesma correção de URL do item regulatorio-04 (duplicação \"27-de-27-de-janeiro\" causa 404; URL correta sem a duplicação).",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "abre": false,
+     "trecho_confere": false,
+     "observacao": "HTTP 404 — URL com duplicação errada"
+    },
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Art. 11 confere dispensa de encarregado; Art. 9º confere registro simplificado"
+    }
+   ],
+   "sustentado": true
+  },
+  {
+   "id": "regulatorio-06",
+   "correcao": "Mesma correção de URL do item regulatorio-04 (duplicação \"27-de-27-de-janeiro\" causa 404; URL correta sem a duplicação).",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "abre": false,
+     "trecho_confere": false,
+     "observacao": "HTTP 404 — URL com duplicação errada"
+    },
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Art. 14, I e II confere prazo em dobro para responder titulares e comunicar incidentes à ANPD"
+    }
+   ],
+   "sustentado": true
+  }
+ ]
+}

@@ -1,0 +1,241 @@
+{
+ "fontes_sem_resultado": [
+  "https://blog.flexge.com/plataformas-cobranca-professores-particulares/ — abriu, mas é artigo informativo sem reclamações/pedidos/preços; sem evidência aproveitável.",
+  "https://www.atados.com.br/vaga/corretor-de-redacao-303235 — HTTP 429 no WebFetch; via Chrome redirecionou para reclamação sobre outra empresa (Gran Concursos), vaga não mais disponível.",
+  "https://aprovatotal.com.br/corretor-de-redacao/ — HTTP 403 no WebFetch; via Chrome carregou página genérica de cursinho ENEM, não a página de corretor de redação (URL removida).",
+  "https://vagaseditoradialetica.vagas.solides.com.br/vaga/699942 — abriu, mas é vaga de revisor freelancer sem reclamação, preço ou tarefa manual descrita.",
+  "https://treinamentosaf.com.br/corrigir-30-redacoes-em-20-minutos-com-esse-prompt-sim/ — abriu, mas é artigo educacional sobre uso de IA, sem reclamação de cliente ou preço.",
+  "https://br.indeed.com/q-professor-elaborador-de-quest%C3%B5es-vagas.html — abriu, mas resultados genéricos de vagas em educação, nenhuma vaga específica encontrada."
+ ],
+ "gaps": [
+  {
+   "titulo": "Correção de redação manual é inconsistente, superficial e parece automatizada — sem padronização de critério",
+   "nicho": "ESTUDOS — corretor de redação / pequeno cursinho de correção",
+   "dor": "Corretores humanos contratados por plataformas de correção de redação entregam avaliações inconsistentes entre si, ignoram os critérios de banca específicos que o próprio aluno enviou, focam só em gramática e deixam de identificar erros reais — a ponto de o cliente achar que foi 'um programa automático mal feito'. Recorreções pedidas somem do sistema ou só avançam depois de reclamação pública. Isso gera cancelamento, pedido de reembolso e reclamação formal contra o corretor e a plataforma.",
+   "quem_sofre": "Plataformas de correção de redação (Aprova Total/Biologia Total, Imaginie, Corrija-me, Redação Online) e os corretores freelancers que elas contratam — o volume alto de redações por corretor gera correção rasa e sem padrão, o que virou reclamação recorrente e risco de reputação para quem vende o serviço de correção.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+     "tipo": "review",
+     "trecho": "Quando você nos envia um feedback sobre a correção, diversas redações aparecem erros que não foram corrigidos anteriormente. Quando o aluno solicita revisão e passa a visualizar diversos erros, é DESPREPARO do profissional corretor.",
+     "contexto": "Reclamação sobre erros não identificados em primeira correção na plataforma Aprova Total",
+     "data": "11/02/2022"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/imaginie/nao-assinem-so-gente-despreparada-corrige-a-sua-redacao_BhXq3hy0E2MN1078/",
+     "tipo": "review",
+     "trecho": "veio com comentários absurdamente desconexos da redação, mandei pra recorreção (eles falam que são 10 dias úteis, mas na verdade é uma mentira, a sua recorreção SOME, não aparece mais NADA, fica lá e eles nem se importam)",
+     "contexto": "Recorreções desaparecem após 10 dias úteis, corretor não segue critérios do ENEM enviados",
+     "data": "14/10/2019"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/corrija-me-servicos-educacionais/pessimo-servico-de-correcao-de-redacao_b5iloJLwkB7gc_yT/",
+     "tipo": "review",
+     "trecho": "os corretores focam apenas em aspectos gramaticais, sem levar em consideração a qualidade dos argumentos e da estrutura",
+     "contexto": "Crítica ao escopo limitado do método de correção da plataforma Corrija-me",
+     "data": "14/05/2025"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/redacao-online/correcao-horrivel_h0WDcK3LOrnU80xW/",
+     "tipo": "review",
+     "trecho": "As marcações feitas na redação, referentes aos meus erros gramaticais, não permitem que eu identifique os erros que cometi e o curto comentário do corretor parecia mais um ctrl+v genérico. A sensação que ficou é que a minha redação havia sido corrigida por algum programa automático mal feito",
+     "contexto": "Percepção de correção copiada/automatizada e trocada sem aviso na plataforma Redação Online",
+     "data": "21/09/2017"
+    }
+   ],
+   "quem_paga_hoje": "O aluno paga créditos/mensalidade por redação corrigida (ex.: 1 crédito por redação citado na reclamação da Biologia Total) diretamente à plataforma de correção; o corretor recebe um valor fixo por redação da própria plataforma (ver gap de pagamento a corretores abaixo), o que empurra o corretor a corrigir rápido e raso para compensar o baixo valor por unidade.",
+   "solucoes_atuais": [
+    {
+     "nome": "Aprova Total / Biologia Total (correção humana avulsa)",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/biologia-total/"
+    },
+    {
+     "nome": "Imaginie (correção humana avulsa)",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/imaginie/"
+    },
+    {
+     "nome": "Corrija-me Serviços Educacionais",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/corrija-me-servicos-educacionais/"
+    },
+    {
+     "nome": "Redação Online",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/redacao-online/"
+    }
+   ],
+   "por_que_falham": "Dependem de corretor humano isolado, sem checklist/critério de banca embutido no fluxo de correção e sem segunda camada de revisão antes de entregar ao aluno — o erro só aparece quando o cliente reclama, e mesmo assim a recorreção se perde no processo.",
+   "palavras_chave": [
+    "corretor de redação online",
+    "correção de redação enem",
+    "recorreção de redação sumiu",
+    "essay grading tool",
+    "AI essay feedback"
+   ],
+   "apelo_global": "IA de correção de redação com critério de banca configurável tem apelo em qualquer mercado de test-prep (SAT/IELTS essay grading) que sofre da mesma inconsistência humana.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — correção de texto não é atividade regulada por conselho profissional; risco é apenas contratual/reputacional com o cliente.",
+   "ia_aplicavel": "Sim — um LLM pode aplicar o critério de banca específico enviado pelo aluno de forma consistente, gerar feedback estruturado (não genérico) e servir de segunda camada de revisão antes de liberar a correção humana, reduzindo a variação entre corretores.",
+   "observacoes": "Evidência veio inteiramente do lado do aluno (queixa sobre a correção recebida), mas revela diretamente o processo manual falho que a plataforma/corretor executa — por isso conta como gap do lado de quem corrige/vende a correção."
+  },
+  {
+   "titulo": "Corretores de redação freelancers não recebem o pagamento devido ou são removidos da plataforma sem explicação",
+   "nicho": "ESTUDOS — corretor de redação (freelancer que vende correção via marketplace/plataforma)",
+   "dor": "Corretores de redação prestam serviço para plataformas de correção e marketplaces de tutoria e depois não recebem o valor combinado, têm o pagamento direcionado a conta errada, ou são simplesmente desligados da plataforma sem justificativa e sem resposta a e-mails de reengajamento.",
+   "quem_sofre": "Corretores de redação e tutores freelancers que dependem de marketplaces/plataformas de correção como canal de renda.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/redigir-a-mais/plataforma-que-nao-paga-corretores_nyi8yhp8tL8RO0Li/",
+     "tipo": "review",
+     "trecho": "Meu nome é ANDERSON CARDOSO DE MAGALHÃES, sou corretor e preciso receber meu dinheiro (R$ *******,00) pelas correções de redação. VOCÊS NÃO PODEM SIMPLESMENTE FICAR COM MEU DINHEIRO.",
+     "contexto": "Reclamação de corretor sobre não-recebimento de pagamento pela plataforma Redigir A Mais",
+     "data": "08/11/2022"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/",
+     "tipo": "review",
+     "trecho": "Eu já fui corretor de redação na plataforma e sempre tinha responsabilidade com as correções e era bem avaliado pelos alunos, depois de um tempo me retiraram da plataforma sem explicar o motivo.",
+     "contexto": "Corretor removido sem justificativa da plataforma Redação Online",
+     "data": "09/01/2024"
+    },
+    {
+     "url": "https://www.reviews.io/company-reviews/store/superprof.co.uk",
+     "tipo": "review",
+     "trecho": "I worked for them and did not pay me claiming they have sent it to a Paypal account different than the one I provided.",
+     "contexto": "Reclamação de não pagamento após trabalho prestado na Superprof",
+     "data": "27 de fevereiro de 2025"
+    }
+   ],
+   "quem_paga_hoje": "As próprias plataformas (Redigir A Mais, Redação Online, Superprof) deveriam pagar o corretor/tutor por correção ou aula prestada; hoje retêm ou atrasam esse pagamento.",
+   "solucoes_atuais": [
+    {
+     "nome": "Redigir A Mais",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/redigir-a-mais/"
+    },
+    {
+     "nome": "Redação Online",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/redacao-online/"
+    },
+    {
+     "nome": "Superprof",
+     "preco": "US$ 45-49/mês (cobrado do aluno, não do corretor)",
+     "url": "https://www.reviews.io/company-reviews/store/superprof.co.uk"
+    }
+   ],
+   "por_que_falham": "Não há rastreabilidade automática nem contrato/registro claro de quanto e quando o corretor deve receber — o corretor só descobre o problema quando o pagamento não cai, e o canal de disputa é reclamação pública, não um sistema de conciliação financeira.",
+   "palavras_chave": [
+    "plataforma não paga corretor",
+    "corretor de redação remuneração",
+    "marketplace de tutoria pagamento atrasado",
+    "tutor payment dispute"
+   ],
+   "apelo_global": "Mesmo padrão de queixa aparece em marketplace de tutoria internacional (Superprof), sugerindo que a falta de conciliação financeira transparente entre plataforma e prestador é um problema estrutural do modelo, não só brasileiro.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — inadimplência de pagamento a prestador de serviço pode configurar disputa trabalhista/contratual dependendo do vínculo (CLT x autônomo), a depender de como a plataforma classifica o corretor.",
+   "ia_aplicavel": "Não diretamente — o gap é de conciliação financeira e transparência de contrato, não de processamento de linguagem.",
+   "observacoes": ""
+  },
+  {
+   "titulo": "Marketplaces de tutoria cobram assinatura de forma enganosa, associando professores independentes a reputação de fraude",
+   "nicho": "ESTUDOS — professor particular que depende de marketplace de tutoria para captar aluno",
+   "dor": "Marketplaces de tutoria (ex.: Superprof) cobram cartão do aluno automaticamente ao se cadastrar para uma 'aula grátis', mantêm cobrança mensal mesmo sem uso do serviço e não respondem ao suporte — isso gera uma onda de reclamações de fraude que mancha a marca sob a qual o professor independente capta aluno, prejudicando confiança e conversão para quem realmente dá aula.",
+   "quem_sofre": "Professores particulares e tutores que usam esses marketplaces como canal de aquisição de alunos — a má reputação da plataforma (não deles) reduz a confiança do aluno em fechar aula.",
+   "evidencias": [
+    {
+     "url": "https://www.trustpilot.com/review/superprof.com",
+     "tipo": "review",
+     "trecho": "they scam the hell out of students (hint: the first lesson is 'free' when/if they sign up for a $45/Month subscription - charged the first month)",
+     "contexto": "Review no Trustpilot — aula grátis condicional a assinatura",
+     "data": "31 ago 2026"
+    },
+    {
+     "url": "https://superprof.pissedconsumer.com/review.html",
+     "tipo": "review",
+     "trecho": "Signed up to get a tennis coach and had to give CC# right away. The tennis coach got in touch and was too far from my home so didn't use service. Next morning my card was charged 49.00.",
+     "contexto": "Cobrança mesmo sem uso do serviço",
+     "data": "27 mar 2024"
+    },
+    {
+     "url": "https://www.productreview.com.au/listings/superprof",
+     "tipo": "review",
+     "trecho": "BEWARE Scammers there are NO tutors when you book a tutor they keep changing you every month",
+     "contexto": "Perfis de tutores fake e rotação mensal",
+     "data": "7 meses atrás"
+    },
+    {
+     "url": "https://www.reviews.io/company-reviews/store/superprof.co.uk",
+     "tipo": "review",
+     "trecho": "The purchasing process is meticulously misleading, making you believe you are buying a one-hour class when in fact you are subscribing to a monthly plan.",
+     "contexto": "Reclamação sobre processo de compra enganoso na Superprof",
+     "data": "1 ano atrás"
+    }
+   ],
+   "quem_paga_hoje": "O aluno paga a assinatura mensal (US$45-49) à plataforma; o professor recebe apenas a parte referente à aula efetivamente dada, sem controle sobre a política de cobrança que gera a reclamação.",
+   "solucoes_atuais": [
+    {
+     "nome": "Superprof",
+     "preco": "US$ 45-49/mês (assinatura cobrada do aluno)",
+     "url": "https://www.trustpilot.com/review/superprof.com"
+    }
+   ],
+   "por_que_falham": "O modelo de negócio da plataforma monetiza a assinatura do aluno mais do que a transação da aula em si, criando incentivo para cobrança pouco transparente que o professor individual não controla nem consegue mitigar.",
+   "palavras_chave": [
+    "plataforma de aulas particulares confiável",
+    "cobrar aula particular sem golpe",
+    "professor particular captar aluno online",
+    "tutoring marketplace scam"
+   ],
+   "apelo_global": "Alto — as mesmas queixas aparecem em Trustpilot, PissedConsumer e ProductReview (mercados EUA/Austrália), indicando que um marketplace de tutoria com cobrança transparente é demanda global, não só brasileira.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — cobrança recorrente sem consentimento claro pode configurar prática abusiva sob CDC no Brasil (cobrança indevida) e sob regras de proteção ao consumidor equivalentes no exterior.",
+   "ia_aplicavel": "Não diretamente — o gap é de modelo de cobrança/transparência comercial, não de processamento de linguagem.",
+   "observacoes": "Evidência vem majoritariamente do lado do aluno reclamando da cobrança, mas o prejudicado indireto é o professor que capta alunos por essa marca — por isso mantido no nicho 'quem ensina'."
+  },
+  {
+   "titulo": "Professores/mentores solo vendendo curso via infoproduto (Hotmart) somem ou não têm estrutura de suporte, gerando reembolso e desgaste",
+   "nicho": "ESTUDOS — pequeno cursinho / mentor de concurso vendendo curso online (infoprodutor solo)",
+   "dor": "Professor ou mentor individual que vende curso via plataforma de infoproduto some do atendimento por semanas, ou o aluno não acha canal de cancelamento/quitação — o suporte vira um loop entre robô da plataforma e o produtor, sem solução, terminando em pedido de reembolso e reclamação pública.",
+   "quem_sofre": "Mentores e professores solo que vendem curso via Hotmart e não têm estrutura de atendimento ao aluno além de si mesmos — perdem a venda quando não conseguem responder a tempo.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/hotmart/curso-nao-disponivel-e-falta-de-suporte_XM73JY4CRcSDF_Wf/",
+     "tipo": "review",
+     "trecho": "COMPREI AS AULAS DO CURSO DO PROFESSOR 'DESAFIO DO LEITOR INTELIGENTE' E VERIFIQUEI QUE NAO ESTÁ MAIS NA PLATAFORMA DA EMPRESA E NEM O PROFESSOR ATÉ HOJE HÁ MAIS DE 2 SEMANAS ME RESPONDEU.",
+     "contexto": "Curso removido da plataforma e professor sem resposta há 2 semanas",
+     "data": "02/06/2025"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/hotmart/dificuldade-no-suporte_x7SBv2QIZc9fqbZ5/",
+     "tipo": "review",
+     "trecho": "A central de ajuda não tem nada sobre o assunto, o robô do atendimento manda para a central de ajuda. E fica nesse looping. Pedi ajuda ao suporte do curso, mas eles falaram que era com vocês.",
+     "contexto": "Suporte circular sem solução e falta de clareza sobre responsabilidade",
+     "data": "06/01/2024"
+    }
+   ],
+   "quem_paga_hoje": "O aluno paga o curso ao produtor via Hotmart; quando o suporte falha, o custo recai sobre o produtor em forma de chargeback/reembolso e reputação negativa.",
+   "solucoes_atuais": [
+    {
+     "nome": "Hotmart (suporte da plataforma)",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/hotmart/"
+    }
+   ],
+   "por_que_falham": "O suporte é dividido entre plataforma (Hotmart) e produtor sem responsabilidade clara, e o produtor solo não tem sistema automatizado de FAQ/triagem para responder dúvidas recorrentes, deixando o aluno sem resposta até reclamar publicamente.",
+   "palavras_chave": [
+    "suporte ao aluno curso online",
+    "hotmart reembolso",
+    "atendimento automático infoproduto",
+    "student support chatbot for course creators"
+   ],
+   "apelo_global": "Médio — o problema de suporte inconsistente em infoprodutos aparece em qualquer mercado que usa plataformas de checkout tipo Hotmart/Kajabi/Teachable.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — risco é apenas contratual (reembolso conforme CDC, prazo de arrependimento de 7 dias já citado na resposta da Hotmart).",
+   "ia_aplicavel": "Sim — um assistente de IA treinado no conteúdo do curso poderia responder dúvidas recorrentes do aluno automaticamente, cobrindo o produtor solo enquanto ele não está disponível.",
+   "observacoes": "Gap com apenas 2 evidências, ambas do mesmo domínio (Hotmart) — mais fraco em diversidade de fonte que os três primeiros."
+  }
+ ]
+}

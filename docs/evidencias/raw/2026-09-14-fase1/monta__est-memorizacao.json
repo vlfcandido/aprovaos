@@ -1,0 +1,205 @@
+{
+ "fontes_sem_resultado": [
+  "https://forums.ankiweb.net/t/losing-review-data-when-syncing-without-warning/43493 — carregou mas sem trechos relevantes (discussão técnica sem reclamação/pedido/tarefa/preço)",
+  "https://forums.ankiweb.net/t/reviews-lost-after-syncing-deck-with-130-ease-with-ankiweb/6932 — carregou mas sem trechos relevantes (só soluções de desenvolvedor)",
+  "https://github.com/ankidroid/Anki-Android/issues/3574 — relatório técnico de bug, sem reclamação de usuário/pedido/tarefa nos critérios",
+  "https://github.com/ankidroid/Anki-Android/issues/5666 — relatório técnico de bug, sem reclamação de usuário/pedido/tarefa nos critérios",
+  "https://hotmart.com/pt-br/marketplace/produtos/baralho-anki-flashcards-criminologia/W69198265B — página de produto, sem reclamação/preço/autor/data",
+  "https://ankidodelta.com/ — página institucional/FAQ, sem reclamação/preço/autor/data"
+ ],
+ "gaps": [
+  {
+   "titulo": "Perda de progresso ao sincronizar apps de flashcards entre dispositivos",
+   "nicho": "Estudos — memorização e revisão (Anki/AnkiDroid/AnkiHub)",
+   "dor": "Estudante revisa cartões em um dispositivo, sincroniza e perde dias/anos de progresso porque o sync força uma escolha destrutiva (upload vs download) entre versões locais e remotas, sem mesclar os dados.",
+   "quem_sofre": "Usuários de Anki, AnkiDroid e AnkiHub que estudam em mais de um dispositivo (celular + notebook), muitos em reta final de prova/concurso.",
+   "evidencias": [
+    {
+     "url": "https://community.ankihub.net/t/completed-cards-full-sync-lost-two-days-of-data/588249",
+     "tipo": "forum",
+     "trecho": "On both of the past two days I have started my anki reviews on my laptop and finished my cards on the ios app. Today when I opened my laptop anki I was prompted to conduct a full sync and it appears that I have lost all of the progress on the cards I have completed in the past two days and lost my review streak (544 days).",
+     "data": "14 fev 2026",
+     "contexto": "Reclamação de perda de dados após full sync"
+    },
+    {
+     "url": "https://forums.ankiweb.net/t/review-sync-issue-review-counter-remains-at-0/51950",
+     "tipo": "forum",
+     "trecho": "Both times, I reviewed 200+ cards using the official iPad app, synchronised the progress right after only to find all progress I made to be non-existent the next day.",
+     "data": "17 de novembro de 2024",
+     "contexto": "Progresso desaparece mesmo após sincronização confirmada"
+    },
+    {
+     "url": "https://groups.google.com/g/anki-android/c/cdXHTo87fGs",
+     "tipo": "forum",
+     "trecho": "I lost all my progress one of my decks that has over 7000 cards in it. ... I have been working on this deck for almost 4 years.",
+     "data": "Oct 21, 2022",
+     "contexto": "Perda de progresso de baralho de 4 anos ao trocar de celular e sincronizar"
+    }
+   ],
+   "quem_paga_hoje": "Usuários de Anki/AnkiDroid (gratuitos) e assinantes do add-on pago AnkiHub; nenhum valor de assinatura foi confirmado nos trechos abertos.",
+   "solucoes_atuais": [
+    {
+     "nome": "Anki + AnkiWeb sync",
+     "preco": "grátis",
+     "url": "",
+     "por_que_falha": "Sync 'full/one-way' obriga escolher upload ou download inteiro, apagando o lado perdedor sem mesclar."
+    },
+    {
+     "nome": "AnkiDroid",
+     "preco": "grátis",
+     "url": "",
+     "por_que_falha": "Mesmo comportamento de sync destrutivo relatado por usuários Android."
+    },
+    {
+     "nome": "AnkiHub (add-on)",
+     "preco": "não medido",
+     "url": "",
+     "por_que_falha": "Camada extra sobre o Anki não resolve o problema de sync subjacente, segundo o relato."
+    }
+   ],
+   "por_que_falham": "O modelo de sincronização do Anki é binário (tudo de um lado ou do outro) em vez de reconciliar mudanças por cartão; a única mitigação hoje é o usuário fazer backup manual (.apkg/.colpkg) antes de cada sync arriscado.",
+   "palavras_chave": [
+    "anki perdeu progresso",
+    "anki sync bug",
+    "ankidroid perdeu revisões",
+    "backup anki flashcards",
+    "anki lost reviews after sync"
+   ],
+   "ia_aplicavel": "Uma camada de sincronização com reconciliação automática (merge por cartão/timestamp) no lugar da escolha binária upload/download eliminaria a perda de dados relatada.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — dados de estudo pessoal, sem informação sensível regulada.",
+   "observacoes": "3 fontes distintas e independentes (fórum oficial Anki, comunidade AnkiHub, Google Groups AnkiDroid) relatando o mesmo padrão de falha."
+  },
+  {
+   "titulo": "Paywall agressivo e cobrança contínua pós-cancelamento em apps de memorização/flashcards",
+   "nicho": "Estudos — memorização e revisão (Quizlet, RemNote)",
+   "dor": "Usuário cancela ou usa a versão gratuita e mesmo assim é cobrado, ou funcionalidades antes gratuitas passam a ficar bloqueadas atrás de assinatura, sem canal de suporte para resolver.",
+   "quem_sofre": "Estudantes usuários de Quizlet e RemNote que dependiam das ferramentas para memorização de conteúdo (vocabulário, anatomia, etc.).",
+   "evidencias": [
+    {
+     "url": "https://ca.trustpilot.com/review/www.quizlet.com",
+     "tipo": "review",
+     "trecho": "I cancelled my subscription while still using the free version. Now I am still being charged and cannot find any billing options.",
+     "data": "11 jul 2026",
+     "contexto": "Cobrança continua mesmo após cancelamento, sem opção de billing acessível"
+    },
+    {
+     "url": "https://www.trustpilot.com/review/remnote.com",
+     "tipo": "review",
+     "trecho": "they started locking most of the functionalities behind a paywall, and it was disappointing. As a student on a budget, it felt like a bait-and-switch",
+     "data": "18 abr 2023",
+     "contexto": "Funcionalidades antes gratuitas movidas para paywall"
+    }
+   ],
+   "quem_paga_hoje": "Assinantes de Quizlet Plus e RemNote Pro; valores de assinatura não confirmados nos trechos abertos.",
+   "solucoes_atuais": [
+    {
+     "nome": "Quizlet",
+     "preco": "não medido",
+     "url": "https://ca.trustpilot.com/review/www.quizlet.com",
+     "por_que_falha": "Cobrança pós-cancelamento e conta desativada sem explicação, segundo reviews."
+    },
+    {
+     "nome": "RemNote",
+     "preco": "não medido",
+     "url": "https://www.trustpilot.com/review/remnote.com",
+     "por_que_falha": "Migração de funcionalidades essenciais para trás de paywall após uso gratuito prolongado."
+    }
+   ],
+   "por_que_falham": "Modelo freemium migra para paywall de forma que o usuário sente 'bait-and-switch', combinado com processos de cancelamento/billing pouco transparentes ou não funcionais.",
+   "palavras_chave": [
+    "quizlet cancelar assinatura cobrança",
+    "remnote paywall",
+    "quizlet cobrança indevida",
+    "alternativa gratuita quizlet"
+   ],
+   "ia_aplicavel": "não — é um problema de modelo de negócio/billing, não de tecnologia de IA.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — cobrança pós-cancelamento pode configurar prática vedada pelo CDC no Brasil, mas as evidências coletadas são de usuários internacionais (Trustpilot Canadá/global), não confirmadas para o mercado brasileiro.",
+   "observacoes": "2 fontes distintas (Trustpilot Canadá para Quizlet, Trustpilot global para RemNote)."
+  },
+  {
+   "titulo": "Baralhos de flashcards pagos para concursos: desatualizados, incompletos e sem suporte/reembolso",
+   "nicho": "Estudos — memorização e revisão para concursos públicos (Anki)",
+   "dor": "Concurseiro compra baralho pronto de flashcards (Anki) para um concurso específico e recebe conteúdo desatualizado, incompleto (não cobre o edital todo) ou suspeito de ser gerado sem curadoria, sem conseguir suporte ou reembolso.",
+   "quem_sofre": "Candidatos a concursos públicos que compram decks de flashcards prontos em vez de criar os próprios.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/faixa-preta-concursos/flashcards-desatualizados-e-falta-de-suporte_8UT3ADlW-4pQvtEK/",
+     "tipo": "review",
+     "trecho": "A propaganda dizia que o conteúdo seria atualizado até o fim de abril, incluindo novas disciplinas. Comprei confiando nessa promessa, pois precisava do material para um concurso específico. ... Tentei entrar em contato com a equipe do Auditor Faixa Preta por Instagram, WhatsApp e e-mail, mas nunca recebi nenhuma resposta.",
+     "data": "24/06/2025",
+     "contexto": "Promessa de atualização não cumprida e suporte inexistente"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/revisacards-concursos/flashcards-desatualizado_PFGZHbSsccwwthOt/",
+     "tipo": "review",
+     "trecho": "Realizei a compra e, após baixar o material, percebi que algumas disciplinas estavam completamente desatualizadas, como é o caso de Inquérito Policial. Entrei em contato com o suporte, mas não obtive nenhum retorno sobre o assunto.",
+     "data": "04/01/2025",
+     "contexto": "Conteúdo desatualizado e suporte sem retorno"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/nao-joguem-seu-dinheiro-fora-com-esses-flashcards_gNX1pGedNvyjVjgJ/",
+     "tipo": "review",
+     "trecho": "Primeiro você compra e só pode usar o produto 8 DIAS DEPOIS. Os cards não abordam nem 60% dos tópicos da matéria. ... ainda mais pelo valor de 300 reais para cards provavelmente feitos pelo chat gpt.",
+     "data": "02/07/2025",
+     "contexto": "Cobertura incompleta do edital e preço de R$300 questionado"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/reembolso-de-flashcards_H4RIRoH9aqhPX_Lx/",
+     "tipo": "review",
+     "trecho": "No dia 19 de maio fiz uma compra no Revisa Card, por meio do Instagram, no valor $244,50... No dia 20 de maio, fiz o pedido de reembolso pois não era o que esperava... não foi creditado no cartão de crédito, de nenhuma forma foi reembolsado.",
+     "data": "25/05/2025",
+     "contexto": "Reembolso solicitado e não processado, R$244,50"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/empresa/flashcards-brasil/lista-reclamacoes/",
+     "tipo": "review",
+     "trecho": "Dinheiro de volta - O produto não cumpre com o oferecido.",
+     "data": "14/03/2023",
+     "contexto": "Reclamação de produto que não cumpre o oferecido, sem resposta da empresa"
+    },
+    {
+     "url": "https://www.freelancer.com/job-search/anki-app/",
+     "tipo": "freelancer",
+     "trecho": "I have a complete study guide sitting in Google Docs—12 separate modules, each running about 10–20 pages... the task is mostly a matter of lifting that content and dropping it into Anki as flashcards. No writing or research is needed; accuracy of transfer is the priority.",
+     "data": "Projeto finalizado (há ~3 meses)",
+     "contexto": "Demanda paga por transcrição manual de material de estudo para Anki, evidenciando que criar os próprios cards é trabalho tedioso que estudantes preferem terceirizar"
+    }
+   ],
+   "quem_paga_hoje": "Concurseiros que compram baralhos prontos (valores citados: R$244,50 e R$300 por deck) e também contratam freelancers (US$10-90 por projeto) para transcrever apostilas em cartões Anki.",
+   "solucoes_atuais": [
+    {
+     "nome": "Auditor Faixa Preta Concursos",
+     "preco": "não medido (venda via Kiwify)",
+     "url": "https://www.reclameaqui.com.br/faixa-preta-concursos/flashcards-desatualizados-e-falta-de-suporte_8UT3ADlW-4pQvtEK/",
+     "por_que_falha": "Atualização prometida não entregue, suporte inexistente."
+    },
+    {
+     "nome": "Revisa Cards Concursos",
+     "preco": "R$244,50 – R$300",
+     "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/nao-joguem-seu-dinheiro-fora-com-esses-flashcards_gNX1pGedNvyjVjgJ/",
+     "por_que_falha": "Conteúdo incompleto (não cobre edital), liberação atrasada, reembolso não processado."
+    },
+    {
+     "nome": "Flashcards Brasil",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/empresa/flashcards-brasil/lista-reclamacoes/",
+     "por_que_falha": "Produto não cumpre o oferecido, reclamações sem resposta."
+    }
+   ],
+   "por_que_falham": "Decks são estáticos e vendidos uma vez, mas editais e leis mudam; os vendedores não têm processo de atualização nem suporte real (canais informais como Instagram/WhatsApp sem resposta), e negam ou atrasam reembolsos mesmo quando solicitados dentro do prazo.",
+   "palavras_chave": [
+    "flashcards concurso desatualizado",
+    "revisa cards reclamação",
+    "comprar flashcards anki concurso",
+    "criar flashcards anki freelancer",
+    "baralho anki concurso reembolso"
+   ],
+   "ia_aplicavel": "Sim — um gerador de flashcards por IA a partir do edital/lei vigente (com atualização automática quando a legislação muda) resolveria a desatualização e a cobertura incompleta que motivam essas reclamações; também poderia substituir a transcrição manual de apostilas hoje terceirizada a freelancers.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo/médio — risco de propaganda enganosa (CDC) pelos próprios vendedores de conteúdo, não pelo comprador do produto; não há risco de conselho profissional envolvido.",
+   "observacoes": "6 fontes distintas: 5 páginas do Reclame Aqui (3 vendedores diferentes de flashcards para concurso) e 1 página do Freelancer.com evidenciando a demanda por criação manual de cards — o padrão de dor (deck estático que falha) e sua alternativa manual (contratar terceiro) se reforçam."
+  }
+ ]
+}

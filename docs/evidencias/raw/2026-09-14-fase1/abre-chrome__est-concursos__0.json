@@ -1,0 +1,82 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/estrategia-concursos-nao-permite-cancelamento-dentro-de-7-dias-conforme-cdc_E2ex6gtwCYk0vwcx/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Comprei um curso em pdf no dia 22/04, baixei alguns pdfs, porém pedi o cancelamento dentro dos 7 dias úteis conforme assegura o código de defesa do consumidor, porém o estratégia concursos se coloca acima de uma lei federal",
+     "autor": "Leonardo",
+     "data": "19/05/2024",
+     "contexto": "Reclamação sobre recusa de cancelamento dentro do prazo legal de 7 dias (CDC)"
+    },
+    {
+     "trecho": "Entrei em contato com eles dentro do prazo e eles disseram que não vão estornar a minha compra.",
+     "autor": "Leonardo",
+     "data": "19/05/2024",
+     "contexto": "Resposta negativa da empresa ao pedido de cancelamento dentro do prazo"
+    },
+    {
+     "trecho": "O número de downloads realizados pelo aluno evidencia utilização do produto e serviço adquirido, em seu caso, sendo *******% do curso.",
+     "autor": "Estratégia Concursos",
+     "data": "21/05/2024",
+     "contexto": "Empresa nega cancelamento alegando limite de 30 downloads ultrapassado"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/renovacao-automatica-indevida-e-dificuldade-de-cancelamento-na-assinatura-do-estrategia-concursos_76I1ajZqquolSB36/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Fiz uma assinatura ano passado, a qual terminou após 12 meses (mês passado). Para a minha surpresa, ao olhar meu extrato do cartão, vejo que o Estratégia Concursos renovou o curso sem aviso prévio!",
+     "autor": "Breno",
+     "data": "18/02/2026",
+     "contexto": "Renovação automática indevida após término da assinatura sem notificação prévia"
+    },
+    {
+     "trecho": "Ao tentar fazer o cancelamento via site, antes de reclamar sobre a renovação, percebo que eles deixam o processo muito difícil e demorado.",
+     "autor": "Breno",
+     "data": "18/02/2026",
+     "contexto": "Dificuldade no processo de cancelamento via plataforma — tarefa manual repetitiva"
+    },
+    {
+     "trecho": "Vim direto para o Reclame Aqui e me deparei com MUITAS reclamações sobre o mesmo assunto, inclusive dizendo que a empresa só é ágil para resolver por este meio.",
+     "autor": "Breno",
+     "data": "18/02/2026",
+     "contexto": "Padrão recorrente: empresa só atua mediante reclamação pública"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/multa-de-20-para-cancelar-a-assinatura_JP-MOm3sUsAdQGDD/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Ao falar com o atendimento descubro que tenho que pagar uma bela multa de 20% para conseguir cancelar a minha assinatura.",
+     "autor": "Aureliano",
+     "data": "18/07/2024",
+     "contexto": "Descoberta de multa cobrada para cancelamento antecipado"
+    },
+    {
+     "trecho": "O CONTRATANTE que optar pelo cancelamento do PRODUTO, dentro do prazo de fidelidade, implicará em multa a ser paga no montante correspondente a 20% (vinte por cento) incidente sobre o valor integral do PRODUTO",
+     "autor": "Gran Concursos (cláusula 8.8.1)",
+     "data": "18/07/2024",
+     "contexto": "Política de multa de 20% nos termos de uso — preço de cancelamento"
+    },
+    {
+     "trecho": "Eu já paguei 2 parcelas de R$ *******,16 estou indo para a 3 e ainda teria que desembolsar mais de R$*******,00 para conseguir o cancelamento.",
+     "autor": "Aureliano",
+     "data": "18/07/2024",
+     "contexto": "Custo total afetado pela multa de cancelamento antecipado"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

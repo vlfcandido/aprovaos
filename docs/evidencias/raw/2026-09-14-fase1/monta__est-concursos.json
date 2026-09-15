@@ -1,0 +1,186 @@
+{
+ "gaps": [
+  {
+   "titulo": "Cancelamento de assinatura de cursinho online é deliberadamente difícil, com multa abusiva e cobrança após pedido de cancelamento",
+   "nicho": "ESTUDOS — concursos públicos: concurseiro autodidata e de cursinho",
+   "dor": "Concurseiro assina plataforma de curso preparatório (Gran Cursos, Estratégia Concursos, TEC Concursos) e, ao tentar cancelar — inclusive dentro do prazo legal de 7 dias do CDC — enfrenta bugs que impedem o cancelamento, multa de 20% do valor do plano, renovação automática sem aviso e cobranças continuadas mesmo após confirmação de cancelamento por e-mail. O padrão só é resolvido quando o cliente expõe o caso publicamente no Reclame Aqui.",
+   "quem_sofre": "Concurseiro assinante de cursinho online (pessoa física, orçamento apertado, muitas vezes pagando o curso a duras penas para estudar para concurso)",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/estrategia-concursos-nao-permite-cancelamento-dentro-de-7-dias-conforme-cdc_E2ex6gtwCYk0vwcx/",
+     "tipo": "reddit",
+     "trecho": "Comprei um curso em pdf no dia 22/04, baixei alguns pdfs, porém pedi o cancelamento dentro dos 7 dias úteis conforme assegura o código de defesa do consumidor, porém o estratégia concursos se coloca acima de uma lei federal",
+     "data": "19/05/2024",
+     "contexto": "Reclamação sobre recusa de cancelamento dentro do prazo legal de 7 dias (CDC)"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/renovacao-automatica-indevida-e-dificuldade-de-cancelamento-na-assinatura-do-estrategia-concursos_76I1ajZqquolSB36/",
+     "tipo": "reddit",
+     "trecho": "Ao tentar fazer o cancelamento via site, antes de reclamar sobre a renovação, percebo que eles deixam o processo muito difícil e demorado.",
+     "data": "18/02/2026",
+     "contexto": "Dificuldade no processo de cancelamento via plataforma — tarefa manual repetitiva"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/multa-de-20-para-cancelar-a-assinatura_JP-MOm3sUsAdQGDD/",
+     "tipo": "reddit",
+     "trecho": "O CONTRATANTE que optar pelo cancelamento do PRODUTO, dentro do prazo de fidelidade, implicará em multa a ser paga no montante correspondente a 20% (vinte por cento) incidente sobre o valor integral do PRODUTO",
+     "data": "18/07/2024",
+     "contexto": "Política de multa de 20% nos termos de uso — preço de cancelamento"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/tentativa-de-cancelamento-de-assinatura-com-cobranca-de-taxa-editado-pelo-reclame-aqui-e-falta-de-resposta-dos-canais-de-atendimento_O4emBdDPG4iuh4vJ/",
+     "tipo": "reddit",
+     "trecho": "No ano de 2025 tentei fazer o cancelamento porem tive que continuar pagando, mas esse ano decidi cancelar e quando fui cancelar pediram o valor de 200 reais",
+     "data": "18/03/2026 às 20:54",
+     "contexto": "Cobrança de taxa para cancelar assinatura"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/tec-concursos/tec-concursos-faz-propaganda-enganosa-sobre-cancelamento-e-cobra-indevidame_EykVz1DoUJv8ZUe5/",
+     "tipo": "reddit",
+     "trecho": "De fato, encontrei facilmente a opção de cancelamento e, seguindo os passos indicados, encerrei o contrato. Recebi um email de confirmação de cancelamento logo em seguida. O problema é que a assinatura não foi cancelada",
+     "data": "22/03/2019 às 17:58",
+     "contexto": "Bug confirmou cancelamento mas cobrança continuou"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/tec-concursos/cobranca-indevida-e-dificuldade-de-cancelamento-te-concursos_8MwcDnrYYxs7yPOn/",
+     "tipo": "reddit",
+     "trecho": "O problema é que também não consegui cancelar a assinatura devido a um bug no site, onde só aparecia um balão vermelho no canto superior da tela com uma mensagem de erro",
+     "data": "24/07/2025 às 12:54",
+     "contexto": "Bug técnico impedindo cancelamento"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/pratica-abusiva_dyyk-HxDe0GSGIgZ/",
+     "tipo": "reddit",
+     "trecho": "a plataforma não permite a exclusão do cartão de crédito salvo, a menos que outro seja inserido obrigando o consumidor a manter um meio de pagamento ativo em um modelo de cobrança recorrente, mesmo sem consentimento",
+     "data": "20/04/2025",
+     "contexto": "Prática abusiva de retenção de meio de pagamento"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/grancurso-de-recusa-a-cancelar-compra-de-curso_dEkf-9Etjqrd0m65",
+     "tipo": "reddit",
+     "trecho": "A empresa se recusa a fazer o cancelamento e o estorno do valor pago, alegando que o prazo havia passado, apesar de eu ter contatado no sétimo dia.",
+     "data": "03/12/2024",
+     "contexto": "Recusa de cancelamento dentro do prazo legal"
+    }
+   ],
+   "quem_paga_hoje": "O próprio concurseiro paga o preço do curso (mensalidades de dezenas a algumas centenas de reais) e ainda arca com a multa de 20% ou a taxa de cancelamento (ex.: R$200 relatado por Viviane) quando tenta sair; não há intermediário profissional pago para resolver isso — o cliente recorre ao Reclame Aqui de graça como único canal eficaz.",
+   "solucoes_atuais": [
+    {
+     "nome": "Reclame Aqui (canal de pressão pública)",
+     "preco": "gratuito",
+     "url": "https://www.reclameaqui.com.br"
+    }
+   ],
+   "por_que_falham": "Reclame Aqui não previne o problema, só serve de alavanca reativa depois que o dano já ocorreu (cobrança indevida, multa paga); não há ferramenta que o consumidor use no momento da assinatura ou do pedido de cancelamento para se proteger, documentar o pedido com prova e cobrar prazo do CDC automaticamente.",
+   "palavras_chave": [
+    "como cancelar assinatura Gran Cursos",
+    "cancelar Estratégia Concursos",
+    "multa cancelamento curso online",
+    "cobrança indevida assinatura curso",
+    "direito de arrependimento CDC curso"
+   ],
+   "ia_aplicavel": "IA pode gerar automaticamente a notificação formal de cancelamento citando o CDC e o histórico de tentativas (prints, e-mails) como prova para pequenas causas ou Procon, e monitorar se a cobrança parou.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "médio — envolve direito de arrependimento do CDC (art. 49) e práticas abusivas de cobrança recorrente; um produto que automatiza notificações de cancelamento não presta serviço jurídico regulado, mas deve evitar prometer 'aconselhamento jurídico'",
+   "apelo_global": "não medido — achados restritos a cursinhos brasileiros de concurso público, tema pouco exportável",
+   "observacoes": "8 URLs distintas do Reclame Aqui confirmam padrão repetido em 3 empresas diferentes (Gran Cursos, Estratégia Concursos, TEC Concursos) ao longo de 2019–2026, evidência forte de recorrência sistêmica, não caso isolado."
+  },
+  {
+   "titulo": "Conteúdo de curso preparatório vendido como atualizado chega desatualizado ou superficial ao aluno",
+   "nicho": "ESTUDOS — concursos públicos: concurseiro autodidata e de cursinho",
+   "dor": "Aluno paga por curso ilimitado ou específico esperando material atualizado e aprofundado para o edital vigente, mas recebe aulas superficiais ou desatualizadas em relação ao edital do concurso, descobrindo o problema só depois de comprar.",
+   "quem_sofre": "Concurseiro que assina curso gravado/ilimitado para um concurso específico (ex.: TRE-SP) sem poder testar o conteúdo antes",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/central-de-concursos/curso-online_ku1ivXIfLULz6oy-/",
+     "tipo": "reddit",
+     "trecho": "O curso gravado é péssimo, trava, não é um curso completo, eles passam a matéria muito superficialmente.",
+     "data": "05/06/2024",
+     "contexto": "Reclamação sobre qualidade de vídeo-aula para concurso TRE-SP"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/gran-cursos-online/grancurso-de-recusa-a-cancelar-compra-de-curso_dEkf-9Etjqrd0m65",
+     "tipo": "reddit",
+     "trecho": "Material não estava atualizado para o concurso. Solicitei cancelamento no sétimo dia (02 de dezembro) dentro do prazo legal, mas empresa recusou.",
+     "data": "03/12/2024",
+     "contexto": "Relato de Reclamação Principal — material desatualizado em relação ao edital"
+    }
+   ],
+   "quem_paga_hoje": "O aluno paga o valor integral do curso (não medido em R$ nos trechos disponíveis) sem poder verificar previamente a atualização do conteúdo frente ao edital",
+   "solucoes_atuais": [
+    {
+     "nome": "Central de Concursos / Gran Cursos Online (cursos gravados)",
+     "preco": "não medido",
+     "url": "https://www.reclameaqui.com.br/central-de-concursos/curso-online_ku1ivXIfLULz6oy-/"
+    }
+   ],
+   "por_que_falham": "Não há forma de o aluno conferir, antes de comprar, se o conteúdo do curso reflete o edital vigente; a plataforma vende de forma genérica ('ilimitado') sem checagem de atualização por edital específico.",
+   "palavras_chave": [
+    "curso desatualizado concurso",
+    "material não bate com edital",
+    "curso online concurso ruim",
+    "aula superficial concurso"
+   ],
+   "ia_aplicavel": "IA pode comparar automaticamente o edital verticalizado do concurso com o índice/ementa do curso contratado e sinalizar tópicos ausentes ou desatualizados antes da compra.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — propaganda enganosa (CDC) é risco da empresa de curso, não do produto que apenas compara conteúdo publicamente disponível",
+   "apelo_global": "não medido — depende de estrutura de edital brasileira, baixo apelo global",
+   "observacoes": "Evidência mais fraca que o gap de cancelamento (2 URLs), mas aponta um problema de produto (qualidade de conteúdo) distinto do problema comercial (cancelamento)."
+  },
+  {
+   "titulo": "Concurseiro paga freelancer para montar manualmente planilha de cronograma de estudos e edital verticalizado",
+   "nicho": "ESTUDOS — concursos públicos: concurseiro autodidata e de cursinho",
+   "dor": "Concurseiro autodidato (ou responsável por ele) não consegue/não sabe estruturar sozinho um cronograma de estudos ou um edital verticalizado em planilha, e contrata freelancer no 99Freelas para fazer esse trabalho manualmente a partir dos PDFs de editais.",
+   "quem_sofre": "Concurseiro autodidata sem curso estruturado, que estuda por conta própria a partir do edital bruto",
+   "evidencias": [
+    {
+     "url": "https://www.99freelas.com.br/project/planilha-edital-verticalizado-para-concurso-472439",
+     "tipo": "freelancer",
+     "trecho": "Preciso que analise 3 editais de concursos públicos e, a partir deles elabore uma planilha adaptada",
+     "data": "22/09/2023",
+     "contexto": "Projeto em 99Freelas solicitando elaboração manual de planilha verticalizada de edital"
+    },
+    {
+     "url": "https://www.99freelas.com.br/project/criacao-de-planilha-em-excel-que-simule-um-cronograma-de-estudos-539113",
+     "tipo": "freelancer",
+     "trecho": "Necessitamos de um profissional para elaborar uma planilha que simule um cronograma de estudos.",
+     "data": "13/05/2024",
+     "contexto": "Descrição do Projeto — cronograma de estudos sob encomenda"
+    },
+    {
+     "url": "https://www.99freelas.com.br/project/planilha-do-google-sheets-para-cronograma-de-projeto-466284",
+     "tipo": "freelancer",
+     "trecho": "Preciso encontrar VOCÊ que conhece bem e tem muita prática em utilizar PLANILHAS DO GOOGLE SHEET no [...]",
+     "data": "23/08/2023",
+     "contexto": "Pedido de planilha de cronograma sob encomenda"
+    }
+   ],
+   "quem_paga_hoje": "O concurseiro paga freelancer avulso a partir de R$30 (valor mínimo informado em um dos projetos) por planilha, recebendo de 3 a 4 propostas por projeto — trabalho pontual, não recorrente, refeito a cada novo edital",
+   "solucoes_atuais": [
+    {
+     "nome": "Freelancer avulso via 99Freelas",
+     "preco": "a partir de R$30 por planilha (valor mínimo do projeto)",
+     "url": "https://www.99freelas.com.br/project/criacao-de-planilha-em-excel-que-simule-um-cronograma-de-estudos-539113"
+    }
+   ],
+   "por_que_falham": "Solução artesanal e não escalável: cada edital novo exige contratar de novo um freelancer diferente, sem histórico, sem atualização automática de progresso e sem repetição de qualidade entre projetos.",
+   "palavras_chave": [
+    "planilha edital verticalizado",
+    "cronograma de estudos para concurso",
+    "planilha cronograma concurso excel",
+    "gerar cronograma de estudos automático"
+   ],
+   "ia_aplicavel": "IA pode ler o PDF do edital, extrair o conteúdo programático automaticamente e gerar o cronograma/planilha verticalizada personalizado por tempo disponível do aluno — substitui diretamente o trabalho manual do freelancer.",
+   "sinais_de_tamanho": "não medido",
+   "risco_regulatorio": "baixo — não envolve dado sensível, conselho profissional nem sigilo",
+   "apelo_global": "não medido — o formato 'edital verticalizado' é específico do concurso público brasileiro",
+   "observacoes": "3 URLs distintas do mesmo marketplace (99Freelas) mostrando pedidos repetidos e recorrentes do mesmo tipo de tarefa manual — evidência de padrão, não caso isolado."
+  }
+ ],
+ "fontes_sem_resultado": [
+  "https://play.google.com/store/apps/details?id=com.qconcursos.QCX&hl=en_US — página não carregou conteúdo visível via WebFetch",
+  "https://aprovatotal.com.br/corretor-de-redacao/ — HTTP 403 Forbidden",
+  "https://redconcursos.com.br/ — HTTP 429 Too Many Requests",
+  "https://voceconcursado.com.br/correcao-de-redacao-discursiva-para-concursos-uma-correcao/ — abriu mas sem reclamações, pedidos ou preços com data/autor, apenas oferta de serviço"
+ ]
+}

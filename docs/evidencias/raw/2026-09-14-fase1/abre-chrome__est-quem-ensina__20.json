@@ -1,0 +1,100 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/imaginie/nao-assinem-so-gente-despreparada-corrige-a-sua-redacao_BhXq3hy0E2MN1078/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "veio com comentários absurdamente desconexos da redação, mandei pra recorreção (eles falam que são 10 dias úteis, mas na verdade é uma mentira, a sua recorreção SOME, não aparece mais NADA, fica lá e eles nem se importam)",
+     "autor": "George",
+     "data": "14/10/2019",
+     "contexto": "Reclamação principal: recorreções desaparecem após 10 dias úteis"
+    },
+    {
+     "trecho": "UM CORRETOR ME TIROU PONTO PORQUE EU NÃO COLOQUEI TÍTULO NA REDAÇÃO, ISSO É O CÚMULO DO ABSURDO!!!! COMO UMA PLATAFORMA QUE CORRIGE O MODELO PROPOSTO PELO ENEM NÃO LÊ AS INSTRUÇÕES DA PROVA DE REDAÇÃO?",
+     "autor": "George",
+     "data": "14/10/2019",
+     "contexto": "Corretor desconhecia que título é opcional no ENEM"
+    },
+    {
+     "trecho": "em outra redação o corretor simplesmente infere 'deveria ter utilizado o desenvolvimento para aprofundar o tema' eu fiz exatamente isso!!!!! E ele me tirou ponto, completamente despreparado!!!!",
+     "autor": "George",
+     "data": "14/10/2019",
+     "contexto": "Corretor não leu o desenvolvimento da redação antes de comentar"
+    },
+    {
+     "trecho": "Minha redação sobre amamentação, DEPOIS DE 10 DIAS ÚTEIS SÓ FOI COLOCADA PARA A RECORREÇÃO HOJE!!! DEPOIS DE EU TER RECLAMADO!!!! se eu não tivesse reclamado, ela ficaria lá, parada!!",
+     "autor": "George",
+     "data": "14/10/2019",
+     "contexto": "Resposta à empresa: recorreção só iniciava após reclamação explícita"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/corrija-me-servicos-educacionais/pessimo-servico-de-correcao-de-redacao_b5iloJLwkB7gc_yT/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "A correção da minha primeira redação tinha alguns erros, como exigência de vírgula em adjunto adverbial em final de frase, sob a alegação q estava ambíguo, mas não há ambiguidade nesse caso",
+     "autor": "Consumidor",
+     "data": "14/05/2025",
+     "contexto": "Primeira reclamação sobre critérios de correção tecnicamente incorretos"
+    },
+    {
+     "trecho": "os corretores focam apenas em aspectos gramaticais, sem levar em consideração a qualidade dos argumentos e da estrutura",
+     "autor": "Consumidor",
+     "data": "14/05/2025",
+     "contexto": "Crítica ao escopo limitado do método de correção"
+    },
+    {
+     "trecho": "tentei cancelar logo na primeira semana, pois percebi q o curso não iria me ajudar, porém revirei o site e não achei onde poderia fazê-lo",
+     "autor": "Consumidor",
+     "data": "14/05/2025",
+     "contexto": "Tarefa manual: não conseguiu localizar opção de cancelamento"
+    },
+    {
+     "trecho": "Dinheiro jogado fora, quero cancelar o curso e receber meu dinheiro de volta, porque vou ter q comprar outro e precisarei do dinheiro",
+     "autor": "Consumidor",
+     "data": "14/05/2025",
+     "contexto": "Pedido de reembolso após insatisfação com a qualidade"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/correcao-horrivel_h0WDcK3LOrnU80xW/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Sem que nada me fosse avisado, recebi a minha redação corrigida por um corretor diferente do que escolhi e que, para falar a verdade, nem se quer lembro de ter visto na lista de corretores disponíveis",
+     "autor": "Gabriel",
+     "data": "21/09/2017",
+     "contexto": "Escolha de corretor não respeitada; plano prometia possibilidade de escolha"
+    },
+    {
+     "trecho": "a correção foi extremamente superficial. Além de praticamente não ter seguido os critérios da minha banca, os quais enviei junto com o tema, ela pareceu ter sido feito as pressas",
+     "autor": "Gabriel",
+     "data": "21/09/2017",
+     "contexto": "Falta de respeito aos critérios específicos fornecidos pelo aluno"
+    },
+    {
+     "trecho": "As marcações feitas na redação, referentes aos meus erros gramaticais, não permitem que eu identifique os erros que cometi e o curto comentário do corretor parecia mais um ctrl+v genérico",
+     "autor": "Gabriel",
+     "data": "21/09/2017",
+     "contexto": "Descrição de comentários copiados/automatizados para corrigir redações em massa"
+    },
+    {
+     "trecho": "A sensação que ficou é que a minha redação havia sido corrigida por algum programa automático mal feito",
+     "autor": "Gabriel",
+     "data": "21/09/2017",
+     "contexto": "Percepção de que a correção foi automatizada, sem revisão manual"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

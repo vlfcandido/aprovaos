@@ -1,0 +1,94 @@
+{
+ "paginas": [
+  {
+   "url": "https://groups.google.com/g/anki-android/c/cdXHTo87fGs",
+   "abriu": true,
+   "como": "webfetch",
+   "observacao": "Thread do Google Groups sobre perda de progresso no AnkiDroid",
+   "trechos": [
+    {
+     "trecho": "I lost all my progress one of my decks that has over 7000 cards in it.",
+     "contexto": "Mensagem inicial da thread, reclamação de perda de dados",
+     "data": "Oct 21, 2022",
+     "autor": "dakotalee24"
+    },
+    {
+     "trecho": "I got a new phone and Redownload the decks I use. When I click sync to restore my progress it reset everything in the ankiweb version.",
+     "contexto": "Descrição detalhada do problema ao fazer sync entre dispositivos",
+     "data": "Oct 21, 2022",
+     "autor": "dakotalee24"
+    },
+    {
+     "trecho": "I have been working on this deck for almost 4 years.",
+     "contexto": "Contexto do impacto emocional da perda de dados",
+     "data": "Oct 21, 2022",
+     "autor": "dakotalee24"
+    }
+   ]
+  },
+  {
+   "url": "https://ca.trustpilot.com/review/www.quizlet.com",
+   "abriu": true,
+   "como": "webfetch",
+   "observacao": "Reviews no Trustpilot Canada sobre Quizlet com reclamações de paywall e serviço",
+   "trechos": [
+    {
+     "trecho": "Absolutely no customer service whatsoever. What a scam app and company.",
+     "contexto": "Review com reclamação geral sobre atendimento",
+     "data": "2 dias atrás (2026-09-12)",
+     "autor": "Bradley Rhodes"
+    },
+    {
+     "trecho": "Everything is hidden behind a paywall! The website is completely filled with ads and there's constant prompts to upgrade.",
+     "contexto": "Review reclamando sobre modelo de monetização e experiência de usuário",
+     "data": "2 dias atrás (2026-09-12)",
+     "autor": "Michael Phillips"
+    },
+    {
+     "trecho": "I cancelled my subscription while still using the free version. Now I am still being charged and cannot find any billing options.",
+     "contexto": "Reclamação sobre cobrança contínua após cancelamento de inscrição",
+     "data": "11 jul 2026",
+     "autor": "Joanne Human"
+    },
+    {
+     "trecho": "Have been using the website for a decade - my account was deactivated overnight without any explanation.",
+     "contexto": "Reclamação sobre deativação de conta sem comunicação",
+     "data": "10 jul 2026",
+     "autor": "Janice"
+    }
+   ]
+  },
+  {
+   "url": "https://www.trustpilot.com/review/remnote.com",
+   "abriu": true,
+   "como": "webfetch",
+   "observacao": "Reviews no Trustpilot sobre RemNote com reclamações sobre paywall e usabilidade",
+   "trechos": [
+    {
+     "trecho": "Had a subscription for a month and my subscription ended a day early i received an email this morning that today was my last day",
+     "contexto": "Reclamação sobre encerramento prematuro de subscrição",
+     "data": "4 mai 2026",
+     "autor": "callum (GB)"
+    },
+    {
+     "trecho": "the flashcards appeared in reverse order, which made it impossible because I had to begin with the more complex cards",
+     "contexto": "Reclamação sobre bug/problema na ordenação de flashcards",
+     "data": "11 ago 2025",
+     "autor": "Lily (DE)"
+    },
+    {
+     "trecho": "they started locking most of the functionalities behind a paywall, and it was disappointing. As a student on a budget, it felt like a bait-and-switch",
+     "contexto": "Reclamação sobre monetização agressiva e mudança de modelo de negócio",
+     "data": "18 abr 2023",
+     "autor": "Masked ONNIE (NG)"
+    },
+    {
+     "trecho": "might be a helpful tool but not really intuitive to use, I can't even find my email in the settings",
+     "contexto": "Reclamação sobre usabilidade e experiência de usuário",
+     "data": "17 mai 2022",
+     "autor": "Sascha (CH)"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,165 @@
+{
+ "vereditos": [
+  {
+   "id": "bancas-01",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://cj.estrategia.com/portal/como-dominar-estilo-cebraspe-certo-errado/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma exatamente: 'Acerto: +1 ponto / Erro: –1 ponto / Questão em branco ou com dupla marcação: 0 ponto'."
+    }
+   ]
+  },
+  {
+   "id": "bancas-02",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://blogs.correiobraziliense.com.br/papodeconcurseiro/7549-2/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma: 'o Cebraspe nem sempre aplica o temido critério uma errada anula uma certa'."
+    }
+   ]
+  },
+  {
+   "id": "bancas-03",
+   "sustentado": true,
+   "correcao": "O trecho literal citado (datas específicas de inscrição por edital) não bate com o que a página do PCI Concursos mostra hoje (14/09/2026) — a página lista dados diferentes (ex.: SEFAZ-AL com 40 vagas + 60 CR) e ~200+ editais, não a lista exata citada. Mas a segunda evidência (Direção Concursos) confirma números equivalentes de editais simultâneos, e o volume real encontrado (200+) é ainda maior que o \"~50+\" afirmado, então a afirmação central (dezenas de editais simultâneos) fica sustentada, só não pela evidência 1 tal como citada.",
+   "evidencias": [
+    {
+     "url": "https://www.pciconcursos.com.br/organizadoras/cebraspe",
+     "abre": true,
+     "trecho_confere": false,
+     "observacao": "Página abre e lista muitos editais (~200+), mas o trecho citado (linhas com datas específicas de SEFAZ-AL/ADEAL/PM-AL/Polícia Civil-AL) não corresponde ao conteúdo atual da página."
+    },
+    {
+     "url": "https://www.direcaoconcursos.com.br/noticias/concursos-cebraspe-marco-2026",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma: 'Março ainda não acabou e os concurseiros têm mais de 330 oportunidades abertas em editais organizados pelo Cebraspe' — consistente com múltiplos editais simultâneos citados na afirmação."
+    }
+   ]
+  },
+  {
+   "id": "bancas-04",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Fetch retorna apenas navegação/slogan: 'Cebraspe | O melhor em avaliações e seleções de pessoas', confirmando a dependência de renderização client-side."
+    },
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Mesmo resultado: apenas 'Cebraspe | O melhor em avaliação de pessoas'."
+    }
+   ]
+  },
+  {
+   "id": "bancas-05",
+   "sustentado": false,
+   "correcao": "A evidência fornecida (conhecimento.fgv.br/node/141) confirma literalmente a frase citada ('Provas aplicadas — Solicite aqui seu Certificado...'), mas essa frase não demonstra a estrutura de subdomínios por edital afirmada. O próprio fetch respondeu explicitamente que a página NÃO menciona subdomínios como enare2026.conhecimento.fgv.br/provas/. Portanto a afirmação central (estrutura por subdomínio) não está sustentada por essa evidência.",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "abre": true,
+     "trecho_confere": false,
+     "observacao": "A frase citada aparece na página, mas ela não evidencia a alegação de subdomínios por concurso; a página em si não menciona nenhum subdomínio específico de edital."
+    }
+   ]
+  },
+  {
+   "id": "bancas-06",
+   "sustentado": true,
+   "correcao": "A contagem aproximada (~20 concursos na primeira página) foi confirmada, mas o fetch não listou explicitamente as instituições específicas citadas na afirmação (RS, PE, RJ, PA, TO, polícia civil, defensoria) — apenas confirmou o volume e a existência de paginação.",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/concursos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma ~20 concursos em andamento na primeira página com paginação para concursos realizados; não confirma explicitamente cada instituição nomeada na afirmação."
+    }
+   ]
+  },
+  {
+   "id": "bancas-07",
+   "sustentado": false,
+   "correcao": "A única evidência fornecida sustenta apenas a parte relativa ao concurso da PM do Piauí (FCC escolhida, edital previsto para o 1º semestre de 2026). Não há evidência alguma cobrindo os demais itens citados na afirmação (Secretaria da Fazenda do Ceará, Ministério Público de Alagoas, Defensoria Pública do Maranhão e da Bahia, Assembleia Legislativa de Mato Grosso do Sul) — o fetch confirmou explicitamente que esses itens não aparecem na página fornecida.",
+   "evidencias": [
+    {
+     "url": "https://www.proximosconcursos.com/concurso-pm-pi-2026-fcc-e-a-banca/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma apenas o trecho sobre PM-PI/FCC/1º semestre de 2026; não menciona Ceará, Alagoas, Maranhão, Bahia ou Mato Grosso do Sul."
+    }
+   ]
+  },
+  {
+   "id": "bancas-08",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.qconcursos.com/questoes-de-concursos/bancas/fcc",
+     "abre": false,
+     "trecho_confere": true,
+     "observacao": "Retornou HTTP 403 Forbidden, confirmando o bloqueio afirmado."
+    },
+    {
+     "url": "https://www.qconcursos.com/questoes-de-concursos/bancas/cesgranrio",
+     "abre": false,
+     "trecho_confere": true,
+     "observacao": "Retornou HTTP 403 Forbidden, confirmando o bloqueio afirmado. (Busca alternativa via WebSearch achou números consolidados em outra fonte — Gran Questões — mas isso não invalida a afirmação, que se restringe ao bloqueio do qconcursos.com)."
+    }
+   ]
+  },
+  {
+   "id": "bancas-09",
+   "sustentado": true,
+   "correcao": "A parte sobre o IBGE (27.279 recenseadores, edital até outubro de 2026, Cesgranrio como organizadora) está integralmente confirmada. As partes sobre Transpetro (4 editais, 4.171 vagas) e Petrobras (mínimo 1.100 vagas) NÃO aparecem na evidência fornecida e permanecem sem verificação.",
+   "evidencias": [
+    {
+     "url": "https://blog.grancursosonline.com.br/concurso-ibge-temporarios/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma '27.279 recenseadores temporários' e edital previsto até outubro de 2026, e confirma a Cesgranrio como organizadora; não menciona Transpetro nem Petrobras."
+    }
+   ]
+  },
+  {
+   "id": "bancas-10",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.direcaoconcursos.com.br/noticias/concursos-cebraspe-marco-2026",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma os números citados (PCDF Delegado 150 vagas, ISS Porto Velho 10+10 reserva, Sefaz DF 115+150 reserva, PM AL 1.000 praças + 60 oficiais)."
+    }
+   ]
+  },
+  {
+   "id": "bancas-11",
+   "sustentado": false,
+   "correcao": "A evidência fornecida confirma apenas a frase genérica sobre certificado de aprovação, mas o próprio fetch confirmou explicitamente que a página NÃO menciona os subdomínios citados (enare2026.conhecimento.fgv.br/provas/, mapa-vagas-enare-ebserh.conhecimento.fgv.br). A afirmação sobre estrutura descentralizada por subdomínio não está sustentada por essa evidência.",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "abre": true,
+     "trecho_confere": false,
+     "observacao": "Página não menciona nenhum dos subdomínios citados na afirmação; confirma apenas trecho genérico não relacionado à estrutura de subdomínios."
+    }
+   ]
+  }
+ ]
+}

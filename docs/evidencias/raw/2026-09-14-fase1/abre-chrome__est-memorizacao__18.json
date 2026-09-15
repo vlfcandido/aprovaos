@@ -1,0 +1,70 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/revisa-cards-concursos/reembolso-de-flashcards_H4RIRoH9aqhPX_Lx/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "No dia 19 de maio fiz uma compra no Revisa Card, por meio do Instagram, no valor $244,50... No dia 20 de maio, fiz o pedido de reembolso pois não era o que esperava... não foi creditado no cartão de crédito, de nenhuma forma foi reembolsado.",
+     "autor": "Felipe",
+     "data": "25/05/2025",
+     "contexto": "ID 217933555. Reclamação sobre reembolso não creditado apesar da empresa afirmar que foi processado (respondida em 01/06/2025)."
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/flashcards-brasil/lista-reclamacoes/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Depósito não reconhecido em vale presente impede compra online. Realizei um depósito para completar o vale presente e realizar uma compra online com meu auxílio home office.",
+     "autor": "",
+     "data": "Há 9 meses",
+     "contexto": "Primeira reclamação da lista. Status: NÃO RESPONDIDA."
+    },
+    {
+     "trecho": "Dinheiro de volta - O produto não cumpre com o oferecido.",
+     "autor": "",
+     "data": "14/03/2023",
+     "contexto": "ID 160801317. Status: Não respondida. Reclamação com mais de 3 anos, não está mais sendo contabilizada no índice da empresa."
+    }
+   ],
+   "observacao": "Página é lista resumida; navegação para itens individuais revelou detalhes adicionais."
+  },
+  {
+   "url": "https://www.freelancer.com/job-search/anki-app/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "I need someone with basic computer skills to help me create flashcards on Anki. The content will be extracted from PDFs... Taking photos of content from the PDFs... Making flashcards on Anki... Just copy-pasting content, no subject knowledge required.",
+     "autor": "",
+     "data": "Projeto finalizado",
+     "contexto": "Projeto 'Anki Flashcard Creation from PDFs'. Valor: $10/hr. 22 bids. Tarefas repetitivas e manuais."
+    },
+    {
+     "trecho": "I have a complete study guide sitting in Google Docs—12 separate modules, each running about 10–20 pages... the task is mostly a matter of lifting that content and dropping it into Anki as flashcards. No writing or research is needed; accuracy of transfer is the priority.",
+     "autor": "",
+     "data": "Projeto finalizado (há ~3 meses)",
+     "contexto": "Projeto 'Google Docs to Anki Conversion'. Valor: £20-250 GBP. 37 propostas. Trabalho manual de transferência."
+    },
+    {
+     "trecho": "Will need about 1200 created. Its very tedious cards, just basic front and back. Only screenshots of the files will be required so very straightforward. Just takes a long time as there are a lot of files.",
+     "autor": "",
+     "data": "Projeto finalizado",
+     "contexto": "Projeto 'ANKI Card Creation Specialist'. Valor médio: $79. 23 bids. Alto volume, trabalho repetitivo e manual."
+    },
+    {
+     "trecho": "Convert every module into Anki flashcards, preserving the existing wording exactly as it appears in the Docs. Make sure the content remains easy to read once it lands in Anki.",
+     "autor": "",
+     "data": "Projeto finalizado",
+     "contexto": "Projeto 'Google Docs to Anki Conversion' (detalhe completo). 37 freelancers bidando com preço médio £90. Demanda por precisão manual."
+    }
+   ],
+   "observacao": "Página de busca de vagas no Freelancer. Múltiplos projetos solicitam criação manual de cartões Anki a partir de documentos, indicando tarefa repetitiva e demanda de mercado."
+  }
+ ]
+}

@@ -1,0 +1,216 @@
+{
+ "fontes_sem_resultado": [
+  "https://br.trustpilot.com/review/www.passeidireto.com — apenas avaliações positivas, sem reclamação ou pedido de serviço",
+  "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/ms/campo-grande/orcamentos/1861636-desejo-orcamento-para-formatar-tcc — sem conteúdo acessível via WebFetch",
+  "https://www.getninjas.com.br/consultoria/pesquisas-em-geral/go/goiania/orcamentos/5973673-preciso-de-alguem-que-faca-tcc-com — perfis genéricos, sem reclamação específica com data/autor",
+  "https://www.getninjas.com.br/anuncios/aulas/ensino-superior/aulas-de-reforco-e-monitoria-para-estudantes-do-ensino-fundamental-medio-e-de-engenharia — WebFetch não recuperou conteúdo (página dinâmica)",
+  "https://boletimrzero.substack.com/p/amadorismo-nas-provas-de-residencia — conteúdo informativo sobre editais, sem reclamação/pedido/tarefa manual",
+  "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/preco/revisao-de-tcc — tem preços e nomes mas sem data/autor específicos, não atende ao critério de evidência"
+ ],
+ "gaps": [
+  {
+   "titulo": "Renovação automática e cancelamento hostil em plataformas de curso/edtech",
+   "nicho": "Estudos — universitário e pós-graduação (TCC, provas, OAB, residência médica, monitoria)",
+   "dor": "O aluno é cobrado por renovação automática que não pediu, ou tem o cancelamento bloqueado por regras contratuais (só nos 7 primeiros dias, ou pagando 70-80% do valor restante), e o suporte não resolve por chat/telefone/e-mail.",
+   "quem_sofre": "Estudante/consumidor final que assina curso preparatório (OAB, residência médica) ou app de conteúdo (Passei Direto) via cartão de crédito recorrente.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/passei-direto/cobranca-indevida-e-dificuldade-de-cancelamento-de-assinatura_tHPBvuKVTVe0CmCd/",
+     "tipo": "review",
+     "trecho": "Renovaram automaticamente minha assinatura me cobraram multa de 44 reais + dias de uso 27 dias 59 reais sendo que o valor mensal é 19 reais.",
+     "data": "29/07/2025",
+     "contexto": "Cliente Campo Grande-MS, categoria Cadastro e Assinatura / Cobrança indevida"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/medcof-concursos/nao-permitem-cancelamento-do-curso-contrato-nao-tem-clausula-de-rescisao_mKZSIlpJD33o-7Z-/",
+     "tipo": "review",
+     "trecho": "A empresa insiste em solicitar que para que o curso seja cancelado eu ainda pague 70-80% do valor total, sendo que tentei cancelamento em 30 de abril, apenas 55 dias após o inicio.",
+     "data": "01/07/2024",
+     "contexto": "Reclamante Sofia; Procon considerou o contrato leonino"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/editora-sanar/solicitacao-de-cancelamento-e-reembolso-da-assinatura-sanarflix-devido-a-renovacao-automatica_XPJ6DNzAm-Uhc65T/",
+     "tipo": "review",
+     "trecho": "A cobrança ocorreu hoje (17/02/2026), sem que eu tivesse a intenção de renovar o plano, tendo percebido o débito apenas após sua efetivação.",
+     "data": "17/02/2026",
+     "contexto": "Reclamante Flávio, valor R$598,80 cobrado em renovação automática do SanarFlix"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/vicio-de-uma-estudante/compra-metodo-vde-1a-fase-oab-40-dias_u_jcUQRS_t93OwHh/",
+     "tipo": "review",
+     "trecho": "O prazo de acesso ao curso é improrrogável e se encerrará sempre às 23h59min da segunda-feira imediata após a aplicação do Exame de Ordem.",
+     "data": "07/12/2024",
+     "contexto": "Termo de uso item 4.6 citado pela empresa Vício; reclamante Juliana considera cláusula abusiva"
+    }
+   ],
+   "sinais_de_tamanho": "não medido",
+   "quem_paga_hoje": "O próprio estudante paga a mensalidade/curso (valores citados: R$19-59/mês Passei Direto; R$598,80 renovação SanarFlix; cursos Medcof e Vício na faixa de centenas a milhares de reais) e depois perde tempo/dinheiro tentando reembolso via Reclame Aqui/Procon.",
+   "solucoes_atuais": [
+    {
+     "nome": "Suporte via chat/e-mail/telefone das próprias edtechs (Passei Direto, Medcof, SanarFlix, Vício)",
+     "preco": "incluso na assinatura, mas ineficaz",
+     "url": ""
+    }
+   ],
+   "por_que_falham": "O suporte nativo das plataformas não responde ou aplica cláusulas contratuais unilaterais (prazo de cancelamento, multas), forçando o consumidor a escalar para Reclame Aqui/Procon — não há ferramenta neutra de gestão/alerta de assinaturas recorrentes voltada a cursos.",
+   "palavras_chave": [
+    "cancelar assinatura curso online",
+    "como cancelar SanarFlix",
+    "cobrança indevida curso OAB",
+    "renovação automática curso preparatório",
+    "reembolso curso residência médica"
+   ],
+   "ia_aplicavel": "não (é um problema contratual/operacional das edtechs, não algo que um LLM resolva diretamente para o estudante)",
+   "risco_regulatorio": "médio — envolve CDC (direito de arrependimento, renovação automática, cláusulas abusivas) e possível intervenção de Procon, mas o risco recai sobre as edtechs, não sobre uma eventual ferramenta de terceiros.",
+   "observacoes": "4 evidências de 4 URLs distintas (Passei Direto, Medcof, SanarFlix, Vício), todas via Reclame Aqui — fonte primária de reclamação nomeada com data."
+  },
+  {
+   "titulo": "Curso comprado sem acesso ao conteúdo e suporte que não responde",
+   "nicho": "Estudos — universitário e pós-graduação (OAB, concursos, residência médica)",
+   "dor": "Aluno paga pelo curso e não consegue acessar aulas/mentoria/simulados já contratados; abre chamados por e-mail, telefone e chat e ninguém resolve, com risco de perder prazo de inscrição.",
+   "quem_sofre": "Estudante que compra curso preparatório online (OAB, concursos) e depende do acesso dentro de um prazo fixo (inscrição de exame, edital).",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/esa-oab-sp/nao-consigo-acessar-o-curso-que-eu-comprei_b9BDoMmHOB8pcbfK/",
+     "tipo": "review",
+     "trecho": "JÁ MANDEI EMAIL, NINGUEM RESPONDE / JÁ LIGUEI NA CENTRAL, NINGUEM ATENDE / SE DEMORAR MUITO VOU PERDER O PRAZO PARA INSCRIÇÃO",
+     "data": "05/02/2021",
+     "contexto": "Compra do Curso Prático Tribunal do Júri, ESA OAB SP"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/estrategia-concursos/comprei-o-curso-mais-nao-consigo-acessar_D7vKWimmCPtUgM8F/",
+     "tipo": "review",
+     "trecho": "Comprei o pacote 2 fase penal e não consigo acessar a mentoria, simulados, salas vip, em fim, NADA! ... Ja tentei inúmeras vezes pelo chat e além de cancelarem meu atendimento não resolvem, sequer tentam dar uma solução.",
+     "data": "24/06/2021",
+     "contexto": "Compra do pacote OAB XXXII Exame 2ª Fase Direito Penal, Estratégia Concursos"
+    }
+   ],
+   "sinais_de_tamanho": "não medido",
+   "quem_paga_hoje": "Estudante de OAB/concursos que já pagou pelo curso completo (pacotes de centenas a milhares de reais) e perde acesso ao produto que comprou.",
+   "solucoes_atuais": [
+    {
+     "nome": "Central de atendimento/chat das próprias plataformas (ESA OAB, Estratégia Concursos)",
+     "preco": "incluso, mas sem SLA cumprido",
+     "url": ""
+    }
+   ],
+   "por_que_falham": "Falta de SLA de suporte e de failover técnico de acesso; o problema só é resolvido (quando é) depois de reclamação pública em canal externo (Reclame Aqui), não pelo canal oficial da empresa.",
+   "palavras_chave": [
+    "não consigo acessar curso comprado",
+    "curso OAB sem acesso",
+    "estratégia concursos não libera curso",
+    "suporte curso online não responde"
+   ],
+   "ia_aplicavel": "não (falha de entrega/infraestrutura do fornecedor, não um problema de conteúdo que IA resolva)",
+   "risco_regulatorio": "médio — CDC (produto/serviço não entregue conforme contratado), possível dano ao consumidor por perda de prazo de inscrição em exame.",
+   "observacoes": "2 evidências de 2 URLs distintas (ESA OAB e Estratégia Concursos), ambas Reclame Aqui, mesmo padrão de falha."
+  },
+  {
+   "titulo": "Banco de questões e material de residência médica desatualizado/de baixa qualidade",
+   "nicho": "Estudos — residência médica",
+   "dor": "O aluno paga por banco de questões que promete estar atualizado com os editais e bancas, mas recebe questões defasadas, comentários incompletos e sem as imagens (tomografias, radiografias) necessárias para resolver a questão, tendo que buscar material atualizado fora da plataforma.",
+   "quem_sofre": "Estudante de medicina se preparando para prova de residência médica, que paga assinatura de banco de questões/curso.",
+   "evidencias": [
+    {
+     "url": "https://www.reclameaqui.com.br/medq/solicitacao-de-cancelamento-e-reembolso-integral-do-banco-de-questoes-medq_lmFTF1Q03KuZD6GU/",
+     "tipo": "review",
+     "trecho": "Questões absolutamente defasadas, sem correlação com os últimos editais ... Ausência de imagens essenciais em questões que exigem recursos gráficos, como tomografias, radiografias, tabelas e gráficos, inviabilizando a resolução adequada dessas questões.",
+     "data": "20/01/2026",
+     "contexto": "Reclamação formal contra MedQ, reembolso processado em 07/03/2026"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/medcof-concursos/enganacao-do-consumidor_yZX-bsyJvEnTnTmi/",
+     "tipo": "review",
+     "trecho": "o app de banco de questões, que deveria funcionar no celular, eu nunca consegui entrar ... o sistema fica instável por dias, vc não consegue assistir quando tem disponibilidade",
+     "data": "05/05/2022",
+     "contexto": "Reclamante Renata sobre curso preparatório de residência médica Medcof"
+    }
+   ],
+   "sinais_de_tamanho": "não medido",
+   "quem_paga_hoje": "Estudante de medicina pagando assinatura de banco de questões/curso preparatório para residência médica.",
+   "solucoes_atuais": [
+    {
+     "nome": "MedQ (banco de questões)",
+     "preco": "não medido",
+     "url": ""
+    },
+    {
+     "nome": "Medcof Concursos (curso + banco de questões)",
+     "preco": "não medido",
+     "url": ""
+    }
+   ],
+   "por_que_falham": "Curadoria e atualização de banco de questões não acompanham o ritmo dos editais/bancas reais, e o app mobile tem falhas técnicas recorrentes — o aluno precisa complementar com fontes externas, o que indica que o produto não cumpre sua função central.",
+   "palavras_chave": [
+    "banco de questões residência médica atualizado",
+    "MedQ reclamação",
+    "app banco de questões não abre",
+    "questões residência médica desatualizadas"
+   ],
+   "ia_aplicavel": "sim — um LLM pode gerar/atualizar questões e comentários a partir de provas recentes publicadas pelas bancas, com curadoria mais rápida que a manual atual.",
+   "risco_regulatorio": "baixo — não há órgão regulador direto sobre material de estudo, mas o CDC se aplica à publicidade enganosa sobre 'banco atualizado'.",
+   "observacoes": "2 evidências de 2 URLs distintas (MedQ e Medcof), ambas Reclame Aqui, convergindo em falha de atualização/qualidade de conteúdo."
+  },
+  {
+   "titulo": "Formatação ABNT e revisão de TCC feita manualmente por freelancer, com risco de calote",
+   "nicho": "Estudos — universitário (TCC)",
+   "dor": "Estudante contrata freelancer avulso (Workana, GetNinjas) para revisar texto, corrigir gramática e formatar em ABNT (referências, estrutura, abstract) um documento de 40-80 páginas, tarefa manual e repetitiva, correndo o risco de pagar e não receber o trabalho.",
+   "quem_sofre": "Estudante de graduação na reta final do TCC, sem tempo ou domínio das normas ABNT, contratando serviço avulso e não recorrente.",
+   "evidencias": [
+    {
+     "url": "https://www.workana.com/pt/job/formatacao-de-tcc-segundo-normas-da-abnt",
+     "tipo": "freelancer",
+     "trecho": "Formatação do texto conforme a norma abnt contendo em média 70 a 80 paginas - tcc. Fazendo também a referencia bibliográfica já inclusa no trabalho porém é necessário coloque nas normas ... confecção do Abstract",
+     "data": "não medido",
+     "contexto": "Vaga aberta na Workana para formatação de TCC de 70-80 páginas"
+    },
+    {
+     "url": "https://www.workana.com/job/revisao-melhoria-e-formatacao-abnt-de-tcc-pesquisa-acao-gestao-de-projetos",
+     "tipo": "freelancer",
+     "trecho": "A pessoa contratada deve revisar todo o texto de acordo com as minhas indicações, melhorar a escrita quando necessário (tempo verbal, palavras e termos), e revisar as imagens, tabelas e o conteúdo geral. Formatar todas as referências de acordo com as normas ABNT.",
+     "data": "não medido (prazo 14/06/2024)",
+     "contexto": "Vaga Workana: revisão + formatação ABNT de TCC de pesquisa-ação em gestão de projetos"
+    },
+    {
+     "url": "https://www.workana.com/en/job/correcao-tcc-gramatica-e-abnt",
+     "tipo": "freelancer",
+     "trecho": "Preciso Urgente de alguem para corrigir erros gramáticais e concordancia e tambem verificar formatação de um tcc de +- 40 páginas ( Periodo de entrega de um dia )",
+     "data": "não medido",
+     "contexto": "Vaga Workana urgente, prazo de 24h, TCC de ~40 páginas"
+    },
+    {
+     "url": "https://www.reclameaqui.com.br/getninjas/nao-envio-da-formatacao-do-projeto-conforme-pedido_1wbnpvSpF5tn7vPF/",
+     "tipo": "review",
+     "trecho": "fechamos o orçamento em R$*******,00 a vista, onde foi pago no mesmo dia ... no dia seguinte que foi combinado a entrega do trabalho por volta das 14hrs, o mesmo não foi encaminhado para o meu email ... o mesmo parou de me responder",
+     "data": "12/11/2024",
+     "contexto": "Reclamante Leonardo contratou formatação ABNT de TCC via GetNinjas e não recebeu o trabalho pago"
+    }
+   ],
+   "sinais_de_tamanho": "não medido",
+   "quem_paga_hoje": "O próprio estudante, pagando freelancer avulso por projeto (valor citado ocultado em um caso, mas pago à vista no ato do fechamento).",
+   "solucoes_atuais": [
+    {
+     "nome": "Freelancers via Workana",
+     "preco": "não medido (por projeto, sob orçamento)",
+     "url": "https://www.workana.com"
+    },
+    {
+     "nome": "Freelancers via GetNinjas",
+     "preco": "não medido (por projeto, sob orçamento)",
+     "url": "https://www.getninjas.com.br"
+    }
+   ],
+   "por_que_falham": "É um mercado de freelancer avulso sem padronização nem garantia: risco de não entrega após pagamento, prazo urgente (24h a poucos dias) mal atendido por processo manual, e o próprio estudante tem que reformatar referências e revisar texto item por item — tarefa mecânica e repetitiva (normas ABNT) que hoje depende inteiramente de trabalho humano avulso.",
+   "palavras_chave": [
+    "formatação ABNT TCC",
+    "revisão de TCC freelancer",
+    "corrigir gramática TCC",
+    "normas ABNT referências automático",
+    "formatar TCC rápido"
+   ],
+   "ia_aplicavel": "sim — um LLM/ferramenta pode formatar referências e estrutura ABNT automaticamente e revisar gramática/coesão do texto, substituindo o freelancer avulso e reduzindo o risco de não entrega.",
+   "risco_regulatorio": "baixo — não há órgão regulador; risco é comercial (calote entre estudante e freelancer), não regulatório.",
+   "observacoes": "4 evidências de 4 URLs distintas (3 vagas Workana + 1 reclamação GetNinjas no Reclame Aqui), mostrando tanto a demanda recorrente (vagas) quanto a falha da solução atual (calote)."
+  }
+ ]
+}

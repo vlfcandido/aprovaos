@@ -1,0 +1,126 @@
+{
+ "buscas_feitas": [
+  "Passei Direto reclamação cobrança \"1 estrela\" OR \"não recomendo\"",
+  "site:play.google.com Sanar OR Medcof OR Jaleko avaliação 1 estrela",
+  "curso OAB reclamação plataforma \"não consigo\" OR \"travando\" avaliação",
+  "Trustpilot Passei Direto OR Sanar review complaint",
+  "site:reddit.com TCC ABNT ajuda \"não sei formatar\" desespero",
+  "site:tabnews.com.br faculdade OR residência OR OAB estudo",
+  "\"banco de provas\" faculdade pedido grupo whatsapp OR telegram medicina",
+  "site:workana.com OR site:99freelas.com.br \"revisão ABNT\" OR \"formatação TCC\"",
+  "Gupy OR Vagas.com monitor academico vaga \"correção de trabalhos\" descrição",
+  "GetNinjas \"TCC\" OR \"monitoria\" pedido preço",
+  "site:reclameaqui.com.br Sanar OR Medcof OR \"cursos OAB\" cancelamento assinatura",
+  "\"residência médica\" grupo telegram \"banco de questões\" pago reclamação"
+ ],
+ "candidatas": [
+  {
+   "url": "https://www.reclameaqui.com.br/passei-direto/cobranca-indevida-e-dificuldade-de-cancelamento-de-assinatura_tHPBvuKVTVe0CmCd/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de cobrança recorrente (44 + 59 reais) e dificuldade de cancelar assinatura no Passei Direto, sem suporte por telefone.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/esa-oab-sp/nao-consigo-acessar-o-curso-que-eu-comprei_b9BDoMmHOB8pcbfK/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de comprador que não consegue acessar curso OAB pago na ESA OAB SP.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/comprei-o-curso-mais-nao-consigo-acessar_D7vKWimmCPtUgM8F/",
+   "fonte": "reviews",
+   "por_que": "Relato literal: comprou curso preparatório e não conseguiu acesso às aulas.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/vicio-de-uma-estudante/compra-metodo-vde-1a-fase-oab-40-dias_u_jcUQRS_t93OwHh/",
+   "fonte": "reviews",
+   "por_que": "Relato de compra de método de estudo para 1ª fase OAB com queixa registrada.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://br.trustpilot.com/review/www.passeidireto.com",
+   "fonte": "reviews",
+   "por_que": "Página de avaliações do Passei Direto no Trustpilot com reviews de usuários sobre atendimento.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/medcof-concursos/nao-permitem-cancelamento-do-curso-contrato-nao-tem-clausula-de-rescisao_mKZSIlpJD33o-7Z-/",
+   "fonte": "reviews",
+   "por_que": "Relato literal: usuário aprovado em residência tenta cancelar Medcof e enfrenta cobrança de quase R$8.000 por ausência de cláusula de rescisão.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/editora-sanar/solicitacao-de-cancelamento-e-reembolso-da-assinatura-sanarflix-devido-a-renovacao-automatica_XPJ6DNzAm-Uhc65T/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de cobrança por renovação automática não autorizada da assinatura SanarFlix.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/medq/solicitacao-de-cancelamento-e-reembolso-integral-do-banco-de-questoes-medq_lmFTF1Q03KuZD6GU/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de banco de questões de residência médica desatualizado, sem correlação com bancas atuais, gerando pedido de reembolso.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/ms/campo-grande/orcamentos/1861636-desejo-orcamento-para-formatar-tcc",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido literal de orçamento para formatação manual de TCC pronto conforme ABNT.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.getninjas.com.br/consultoria/pesquisas-em-geral/go/goiania/orcamentos/5973673-preciso-de-alguem-que-faca-tcc-com",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido literal de aluno buscando alguém para corrigir/fazer o TCC.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.getninjas.com.br/consultoria/producao-padronizacao-e-revisao-de-conteudo/preco/revisao-de-tcc",
+   "fonte": "trabalho-manual",
+   "por_que": "Página de preços de revisão manual de TCC no GetNinjas, evidencia processo repetitivo terceirizado (R$975–1950 por 7.500 palavras).",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/getninjas/nao-envio-da-formatacao-do-projeto-conforme-pedido_1wbnpvSpF5tn7vPF/",
+   "fonte": "trabalho-manual",
+   "por_que": "Reclamação de cliente sobre formatação de TCC/projeto não entregue conforme pedido no GetNinjas.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.workana.com/pt/job/formatacao-de-tcc-segundo-normas-da-abnt",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga freelancer literal pedindo formatação manual completa de TCC (31 págs + referências) segundo ABNT.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.workana.com/job/revisao-melhoria-e-formatacao-abnt-de-tcc-pesquisa-acao-gestao-de-projetos",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga freelancer descrevendo revisão manual de texto, tabelas e formatação de referências ABNT de TCC.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.workana.com/en/job/correcao-tcc-gramatica-e-abnt",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga literal de correção manual de gramática e normas ABNT de TCC.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.getninjas.com.br/anuncios/aulas/ensino-superior/aulas-de-reforco-e-monitoria-para-estudantes-do-ensino-fundamental-medio-e-de-engenharia",
+   "fonte": "trabalho-manual",
+   "por_que": "Anúncio de serviço manual recorrente de monitoria/reforço para estudantes de engenharia e ensino superior.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://boletimrzero.substack.com/p/amadorismo-nas-provas-de-residencia",
+   "fonte": "comunidades",
+   "por_que": "Texto crítico sobre amadorismo/qualidade ruim nas provas de residência médica, indício de gap na oferta de bancos de questão confiáveis.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/medcof-concursos/enganacao-do-consumidor_yZX-bsyJvEnTnTmi/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de 'enganação do consumidor' contra plataforma de cursos para residência médica Medcof.",
+   "bloqueada": true
+  }
+ ]
+}

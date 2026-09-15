@@ -1,0 +1,64 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/redigir-a-mais/plataforma-que-nao-paga-corretores_nyi8yhp8tL8RO0Li/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Meu nome é ANDERSON CARDOSO DE MAGALHÃES, sou corretor e preciso receber meu dinheiro (R$ *******,00) pelas correções de redação. VOCÊS NÃO PODEM SIMPLESMENTE FICAR COM MEU DINHEIRO.",
+     "data": "08/11/2022",
+     "autor": "Anderson Cardoso de Magalhães",
+     "contexto": "Reclamação principal do corretor sobre não-recebimento de pagamento pela plataforma Redigir A Mais"
+    },
+    {
+     "trecho": "PLATAFORMA REDIGIR FOI A PIOR PLATAFORMA DE REDAÇÃO EM QUE JÁ TRABALHEI. Tratam mal os corretores de redação e pagam uma remuneração muito abaixo do mercado. CORRETORES, FUJAM DESSA PLATAFORMA.",
+     "data": "08/11/2022",
+     "autor": "Anderson Cardoso de Magalhães",
+     "contexto": "Consideração final do consumidor após reclamação não resolvida — remuneração baixa recorrente"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Eu já fui corretor de redação na plataforma e sempre tinha responsabilidade com as correções e era bem avaliado pelos alunos, depois de um tempo me retiraram da plataforma sem explicar o motivo.",
+     "data": "09/01/2024",
+     "autor": "Não identificado",
+     "contexto": "Reclamação de corretor removido sem justificativa da plataforma Redação Online"
+    },
+    {
+     "trecho": "No segundo semestre do ano passado recebi um e-mail para eu retornar novamente para ser corretor eu respondi o e-mail mostrando interesse em ser corretor novamente e nunca me retornaram, grande falta de respeito com o cidadão.",
+     "data": "09/01/2024",
+     "autor": "Não identificado",
+     "contexto": "Falta de comunicação e resposta da plataforma após solicitação de retorno do corretor"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Quando você nos envia um feedback sobre a correção, diversas redações aparecem erros que não foram corrigidos anteriormente. Quando o aluno solicita revisão e passa a visualizar diversos erros, é DESPREPARO do profissional corretor.",
+     "data": "11/02/2022",
+     "autor": "Henrique",
+     "contexto": "Reclamação sobre erros não identificados em primeira correção na plataforma Aprova Total"
+    },
+    {
+     "trecho": "A plataforma é um serviço pago e cada redação requer o uso de 1 crédito, ao meu ver, o uso de 1 crédito com um corretor ruim é desperdício. Não pago a plataforma para servir de controle de qualidade aos corretores.",
+     "data": "11/02/2022",
+     "autor": "Henrique",
+     "contexto": "Queixa sobre custos (créditos) gastos desnecessariamente com correções inadequadas"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

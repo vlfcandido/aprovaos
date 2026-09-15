@@ -1,0 +1,88 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.99freelas.com.br/project/criacao-de-planilha-em-excel-que-simule-um-cronograma-de-estudos-539113",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página carregou com conteúdo completo via read_page",
+   "trechos": [
+    {
+     "trecho": "Necessitamos de um profissional para elaborar uma planilha que simule um cronograma de estudos.",
+     "contexto": "Descrição do Projeto (seção principal)",
+     "autor": "Cliente: Fabiano P.",
+     "data": "13/05/2024"
+    },
+    {
+     "trecho": "Valor Mínimo: R$ 30,00. Categoria: Planilhas e Relatórios. Nível de experiência: Intermediário.",
+     "contexto": "Seção Informações Adicionais",
+     "autor": "99Freelas",
+     "data": "2024"
+    },
+    {
+     "trecho": "Propostas recebidas: 4 (Lucas G., Gabriel A., Lorena M., André C.). Projeto encerrado.",
+     "contexto": "Seção de Propostas de Freelancers",
+     "autor": "99Freelas",
+     "data": "2024"
+    }
+   ]
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/planilha-do-google-sheets-para-cronograma-de-projeto-466284",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página carregou com conteúdo; descrição parcialmente truncada na extração",
+   "trechos": [
+    {
+     "trecho": "Preciso encontrar VOCÊ que conhece bem e tem muita prática em utilizar PLANILHAS DO GOOGLE SHEET no [...]",
+     "contexto": "Descrição do Projeto (seção principal)",
+     "autor": "Cliente: Ricardo F R.",
+     "data": "23/08/2023"
+    },
+    {
+     "trecho": "Valor Mínimo: R$ 30,00. Categoria: Planilhas e Relatórios. Subcategoria: Google Sheets.",
+     "contexto": "Seção Informações Adicionais",
+     "autor": "99Freelas",
+     "data": "2023"
+    },
+    {
+     "trecho": "Propostas recebidas: 3 (Amanda M., Ana P., Pamela C.). Projeto encerrado.",
+     "contexto": "Seção de Propostas de Freelancers",
+     "autor": "99Freelas",
+     "data": "2023"
+    }
+   ]
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/grancurso-de-recusa-a-cancelar-compra-de-curso_dEkf-9Etjqrd0m65",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página carregou com conteúdo completo; reclamação foi resolvida conforme consumidor",
+   "trechos": [
+    {
+     "trecho": "No dia 25 de novembro fiz aquisição de curso ilimitado no Gran Curso. Material não estava atualizado para o concurso. Solicitei cancelamento no sétimo dia (02 de dezembro) dentro do prazo legal, mas empresa recusou.",
+     "contexto": "Relato de Reclamação Principal",
+     "autor": "Luciano (Espera Feliz - MG)",
+     "data": "03/12/2024"
+    },
+    {
+     "trecho": "A empresa se recusa a fazer o cancelamento e o estorno do valor pago, alegando que o prazo havia passado, apesar de eu ter contatado no sétimo dia.",
+     "contexto": "Queixa Central da Reclamação",
+     "autor": "Luciano",
+     "data": "03/12/2024"
+    },
+    {
+     "trecho": "Reembolso será processado em até 10 dias úteis. Estorno poderá aparecer entre primeira e terceira fatura, conforme banco emissor e operadora do cartão.",
+     "contexto": "Resposta da Empresa (06/12/2024)",
+     "autor": "Equipe Gran Concursos",
+     "data": "06/12/2024"
+    },
+    {
+     "trecho": "A empresa se mostrou comprometida em solucionar a reclamação. Atendente foi muito atenciosa, educada, bem preparada. Problema foi resolvido. Nota: 10.",
+     "contexto": "Consideração Final do Consumidor",
+     "autor": "Luciano",
+     "data": "08/12/2024"
+    }
+   ]
+  }
+ ]
+}

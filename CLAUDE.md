@@ -24,7 +24,7 @@ Dono: Vinicius — Senior AI Engineer (~13 anos de software, ~5 em IA generativa
 | fase | entrega | status |
 |---|---|---|
 | 0 — Setup, visão e perguntas | `CLAUDE.md`, `docs/00-visao.md`, `docs/DECISOES.md` (ADR-0001…0010), `docs/PENDENCIAS.md` | **entregue em 14/09/2026** |
-| 1 — Deep research | `docs/01-pesquisa-mercado.md` (compartilhada com a fábrica — ADR-0006, confirmar P-04) | não iniciada |
+| 1 — Deep research | `docs/01-pesquisa-mercado.md` (rodada `wf_09928095-f09` + síntese em sessão; raw em `docs/evidencias/raw/2026-09-14-fase1/`) | **entregue em 14/09/2026 — aguarda decisão do dono no portão (exame inicial, provisório até P-11)** |
 | 2 — Produto (PRD) | `docs/02-produto.md`, skill `avaliador-de-feature` | não iniciada |
 | 3 — Arquitetura e dados | `docs/03-arquitetura.md`, `04-modelo-de-dados.md`, `06-custos.md`, `RISCOS.md`, ADRs de stack/front/mobile/gateway/deploy | não iniciada |
 | 4 — Skills e subagents | `.claude/skills/*`, `.claude/agents/*`, decisão subagents vs teams | não iniciada |
@@ -54,5 +54,5 @@ docs/HANDOFF.md                                                                 
 1. Abra o Claude Code **dentro desta pasta**, com a fábrica anexada:
    `cd ~/PycharmProjects/aprovaos && claude --add-dir ~/PycharmProjects/fabrica-saas`
 2. Leia, nesta ordem: `docs/HANDOFF.md` (quando existir) → `docs/PENDENCIAS.md` → `docs/00-visao.md` → `docs/DECISOES.md` → a fase em andamento no `PROMPT-aprovaos.md`. A spec inteira antes de qualquer fase que toque produto ou arquitetura.
-3. **Estado em 14/09/2026:** Fase 0 entregue. Próximo passo: abrir a **Fase 1** — primeiro resolver P-04 (confirmar com o dono a pesquisa compartilhada com a fábrica e checar o estado dela em `fabrica-saas/docs/PENDENCIAS.md` P-14), depois as perguntas em lote da Fase 1.
+3. **Estado em 14/09/2026:** Fases 0 e 1 entregues. Houve uma rodada de mockups + entrevista com usuária-alvo (`docs/evidencias/2026-09-14-entrevista-linda.md`, `-aprendizados-mockups.md`, `mockups/`). Próximo passo: o dono decide no portão da Fase 1 (exame inicial; a recomendação é concursos Cebraspe+FGV, provisória até P-11); depois **P-11 com navegador** e abertura da **Fase 2** com as perguntas em lote (inclui P-05 skill-creator, P-09 sugestões da entrevista, P-14).
 4. Nenhuma fase começa antes de o dono confirmar a anterior.

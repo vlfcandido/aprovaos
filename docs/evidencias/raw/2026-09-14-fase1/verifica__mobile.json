@@ -1,0 +1,121 @@
+{
+ "vereditos": [
+  {
+   "id": "mobile-01",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/qconcursos/id1470271696",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: 4,9 de 5 · 81 mil classificações · Educação Nº33 · iOS 15.6+ · compras de R$29,90 a R$494,90."
+    }
+   ]
+  },
+  {
+   "id": "mobile-02",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/gran-cursos-online/id1198315819",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: 4,7 de 5 em 12 mil classificações, Posição Nº50 Educação."
+    }
+   ]
+  },
+  {
+   "id": "mobile-03",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://apps.apple.com/br/app/estrat%C3%A9gia-concursos/id1527416954",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: 1,4 de 5 de 376 classificações, Posição Nº124 Educação."
+    }
+   ]
+  },
+  {
+   "id": "mobile-04",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://play.google.com/store/apps/details?id=com.qconcursos.QCX",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma o próprio problema alegado: conteúdo veio truncado (\"[Content truncated due to length...]\"), sem dados de nota/avaliações/downloads extraíveis."
+    }
+   ]
+  },
+  {
+   "id": "mobile-05",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://cetic.br/pt/noticia/classes-c-e-de-impulsionam-crescimento-da-conectividade-a-internet-nos-lares-brasileiros-mostra-tic-domicilios-2023/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: \"58% disseram ter se conectado pelo telefone celular, mas não pelo computador\"; \"Nas classes DE, 87% acessaram a rede exclusivamente pelo telefone celular\"."
+    }
+   ]
+  },
+  {
+   "id": "mobile-06",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://cetic.br/pt/noticia/classes-c-e-de-impulsionam-crescimento-da-conectividade-a-internet-nos-lares-brasileiros-mostra-tic-domicilios-2023/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: mulheres 64% vs homens 52%; pretos 64% e pardos 63% vs brancos 49%, mesmos números."
+    }
+   ]
+  },
+  {
+   "id": "mobile-07",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: \"Now with iOS and iPadOS 16.4, we are adding support for Web Push to Home Screen web apps\"; página confirma exigência de instalação na Home Screen."
+    }
+   ]
+  },
+  {
+   "id": "mobile-08",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://webkit.org/blog/13966/webkit-features-in-safari-16-4/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confere: \"packed with 135 new web features and over 280 polish updates\", cita RegExp lookbehind, Import Maps, OffscreenCanvas, Declarative Shadow DOM, Badging API, Manifest id e Web Push. Nota: é o próprio blog oficial WebKit, não imprensa terceira, apesar de marcado secundaria=true na entrada."
+    }
+   ]
+  },
+  {
+   "id": "mobile-09",
+   "sustentado": false,
+   "correcao": "Página do próprio Estratégia Concursos não contém os números citados. Uma busca web trouxe frase parecida mas distinta, de outra página do mesmo domínio: \"mais de 850 mil questões comentadas por professores e 400 mil questões comentadas por alunos\" e \"mais de 2 milhões de questões cadastradas\" — não confirma \"1 milhão de instalações\" nem repete exatamente \"850 mil questões respondidas pelos professores\".",
+   "evidencias": [
+    {
+     "url": "https://www.estrategiaconcursos.com.br/blog/aplicativo-estrategia-concursos-2/",
+     "abre": true,
+     "trecho_confere": false,
+     "observacao": "A página fornecida não contém \"850 mil questões respondidas pelos professores\" nem \"1 milhão de instalações\"; busca web só achou variante distinta em outra página, sem confirmar instalações."
+    }
+   ]
+  }
+ ]
+}

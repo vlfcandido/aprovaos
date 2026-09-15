@@ -1,0 +1,100 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/quero-cancelar-e-receber-meu-dinheiro-de-volta_9qNfrm5aqe0fx0UU/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Minha assinatura no descomplica iria vencer no dia 09/06, dessa forma nenhuma empresa totalmente honesta renovaria assinatura faltando 6 dias ainda pra acabar né? Pois é, mas eles fizeram, renovaram muito antes do prazo",
+     "data": "06/06/2017",
+     "autor": "Thiago",
+     "contexto": "Reclamação sobre renovação antecipada de assinatura antes do término"
+    },
+    {
+     "trecho": "O site também não possui botão para cancelar automaticamente mesmo os concorrentes deles tendo, ou seja, eles preferem que não tenha é o que parece.",
+     "data": "06/06/2017",
+     "autor": "Thiago",
+     "contexto": "Falta de sistema de cancelamento automático na plataforma"
+    },
+    {
+     "trecho": "eu também mandei email para o suporte pedindo meu dinheiro de volta e o cancelamento da assinatura. Ela disse que cancelou assinatura, mas ainda continua ativa",
+     "data": "06/06/2017",
+     "autor": "Thiago",
+     "contexto": "Suporte não resolve: assinatura permanece ativa após cancelamento alegado"
+    },
+    {
+     "trecho": "O problema é essa empresa que age de má fé e depois coloca a culpa no sistema para não devolver o dinheiro.",
+     "data": "06/06/2017",
+     "autor": "Thiago",
+     "contexto": "Conclusão do consumidor: empresa nega devolução do valor"
+    }
+   ],
+   "observacao": "Reclamação não resolvida desde 2017; consumidor relata atraso intencional para evitar reembolso"
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-de-curso-online-aprova-total-por-falta-de-adaptacao-e-cobranca-indevida_K1hGXXVO5yjie9JX/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Desde que fiz o cadastro do plano o de estudos não consegui me adaptar a plataforma só estou pagando e não gostei do material. Não consigo cancelar.",
+     "data": "14/03/2026",
+     "autor": "Cristiane",
+     "contexto": "Impossibilidade de cancelamento relatada: continua pagando sem usar"
+    },
+    {
+     "trecho": "Solicito o cancelamento imediato do curso online denominado Aprova Total ( Plano Até o Enem 2026) , uma vez que não faço qualquer uso do serviço desde a primeira semana. Já efetuei o pagamento de 3 parcela de R$80,00",
+     "data": "14/03/2026",
+     "autor": "Cristiane",
+     "contexto": "Cobrança recorrente indevida: três parcelas cobradas sem uso"
+    },
+    {
+     "trecho": "a cobrança por serviço não utilizado configura prática abusiva, podendo o consumidor solicitar cancelamento e cessação imediata das cobranças.",
+     "data": "14/03/2026",
+     "autor": "Cristiane",
+     "contexto": "Referência ao Código de Defesa do Consumidor (CDC)"
+    },
+    {
+     "trecho": "Cancelamento imediato do curso. Cessação de futuras cobranças. Regularização do meu cadastro e confirmação formal do encerramento.",
+     "data": "14/03/2026",
+     "autor": "Cristiane",
+     "contexto": "Pedidos específicos do consumidor ao Aprova Total"
+    }
+   ],
+   "observacao": "Reclamação marcada como resolvida em 20/03/2026; nota de atendimento 8/10"
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-do-curso-aprova-total-plano-ate-o-enem-e-interrupcao-de-cobrancas_cAdGNHaVGCfFSHWy/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Solicito o cancelamento imediato do curso online denominado Aprova Total ( Plano Até o Enem 2026) , uma vez que não faço qualquer uso do serviço desde a primeira semana de contratação.",
+     "data": "20/02/2026",
+     "autor": "Sarah",
+     "contexto": "Pedido de cancelamento: não usa desde primeira semana"
+    },
+    {
+     "trecho": "Já efetuei o pagamento de 1 parcela de R$83,00 porém não utilizo mais o conteúdo do curso devido a falta de adaptação e situação financeira delicada.",
+     "data": "20/02/2026",
+     "autor": "Sarah",
+     "contexto": "Cobrança de R$83 por serviço não utilizado; situação financeira difícil"
+    },
+    {
+     "trecho": "a cobrança por serviço não utilizado configura prática abusiva, podendo o consumidor solicitar cancelamento e cessação imediata das cobranças.",
+     "data": "20/02/2026",
+     "autor": "Sarah",
+     "contexto": "Referência legal ao CDC (Código de Defesa do Consumidor)"
+    },
+    {
+     "trecho": "Rápido atendimento, atenciosos e resolveram meu problema rapidamente, desejo apenas sucesso para a empresa!",
+     "data": "23/02/2026",
+     "autor": "Sarah",
+     "contexto": "Consideração final: problema resolvido em 3 dias; nota 10/10"
+    }
+   ],
+   "observacao": "Reclamação resolvida em 23/02/2026; resolução rápida diferencia esta de Cristiane (similar em descrição inicial)"
+  }
+ ]
+}

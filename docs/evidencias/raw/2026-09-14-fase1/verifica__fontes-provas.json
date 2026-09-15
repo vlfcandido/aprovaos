@@ -1,0 +1,139 @@
+{
+ "vereditos": [
+  {
+   "id": "fontes-provas-01",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: página traz a frase exata sobre a licença CC BY-ND 3.0 Não Adaptada."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-02",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: frase de instrução de download presente; página lista aproximadamente 47 exames, do 47º ao 2010.2, batendo com a afirmação."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-03",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: WebFetch (HTML estático) só extraiu o texto de cabeçalho 'Cebraspe | O melhor em avaliação de pessoas'; sem lista de concursos nem termos de uso visíveis, coerente com renderização via JavaScript."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-04",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: página funciona como hub de emissão de certificado, sem lista textual de provas nem termos de uso expostos no conteúdo extraído."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-05",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.tecconcursos.com.br/termos-de-uso",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: cláusula proibindo robôs, scripts, crawlers, scrapers e ferramentas de IA para coleta/extração automatizada está presente na página."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-fonte-01",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.cebraspe.org.br/concursos/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: conteúdo extraído via HTTP simples se limita ao texto de cabeçalho, sem lista de concursos nem termos de uso — coerente com a afirmação de que o site depende de JavaScript."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-fonte-02",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://conhecimento.fgv.br/node/141",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: página é hub de emissão de certificado, sem listagem de provas nem termos de uso/copyright visíveis no conteúdo aberto."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-fonte-03",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirmado: frase da licença CC BY-ND 3.0 Não Adaptada está na página, sustentando a observação sobre risco jurídico de reprocessamento (cláusula SemDerivações)."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-fonte-04",
+   "sustentado": true,
+   "correcao": "",
+   "evidencias": [
+    {
+     "url": "https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página confirmada e igual à do item 02 (lista de ~47 exames com instrução de download); nenhum aviso de copyright ou termos de uso foi extraído no conteúdo textual da página, coerente com a afirmação de 'não localizado'."
+    }
+   ]
+  },
+  {
+   "id": "fontes-provas-fonte-05",
+   "sustentado": false,
+   "correcao": "Nenhuma evidência foi fornecida (evidencias=[]) para verificação; a afirmação já se declara 'não verificada nesta sessão', então não há URL para abrir e sustentar. Sem fonte, sustentado=false por definição (dúvida = false).",
+   "evidencias": []
+  },
+  {
+   "id": "fontes-provas-fonte-06",
+   "sustentado": false,
+   "correcao": "Nenhuma evidência foi fornecida (evidencias=[]); a própria afirmação já indica 'não localizado nesta sessão' e não há URL para abrir/confirmar. Sustentado=false.",
+   "evidencias": []
+  },
+  {
+   "id": "fontes-provas-fonte-07",
+   "sustentado": false,
+   "correcao": "Nenhuma evidência foi fornecida (evidencias=[]); a afirmação já se declara 'não localizado'. Sem URL para checar, sustentado=false.",
+   "evidencias": []
+  }
+ ]
+}

@@ -1,0 +1,49 @@
+{
+ "paginas": [
+  {
+   "url": "https://apps.apple.com/br/app/qconcursos/id1470271696?see-all=reviews&platform=iphone",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "O app antigo era muito melhor, você clicava na alternativa e já recebia a resposta, agora vc precisa de UM CLIQUE A MAIS",
+     "autor": "oslosttheknight",
+     "data": "27/04/2021",
+     "contexto": "Reclamação sobre mudança de interface que aumentou passos do usuário"
+    },
+    {
+     "trecho": "Desde a última atualização, o app tem ficado muito lento e travando, fazendo o celular esquentar demais",
+     "autor": "078555",
+     "data": "12 de ago.",
+     "contexto": "Reclamação sobre performance e lentidão após atualização"
+    },
+    {
+     "trecho": "depois da última atualização, ficou extremamente lento. Já testei em outros aparelhos e o problema continua",
+     "autor": "Alanamlps",
+     "data": "10 de ago.",
+     "contexto": "Reclamação recorrente de lentidão em múltiplos dispositivos"
+    },
+    {
+     "trecho": "é irritante o quanto desloga. Poxa gente, bora criar a opção 'manter logado' que evita a fadiga",
+     "autor": "nadiajmc",
+     "data": "11/02/2025",
+     "contexto": "Reclamação sobre logout frequente e pedido de funcionalidade 'manter logado'"
+    }
+   ]
+  },
+  {
+   "url": "https://play.google.com/store/apps/details?id=com.qconcursos.QCX&hl=en_US",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página não carregou conteúdo visível; texto truncado impossibilita análise de reclamações"
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "HTTP 403 Forbidden — acesso negado; página não acessível via WebFetch"
+  }
+ ]
+}

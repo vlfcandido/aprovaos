@@ -1,0 +1,184 @@
+{
+ "buscas_feitas": [
+  "CNU 2025 inscritos concurso nacional unificado gov.br número",
+  "INEP Enem 2025 número de inscritos site oficial",
+  "FGV exame de ordem OAB 2025 inscritos número",
+  "ENARE 2025 inscritos residência médica edital",
+  "Fuvest 2025 número de inscritos vestibular USP",
+  "site:qconcursos.com OR site:grancursosonline.com.br OR site:estrategiaconcursos.com.br planos preço assinatura (via WebFetch direto nas páginas)"
+ ],
+ "fatos": [
+  {
+   "id": "mercado-01",
+   "afirmacao": "Enem 2025 teve inscrição confirmada recorde, alta de dois dígitos sobre 2024",
+   "valor": "4.811.338 inscritos confirmados (+11,22% vs 2024; +38% vs 2022)",
+   "unidade_ou_periodo": "2025",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.cnnbrasil.com.br/educacao/enem-2025-inep-confirma-mais-de-48-milhoes-de-inscritos/",
+     "tipo": "imprensa",
+     "trecho": "o INEP announced that 4,811,338 confirmed enrollments were registered for Enem 2025, representing an 11.22% increase compared to 2024",
+     "secundaria": true,
+     "contexto": "Imprensa citando dado oficial do INEP; tentativa de abrir agenciagov.ebc.com.br (fonte primária) falhou — página fora do ar por causa da legislação eleitoral vigente."
+    }
+   ]
+  },
+  {
+   "id": "mercado-02",
+   "afirmacao": "O CNU (\"Enem dos concursos\") 2025 teve volume recorde de inscritos e vagas ofertadas pelo Governo Federal",
+   "valor": "761.528 inscritos; 3.652 vagas",
+   "unidade_ou_periodo": "2025",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://www.aprovaconcursos.com.br/noticias/concurso-nacional-unificado-2025/",
+     "tipo": "imprensa",
+     "trecho": "O Concurso Nacional Unificado (CNU) 2025 registrou um total de 761.528 inscritos, com 3.652 vagas disponíveis para diversos órgãos do Governo Federal",
+     "secundaria": true,
+     "contexto": "Fonte primária (gov.br/mgi) retornou 404 no fetch direto; imprensa especializada em concursos citando o número oficial do MGI/FGV."
+    }
+   ]
+  },
+  {
+   "id": "mercado-03",
+   "afirmacao": "Distribuição regional dos inscritos do CNU 2025 mostra concentração no Sudeste e Nordeste",
+   "valor": "Sudeste 247.838; Nordeste 229.436; Centro-Oeste 150.870; Norte 84.651; Sul 48.733 inscrições",
+   "unidade_ou_periodo": "2025",
+   "confianca": "baixa",
+   "evidencias": [
+    {
+     "url": "https://folha.qconcursos.com/n/cnu-2025-inscritos-por-estado",
+     "tipo": "imprensa",
+     "trecho": "não aberto via WebFetch nesta sessão — número reproduzido a partir do snippet de busca, não confirmado por leitura direta da página",
+     "secundaria": true,
+     "contexto": "NÃO validado por WebFetch; mantido apenas como referência de ordem de grandeza, não deve ser tratado como fato confirmado (ver lacunas)."
+    }
+   ]
+  },
+  {
+   "id": "mercado-04",
+   "afirmacao": "Exame de Ordem (OAB/FGV) 45ª edição teve o maior volume de inscritos entre as edições recentes citadas na página oficial de estatísticas",
+   "valor": "132.534 inscritos; 21.644 aprovados; aprovação geral 14,30%",
+   "unidade_ou_periodo": "OAB 45ª edição",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://oab.estrategia.com/portal/estatisticas-completas-do-exame-de-ordem-da-oab/",
+     "tipo": "imprensa",
+     "trecho": "OAB 45º: \"132.534\" total registered candidates; \"21.644\" total approved candidates; Overall approval rate of \"14,30%\"",
+     "secundaria": true,
+     "contexto": "Página de estatística de cursinho compilando dados oficiais da FGV/OAB; PDF oficial da OAB (s.oab.org.br) foi aberto mas retornou apenas dados binários ilegíveis nesta sessão."
+    }
+   ]
+  },
+  {
+   "id": "mercado-05",
+   "afirmacao": "Na edição seguinte (46ª), a taxa de aprovação na 1ª e 2ª fase ficou estável perto de 57%",
+   "valor": "39.825 aprovados na 1ª fase (57,20%); 25.693 aprovados na 2ª fase (57,42%)",
+   "unidade_ou_periodo": "OAB 46ª edição",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://oab.estrategia.com/portal/estatisticas-completas-do-exame-de-ordem-da-oab/",
+     "tipo": "imprensa",
+     "trecho": "OAB 46º: \"39.825\" candidates approved in the first phase with a \"57,20%\" approval rate; \"25.693\" candidates approved in the second phase with a \"57,42%\" approval rate",
+     "secundaria": true,
+     "contexto": "Mesma página de estatísticas; não traz o total de inscritos da 46ª edição, só aprovados por fase."
+    }
+   ]
+  },
+  {
+   "id": "mercado-06",
+   "afirmacao": "ENARE 2025/2026 (residência médica, FGV/Ebserh) bateu recorde histórico de inscrições",
+   "valor": "87.040 inscrições definitivas para medicina; 6.939 vagas (5.021 acesso direto + 1.918 pré-requisito/ano adicional); relação candidato/vaga geral 12,54",
+   "unidade_ou_periodo": "2025/2026",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://med.estrategia.com/portal/noticias/enare-2025-2026-bate-novo-recorde-e-ultrapassa-87-mil-inscricoes-para-residencia-medica/",
+     "tipo": "imprensa",
+     "trecho": "\"87.040 inscrições definitivas são destinadas à medicina\"; 6.939 total vacancies (5.021 direct access + 1.918 prerequisite/additional positions); general competition ratio 12.54 candidates per vacancy",
+     "secundaria": true,
+     "contexto": "Imprensa especializada citando dados de edital organizado pela FGV/Ebserh; página oficial gov.br/ebserh foi aberta mas não trouxe os números consolidados no trecho acessado."
+    }
+   ]
+  },
+  {
+   "id": "mercado-07",
+   "afirmacao": "A edição anterior do ENARE (2024/2025) já mostrava tendência de crescimento acelerado",
+   "valor": "53.171 candidatos de medicina; 4.874 vagas",
+   "unidade_ou_periodo": "2024/2025",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://med.estrategia.com/portal/noticias/enare-2025-2026-bate-novo-recorde-e-ultrapassa-87-mil-inscricoes-para-residencia-medica/",
+     "tipo": "imprensa",
+     "trecho": "This represents significant growth from the previous 2024 edition, which had 53,171 medical residency candidates competing for 4,874 vacancies",
+     "secundaria": true,
+     "contexto": "Mesma matéria, comparação histórica citada pelo veículo."
+    }
+   ]
+  },
+  {
+   "id": "mercado-08",
+   "afirmacao": "Assinatura anual do Gran Cursos Online (plano mais vendido) tem preço promocional parcelado",
+   "valor": "De 12x R$ 149,90 por 12x R$ 61,90 (Assinatura Ilimitada 1 Ano)",
+   "unidade_ou_periodo": "preço vigente em 14/09/2026",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.grancursosonline.com.br/assinaturas",
+     "tipo": "pagina_produto",
+     "trecho": "Assinatura Ilimitada 1 Ano (Mais Vendida): \"De: 12x R$ 149,90 Por: a partir de 12x R$ 61,90\"",
+     "secundaria": false,
+     "contexto": "Página oficial de preços do Gran Cursos Online, lida diretamente."
+    }
+   ]
+  },
+  {
+   "id": "mercado-09",
+   "afirmacao": "Gran Cursos Online também vende um plano premium (\"11 Pro\") e um vitalício, ambos mais caros que o plano de 1 ano",
+   "valor": "11 Pro: de 12x R$ 239,90 por 12x R$ 99,90; Vitalícia: de 12x R$ 449,90 por 12x R$ 154,90",
+   "unidade_ou_periodo": "preço vigente em 14/09/2026",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.grancursosonline.com.br/assinaturas",
+     "tipo": "pagina_produto",
+     "trecho": "Assinatura Ilimitada 11 Pro (Máxima Performance): \"De: 12x R$ 239,90 Por: a partir de 12x R$ 99,90\"; Assinatura Ilimitada Vitalícia: \"De 12x R$ 449,90 Por: a partir de 12x R$ 154,90\"",
+     "secundaria": false,
+     "contexto": "Mesma página oficial de preços."
+    }
+   ]
+  },
+  {
+   "id": "mercado-10",
+   "afirmacao": "O Fuvest (vestibular grande de SP) segue com alta demanda de inscritos, na casa das 6 dígitos, para poucos milhares de vagas",
+   "valor": "~107 a 111 mil inscritos; 8.147 vagas (edição 2025)",
+   "unidade_ou_periodo": "2025",
+   "confianca": "baixa",
+   "evidencias": [
+    {
+     "url": "https://www.blogdovestibular.com/vestibular/vestibular-fuvest-2025-mais-de-107-mil-inscritos-para-vagas-na-usp.html",
+     "tipo": "imprensa",
+     "trecho": "não confirmado por leitura direta — URL retornou HTTP 404 no WebFetch; número reproduzido do snippet de busca (não é evidência válida)",
+     "secundaria": true,
+     "contexto": "NÃO validado por WebFetch nesta sessão. Página oficial fuvest.br foi aberta mas só confirmou 'mais de 8 mil vagas' para 2027, sem total de inscritos no trecho acessado. Tratar como lacuna, não como fato citável."
+    }
+   ]
+  }
+ ],
+ "lacunas": [
+  "CNU 2025: não consegui abrir a fonte primária gov.br/mgi (404) nem agenciagov (bloqueada por legislação eleitoral) para o dado oficial do MGI — fato mercado-02 ficou apoiado só em imprensa (aprovaconcursos.com.br).",
+  "Distribuição regional do CNU 2025 por estado (folha.qconcursos.com/n/cnu-2025-inscritos-por-estado): não abri via WebFetch dentro do orçamento; número tratado como não confirmado.",
+  "OAB: PDF oficial (s.oab.org.br) retornou apenas stream binário ilegível no WebFetch — não consegui extrair trecho literal da fonte primária FGV/OAB para 2025; usei estatística compilada por cursinho (oab.estrategia.com), que também não traz o total de inscritos da 46ª edição, só aprovados por fase.",
+  "Fuvest 2025: total de inscritos (107 mil / 111.480) não confirmado por WebFetch — página oficial fuvest.br não trouxe esse número no trecho acessado, e blogdovestibular.com retornou 404. Buscar em revide.com.br ou folha de S.Paulo em sessão futura.",
+  "Unicamp/Comvest: não pesquisado — orçamento de buscas/fetches esgotado antes de chegar neste vestibular.",
+  "Preço de assinatura do Qconcursos: página qconcursos.com/planos retornou HTTP 403 (bloqueio de bot). Não há preço confirmado por leitura direta nesta sessão.",
+  "Preço de assinatura da Estratégia Concursos: não pesquisado por falta de orçamento de WebFetch restante (usei os 2 últimos fetches em Qconcursos — que falhou — e Gran).",
+  "Receita ou número de alunos de Gran, Estratégia, Qconcursos (imprensa, para dimensionar mercado de cursinhos): não pesquisado — orçamento de buscas esgotado.",
+  "Vestibulares Unicamp/Comvest: inscritos por ano — não pesquisado.",
+  "Gasto médio anual do candidato de concurso com cursinho/assinatura (estimativa de mercado, matérias de imprensa tipo 'quanto custa estudar para concurso'): não pesquisado."
+ ]
+}

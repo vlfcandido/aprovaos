@@ -1,0 +1,88 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/medq/solicitacao-de-cancelamento-e-reembolso-integral-do-banco-de-questoes-medq_lmFTF1Q03KuZD6GU/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Questões absolutamente defasadas, sem correlação com os últimos editais e com o perfil atual das principais bancas de residência médica, o que compromete seriamente a preparação do candidato.",
+     "data": "20/01/2026",
+     "autor": "Anônimo",
+     "contexto": "Reclamação formal no Reclame Aqui; primeiro ponto da divergência entre promessa de banco atualizado e entrega real"
+    },
+    {
+     "trecho": "Comentários incompletos e desatualizados, sem revisão adequada, o que prejudica diretamente o aprendizado e induz o consumidor a erros conceituais.",
+     "data": "20/01/2026",
+     "autor": "Anônimo",
+     "contexto": "Segundo ponto da reclamação formal contra MedQ"
+    },
+    {
+     "trecho": "Ausência de imagens essenciais em questões que exigem recursos gráficos, como tomografias, radiografias, tabelas e gráficos, inviabilizando a resolução adequada dessas questões.",
+     "data": "20/01/2026",
+     "autor": "Anônimo",
+     "contexto": "Terceiro ponto da reclamação formal; problema estrutural do serviço"
+    },
+    {
+     "trecho": "Necessidade frequente de buscar questões atualizadas fora da própria plataforma, o que evidencia que o serviço contratado não cumpre sua finalidade básica.",
+     "data": "20/01/2026",
+     "autor": "Anônimo",
+     "contexto": "Quarto ponto da reclamação formal; indica que plataforma não atende ao propósito"
+    }
+   ],
+   "observacao": "Reclamação respondida pela MedQ com reembolso processado em 07/03/2026"
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/getninjas/nao-envio-da-formatacao-do-projeto-conforme-pedido_1wbnpvSpF5tn7vPF/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Entrei em contato com o Diego Ananias, que me atendeu pelo número de telefone ******* no Whatsapp, no dia 07/11/******* por volta das 12:57, após um pedido na plataforma/site próprio do Getninjas para formatação em ABNT do nosso Artigo de TCC",
+     "data": "12/11/2024",
+     "autor": "Leonardo",
+     "contexto": "Reclamação no Reclame Aqui; cliente solicitou formatação TCC via GetNinjas"
+    },
+    {
+     "trecho": "fechamos o orçamento em R$*******,00 a vista, onde foi pago no mesmo dia, alinhado os pontos do que era necessário ser feito na formatação do projeto",
+     "data": "12/11/2024",
+     "autor": "Leonardo",
+     "contexto": "Cliente pagou à vista conforme acordado com profissional"
+    },
+    {
+     "trecho": "no dia seguinte 08/11/******* que foi combinado a entrega do trabalho por volta das 14hrs, o mesmo não foi encaminhado para o meu email, verificado caixa de entrada e spam e não encontrei",
+     "data": "12/11/2024",
+     "autor": "Leonardo",
+     "contexto": "Não entrega do trabalho na data/hora combinada; cliente não recebeu arquivo"
+    },
+    {
+     "trecho": "entrei novamente em contato com ele e o mesmo retornou que enviou sim, passei outro email de outro colega e nada aconteceu, após algumas conversar o mesmo parou de me responder",
+     "data": "12/11/2024",
+     "autor": "Leonardo",
+     "contexto": "Profissional desapareceu; cliente solicitava reembolso"
+    }
+   ],
+   "observacao": "Reclamação em status 'Em réplica' desde 06/12/2024; cliente enviou evidências solicitadas"
+  },
+  {
+   "url": "https://www.workana.com/pt/job/formatacao-de-tcc-segundo-normas-da-abnt",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Formatação do texto conforme a norma abnt contendo em média 70 a 80 paginas - tcc.",
+     "contexto": "Vaga freelancer aberta na Workana; demanda por tarefa manual de formatação de TCC"
+    },
+    {
+     "trecho": "Fazendo também a referencia bibliográfica já inclusa no trabalho porém é necessário coloque nas normas",
+     "contexto": "Escopo adicional: reformatação de referências bibliográficas conforme ABNT"
+    },
+    {
+     "trecho": "confecção do Abstract",
+     "contexto": "Terceira tarefa manual solicitada na vaga"
+    }
+   ],
+   "observacao": "Página de vaga aberta; projeto de 70-80 páginas com escopo definido em tarefas manuais repetitivas"
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.workana.com/pt/job/corretor-de-redacao-1",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Vaga ativa de corretor de redação com descrição clara de preço, prazo e processo manual repetitivo.",
+   "trechos": [
+    {
+     "trecho": "Estamos lançando um projeto de correção de redação conforme critérios do ENEM, oferecemos inicialmente o valor de R$ 3,00 por redação corrigida.",
+     "contexto": "Descrição do projeto - seção 'Sobre este projeto'",
+     "autor": "Cliente Workana",
+     "data": "Não especificada na página"
+    },
+    {
+     "trecho": "As redações são enviadas conforme chegam ao nosso sistema e tem um prazo de 24hs para serem corrigidas.",
+     "contexto": "Especificação de processo - seção 'Sobre este projeto'",
+     "autor": "Cliente Workana",
+     "data": "Não especificada na página"
+    },
+    {
+     "trecho": "Vamos trabalhar com publicidade para aos poucos conquistarmos o máximo de redações possíveis para correção.",
+     "contexto": "Plano de escalabilidade - seção 'Sobre este projeto'",
+     "autor": "Cliente Workana",
+     "data": "Não especificada na página"
+    },
+    {
+     "trecho": "A ideia é fazer um contrato fixo assim que a demanda aumentar.",
+     "contexto": "Termo de contratação futura - seção 'Sobre este projeto'",
+     "autor": "Cliente Workana",
+     "data": "Não especificada na página"
+    }
+   ]
+  }
+ ]
+}

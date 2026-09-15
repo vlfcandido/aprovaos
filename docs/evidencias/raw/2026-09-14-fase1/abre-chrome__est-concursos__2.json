@@ -1,0 +1,70 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/nao-recomendo_G_Z_EyJ8KYTZo2_4/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Não recomendo a empresa para ninguém mais.",
+     "autor": "Luísa",
+     "data": "29/07/2022",
+     "contexto": "Reclamação de cliente com assinatura ilimitada 2-3 anos sobre burocracia na documentação para pós-graduação"
+    },
+    {
+     "trecho": "Não entendo o motivo dessa burocracia sem nexo algum e que não está exposta com clareza para o aluno.",
+     "autor": "Luísa",
+     "data": "29/07/2022",
+     "contexto": "Pedido de autenticação em cartório não informado antes da venda do curso"
+    },
+    {
+     "trecho": "Sempre indiquei o Gran, mas depois dessa experiência horrível, não contrato mais nenhum serviço da empresa e não recomendo para nínguém.",
+     "autor": "Luísa",
+     "data": "29/07/2022",
+     "contexto": "Cliente antiga de assinatura ilimitada desiste após problema com pós-graduação"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/central-de-concursos/curso-online_ku1ivXIfLULz6oy-/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "O curso gravado é péssimo, trava, não é um curso completo, eles passam a matéria muito superficialmente.",
+     "autor": "Beatriz",
+     "data": "05/06/2024",
+     "contexto": "Reclamação sobre qualidade de vídeo-aula para concurso TRE-SP"
+    },
+    {
+     "trecho": "Quero meu dinheiro de volta com relação ao curso online, porque o curso é de péssima qualidade, não indico para ninguém.",
+     "autor": "Beatriz",
+     "data": "05/06/2024",
+     "contexto": "Pedido de reembolso por qualidade inferior à esperada"
+    },
+    {
+     "trecho": "A ideia do curso é ensinar, mas o curso de vocês é muito precário. Vocês deveriam informar a forma de dinâmica do curso.",
+     "autor": "Beatriz",
+     "data": "05/06/2024",
+     "contexto": "Crítica à didática superficial e falta de transparência sobre conteúdo"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/planilha-edital-verticalizado-para-concurso-472439",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Preciso que analise 3 editais de concursos públicos e, a partir deles elabore uma planilha adaptada",
+     "autor": "Stéphanie E.",
+     "data": "22/09/2023",
+     "contexto": "Projeto em 99Freelas solicitando trabalho manual de elaboração de planilha verticalizada de edital"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

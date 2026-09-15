@@ -1,0 +1,25 @@
+{
+ "paginas": [
+  {
+   "url": "https://blog.flexge.com/plataformas-cobranca-professores-particulares/",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Artigo informativo sobre plataformas de cobrança; sem reclamações de usuários, pedidos de serviço, tarefas manuais ou preços específicos."
+  },
+  {
+   "url": "https://www.atados.com.br/vaga/corretor-de-redacao-303235",
+   "abriu": false,
+   "como": "chrome",
+   "trechos": [],
+   "observacao": "HTTP 429 Too Many Requests no WebFetch; ao navegar via Chrome, redirecionou para página de reclamação sobre Gran Concursos no Reclame AQUI (vaga não mais disponível)."
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "abriu": false,
+   "como": "chrome",
+   "trechos": [],
+   "observacao": "HTTP 403 Forbidden no WebFetch; via Chrome carregou página de cursinho ENEM (não a página sobre corretor de redação). URL original não existe ou foi removida."
+  }
+ ]
+}

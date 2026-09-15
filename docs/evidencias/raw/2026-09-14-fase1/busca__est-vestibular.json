@@ -1,0 +1,114 @@
+{
+ "buscas_feitas": [
+  "\"corretor de redação\" reclamação demorou app ENEM site:reclameaqui.com.br",
+  "Descomplica OR Stoodi OR \"Me Salva\" reclamação cancelamento cobrança \"1 estrela\"",
+  "\"app de redação\" 1 estrela reclamação Google Play ENEM",
+  "\"Aprova Total\" OR \"Poliedro\" reclamação Reclame Aqui cobrança indevida",
+  "\"corretor de redação\" ENEM reddit \"alguém sabe\" indicação",
+  "\"cronograma de estudos\" ENEM pedido ferramenta planilha reclamação TabNews OR Quora",
+  "vestibulando reclamação simulado TRI cálculo errado fórum ProductHunt \"existe algo\"",
+  "\"ansiedade\" prova ENEM YouTube comentários pedido app organização estudos",
+  "\"corretor de redação ENEM\" vaga freelance Workana OR 99freelas OR GetNinjas",
+  "\"professor particular\" ENEM vestibular vaga Gupy OR Vagas.com OR Catho descrição",
+  "\"correção manual\" redação planilha Excel professor cursinho processo demorado",
+  "reddit r/ENEM \"alguém tem\" OR \"não sei o que fazer\" redação corretor caro"
+ ],
+ "candidatas": [
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/despreparo-do-corretor-de-redacao_R14-x7LWclhDR54_/",
+   "fonte": "reviews",
+   "por_que": "Reclamação literal sobre despreparo do corretor de redação humano no Aprova Total.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/redacao-online/pessimo-nao-recomendo_ZPGENN4WhdOEpbSX/",
+   "fonte": "reviews",
+   "por_que": "Reclamação sobre erros não identificados pelo corretor no método ENEM e cópia de correções entre métodos.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/corretor-de-redacao_XaVpQVyqrQAYb3-x/",
+   "fonte": "reviews",
+   "por_que": "Relato de quase 4 meses tentando enviar redação para correção, plataforma travando e corretor não funcionando.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica-pos-graduacao/cobranca-indevida-e-problemas-tecnicos-apos-cancelamento-de-curso-na-descomplica_cNo8n29Pcp01NRxG/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de cobrança indevida continuada após pedido de cancelamento de curso.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/cancelar-contrato_3H2A4Ih4j3Eo6EFH/",
+   "fonte": "reviews",
+   "por_que": "Relato de dificuldade/negativa em cancelar contrato de plataforma de estudos.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/tentativa-de-cancelamento-negada_UXI9lokMgGTTdzhY/",
+   "fonte": "reviews",
+   "por_que": "Título já mostra padrão repetido de tentativa de cancelamento negada — plataforma que cobra após pedido de cancelamento (dor citada na pista).",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/descomplica/quero-cancelar-e-receber-meu-dinheiro-de-volta_9qNfrm5aqe0fx0UU/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de pedido de cancelamento e reembolso não atendido.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00849582-56",
+   "fonte": "reviews",
+   "por_que": "Reclamação registrada em órgão de defesa do consumidor: empresa não quer cancelar o curso (Descomplica).",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00127639-84",
+   "fonte": "reviews",
+   "por_que": "Reclamação formal de solicitação de cancelamento de serviço de estudos online não atendida.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-de-curso-online-aprova-total-por-falta-de-adaptacao-e-cobranca-indevida_K1hGXXVO5yjie9JX/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de cobrança indevida após pedido de cancelamento no Aprova Total.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/biologia-total/solicitacao-de-cancelamento-do-curso-aprova-total-plano-ate-o-enem-e-interrupcao-de-cobrancas_cAdGNHaVGCfFSHWy/",
+   "fonte": "reviews",
+   "por_que": "Pedido explícito de interrupção de cobranças recorrentes num plano 'até o Enem'.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/curso-e-colegio-poliedro/cobranca-abusiva-e-descaso-total-da-escola_tibxIOs1-4i2_pAK/",
+   "fonte": "reviews",
+   "por_que": "Relato de cobrança abusiva em curso preparatório (Poliedro), com valores em disputa citados na busca.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/editora-escala-ltda/gabarito-do-simulado-todo-errado_VgdeeqNBjRQq1Q-S/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de gabarito de simulado inteiramente errado — falha central em produto de simulado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/simulado-gabarito-errado-questoes-mal-elaboradas-e-confusas_6KZmvcy3UhDlWHn9/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de gabarito errado e questões mal elaboradas em simulado de curso preparatório.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.workana.com/pt/job/corretor-de-redacao-1",
+   "fonte": "trabalho-manual",
+   "por_que": "Vaga real na Workana pedindo corretor de redação por critérios ENEM, pagamento por unidade (R$3/redação) e prazo de 24h — processo manual repetitivo terceirizado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "fonte": "trabalho-manual",
+   "por_que": "Página de recrutamento do próprio Aprova Total para corretores de redação foco ENEM, evidenciando dependência de mão de obra humana em volume.",
+   "bloqueada": false
+  }
+ ]
+}

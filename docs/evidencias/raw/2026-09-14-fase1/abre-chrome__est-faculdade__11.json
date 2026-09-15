@@ -1,0 +1,100 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/vicio-de-uma-estudante/compra-metodo-vde-1a-fase-oab-40-dias_u_jcUQRS_t93OwHh/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Comprei o método VDE 1a FASE OAB 40 DIAS pelo valor de *******,00 e não consegui acessar a plataforma.",
+     "autor": "Juliana",
+     "data": "07/12/2024",
+     "contexto": "Reclamação inicial sobre acesso negado à plataforma após compra"
+    },
+    {
+     "trecho": "Estou extremamente indignada! Entendo que a cláusula é abusiva. A partir do momento que compro um curso, tenho o direito de ter o conteúdo.",
+     "autor": "Juliana",
+     "data": "07/12/2024",
+     "contexto": "Reclamação sobre restrição temporal de acesso como cláusula abusiva"
+    },
+    {
+     "trecho": "quando comprei o curso eu não sabia desta informação. Ou seja, eles querem que eu compre um novo curso para ter acesso novamente?",
+     "autor": "Juliana",
+     "data": "07/12/2024",
+     "contexto": "Questiona necessidade de repagamento para acesso contínuo"
+    },
+    {
+     "trecho": "O prazo de acesso ao curso é improrrogável e se encerrará sempre às 23h59min da segunda-feira imediata após a aplicação do Exame de Ordem.",
+     "autor": "Vício (empresa)",
+     "data": "07/12/2024",
+     "contexto": "Termo de Uso item 4.6 explicando limite de tempo de acesso"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/medcof-concursos/nao-permitem-cancelamento-do-curso-contrato-nao-tem-clausula-de-rescisao_mKZSIlpJD33o-7Z-/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Solicitei no dia 30 de abril cancelamento da contratação do curso extensivo Medcof porque nao estava conseguindo me adaptar as modalidades.",
+     "autor": "Sofia",
+     "data": "01/07/2024",
+     "contexto": "Início da reclamação sobre dificuldade de adaptação ao curso"
+    },
+    {
+     "trecho": "quando solicitei o cancelamento, me informaram que este não seria possivel, que o curso poderia ser cancelado apenas nos 7 primeiros dias.",
+     "autor": "Sofia",
+     "data": "01/07/2024",
+     "contexto": "Restrição rigorosa de cancelamento a apenas 7 dias iniciais"
+    },
+    {
+     "trecho": "contrato da presente empresa não apresenta topico que disserte sobre a recisão do contrato, apesar de as aulas do curso serem liberadas semanalmente.",
+     "autor": "Sofia",
+     "data": "01/07/2024",
+     "contexto": "Falta de cláusula clara de rescisão em contrato; aulas liberadas progressivamente"
+    },
+    {
+     "trecho": "A empresa insiste em solicitar que para que o curso seja cancelado eu ainda pague 70-80% do valor total, sendo que tentei cancelamento em 30 de abril, apenas 55 dias após o inicio.",
+     "autor": "Sofia",
+     "data": "01/07/2024",
+     "contexto": "Cobrança exorbitante para cancelamento antecipado; recurso Procon considerou contrato leonino"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/editora-sanar/solicitacao-de-cancelamento-e-reembolso-da-assinatura-sanarflix-devido-a-renovacao-automatica_XPJ6DNzAm-Uhc65T/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "A cobrança ocorreu hoje (17/02/2026), sem que eu tivesse a intenção de renovar o plano, tendo percebido o débito apenas após sua efetivação.",
+     "autor": "Flávio",
+     "data": "17/02/2026",
+     "contexto": "Reclamação sobre renovação automática não autorizada na data de débito"
+    },
+    {
+     "trecho": "é assegurado ao consumidor o direito à informação clara e adequada acerca das condições contratuais, inclusive no que se refere à renovação automática e à forma de cancelamento.",
+     "autor": "Flávio",
+     "data": "17/02/2026",
+     "contexto": "Citação do CDC sobre direito a informação; reclamante afirma falta de aviso prévio"
+    },
+    {
+     "trecho": "Assim que identifiquei a renovação, solicitei o cancelamento e não houve utilização do serviço após a nova cobrança.",
+     "autor": "Flávio",
+     "data": "17/02/2026",
+     "contexto": "Cancelamento imediato após descoberta de débito não autorizado"
+    },
+    {
+     "trecho": "sendo o estorno do valor de R$598,80 a ser realizado logo após esse prazo de 15 dias úteis.",
+     "autor": "João (SanarFlix)",
+     "data": "24/02/2026",
+     "contexto": "Valor específico cobrado por renovação automática; prazo de reembolso de 15 dias úteis"
+    }
+   ],
+   "observacao": ""
+  }
+ ]
+}

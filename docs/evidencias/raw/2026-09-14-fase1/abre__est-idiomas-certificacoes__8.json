@@ -1,0 +1,18 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.getninjas.com.br/aulas/concursos/outros/sp/sao-paulo/orcamentos/950122-procuro-professores-freelancer-para",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página carregou mas não contém reclamações de usuário, pedidos de serviço específicos, descrição de tarefas manuais ou preços conforme critério."
+  },
+  {
+   "url": "https://silabe.com.br/blog/professor-ganhe-dinheiro-corrigindo-redacao/",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Retornou HTTP 522 (serviço indisponível); conteúdo não recuperado."
+  }
+ ]
+}

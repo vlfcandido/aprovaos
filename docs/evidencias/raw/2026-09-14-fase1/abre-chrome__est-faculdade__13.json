@@ -1,0 +1,82 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.workana.com/job/revisao-melhoria-e-formatacao-abnt-de-tcc-pesquisa-acao-gestao-de-projetos",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Preciso de um freelancer para revisar e melhorar o texto do meu Trabalho de Conclusão de Curso (TCC). O conteúdo já está escrito, mas necessita de lapidação.",
+     "autor": "Contratante (Workana)",
+     "data": "Sem data (vaga aberta)",
+     "contexto": "Descrição do projeto na seção 'Sobre este projeto'"
+    },
+    {
+     "trecho": "A pessoa contratada deve revisar todo o texto de acordo com as minhas indicações, melhorar a escrita quando necessário (tempo verbal, palavras e termos), e revisar as imagens, tabelas e o conteúdo geral.",
+     "autor": "Contratante (Workana)",
+     "data": "Sem data",
+     "contexto": "Descrição de tarefas na seção 'Contexto Geral do Projeto'"
+    },
+    {
+     "trecho": "Formatar todas as referências de acordo com as normas ABNT. Estruturar o TCC conforme as diretrizes da instituição. Revisar as referências.",
+     "autor": "Contratante (Workana)",
+     "data": "Sem data",
+     "contexto": "Detalhes adicionais do projeto com tarefas específicas"
+    },
+    {
+     "trecho": "A meta é entregar um documento final impecável, pronto para ser submetido e defendido com excelência.",
+     "autor": "Contratante (Workana)",
+     "data": "Sem data",
+     "contexto": "Objetivo final mencionado na descrição do projeto"
+    }
+   ],
+   "observacao": "Página carregou normalmente com conteúdo de vaga de freelancer para revisão e formatação ABNT de TCC com prazo de 14/06/2024."
+  },
+  {
+   "url": "https://www.workana.com/en/job/correcao-tcc-gramatica-e-abnt",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Preciso Urgente de alguem para corrigir erros gramáticais e concordancia e tambem verificar formatação de um tcc de +- 40 páginas ( Periodo de entrega de um dia )",
+     "autor": "Contratante (Workana)",
+     "data": "Sem data (vaga aberta)",
+     "contexto": "Seção 'About this project' — demanda urgente com prazo apertado de 1 dia"
+    }
+   ],
+   "observacao": "Página carregou com conteúdo mínimo; vaga de correção gramatical e formatação ABNT com urgência e prazo de 24h para texto de ~40 páginas."
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/medcof-concursos/enganacao-do-consumidor_yZX-bsyJvEnTnTmi/",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Comprei esse curso preparatório de residência. As aulas não tem boa resolução, demoram a carregar, ficam lentificadas, o sistema fica instável por dias, vc não consegue assistir quando tem disponibilidade",
+     "autor": "Renata (consumidor)",
+     "data": "05/05/2022 às 09:52",
+     "contexto": "Reclamação sobre qualidade e instabilidade da plataforma de cursos Medcof"
+    },
+    {
+     "trecho": "o app de banco de questões, que deveria funcionar no celular, eu nunca consegui entrar",
+     "autor": "Renata (consumidor)",
+     "data": "05/05/2022",
+     "contexto": "Problema específico com funcionalidade do app mobile para banco de questões"
+    },
+    {
+     "trecho": "Já tentei cancelar 2 vezes, no 7 dia após a compra e ontem novamente. Eles modificam o contrato a todo momento em beneficio próprio",
+     "autor": "Renata (consumidor)",
+     "data": "05/05/2022",
+     "contexto": "Dificuldade no cancelamento e alterações unilaterais de termos contratuais"
+    },
+    {
+     "trecho": "Isso é um absurdo! Não consta nada disso no contrato, não façam esse curso, eles não cumprem o que falam! SE VC AINDA ESTÁ NA DÚVIDA, NÃO ESCOLHA MEDCOF, ELES NÃO SÃO SÉRIOS E TAMPOUCO CONFIÁVEIS!",
+     "autor": "Renata (consumidor)",
+     "data": "05/05/2022 às 09:52",
+     "contexto": "Conclusão crítica da reclamação com advertência explícita a outros consumidores"
+    }
+   ],
+   "observacao": "Página carregou com reclamação completa de consumidor sobre plataforma de cursos preparatórios para residência médica com problemas de qualidade, funcionalidade e política de cancelamento."
+  }
+ ]
+}

@@ -1,0 +1,310 @@
+{
+ "buscas_feitas": [
+  "planalto.gov.br ccivil_03 legislação consolidada RSS API",
+  "LexML Brasil API dados abertos rede de informação legislativa",
+  "STF informativo de jurisprudência RSS súmulas teses repercussão geral",
+  "STJ informativo de jurisprudência RSS súmulas recursos repetitivos",
+  "Câmara dos Deputados dados abertos API legislação Senado dados abertos",
+  "SciELO licença Creative Commons acesso aberto termos de uso",
+  "Manual de Redação da Presidência da República PDF oficial",
+  "bibliografia recomendada edital concurso direito constitucional direito administrativo autores mais cobrados"
+ ],
+ "fatos": [
+  {
+   "id": "fontes-conhecimento-01",
+   "afirmacao": "O portal LexML publica 4 conjuntos de dados abertos em formato JSON, acessíveis por APIs (dados institucionais, ouvidoria/e-SIC, transparência) mais um endpoint geral /apidata que também expõe todo o conteúdo padrão do site; cada seção ainda oferece RSS em formato RDF Site Summary 1.0.",
+   "valor": "JSON via API + RSS RDF 1.0",
+   "unidade_ou_periodo": "n/a",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "tipo": "oficial",
+     "trecho": "Publicamos 4 conjuntos de dados abertos em formato JSON, que podem ser acessados a partir das seguintes APIs.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "A API de busca principal do LexML (acervo) segue o padrão SRU (Search/Retrieval via URL) da Library of Congress, retornando XML — achado via snippet de busca, não confirmado por WebFetch; ver lacunas."
+  },
+  {
+   "id": "fontes-conhecimento-02",
+   "afirmacao": "A licença dos dados abertos do LexML segue framework aberto, com uso, reuso e redistribuição livres mediante atribuição, alinhado à definição da Open Knowledge Foundation.",
+   "valor": "licença aberta tipo OKFN, com atribuição",
+   "unidade_ou_periodo": "n/a",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "tipo": "oficial",
+     "trecho": "materiais são governados por termos que permitem uso, reuso e redistribuição livres, com exigência padrão de atribuição, alinhados à definição de dados abertos da Open Knowledge Foundation",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho é paráfrase do modelo de fetch (ferramenta resumiu, não citou o texto-fonte literal exato); tratar como confiança média até nova verificação literal direta."
+  },
+  {
+   "id": "fontes-conhecimento-03",
+   "afirmacao": "O Informativo de Jurisprudência do STJ divulga periodicamente teses jurídicas selecionadas por ineditismo e impacto, organizadas por órgão julgador e ramo do direito; permite assinatura de notificação automática, consulta a edições anteriores e download de compilados anuais em PDF ou RTF.",
+   "valor": "periódico, HTML + PDF/RTF, com assinatura por e-mail",
+   "unidade_ou_periodo": "periodicidade não especificada no texto capturado (histórico do STJ é semanal, não confirmado nesta sessão)",
+   "evidencias": [
+    {
+     "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+     "tipo": "oficial",
+     "trecho": "divulga periodicamente teses jurídicas estabelecidas pelo STJ, selecionadas por seu ineditismo e impacto (...) permite assinar notificações automáticas, acessar edições anteriores e baixar compilados anuais em PDF ou RTF",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Resumo da ferramenta de fetch, não cópia literal exata do HTML da página; a existência de assinatura/RSS aparenta confirmada mas o mecanismo exato (RSS vs. e-mail) não foi verificado literalmente."
+  },
+  {
+   "id": "fontes-conhecimento-04",
+   "afirmacao": "A API de Dados Abertos da Câmara dos Deputados é RESTful, com URLs de acesso, parâmetros de busca e estruturas de dados documentadas via Swagger; suporta JSON e XML para consultas incrementais e CSV/XLSX/ODS para download de arquivos anuais completos. A maioria dos conjuntos é atualizada diariamente.",
+   "valor": "REST, JSON/XML/CSV/XLSX/ODS, atualização diária",
+   "unidade_ou_periodo": "atualização diária (maioria dos datasets)",
+   "evidencias": [
+    {
+     "url": "https://dadosabertos.camara.leg.br/swagger/api.html",
+     "tipo": "oficial",
+     "trecho": "API RESTful, suas URLs para acesso aos dados, seus parâmetros de busca e as estruturas de dados retornadas.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "A afirmação de atualização diária e a lista de categorias vieram do resumo do fetch, não são citação literal única — a citação literal cobre apenas a frase sobre a API RESTful."
+  },
+  {
+   "id": "fontes-conhecimento-05",
+   "afirmacao": "O Senado Federal define dados abertos como aqueles representados em meio digital, processáveis por máquina, referenciados na rede mundial de computadores e disponibilizados sob licença que permita livre utilização — sem nomear a licença específica adotada.",
+   "valor": "definição institucional, licença não nomeada",
+   "unidade_ou_periodo": "n/a",
+   "evidencias": [
+    {
+     "url": "https://www12.senado.leg.br/dados-abertos",
+     "tipo": "oficial",
+     "trecho": "Dados Abertos são representados em meio digital, processáveis por máquina, referenciados na rede mundial de computadores e disponibilizados sob licença que permita sua livre utilização.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Página não especifica a licença exata (ex.: CC-BY, ODbL) — risco jurídico a esclarecer antes de reusar o conteúdo comercialmente."
+  },
+  {
+   "id": "fontes-conhecimento-06",
+   "afirmacao": "O SciELO adota a licença CC-BY 4.0 como padrão de atribuição de Acesso Aberto desde 2015; ela permite distribuir, remixar, adaptar e criar a partir da obra, inclusive para fins comerciais, desde que dado o devido crédito à criação original. Periódicos indexados antes de 2015 podem manter licença própria, mas são incentivados a migrar para CC-BY.",
+   "valor": "CC-BY 4.0, desde 2015",
+   "unidade_ou_periodo": "a partir de 2015",
+   "evidencias": [
+    {
+     "url": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+     "tipo": "oficial",
+     "trecho": "a licença CC-BY 4.0 \"permite que outros distribuam, remixem, adaptem e criem a partir do seu trabalho, mesmo para fins comerciais, desde que lhe atribuam o devido crédito pela criação original.\"",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "alta",
+   "observacao": "Sem observações adicionais."
+  },
+  {
+   "id": "fontes-conhecimento-07",
+   "afirmacao": "Bibliografia mais citada em concursos, por matéria, segundo página especializada de preparação (João Lordelo): Direito Constitucional — Pedro Lenza (Direito Constitucional Esquematizado), Bernardo Gonçalves, Dirley da Cunha, Marcelo Novelino, e Nathalia Masson (Manual, para provas objetivas); Direito Administrativo — Ricardo Alexandre (Direito Administrativo Esquematizado), Matheus Carvalho, José dos Santos Carvalho Filho; Direito Financeiro/AFO — Harrison Leite (manual, Ed. Juspodivm) e Tathiane Piscitelli.",
+   "valor": "lista de autores por matéria (ver evidência)",
+   "unidade_ou_periodo": "n/a",
+   "evidencias": [
+    {
+     "url": "https://www.joaolordelo.com/bibliografia-indicada",
+     "tipo": "outro",
+     "trecho": "\"Direito Constitucional Esquematizado (Pedro Lenza)\" é a recomendação geral principal (...) Direito Administrativo Esquematizado, de Ricardo Alexandre (Ed. Método) é muito completo e voltado a concursos.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Fonte é um site de preparatório (curso/professor), não um levantamento estatístico de editais — trata como indicativo de mercado, não como dado oficial. Página não trouxe recomendações para Português, Raciocínio Lógico e Informática (registrado em lacunas)."
+  },
+  {
+   "id": "fontes-conhecimento-08",
+   "afirmacao": "O portal STJ organiza recursos repetitivos conforme o CPC (Lei nº 13.105/2015): um recurso repetitivo representa um grupo de recursos especiais com teses idênticas ou baseados em questão de direito idêntica, e o STJ fixa tese aplicável aos processos que discutem a mesma questão.",
+   "valor": "mecanismo legal do CPC/2015, art. de recursos repetitivos",
+   "unidade_ou_periodo": "desde a Lei 13.105/2015",
+   "evidencias": [
+    {
+     "url": "https://www.stj.jus.br/sites/portalp/Precedentes/informacoes-gerais/recursos-repetitivos",
+     "tipo": "oficial",
+     "trecho": "recurso repetitivo é julgado pela sistemática descrita no Código de Processo Civil (Lei n. 13.105/2015), na qual o STJ define uma tese que deve ser aplicada aos processos em que se discute questão de direito idêntica",
+     "data": "2026-09-14",
+     "secundaria": true
+    }
+   ],
+   "confianca": "media",
+   "observacao": "Trecho vem do resumo da busca (snippet consolidado), não de WebFetch direto nesta página — não abri a URL com WebFetch; por isso marcado secundaria=true e confiança média, conforme a regra de que snippet de busca não é evidência plena. Recomenda-se reabrir com WebFetch antes de citar como fato definitivo."
+  }
+ ],
+ "fontes_motor": [
+  {
+   "nome": "Planalto — Portal da Legislação (ccivil_03)",
+   "url": "https://www.planalto.gov.br/ccivil_03/",
+   "tipo": "legislacao",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "não verificado nesta sessão — WebFetch falhou duas vezes (ECONNRESET) tanto na página ccivil_03 quanto em www4.planalto.gov.br/legislacao/rss e /legislacao/; a busca (não-evidência) indica existir feed RSS em www4.planalto.gov.br/legislacao/rss, mas não foi possível abrir e confirmar formato/frequência nem termos de licença.",
+   "evidencias": [],
+   "termos_de_uso": "não verificado",
+   "url_termos": "",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "não medido"
+  },
+  {
+   "nome": "LexML Brasil (Rede de Informação Legislativa e Jurídica)",
+   "url": "https://www.lexml.gov.br/",
+   "tipo": "agregador_terceiro",
+   "formato": "api",
+   "deteccao_novidade": "api",
+   "licenca_ou_risco": "licença aberta tipo OKFN com atribuição (ver fato fontes-conhecimento-02); reúne ~1,2 milhão de documentos de instituições parceiras (leis, projetos, decretos, súmulas, jurisprudência) via convênio de cooperação — dado do snippet de busca, não confirmado por WebFetch, então marcar como não verificado quanto ao número exato.",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "tipo": "oficial",
+     "trecho": "Publicamos 4 conjuntos de dados abertos em formato JSON, que podem ser acessados a partir das seguintes APIs.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "termos_de_uso": "uso, reuso e redistribuição livres com atribuição",
+   "url_termos": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+   "volume_estimado": "~1,2 milhão de documentos (não confirmado por WebFetch, apenas por snippet de busca)",
+   "frequencia_estimada": "não medido"
+  },
+  {
+   "nome": "STF — Portal (Informativo, Súmulas, Repercussão Geral)",
+   "url": "https://portal.stf.jus.br/jurisprudencia/",
+   "tipo": "jurisprudencia",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "não verificado nesta sessão — dois WebFetch falharam (certificado / conexão) contra portal.stf.jus.br; conteúdo institucional é público mas termos de reuso/licença e existência de RSS não foram confirmados literalmente.",
+   "evidencias": [],
+   "termos_de_uso": "não verificado",
+   "url_termos": "",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "não medido"
+  },
+  {
+   "nome": "STJ — Informativo de Jurisprudência e Precedentes Qualificados",
+   "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+   "tipo": "jurisprudencia",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "conteúdo público institucional; licença de reuso não explicitada na página capturada — permite assinatura de notificações e download de compilados anuais em PDF/RTF (ver fato fontes-conhecimento-03).",
+   "evidencias": [
+    {
+     "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+     "tipo": "oficial",
+     "trecho": "divulga periodicamente teses jurídicas estabelecidas pelo STJ, selecionadas por seu ineditismo e impacto (...) permite assinar notificações automáticas, acessar edições anteriores e baixar compilados anuais em PDF ou RTF",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "termos_de_uso": "não explicitado nesta página",
+   "url_termos": "",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "não medido (histórico do STJ costuma ser semanal, mas não confirmado nesta sessão)"
+  },
+  {
+   "nome": "Câmara dos Deputados — Dados Abertos (API REST)",
+   "url": "https://dadosabertos.camara.leg.br/swagger/api.html",
+   "tipo": "legislacao",
+   "formato": "api",
+   "deteccao_novidade": "api",
+   "licenca_ou_risco": "página capturada não detalha licença explícita — recomenda consultar FAQ/seção de contato do portal antes de reuso comercial.",
+   "evidencias": [
+    {
+     "url": "https://dadosabertos.camara.leg.br/swagger/api.html",
+     "tipo": "oficial",
+     "trecho": "API RESTful, suas URLs para acesso aos dados, seus parâmetros de busca e as estruturas de dados retornadas.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "termos_de_uso": "não explicitado nesta página; ver FAQ do portal",
+   "url_termos": "",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "maioria dos datasets atualizada diariamente (segundo resumo do fetch, não citação literal)"
+  },
+  {
+   "nome": "Senado Federal — Dados Abertos",
+   "url": "https://www12.senado.leg.br/dados-abertos",
+   "tipo": "legislacao",
+   "formato": "api",
+   "deteccao_novidade": "api",
+   "licenca_ou_risco": "licença de uso livre mencionada de forma genérica, sem nomear a licença específica (ver fato fontes-conhecimento-05).",
+   "evidencias": [
+    {
+     "url": "https://www12.senado.leg.br/dados-abertos",
+     "tipo": "oficial",
+     "trecho": "Dados Abertos são representados em meio digital, processáveis por máquina, referenciados na rede mundial de computadores e disponibilizados sob licença que permita sua livre utilização.",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "termos_de_uso": "livre utilização (licença específica não nomeada)",
+   "url_termos": "https://www12.senado.leg.br/dados-abertos",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "não medido"
+  },
+  {
+   "nome": "SciELO (repositório aberto de periódicos científicos)",
+   "url": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+   "tipo": "conhecimento_aberto",
+   "formato": "html",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "CC-BY 4.0 desde 2015 (padrão); periódicos anteriores a 2015 podem ter licença própria — ver fato fontes-conhecimento-06.",
+   "evidencias": [
+    {
+     "url": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+     "tipo": "oficial",
+     "trecho": "a licença CC-BY 4.0 \"permite que outros distribuam, remixem, adaptem e criem a partir do seu trabalho, mesmo para fins comerciais, desde que lhe atribuam o devido crédito pela criação original.\"",
+     "data": "2026-09-14",
+     "secundaria": false
+    }
+   ],
+   "termos_de_uso": "CC-BY 4.0 (padrão desde 2015)",
+   "url_termos": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "não medido"
+  },
+  {
+   "nome": "Manual de Redação da Presidência da República",
+   "url": "https://www4.planalto.gov.br/centrodeestudos/assuntos/manual-de-redacao-da-presidencia-da-republica",
+   "tipo": "outro",
+   "formato": "pdf",
+   "deteccao_novidade": "desconhecido",
+   "licenca_ou_risco": "não verificado — não houve orçamento de WebFetch restante para abrir e confirmar; a busca (não-evidência) mostra edição de 2018 (3ª ed.) hospedada no próprio Planalto e réplicas em portais institucionais (IFPB, TRE-RS, CNJ), sugerindo domínio público/uso livre por ser documento oficial da Presidência, mas isso não foi confirmado literalmente.",
+   "evidencias": [],
+   "termos_de_uso": "não verificado",
+   "url_termos": "",
+   "volume_estimado": "não medido",
+   "frequencia_estimada": "edição de 2018 (3ª ed.), sem indicação de nova edição — não medido"
+  }
+ ],
+ "lacunas": [
+  "Planalto (www.planalto.gov.br/ccivil_03/ e www4.planalto.gov.br/legislacao/ e /legislacao/rss): duas tentativas de WebFetch falharam por erro de conexão (ECONNRESET); não foi possível confirmar literalmente formato do RSS, frequência de atualização, existência de API e termos de licença/reuso do conteúdo legislativo consolidado.",
+  "STF (portal.stf.jus.br/jurisprudencia/ e /textos/verTexto.asp?servico=informativoSTF): duas tentativas de WebFetch falharam (erro de certificado / conexão); não foi possível confirmar literalmente periodicidade do Informativo STF, existência de RSS, formato exato de súmulas/teses de repercussão geral e termos de reuso.",
+  "LexML: número de ~1,2 milhão de documentos e formato SRU/XML da API de acervo vieram apenas do snippet consolidado de busca (não é evidência segundo a regra do projeto) — não foi aberto com WebFetch por já ter esgotado o orçamento; precisa reabrir https://www.lexml.gov.br/ e https://www12.senado.leg.br/dados-abertos/legislativo/legislacao/acervo-do-portal-lexml para citação literal.",
+  "STJ recursos repetitivos (https://www.stj.jus.br/sites/portalp/Precedentes/informacoes-gerais/recursos-repetitivos): trecho usado veio do snippet de busca, não de WebFetch direto — precisa reabrir para confirmar literalmente e trocar confiança de média para alta.",
+  "Câmara dos Deputados: licença/termos de uso explícitos da API de dados abertos não foram encontrados na página do Swagger; buscar página de FAQ/termos em dadosabertos.camara.leg.br.",
+  "Senado: licença específica dos dados abertos (CC-BY? ODbL? domínio público?) não nomeada na página consultada; buscar em www12.senado.leg.br/dados-abertos/... termos de licença detalhados ou norma/portaria que regula.",
+  "Wikisource em português e domínio público de obras jurídicas/literárias (Constituição anotada, códigos comentados de domínio público): não pesquisado nesta sessão por limite de orçamento — registrar para próxima rodada.",
+  "Cartilhas/manuais do TCU e CGU (controle externo, licitações, AFO): não pesquisado nesta sessão — verificar tcu.gov.br e cgu.gov.br para formato, licença e RSS.",
+  "Bibliografia por matéria para Língua Portuguesa, Raciocínio Lógico-Matemático e Informática/Noções de TI: a única fonte aberta consultada (joaolordelo.com/bibliografia-indicada) só cobre matérias jurídicas (Constitucional, Administrativo, Financeiro/AFO) — falta levantar autores de referência para essas três matérias com fonte própria.",
+  "Manual de Redação da Presidência da República: não foi possível confirmar com WebFetch a edição vigente, a licença de reuso (é documento oficial, presumivelmente de domínio público, mas isso não foi verificado literalmente) nem se há versão em HTML navegável ou apenas PDF estático.",
+  "Cebraspe e FGV como bancas: não foi pesquisado nesta rodada (o ângulo pediu fontes de conhecimento/bibliografia, não perfil das bancas em si) — se necessário para o produto, abrir cebraspe.org.br e fgv.br/fgvprojetos (ou fgvconhecimento) em rodada futura para políticas de edital/gabarito.",
+  "Nenhuma fonte teve seu 'formato' de detecção de novidade (RSS/sitemap/diff/API) confirmado com 100% de certeza por falha de acesso ao Planalto e ao STF — os dois maiores provedores de legislação e jurisprudência do produto ficaram sem verificação literal nesta sessão."
+ ]
+}

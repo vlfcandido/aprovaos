@@ -1,0 +1,18 @@
+{
+ "paginas": [
+  {
+   "url": "https://redconcursos.com.br/",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "HTTP 429 Too Many Requests — página não acessível"
+  },
+  {
+   "url": "https://voceconcursado.com.br/correcao-de-redacao-discursiva-para-concursos-uma-correcao/",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Página contém ofertas de serviço mas sem reclamações, pedidos, descrições de tarefas manuais ou preços com data e autor"
+  }
+ ]
+}

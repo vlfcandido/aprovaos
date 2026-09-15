@@ -1,0 +1,49 @@
+{
+ "paginas": [
+  {
+   "url": "https://vagaseditoradialetica.vagas.solides.com.br/vaga/699942",
+   "abriu": true,
+   "como": "webfetch",
+   "observacao": "Página contém oferta de emprego para revisor(a) freelancer. Não há reclamações de usuários, preços ou descrições de tarefas manuais conforme critério.",
+   "trechos": []
+  },
+  {
+   "url": "https://treinamentosaf.com.br/corrigir-30-redacoes-em-20-minutos-com-esse-prompt-sim/",
+   "abriu": true,
+   "como": "webfetch",
+   "observacao": "Artigo educacional sobre uso de IA para correção de redações. Sem reclamações de clientes, preços ou pedidos de serviço específicos.",
+   "trechos": []
+  },
+  {
+   "url": "https://www.reviews.io/company-reviews/store/superprof.co.uk",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "The purchasing process is meticulously misleading, making you believe you are buying a one-hour class when in fact you are subscribing to a monthly plan.",
+     "autor": "Francisco",
+     "data": "1 ano atrás",
+     "contexto": "Reclamação sobre processo de compra enganoso na Superprof"
+    },
+    {
+     "trecho": "DON'T USE THIS WEBSITE. They scammed me out of £78 and my friend out of £200...They don't respond to emails.",
+     "autor": "Shenders",
+     "data": "1 ano atrás",
+     "contexto": "Reclamação de fraude e falta de resposta ao suporte"
+    },
+    {
+     "trecho": "I worked for them and did not pay me claiming they have sent it to a Paypal account different than the one I provided.",
+     "autor": "Stavros",
+     "data": "27 de fevereiro de 2025",
+     "contexto": "Reclamação de não pagamento após trabalho prestado"
+    },
+    {
+     "trecho": "They will not stop texting me. You can't reply stop and even after emailing them they will not stop texting me.",
+     "autor": "Anonymous",
+     "data": "10 de agosto de 2024",
+     "contexto": "Reclamação de mensagens de texto não solicitadas e sem possibilidade de cancelamento"
+    }
+   ]
+  }
+ ]
+}

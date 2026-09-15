@@ -1,0 +1,75 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.quora.com/Which-is-the-best-IELTS-writing-correction-website",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Bloqueada por 403 Forbidden (WebFetch) e Permission denied (Chrome)"
+  },
+  {
+   "url": "https://hinative.com/questions/15716160",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "Alguém tem algum grupo pra prática de conversação em inglês no WhatsApp?",
+     "autor": "Guilherme_Eduardo",
+     "data": "2020-03-19",
+     "contexto": "Pergunta principal da página"
+    },
+    {
+     "trecho": "Eu sou membro de um grupo, se quiser me passa seu número que peço para eles lhe adicionarem lá.",
+     "autor": "julianoalves375",
+     "data": "2020-03-19",
+     "contexto": "Resposta oferecendo acesso a grupo existente"
+    },
+    {
+     "trecho": "Algum de vcs querem criar um grupo de conversação junto comigo?",
+     "autor": "Guilherme_Eduardo",
+     "data": "2020-03-21",
+     "contexto": "Sugestão de criar novo grupo de conversa"
+    },
+    {
+     "trecho": "Já baixei vários aplicativos pra treinar o inglês e outros idiomas, mas sempre desinstalo porque...",
+     "autor": "Relacionado a problemas com apps",
+     "data": "2020-03-xx",
+     "contexto": "Reclamação sobre dificuldade de usar aplicativos disponíveis"
+    }
+   ],
+   "observacao": "Múltiplas requisições de grupo WhatsApp para praticar inglês — solução manual/informal sendo buscada"
+  },
+  {
+   "url": "https://hinative.com/questions/23331192",
+   "abriu": true,
+   "como": "chrome",
+   "trechos": [
+    {
+     "trecho": "alguém tem grupo no whatsapp para falar inglês?",
+     "autor": "Angelica_MoraesBarbo",
+     "data": "2023-01-10",
+     "contexto": "Pergunta literal buscando grupo de WhatsApp para praticar"
+    },
+    {
+     "trecho": "Se tiver algum grupo no Whatsapp, também tenho interesse. Tô procurando...",
+     "autor": "Brazzuca1981",
+     "data": "2023-01-10",
+     "contexto": "Resposta: outro usuário pedindo acesso ao grupo"
+    },
+    {
+     "trecho": "Gente, pq não criam um grupo vocês? Também tô achando um",
+     "autor": "Emy_3",
+     "data": "2023-01-11",
+     "contexto": "Sugestão de criar grupo — demanda recorrente não atendida"
+    },
+    {
+     "trecho": "Infelizmente grupos de conversação em inglês não funcionam. Brasileiros gostam de falar português...",
+     "autor": "-Spot",
+     "data": "2023-01-11",
+     "contexto": "Reclamação: tarefa manual (grupo) não resolve o problema"
+    }
+   ],
+   "observacao": "Repetição da mesma necessidade de 2020 em 2023 — grupo WhatsApp para conversar inglês continua ausente como solução formal"
+  }
+ ]
+}

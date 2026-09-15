@@ -1,0 +1,75 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00849582-56",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "No dia 30/01/2020 fiz a compra de um curso na empresa Descomplica...o curso não é nada didático...Solicito o cancelamento do curso",
+     "data": "18/03/2020",
+     "autor": "M. A.",
+     "contexto": "Reclamação inicial — falta de didática no conteúdo"
+    },
+    {
+     "trecho": "me disseram que não vão cancelar alegando taxas de cartão de crédito",
+     "data": "18/03/2020",
+     "autor": "M. A.",
+     "contexto": "Resposta da empresa recusando cancelamento"
+    },
+    {
+     "trecho": "Cancelamento do curso e da cobrança nas faturas futuras do meu cartão de crédito",
+     "data": "18/03/2020",
+     "autor": "M. A.",
+     "contexto": "Solução esperada pelo reclamante"
+    },
+    {
+     "trecho": "Depois de vários e-mails finalmente decidiram fazer meu direito...cancelaram o curso, bem como as cobranças futuras",
+     "data": "19/03/2020",
+     "autor": "M. A.",
+     "contexto": "Feedback de resolução após escalação"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://www.proteste.org.br/reclame/lista-de-reclamacoes-publicas/reclamacoes-publicas?referenceid=CPTBR00127639-84",
+   "abriu": true,
+   "como": "webfetch",
+   "trechos": [
+    {
+     "trecho": "minha filha, menor de 16 anos, contratou os serviços do site descomplica.com.br, para fins de estudos viabilizando o ENEM",
+     "data": "05/03/2017",
+     "autor": "R. K.",
+     "contexto": "Descrição da contratação — estudante menor em plataforma ENEM"
+    },
+    {
+     "trecho": "Após 15 dias, minha filha não gostando do conteúdo dos estudos, solicitou, por e-mail, o cancelamento da assinatura",
+     "data": "05/03/2017",
+     "autor": "R. K.",
+     "contexto": "Solicitação de cancelamento — insatisfação com conteúdo"
+    },
+    {
+     "trecho": "o cancelamento só pode ser efetuado se o pedido for feito em até 7 dias após a compra",
+     "data": "01/03/2017",
+     "autor": "Karen Porto (Descomplica)",
+     "contexto": "Resposta da empresa — política restritiva de cancelamento"
+    },
+    {
+     "trecho": "O cancelamento imediato do curso contratado por minha filha Kaliny Cristina Queiroz dos Santos, evitando a inserção de débitos futuros",
+     "data": "05/03/2017",
+     "autor": "R. K.",
+     "contexto": "Solução esperada — cancelamento retroativo e bloqueio de débitos"
+    }
+   ],
+   "observacao": ""
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "abriu": false,
+   "como": "webfetch",
+   "trechos": [],
+   "observacao": "Acesso bloqueado — HTTP 403 Forbidden"
+  }
+ ]
+}

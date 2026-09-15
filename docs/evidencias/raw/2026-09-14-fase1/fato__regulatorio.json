@@ -1,0 +1,126 @@
+{
+ "buscas_feitas": [
+  "Lei 9.610/1998 planalto.gov.br artigo 8 texto",
+  "Lei 13.709 LGPD artigo 5 inciso II dado sensível planalto",
+  "STJ reprodução de questões de concurso público direito autoral cursinho",
+  "Cebraspe termos de uso reprodução provas site",
+  "Resolução CD/ANPD nº 2/2022 agentes de tratamento de pequeno porte",
+  "Cebraspe termos de uso site direitos autorais rodapé cebraspe.org.br",
+  "INEP termos de uso reprodução questões ENEM direitos autorais",
+  "FGV Conhecimento concursos termos de uso reprodução provas",
+  "INPI marca registrada nome banca concurso uso indevido concorrência desleal"
+ ],
+ "fatos": [
+  {
+   "id": "regulatorio-01",
+   "afirmacao": "A Lei de Direitos Autorais exclui expressamente certas categorias de texto oficial da proteção autoral (caput do art. 8º).",
+   "valor": "\"Não são objeto de proteção como direitos autorais de que trata esta Lei\" (caput do art. 8º da Lei 9.610/1998)",
+   "unidade_ou_periodo": "Lei 9.610, de 19/02/1998",
+   "observacao": "Fonte espelho (Planalto bloqueou a conexão do WebFetch em 5 tentativas: ECONNRESET/timeout); texto confere com a redação oficial conhecida do artigo.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://modeloinicial.com.br/lei/L-9610-1998/lei-direitos-autorais/art-8",
+     "tipo": "outro",
+     "trecho": "\"Não são objeto de proteção como direitos autorais de que trata esta Lei\"",
+     "secundaria": true,
+     "data": "2026-09-14"
+    }
+   ]
+  },
+  {
+   "id": "regulatorio-02",
+   "afirmacao": "O inciso IV do art. 8º da Lei 9.610/1998 exclui da proteção autoral textos de leis, decretos, regulamentos e decisões judiciais — base para dizer que o TEXTO NORMATIVO de um edital/lei não é protegido (não se confunde com as questões elaboradas pela banca, tratadas no regulatorio-03).",
+   "valor": "\"os textos de tratados ou convenções, leis, decretos, regulamentos, decisões judiciais e demais atos oficiais\" (art. 8º, IV, Lei 9.610/1998)",
+   "unidade_ou_periodo": "Lei 9.610, de 19/02/1998",
+   "observacao": "Mesma ressalva de fonte-espelho do regulatorio-01.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://modeloinicial.com.br/lei/L-9610-1998/lei-direitos-autorais/art-8",
+     "tipo": "outro",
+     "trecho": "\"os textos de tratados ou convenções, leis, decretos, regulamentos, decisões judiciais e demais atos oficiais\"",
+     "secundaria": true,
+     "data": "2026-09-14"
+    }
+   ]
+  },
+  {
+   "id": "regulatorio-03",
+   "afirmacao": "Há decisão do TJ-SP (2ª instância) afastando proteção de direito autoral sobre questões elaboradas para exame/concurso, por falta de originalidade.",
+   "valor": "Apelação Cível nº 1112376-68.2021.8.26.0100 (TJ-SP)",
+   "unidade_ou_periodo": "acórdão citado em matéria de 08/04/2024 (Conjur) e reproduzido pelo IDS",
+   "observacao": "Não abri o acórdão original no site do TJ-SP (fora do orçamento de aberturas); a citação vem de veículo especializado (IDS) que reproduz trecho da decisão com número de processo — marcado como secundária.",
+   "confianca": "media",
+   "evidencias": [
+    {
+     "url": "https://ids.org.br/noticia/segundo-tjsp-questoes-de-prova-nao-estao-sujeitas-por-si-so-a-protecao-por-direito-autoral/",
+     "tipo": "imprensa",
+     "trecho": "\"as questões elaboradas pelas autoras para exame de certificação, singularmente consideradas, não possuem previsão legal específica de proteção como direito de autor\"",
+     "secundaria": true,
+     "data": "2026-09-14"
+    }
+   ]
+  },
+  {
+   "id": "regulatorio-04",
+   "afirmacao": "A Resolução CD/ANPD nº 2/2022 define quem é 'agente de tratamento de pequeno porte' para fins de LGPD.",
+   "valor": "Microempresas, empresas de pequeno porte, startups e pessoas jurídicas de direito privado (inclusive sem fins lucrativos) que tratam dados pessoais.",
+   "unidade_ou_periodo": "Resolução CD/ANPD nº 2, de 27/01/2022",
+   "observacao": "Aberta diretamente na página oficial gov.br/anpd.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "tipo": "oficial",
+     "trecho": "\"Microempresas, empresas de pequeno porte, startups, pessoas jurídicas de direito privado, inclusive sem fins lucrativos...que realizam tratamento de dados pessoais\"",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ]
+  },
+  {
+   "id": "regulatorio-05",
+   "afirmacao": "Agente de tratamento de pequeno porte (regime que provavelmente se aplica a um micro-SaaS iniciante) não é obrigado a indicar encarregado (DPO) e pode manter registro de operações em forma simplificada.",
+   "valor": "Dispensa de encarregado + registro simplificado (em vez do art. 37 da LGPD).",
+   "unidade_ou_periodo": "Resolução CD/ANPD nº 2/2022",
+   "observacao": "Mesma fonte oficial do regulatorio-04.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "tipo": "oficial",
+     "trecho": "\"Não são obrigados a indicar o encarregado\" — devem apenas disponibilizar canal de comunicação com titulares; podem usar \"forma simplificada\" de registro de operações.",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ]
+  },
+  {
+   "id": "regulatorio-06",
+   "afirmacao": "Agente de pequeno porte recebe prazo em dobro para responder a titulares de dados e comunicar incidentes de segurança à ANPD.",
+   "valor": "Prazo em dobro (vs. prazo padrão da LGPD).",
+   "unidade_ou_periodo": "Resolução CD/ANPD nº 2/2022",
+   "observacao": "Relevante se o produto (ex.: app com dados de humor/rotina de estudo) tratar usuário final como titular de dados e a empresa se qualificar como pequeno porte.",
+   "confianca": "alta",
+   "evidencias": [
+    {
+     "url": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-27-de-janeiro-de-2022",
+     "tipo": "oficial",
+     "trecho": "\"prazo em dobro\" para responder solicitações de titulares e comunicar incidentes de segurança.",
+     "secundaria": false,
+     "data": "2026-09-14"
+    }
+   ]
+  }
+ ],
+ "lacunas": [
+  "Art. 46 da Lei 9.610/1998 (limitações aos direitos autorais, ex.: citação para fins de estudo) — não verificado; Planalto (planalto.gov.br/ccivil_03/leis/l9610.htm) e Câmara (www2.camara.leg.br) recusaram a conexão do WebFetch (ECONNRESET) em 3 tentativas.",
+  "Art. 5º, inciso II da LGPD (definição literal de 'dado pessoal sensível') — WebSearch trouxe o teor, mas nenhuma abertura via WebFetch teve sucesso (Planalto: ECONNRESET x2; Câmara: HTTP 429; Jusbrasil: HTTP 403) dentro do orçamento de 12 aberturas; portanto não incluído como fato com URL aberta por mim, conforme a regra do trecho literal.",
+  "Se 'dado de humor/energia/rotina de estudo' se enquadra no rol taxativo do art. 5º II da LGPD (que fala em saúde, vida sexual, dado genético/biométrico, origem racial, convicção religiosa/política) — não verificado com fonte primária aberta; é uma questão de enquadramento que precisa de literal do dispositivo (ver lacuna anterior) e, idealmente, parecer/doutrina específica sobre apps de bem-estar/mentoria.",
+  "Termos de uso do Cebraspe sobre reprodução de provas/questões (ex.: extranet.cebraspe.org.br/policy/PoliticaPrivacidade... ou rodapé de cebraspe.org.br) — não abri via WebFetch; só há resumo de WebSearch (não conta como evidência pelas regras desta rodada).",
+  "Termos de uso/regulamento da FGV Conhecimento sobre reprodução de provas (art. 47 do Regulamento do Concurso citado em 'recomendacao-quanto-ao-material-versao-2.pdf') — o PDF foi aberto mas o WebFetch não conseguiu extrair o texto do artigo 47 (PDF com conteúdo comprimido/não extraível pela ferramenta).",
+  "Termos de uso do INEP sobre reprodução de questões do ENEM (cartilha do participante) — a abertura via WebFetch falhou (ECONNRESET); há apenas resumo de WebSearch, não usado como fato por não ser evidência válida.",
+  "Jurisprudência/doutrina específica sobre vedação a LLM gerar questões 'no estilo' de uma banca (marca registrada da banca no INPI, concorrência desleal) — a abertura do artigo do Conjur sobre 'registro de marca no INPI não basta para afastar concorrência desleal' retornou HTTP 403; não há fonte primária (INPI, STJ) aberta com sucesso sobre esse cenário específico (uso de nome/estilo de banca por produto de IA)."
+ ]
+}

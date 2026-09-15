@@ -1,0 +1,126 @@
+{
+ "buscas_feitas": [
+  "\"Estratégia Concursos\" reclamação plataforma cancelamento -site:institucional",
+  "Gran Cursos reclame aqui cancelamento assinatura",
+  "QConcursos app play store review 1 estrela travando",
+  "\"Tec Concursos\" OR \"Aprova Concursos\" review reclamação cobrança",
+  "site:reddit.com/r/concursospublicos plataforma ruim recomendação",
+  "concurseiro \"alguém sabe\" ferramenta cronograma estudos fórum ajuda",
+  "\"edital verticalizado\" planilha manual concurso reclamação demora",
+  "concurso público questões comentadas discursiva pedido ferramenta tabnews quora",
+  "\"corretor de discursiva\" OR \"corretor de redação para concursos\" vaga freelancer",
+  "\"monitor de concurso\" OR \"plano de estudos\" vaga Gupy OR Vagas.com OR LinkedIn concurseiro",
+  "workana OR 99freelas cronograma de estudos concurso planilha personalizado projeto",
+  "\"quero cancelar\" OR \"não recomendo\" curso online concurso reclame aqui G2 capterra"
+ ],
+ "candidatas": [
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/estrategia-concursos-nao-permite-cancelamento-dentro-de-7-dias-conforme-cdc_E2ex6gtwCYk0vwcx/",
+   "fonte": "reviews",
+   "por_que": "Relato literal de recusa de cancelamento dentro do prazo legal de 7 dias.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/estrategia-concursos/renovacao-automatica-indevida-e-dificuldade-de-cancelamento-na-assinatura-do-estrategia-concursos_76I1ajZqquolSB36/",
+   "fonte": "reviews",
+   "por_que": "Reclamação de renovação automática indevida e cancelamento difícil.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/multa-de-20-para-cancelar-a-assinatura_JP-MOm3sUsAdQGDD/",
+   "fonte": "reviews",
+   "por_que": "Relato de multa de 20% cobrada para cancelar assinatura.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/tentativa-de-cancelamento-de-assinatura-com-cobranca-de-taxa-editado-pelo-reclame-aqui-e-falta-de-resposta-dos-canais-de-atendimento_O4emBdDPG4iuh4vJ/",
+   "fonte": "reviews",
+   "por_que": "Cobrança de taxa para cancelar e canais de atendimento sem resposta.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://apps.apple.com/br/app/qconcursos/id1470271696?see-all=reviews&platform=iphone",
+   "fonte": "reviews",
+   "por_que": "Reviews de app com relatos de travamento, lentidão e erros ao abrir comentários de questões.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://play.google.com/store/apps/details?id=com.qconcursos.QCX&hl=en_US",
+   "fonte": "reviews",
+   "por_que": "Página de reviews do Google Play citada com relatos de app lento/travando após atualização.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/tec-concursos/tec-concursos-faz-propaganda-enganosa-sobre-cancelamento-e-cobra-indevidame_EykVz1DoUJv8ZUe5/",
+   "fonte": "reviews",
+   "por_que": "Relato de propaganda enganosa sobre cancelamento e cobrança indevida recorrente.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/tec-concursos/cobranca-indevida-e-dificuldade-de-cancelamento-te-concursos_8MwcDnrYYxs7yPOn/",
+   "fonte": "reviews",
+   "por_que": "Bugs no site que impedem cancelamento e geram nova cobrança.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/nao-recomendo_G_Z_EyJ8KYTZo2_4/",
+   "fonte": "reviews",
+   "por_que": "Cliente de assinatura ilimitada de 2-3 anos declara não recomendar a empresa após problema com pós-graduação.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/central-de-concursos/curso-online_ku1ivXIfLULz6oy-/",
+   "fonte": "reviews",
+   "por_que": "Relato literal: curso de qualidade ruim, pedido de reembolso, não recomenda.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/planilha-edital-verticalizado-para-concurso-472439",
+   "fonte": "trabalho-manual",
+   "por_que": "Projeto pedindo criação manual de planilha de edital verticalizado — trabalho repetitivo terceirizado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/criacao-de-planilha-em-excel-que-simule-um-cronograma-de-estudos-539113",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido de freelancer para criar planilha Excel personalizada de cronograma de estudos por matéria/dia.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.99freelas.com.br/project/planilha-do-google-sheets-para-cronograma-de-projeto-466284",
+   "fonte": "trabalho-manual",
+   "por_que": "Pedido de planilha Google Sheets tipo Gantt para cronograma — processo manual repetitivo encomendado.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://aprovatotal.com.br/corretor-de-redacao/",
+   "fonte": "trabalho-manual",
+   "por_que": "Página de recrutamento de corretores freelancer de redação/discursiva para concursos — vaga que revela processo manual de correção.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://redconcursos.com.br/",
+   "fonte": "trabalho-manual",
+   "por_que": "Serviço de correção manual de discursivas, peças técnicas e jurídicas por corretores especializados por banca.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://voceconcursado.com.br/correcao-de-redacao-discursiva-para-concursos-uma-correcao/",
+   "fonte": "trabalho-manual",
+   "por_que": "Oferta de correção avulsa de discursiva/redação — indica demanda por correção manual pontual.",
+   "bloqueada": false
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/grancurso-de-recusa-a-cancelar-compra-de-curso_dEkf-9Etjqrd0m65",
+   "fonte": "reviews",
+   "por_que": "Relato de recusa a cancelar compra de curso — prática abusiva de retenção.",
+   "bloqueada": true
+  },
+  {
+   "url": "https://www.reclameaqui.com.br/gran-cursos-online/pratica-abusiva_dyyk-HxDe0GSGIgZ/",
+   "fonte": "reviews",
+   "por_que": "Reclamação nomeada 'prática abusiva' sobre bloqueio de exclusão de cartão salvo para forçar retenção de pagamento.",
+   "bloqueada": true
+  }
+ ]
+}

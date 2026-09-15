@@ -1,0 +1,191 @@
+{
+ "vereditos": [
+  {
+   "id": "fontes-conhecimento-01",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma 4 conjuntos de dados abertos em JSON via APIs. Não foi possível confirmar neste fetch a menção específica a RSS em formato RDF Site Summary 1.0 (fora do escopo da pergunta feita)."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-02",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página confirma definição alinhada à OKFN: uso, reuso e redistribuição livres, com no máximo exigência de atribuição."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-03",
+   "evidencias": [
+    {
+     "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página confirma divulgação periódica de teses selecionadas por novidade/repercussão. Não foi verificado neste fetch, especificamente, o detalhe de assinatura de notificação automática nem download em PDF/RTF de compilados anuais."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-04",
+   "evidencias": [
+    {
+     "url": "https://dadosabertos.camara.leg.br/swagger/api.html",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma API RESTful documentada via Swagger, formatos json/xml/csv/xlsx/ods, e menção sistemática de 'Atualização diária' na maioria dos conjuntos."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-05",
+   "evidencias": [
+    {
+     "url": "https://www12.senado.leg.br/dados-abertos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma definição institucional; página não nomeia licença específica, apenas 'licença que permita sua livre utilização', exatamente como a afirmação descreve."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-06",
+   "evidencias": [
+    {
+     "url": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma CC-BY 4.0 como padrão desde 2015, com trecho sobre permissão de distribuir/remixar/adaptar mesmo para fins comerciais mediante atribuição."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-07",
+   "evidencias": [
+    {
+     "url": "https://www.joaolordelo.com/bibliografia-indicada",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma Pedro Lenza como recomendação geral em Direito Constitucional e Ricardo Alexandre em Direito Administrativo. Não foi verificado neste fetch o restante da lista (Bernardo Gonçalves, Dirley da Cunha, Marcelo Novelino, Nathalia Masson, Matheus Carvalho, José dos Santos Carvalho Filho, Harrison Leite, Tathiane Piscitelli) — fonte é terceiro (site de curso), não órgão oficial."
+    }
+   ],
+   "sustentado": true,
+   "correcao": "Sustentado apenas para os dois autores efetivamente conferidos (Lenza e Ricardo Alexandre); os demais nomes da lista não foram verificados nesta rodada e não devem ser tratados como confirmados."
+  },
+  {
+   "id": "fontes-conhecimento-08",
+   "evidencias": [
+    {
+     "url": "https://www.stj.jus.br/sites/portalp/Precedentes/informacoes-gerais/recursos-repetitivos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página cita art. 1.036 do CPC (Lei 13.105/2015) para teses repetitivas, mesmo sentido da afirmação (recurso repetitivo = grupo de recursos com tese idêntica, tese aplicável fixada pelo STJ)."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-01",
+   "evidencias": [],
+   "sustentado": false,
+   "correcao": "Sem evidências fornecidas (array vazio) — condiz com o próprio texto do item, que já se declara 'não verificado'. Nenhuma verificação adicional foi feita nesta rodada por falta de URL."
+  },
+  {
+   "id": "fontes-conhecimento-fonte-02",
+   "evidencias": [
+    {
+     "url": "https://projeto.lexml.gov.br/transparencia/dados-abertos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma a parte sobre licença (uso/reuso/redistribuição livres com atribuição). O número de ~1,2 milhão de documentos, citado como não confirmado por WebFetch no próprio item, não foi verificado nesta rodada (não constava evidência para esse dado específico)."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-03",
+   "evidencias": [],
+   "sustentado": false,
+   "correcao": "Sem evidências fornecidas (array vazio) — condiz com o próprio texto do item, que já se declara 'não verificado'. Nenhuma verificação adicional foi feita nesta rodada por falta de URL."
+  },
+  {
+   "id": "fontes-conhecimento-fonte-04",
+   "evidencias": [
+    {
+     "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma o conteúdo do Informativo (divulgação periódica de teses por novidade/repercussão). A afirmação central do item ('licença de reuso não explicitada') não é algo a ser confirmado por trecho positivo — é ausência de menção, coerente com o que a página mostra (nenhuma cláusula de licença aparece no conteúdo capturado)."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-05",
+   "evidencias": [
+    {
+     "url": "https://dadosabertos.camara.leg.br/swagger/api.html",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Página confirma a documentação da API RESTful. Quanto à ausência de licença explícita nesta página específica, é consistente com o conteúdo (a página é documentação técnica de Swagger, não uma página de termos de uso)."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-06",
+   "evidencias": [
+    {
+     "url": "https://www12.senado.leg.br/dados-abertos",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma menção genérica a 'livre utilização' sem nomear licença específica, exatamente como o item descreve."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-07",
+   "evidencias": [
+    {
+     "url": "https://www.scielo.org/pt-br/sobre-o-scielo/declaracao-de-acesso-aberto/",
+     "abre": true,
+     "trecho_confere": true,
+     "observacao": "Confirma CC-BY 4.0 como padrão desde 2015."
+    }
+   ],
+   "sustentado": true,
+   "correcao": ""
+  },
+  {
+   "id": "fontes-conhecimento-fonte-08",
+   "evidencias": [],
+   "sustentado": false,
+   "correcao": "Sem evidências fornecidas (array vazio) — condiz com o próprio texto do item, que já se declara 'não verificado'. Nenhuma verificação adicional foi feita nesta rodada por falta de URL."
+  }
+ ]
+}

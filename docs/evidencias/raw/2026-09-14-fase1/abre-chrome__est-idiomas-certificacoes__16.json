@@ -1,0 +1,42 @@
+{
+ "paginas": [
+  {
+   "url": "https://www.reclameaqui.com.br/empresa/mastertest/lista-reclamacoes/?pagina=1",
+   "abriu": true,
+   "como": "chrome",
+   "observacao": "Página de listagem de reclamações contra MASTERTEST (plataforma de simulados para certificações). Conteúdo carregou com múltiplas reclamações de usuários.",
+   "trechos": [
+    {
+     "trecho": "Contratei a aplicação da prova de proficiência em inglês TOEFL Home Edition, oferecida pela empresa ETS (Educational Testing Service), por meio da plataforma MASTERTEST.",
+     "contexto": "Primeira reclamação da lista — título: 'Prova TOEFL Home Edition não realizada por falha técnica e recusa de reembolso'",
+     "data": "Há 1 ano",
+     "autor": "Não identificado — status Não respondida"
+    },
+    {
+     "trecho": "Eu adquiri um teste de nivelamento de inglês, eu tive problemas na internet aqui de casa e a página do mastertest buguou e perdeu minhas respostas.",
+     "contexto": "Segunda reclamação — problema técnico causado por falha na página durante a realização do teste",
+     "data": "Há 5 meses",
+     "autor": "Não identificado — status Não respondida"
+    },
+    {
+     "trecho": "Solicitei a 2a via do meu Score Report e fui informada que tão logo o pagamento via PIX fosse efetua[do] eu receberia.",
+     "contexto": "Reclamação 'Cobrança e Não recebimento de Score Report após pagamento via PIX' — tarefa manual repetitiva de reemissão de documento",
+     "data": "Não especificada",
+     "autor": "Não identificado — status Não respondida"
+    },
+    {
+     "trecho": "Não entrega o que promete e tem um péssimo suporte ao cliente",
+     "contexto": "Título de reclamação genérica sobre promessas não cumpridas e atendimento deficiente",
+     "data": "Há 2 anos",
+     "autor": "Não identificado — status Não respondida"
+    },
+    {
+     "trecho": "Descaso com o cliente",
+     "contexto": "Reclamação sobre falta de resposta e negligência no atendimento ao consumidor",
+     "data": "Não especificada",
+     "autor": "Não identificado — status Não respondida"
+    }
+   ]
+  }
+ ]
+}

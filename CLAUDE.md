@@ -14,7 +14,7 @@ Dono: Vinicius — Senior AI Engineer (~13 anos de software, ~5 em IA generativa
 5. **Poucos arquivos bons.** Todo arquivo começa com cabeçalho de 2 linhas: o que é / quando ler. Nada nasce como stub (ADR-0010).
 6. **Fim de fase = commit** com mensagem descritiva + resumo curto para o dono. Fase seguinte só com confirmação dele.
 7. **O que não der para fazer vai para `docs/PENDENCIAS.md`.** Nunca improvisar no lugar.
-8. **Reutilize antes de criar.** Primeiro a fábrica, depois recursos externos (instalar, ler, testar, veredito em `docs/DECISOES.md` com licença preservada), só então do zero. Skills novas nascem pelo `skill-creator` e precisam funcionar num modelo menor.
+8. **Reutilize antes de criar.** Primeiro a fábrica, depois recursos externos (instalar, ler, testar, veredito em `docs/DECISOES.md` com licença preservada), só então do zero. Skills novas nascem pelo ciclo da `superpowers:writing-skills` (baseline sem a skill → escrever → reexecutar num modelo menor; ADR-0014) e precisam funcionar num modelo menor.
 9. **Fatias verticais.** Cada incremento atravessa domínio → agente → API → front → teste. Nada de "primeiro todo o backend".
 10. **Surgical diffs** em código existente; arquivo inteiro só quando novo.
 11. **Nada gerado chega ao aluno sem validação; toda afirmação jurídica tem fonte; previsão sempre com intervalo.** São regras de produto (visão §4) e valem para o código que as implementa.
@@ -25,7 +25,7 @@ Dono: Vinicius — Senior AI Engineer (~13 anos de software, ~5 em IA generativa
 |---|---|---|
 | 0 — Setup, visão e perguntas | `CLAUDE.md`, `docs/00-visao.md`, `docs/DECISOES.md` (ADR-0001…0010), `docs/PENDENCIAS.md` | **entregue em 14/09/2026** |
 | 1 — Deep research | `docs/01-pesquisa-mercado.md` (rodada `wf_09928095-f09` + síntese em sessão; raw em `docs/evidencias/raw/2026-09-14-fase1/`) | **entregue em 14/09/2026 — aguarda decisão do dono no portão (exame inicial, provisório até P-11)** |
-| 2 — Produto (PRD) | `docs/02-produto.md`, skill `avaliador-de-feature` | não iniciada |
+| 2 — Produto (PRD) | `docs/02-produto.md`, skill `.claude/skills/avaliador-de-feature/` (testada com Haiku, ADR-0014) | **entregue em 14/09/2026** |
 | 3 — Arquitetura e dados | `docs/03-arquitetura.md`, `04-modelo-de-dados.md`, `06-custos.md`, `RISCOS.md`, ADRs de stack/front/mobile/gateway/deploy | não iniciada |
 | 4 — Skills e subagents | `.claude/skills/*`, `.claude/agents/*`, decisão subagents vs teams | não iniciada |
 | 5 — MVP em fatias verticais | `backend/`, `web/`, `adapters/concursos/`, `knowledge/`, `eval/` (13 fatias, spec §17) | não iniciada |
@@ -54,5 +54,5 @@ docs/HANDOFF.md                                                                 
 1. Abra o Claude Code **dentro desta pasta**, com a fábrica anexada:
    `cd ~/PycharmProjects/aprovaos && claude --add-dir ~/PycharmProjects/fabrica-saas`
 2. Leia, nesta ordem: `docs/HANDOFF.md` (quando existir) → `docs/PENDENCIAS.md` → `docs/00-visao.md` → `docs/DECISOES.md` → a fase em andamento no `PROMPT-aprovaos.md`. A spec inteira antes de qualquer fase que toque produto ou arquitetura.
-3. **Estado em 14/09/2026:** Fases 0 e 1 entregues. Houve uma rodada de mockups + entrevista com usuária-alvo (`docs/evidencias/2026-09-14-entrevista-linda.md`, `-aprendizados-mockups.md`, `mockups/`). Próximo passo: o dono decide no portão da Fase 1 (exame inicial; a recomendação é concursos Cebraspe+FGV, provisória até P-11); depois **P-11 com navegador** e abertura da **Fase 2** com as perguntas em lote (inclui P-05 skill-creator, P-09 sugestões da entrevista, P-14).
+3. **Estado em 14/09/2026:** Fases 0, 1 e 2 entregues. Houve uma rodada de mockups + entrevista com usuária-alvo (`docs/evidencias/2026-09-14-entrevista-linda.md`, `-aprendizados-mockups.md`, `mockups/`). Próximo passo: o dono decide no portão da Fase 1 (exame inicial; a recomendação é concursos Cebraspe+FGV, provisória até P-11); depois **P-11 com navegador** e abertura da **Fase 2** com as perguntas em lote (inclui P-05 skill-creator, P-09 sugestões da entrevista, P-14).
 4. Nenhuma fase começa antes de o dono confirmar a anterior.

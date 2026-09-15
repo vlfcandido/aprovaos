@@ -1,0 +1,157 @@
+# Produto — PRD do MVP
+> O que é: o que o AprovaOS entrega na primeira versão e por quê — personas dos dois lados, jornadas, a cunha em cinco features com critérios de aceite, o que fica explicitamente de fora, preço, o piloto com a usuária real e como chegar aos 10 primeiros pagantes de cada lado; no fim, a avaliação de tudo que estava na ideia original com a skill `avaliador-de-feature`, que ordena o roadmap pós-MVP. Quando ler: antes de qualquer decisão de arquitetura (Fase 3) ou de escopo de fatia (Fase 5); sempre que alguém propuser uma feature.
+
+Fontes: `SPEC-aprovaos.md` (v0.1), `docs/00-visao.md`, `docs/01-pesquisa-mercado.md`, `docs/evidencias/2026-09-14-entrevista-linda.md`, `-aprendizados-mockups.md`, `-p11-provas-cebraspe-fgv.md`, ADRs 0011–0016. Decisões do dono na abertura da Fase 2 (14/09/2026): cunha reempacotada em 5 features com o que a usuária pediu; Pro a R$ 59; piloto com a Linda antes de abrir.
+
+## 1. Personas
+
+### Lado A — quem estuda (MVP)
+| id | persona | contexto | dor principal (evidência) | o que compra |
+|---|---|---|---|---|
+| **A1 — concurseira que trabalha** (piloto: Linda) | 25–40 anos, 2–4 h/dia reais, notebook em bloco fixo, banco de questões + ChatGPT | **Esquecer o que já estudou** — descobre errando questão de tema antigo, reabrindo o material e no simulado; nunca teve revisão estruturada (entrevista, rodadas 1–2). Irrita-se quando a IA inventa lei ou questão "no estilo" que não é o estilo. | "Me fazer lembrar" + não perder tempo decidindo o que estudar. Pagaria R$ 49 "barato". |
+| **A2 — dedicação total** | 20–35 anos, 6–8 h/dia, já em platô | Não sabe se está na curva de aprovação; repete o que gosta (spec §2) | Previsão honesta, padrões de erro, semana da prova |
+| A3 ENEM · A4 OAB/residência | — | — | adapters de fase 2 (ADR-0012: OAB primeiro) |
+
+**O que as duas personas exigem como básico** (sem isso não testam): edital verticalizado com o que já cobriu e acerto por tópico; questões **originais** da banca com órgão, ano e item; estatística por matéria.
+
+### Lado B — quem ensina (fase 2 do produto)
+| id | persona | dor (evidência) | o que compra |
+|---|---|---|---|
+| **B1 — professor autônomo / criador** | corrigir discursiva e produzir material consome o tempo todo; correção de redação/discursiva em massa hoje é freelancer a R$ 3–20/peça (gap est-piloto-02) | corretor em lote no padrão da banca, gerador de questões, publicar trilha própria |
+| **B2 — cursinho pequeno / coordenador** | "não sabe quem vai reprovar até reprovar" (spec §2); cronograma automático dos grandes "só atrapalha" (est-piloto-05) | dashboard de risco por aluno; white-label |
+
+## 2. Jornadas
+
+**J1 — Chegada (dia 0, ≤ 20 min).** Radar/catálogo → escolhe o concurso (ou sobe edital) → DNA já pronto (peso, estilo, corte) e edital verticalizado zerado → diagnóstico adaptativo (≤ 30 itens) → rotina (horas por dia da semana, horário, energia, data-alvo) → primeiro plano gerado na hora, com o porquê de cada bloco. Métrica: ativação (diagnóstico concluído / cadastro) ≥ 60 %.
+
+**J2 — Dia típico (todo dia).** 05h job gera o `PlanoDia` → check-in de 30 s (energia, sono, tempo real) → plano reajustado, pode recomendar descanso → blocos: aula (texto/áudio/leiga, com fio da memória), questões originais no padrão da banca (com intercalação de tema antigo), revisão FSRS (cartões criados sozinhos das questões erradas) → cada ação vira `EventoEstudo` → painel atualiza → à noite o calibrador consome. Pular/trocar bloco em um toque, com impacto explicado. Aviso discreto quando trava ou sai da aba. Métricas: conclusão do plano ≥ 50 % dos dias ativos; ≥ 4 sessões/semana.
+
+**J3 — Estou na curva? (semanal).** Painel: curva atual × necessária, padrões de erro com n mínimo, previsão com intervalo e confiança; alerta proativo (≤ 1/dia) com ajuste concreto; resumo cumulativo da semana (fio da memória).
+
+**J4 — Semana da prova (D−7).** Modo básico: geração desligada, revisão cirúrgica, descanso programado, check-in com sono.
+
+**J5 — Pagar e sair.** Free → Pro com Pix ou cartão em uma tela; anual com desconto; cancelar em um clique, sem e-mail nem chat (gap est-piloto-04 vira argumento); exportar/excluir dados (LGPD).
+
+**J6 — Professor (fase 2).** Sobe 40 discursivas → corrigidas no padrão da banca com espelho → revisa 10 % → devolve; publica trilha para os alunos dele; vê risco por aluno.
+
+## 3. A cunha — cinco features, com critérios de aceite
+
+Convenção: `RF-xx` = spec §5; `S-xx` = sugestão da entrevista; CA = critério de aceite (verificável por teste ou medição). "Pro" marca o que fica atrás do plano pago.
+
+### F1 · Editais, radar e DNA (onboarding)
+O concurso chega até a aluna; ela escolhe o que estudar e vê o edital aberto tópico a tópico.
+- **F1.1 Radar de editais** (RF-24 com UI): o `coletor` lê a **API JSON da Cebraspe** por fase (`/eventos/tipo/concursos/fase/{fase}`) e o **RSS da FGV Conhecimento** a cada 6 h; catálogo mostra órgão, cargo, banca, inscrições, prova, vagas, estado do DNA e "combina com o perfil". CA: edital novo na Cebraspe aparece no catálogo em ≤ 12 h; teste com fixture da API; FGV coletada sem login e com user-agent identificado (risco P-13).
+- **F1.2 Alerta por perfil**: área, nível, bancas, UF, salário mínimo → e-mail/push quando sair edital que combine. CA: alerta ≤ 1/dia; desligável.
+- **F1.3 Meus concursos**: principal + acompanhando; dividir plano N/M (aviso do impacto na projeção). CA: só um principal; o plano do dia segue o principal.
+- **F1.4 DNA do concurso** (RF-03): peso real por matéria/tópico, incidência por prova, estilo da banca (C/E com regra de anulação **lida do edital**; FGV A–E), pegadinhas típicas com prova/ano, corte histórico. CA: cada afirmação aponta prova/ano ou edital; formato `DnaConcurso`; pré-gerado para os concursos do catálogo com ≥ 3 provas públicas.
+- **F1.5 Subir edital em PDF** (RF-02): DNA em ≤ 10 min ou motivo da falha. CA: pipeline visível (analista → pesquisador → gerador → validador) com status.
+- **F1.6 Edital verticalizado** (S-03, table stakes): lista de tópicos do edital × status (não visto / em andamento / visto) × acerto × itens feitos; cobertura N de M. CA: deriva de `EventoEstudo`, recalculado por evento; 118 tópicos carregam em < 1 s.
+
+### F2 · Diagnóstico e rotina
+- **F2.1 Simulado adaptativo** (RF-04): ≤ 30 itens originais da banca, escolhidos pelo que reduz a incerteza; termina quando todas as matérias ≤ ±8; mostra "por que este item". CA: proficiência por matéria com margem; reprodutível em teste com seed.
+- **F2.2 Rotina** (RF-05/06): horas por dia da semana (editável em clique), horário, energia típica, data-alvo; perfil versionado. CA: mudança gera evento e muda o plano do dia seguinte.
+
+### F3 · Plano vivo
+- **F3.1 Job noturno** (RF-07): até 05h local, por usuário ativo, com justificativa legível por bloco. CA: falha de um usuário não derruba o lote; log por usuário.
+- **F3.2 Check-in** (RF-08): energia (1–5), sono, tempo real → reajuste em < 5 s; pode recomendar descanso; mostra os blocos que saem/entram. CA: regras testadas (energia ≤ 2 ou sono < 5 h → só revisão leve).
+- **F3.3 Porquê + discordar** (visão §4): todo bloco e todo alerta têm o porquê; "Discordar" pergunta o motivo (4 opções) e o agente responde com o reajuste. CA: nenhuma decisão do agente sem campo `porque`; teste de contrato.
+- **F3.4 Pular/trocar/iniciar/concluir** (RF-09): registra evento, explica impacto, recalcula; cronômetro por bloco. CA: pular não quebra o plano; impacto em ≤ 1 frase.
+- **F3.5 Alerta proativo** (RF-10): ≤ 1/dia, sempre com ajuste proposto. CA: contador diário.
+- **F3.6 Aviso discreto de distração** (S-05): tempo no item > limiar ou saída de aba → aviso sem bloqueio; grava evento `distracao`. CA: só no cliente; desligável.
+
+### F4 · Conteúdo e memória
+- **F4.1 Questão original da banca** (RF-11, S-04): servida da base validada com **órgão, cargo, ano, número do item, gabarito oficial** e link para a prova; "inédita validada" só quando não há original, marcada. Justificativa dos dois lados; "certeza/dúvida" antes de marcar; estatística de líquidos. CA: taxa de reporte de erro < 2 %; nada gerado na hora.
+- **F4.2 Aula do dia** (RF-12): texto denso + versão leiga; **áudio = Pro**; toda afirmação de lei é referência resolvível (popover com texto literal e fonte); citações visíveis; regenerada quando o dossiê muda. CA: 100 % das citações resolvem para dispositivo indexado; DeepEval de fidelidade às fontes.
+- **F4.3 Revisão espaçada** (RF-13): FSRS; cartão criado sozinho de toda questão errada (a aluna pode editar/apagar); vencidos entram no plano. CA: agenda persiste; intervalos por rating auditáveis.
+- **F4.4 Fio da memória** (S-01), três mecanismos: (a) aula cita o tópico anterior relacionado com trecho e "você acertou X de Y na época"; (b) bloco de questões intercala 3 itens de temas já vistos; (c) resumo cumulativo semanal (sábado). CA: (a) e (b) só usam tópicos já estudados pela aluna; (c) ≤ 1 tela; os três derivam do grafo do Motor + histórico.
+- **F4.5 Mnemônicos** (S-02): por tópico: consagrado (com origem) → gerado e validado → o da aluna (substitui os outros na aula e no cartão). CA: gerado passa pelo validador; o dela nunca é sobrescrito.
+- **F4.6 Grifos e anotações** (pedido do dono): seleção → grifo/nota, por conteúdo e versão, reancorado pelo texto quando o conteúdo muda; lista por aula; anotação livre. CA: sobrevive à regeneração do dossiê ou avisa que o trecho mudou.
+- **F4.7 Resumo denso** (RF-14) e **reportar erro** (RF-15) com status visível.
+
+### F5 · Painel, previsão e semana da prova
+- **F5.1 Curva atual × necessária** (RF-16), recalculada por evento; simulador "+ minutos/dia" chama a mesma função da previsão. CA: função pura testada.
+- **F5.2 Padrões de erro** (RF-17): tópico × horário × energia × "certeza que virou erro"; só com n ≥ 30. CA: nunca exibe padrão abaixo do n.
+- **F5.3 Previsão v0** (RF-18): proficiência × peso × corte histórico; intervalo de 80 % e confiança baixa/média/alta por semanas de dado. CA: nunca sem intervalo.
+- **F5.4 Semana da prova básica** (RF-19): D−7 liga o modo; geração desligada; check-in inclui sono.
+
+### Condição de lançamento (não é feature da aluna)
+Conta (e-mail+senha, Google), tenant PF, **Free/Pro com Pix e cartão**, upgrade/downgrade/cancelamento self-service em um clique, exportar/excluir dados (RF-20…23). Boleto fora (visão §6).
+
+## 4. Fora de escopo do MVP (explícito)
+Lado B inteiro (F6+); segundo exame (OAB, ADR-0012, fase 2); social (ranking, grupos, batalhas); marketplace; white-label; integrações (Calendar, Anki, Notion, importar Qconcursos); app nas lojas (ADR-0013); mentor humano/Elite; semana da prova avançada (sono, ansiedade); previsão v1; áudio no Free; discursivas corrigidas para o aluno (fica para quando o corretor do lado B existir); "cole o edital → cronograma" como pitch (é o dos IA-first — o nosso é memória + resultado acompanhado). **Para sempre:** ingerir material de terceiros, prometer aprovação, diagnóstico psicológico, vender dados.
+
+## 5. Preço e limites por tier (ADR-0015)
+| | Free | Pro — R$ 59/mês · R$ 490/ano | Elite (fase 3) |
+|---|---|---|---|
+| Radar, DNA, edital verticalizado | 1 concurso | 3 concursos (1 principal) | — |
+| Diagnóstico e rotina | sim | sim | — |
+| Plano vivo + check-in | plano básico (sem reajuste por energia; porquê sim) | completo | — |
+| Questões originais | 20/dia | sem limite (uso justo: 300/dia) | — |
+| Aula | texto denso | texto + leiga + **áudio** | — |
+| Memória (FSRS, fio, mnemônicos, grifos) | FSRS + grifos | tudo | — |
+| Painel | curva atual | curva + padrões + previsão + alertas | — |
+| Semana da prova | — | sim | — |
+| Orçamento LLM/usuário/mês | ≤ R$ 3 (modelo barato, cache) | ≤ R$ 14,75 (25 % do preço) | alto |
+| Regra | no limite, degrada o modelo; nunca corta a sessão. Cancelar em um clique. Pix e cartão. | | |
+
+## 6. Piloto com a usuária real (ADR-0016) e os 10 primeiros pagantes
+
+**Piloto (n = 1, Linda).** Começa quando as fatias 1–9 da Fase 5 estiverem no ar (conta, Motor v0 com o concurso dela, DNA, dossiês, questões validadas, aulas, diagnóstico, plano + check-in, questões servidas + FSRS). Duração mínima: **3 semanas com ≥ 15 dias ativos**. O que ela faz: estuda de verdade para o concurso dela; reporta erro em qualquer conteúdo (fila do calibrador); responde 5 perguntas por semana (o mesmo formato da entrevista). O que o produto faz: grava tudo como evento; o dono não corrige "na mão" — corrige o pipeline.
+**Critérios de saída do piloto (todos):** (1) ≥ 4 sessões/semana nas últimas 2 semanas; (2) plano concluído em ≥ 50 % dos dias ativos; (3) reporte de erro < 2 % das questões respondidas e zero afirmação de lei sem fonte encontrada por ela; (4) ela explica o porquê de 3 decisões do agente sem ajuda; (5) zero bug bloqueante por 7 dias; (6) ela diz que continuaria sem o Vinicius por perto. Se (1) ou (2) falharem por 2 semanas seguidas, a causa vira a próxima fatia, não uma feature nova.
+
+**10 primeiros pagantes do lado A (após o piloto).** Convite direto a 20–30 concurseiros de controle/TCU do círculo dela e de grupos de Telegram/WhatsApp, com Pro grátis por 30 dias e onboarding acompanhado (uma chamada de 20 min); converter ≥ 10 ao fim dos 30 dias com Pix anual (R$ 490) ou mensal. Métrica de corte da visão §9 conta a partir daqui (D+30 / D+60). SEO programático (pesquisa §8) começa em paralelo, sem depender dele.
+
+**10 primeiros pagantes do lado B (fase 2 do produto, após tração no A).** Os alunos indicam quem os ensina; 3 professores autônomos recebem o corretor de discursivas em lote grátis por 30 dias (dor medida: R$ 3–20 por peça no mercado de freelancer); meta 10 assentos pagos em 60 dias; cursinhos pequenos entram pelo dashboard de risco só depois.
+
+## 7. Métricas (visão §9, sem alteração) + métricas do piloto
+Ativação ≥ 60 % · conclusão do plano ≥ 50 % · ≥ 4 sessões/semana · D7 ≥ 40 % / D30 ≥ 20 % · Free→Pro ≥ 3 % · LLM ≤ 25 % do preço · reporte de erro < 2 % · NPS 14 dias ≥ 40. Piloto: os critérios de saída da §6. Portões D+30/D+60 valem da abertura pública.
+
+## 8. Avaliação de tudo que estava na ideia original (skill `avaliador-de-feature`)
+Escala: aderência 0–3 · evidência 0–3 · construir P/M/G/GG (4/16/42/80 h no meio da faixa) · operar em R$ LLM/usuário Pro/mês (teto R$ 14,75) · score = (aderência + evidência) ÷ horas. Evidência: E = entrevista (rodada), P = pesquisa (§), G = gap `est-*`, V = visão §6 já decidiu.
+
+| mecanismo | ader. | evid. | construir | operar | risco | depende de | concorrente já faz? | veredito | mudaria se | score |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Edital verticalizado (F1.6) | 1 | 3 (E4 "básico") | P 6 h | zero | nenhum | DNA + eventos | sim: Deltinha grátis, Gran (P§8) — aqui deriva do que ela fez | **MVP** (table stakes) | — | 0,67 |
+| Questão original com origem (F4.1) | 3 | 3 (E5 "falta") | M 20 h (curador + UI) | zero na entrega; geração da base é lote | jurídico FGV (P-13) | Motor fatia 2 | sim: bancos de questões — aqui integrada ao plano | **MVP** | — | 0,38 |
+| Cartão automático de erro + FSRS (F4.3) | 3 | 3 (E3 "me fazer lembrar"; G est-piloto-01) | M 16 h | zero | nenhum | questões servidas | Anki (manual); Gran/Estratégia sem FSRS integrado | **MVP** | — | 0,38 |
+| Fio da memória (b) intercalar 3 itens antigos (F4.4b) | 3 | 3 (E4–5, [livre]) | P 8 h | zero | nenhum | FSRS + grafo | não encontrado | **MVP** | — | 0,75 |
+| Fio da memória (a) aula cita tópico anterior (F4.4a) | 3 | 3 | M 16 h (grafo + prompt + validador) | ≈ R$ 0,60 (1 chamada/aula, cache por par de tópicos) | qualidade (validador) | dossiês + grafo | não encontrado | **MVP** | — | 0,38 |
+| Fio da memória (c) resumo cumulativo semanal (F4.4c) | 2 | 3 | M 12 h | ≈ R$ 0,80 (1 chamada/semana) | qualidade | (a) | não encontrado | **MVP** | se o piloto não abrir o resumo em 2 semanas → pós-MVP | 0,42 |
+| Porquê + discordar em toda decisão (F3.3) | 3 | 3 (E4 "se explicar bem, eu aceito") | M 12 h | ≈ R$ 1 (resposta ao discordar) | nenhum | planejador | Concursa.ai "reajusta" sem porquê (P§6) | **MVP** | — | 0,50 |
+| Check-in com energia/sono/tempo (F3.2) | 3 | 2 (E não marcou celular/áudio; pediu plano explicável) | M 12 h | zero (regras) | LGPD: energia/sono tangencia saúde → consentimento separado (P-13) | plano | não | **MVP** | — | 0,42 |
+| Aviso discreto de distração (F3.6) | 2 | 2 (E1, E4) | P 4 h | zero | nenhum | questões | não | **MVP** | irrita > 30 % → opt-in | 1,00 |
+| Mnemônicos 3 modos (F4.5) | 2 | 2 (E1, E4) | M 12 h | ≈ R$ 0,30 (1 chamada/tópico, cache global) | qualidade (validador) | dossiês | não integrado | **MVP** | — | 0,33 |
+| Grifos e anotações por conteúdo (F4.6) | 1 | 2 (dono; usuária não pediu) | M 14 h (`Anotacao` + reancoragem) | zero | nenhum | conteúdo versionado | Qconcursos tem cadernos, não grifo em aula | **MVP** (dono) | se ninguém grifar no piloto → pós-MVP | 0,21 |
+| Popover de artigo/termo (F4.2) | 2 | 1 (P: irrita IA que inventa lei) | M 18 h (índice de dispositivos) | zero (índice pré-gerado) | jurídico: texto de lei é livre (P§9) | LexML/Planalto | não | **MVP** | — | 0,17 |
+| Radar de editais por API/RSS (F1.1) | 2 | 3 (dono viu falta; E: edital básico) | M 16 h | zero | FGV termos (P-13) | Cebraspe API, FGV RSS | PCI/agregadores fazem catálogo; sem DNA | **MVP** | — | 0,31 |
+| Subir edital em PDF → DNA (F1.5) | 2 | 1 (P§6: IA-first vendem isso) | G 30 h (pipeline completo) | ≈ R$ 3 por edital (lote, não por usuário) | qualidade | Motor completo | sim: MisterConcursos, Clipping.ai | **MVP reduzido**: só concursos do catálogo no piloto; PDF avulso na fatia 13 | — | 0,10 |
+| Aula em áudio (F4.2 Pro) | 1 | 0 (E não marcou áudio) | M 10 h (TTS) | ≈ R$ 2 (TTS por aula, cache) | nenhum | aula | Gran (audiobook via MAIA) | **MVP como Pro**, gerado sob demanda | se < 10 % das aulas ouvidas no piloto → pós-MVP | 0,10 |
+| Versão leiga da aula | 1 | 0 | P 6 h | ≈ R$ 0,40 | qualidade | aula | não | **MVP** (barata) | idem | 0,17 |
+| Previsão v0 com intervalo (F5.3) | 3 | 1 (E não escolheu "saber se estou perto"; P: ninguém mostra) | M 16 h | zero (função) | qualidade: nunca sem intervalo | eventos + DNA | MisterConcursos anuncia "previsão de aprovação" (P§6) | **MVP** | — | 0,25 |
+| Padrões de erro com n mínimo (F5.2) | 3 | 1 | M 12 h | zero | LGPD (cruza energia) | eventos | não | **MVP** | — | 0,33 |
+| Semana da prova básica (F5.4) | 2 | 1 | P 8 h | zero | nenhum | plano | não | **MVP** | — | 0,38 |
+| Simulador "+ min/dia" no painel | 2 | 0 (dono gostou no protótipo) | P 4 h | zero | nenhum | previsão | não | **MVP** (custo P) | — | 0,50 |
+| Billing Pix + cartão, cancelar em 1 clique | 1 | 1 (G est-piloto-04) | M 20 h | zero | gateway sem CNPJ (P-02) | template | todos, mal | **MVP** (condição de lançamento) | — | 0,10 |
+| Boleto | 0 | 0 | P | zero | — | — | — | **nunca** (visão §6) | — | 0 |
+| Corretor de discursivas em lote (B, RF-31) | 2 | 1 (G est-piloto-02: R$ 3–20/peça) | G 40 h | R$ 0,50/peça (cobrado por uso) | qualidade; jurídico (espelho da banca) | validador + DNA | Estratégia (humano) | **pós-MVP (fase 2)** — primeiro do lado B | — | 0,07 |
+| Gerador para professor (RF-32) | 2 | 0 | G 30 h | por uso | qualidade | gerador | Clipping.ai para aluno | pós-MVP (fase 2) | — | 0,05 |
+| Publicar trilha própria (RF-33) | 2 | 0 | G 40 h | zero | jurídico (material do professor) | montador de trilha | Hotmart genérico | pós-MVP (fase 2) | — | 0,05 |
+| Dashboard de risco por turma (RF-34) | 2 | 1 (spec B2) | G 30 h | zero | LGPD (dados de alunos a terceiro) | previsão | não | pós-MVP (fase 2) | — | 0,07 |
+| Validação humana paga (RF-35) | 2 | 0 | M | — | — | fila do calibrador | — | pós-MVP (fase 2) | — | 0,12 |
+| Adapter OAB (ADR-0012) | 2 | 1 (P§12: 47 provas, mesma banca) | G 40 h | lote | titularidade OAB (P-13) | adapter `concursos/` | cursinhos OAB | **pós-MVP (fase 2)** — antes do lado B se o A tracionar | — | 0,07 |
+| Adapter ENEM | 2 | 0 | G 50 h | lote | **CC BY-ND** (P§3) | — | portais grátis | pós-MVP (fase 2+) | licença resolvida | 0,04 |
+| Ranking / batalhas / grupos | 1 | 0 | G 40 h | zero | LGPD | tenant | Qconcursos (ranking) | pós-MVP (fase 3) | evidência 3 nova | 0,02 |
+| Integrações (Calendar, Anki, Notion, importar Qconcursos) | 1 | 0 | G | zero | termos Qconcursos (P§3: anti-robô) | API pública | — | pós-MVP (fase 3) | — | 0,02 |
+| Marketplace com revenue share · white-label | 2 | 0 | GG | — | fiscal/CNPJ | lado B | — | pós-MVP (fase 3) | — | 0,03 |
+| Mentor humano (Elite) | 1 | 0 | M (ops) | — | — | — | Estratégia Platinum | pós-MVP (fase 3) | — | 0,06 |
+| Semana da prova avançada (sono, ansiedade) | 1 | 0 | M | ≈ R$ 1 | **LGPD sensível (saúde)** | check-in | — | pós-MVP (fase 3) | — | 0,06 |
+| App nativo | 0 (contraria "web primeiro") | 0 (E: notebook) | GG 80 h | zero (sem LLM) | qualidade (Estratégia 1,4★) | PWA medida | Qconcursos 4,9★ | **pós-MVP (fase 3)**, gatilho ADR-0013 | D30 com/sem PWA | 0 |
+| Pós-aprovação · escada de concursos | 1 | 0 | M | — | — | — | — | pós-MVP (fase 3) | — | 0,06 |
+| Previsão v1 (dados longitudinais próprios) | 3 | 0 | G | zero | — | n suficiente | — | quando n ≥ 500 usuários | — | — |
+
+**Conferência:** 36 mecanismos · campos 10/10 (colunas). **Ordenação dos MVP** (score): aviso discreto 1,00 · fio (b) 0,75 · edital verticalizado 0,67 · porquê/discordar 0,50 · simulador 0,50 · fio (c) 0,42 · check-in 0,42 · questão original 0,38 · FSRS 0,38 · fio (a) 0,38 · semana da prova 0,38 · mnemônicos 0,33 · padrões de erro 0,33 · radar 0,31 · previsão 0,25 · grifos 0,21 · popover 0,17 · leiga 0,17 · áudio 0,10 · billing 0,10 · PDF→DNA 0,10.
+
+**Roadmap pós-MVP, na ordem do score e das dependências:** (1) corretor de discursivas em lote (abre o lado B com a dor mais medida) → (2) adapter OAB → (3) dashboard de risco por turma → (4) gerador para professor e trilha própria → (5) validação humana paga → (6) mentor humano/Elite → (7) social → (8) integrações → (9) marketplace/white-label → (10) adapter ENEM (quando a licença ND tiver saída) → (11) app nativo (só pelo gatilho da ADR-0013).
+
+## 9. O que a Fase 3 precisa resolver por causa deste PRD
+Entidades novas: `Anotacao` (grifos), `EventoEstudo.confianca_declarada`, evento `distracao`, `Questao.origem` (banca, órgão, cargo, ano, item, gabarito oficial, URL), `DispositivoLegal` indexado por citação, grafo tópico↔tópico do Motor exposto ao planejador; política de coleta por fonte (API Cebraspe, RSS FGV com frequência e user-agent); consentimento separado para energia/sono; custo do lote noturno e do TTS dentro de R$ 100/mês (`06-custos.md`); gateway Pix sem CNPJ (P-02).

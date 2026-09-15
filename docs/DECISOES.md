@@ -67,3 +67,18 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 **Decisão:** uma base de código web, responsiva, instalável como PWA com Web Push para o check-in matinal (iOS/iPadOS 16.4+ exige instalação na Tela de Início — WebKit). Nenhum app nas lojas. **Gatilho de revisão:** com ≥ 500 usuários ativos, medir D30 com e sem PWA instalada; se a PWA não retiver melhor e o push no iOS for a barreira principal, reavaliar Capacitor (nunca nativo com poucas horas/semana).
 **Alternativas:** web só (perde push); app nativo/cross (segunda base de código; veto da fábrica `comp1-12`).
 **Por quê:** `docs/01-pesquisa-mercado.md` §10: 58 % dos usuários de internet acessam só pelo celular (87 % nas classes DE) — a web tem de ser boa no celular; o app do Estratégia (1,4★, 376 avaliações) mostra o custo de app mal mantido; a usuária entrevistada estuda no notebook (n=1). `mobile/` não nasce (ADR-0010).
+
+## ADR-0014 — Skills nascem pela `superpowers:writing-skills`, não pelo `skill-creator` · 2026-09-14 · aceita (decisão do dono, Fase 2)
+**Decisão:** neste repositório, toda skill nova segue o ciclo RED → GREEN → REFACTOR da skill `superpowers:writing-skills` (baseline com subagente sem a skill, escrever a skill contra as falhas observadas, reexecutar num modelo menor). Substitui a regra 8 do `CLAUDE.md` onde ela cita o `skill-creator`. P-05 fica resolvida.
+**Alternativas:** instalar `skill-creator@claude-plugins-official` (exige confirmação do dono num diálogo do Claude Code a cada sessão nova); escrever SKILL.md à mão sem teste.
+**Por quê:** a `writing-skills` já está instalada, tem o mesmo propósito e obriga o teste que a regra 8 pede ("precisam funcionar num modelo menor"). Se o `skill-creator` vier a ser instalado, os dois podem coexistir; o teste com subagente continua obrigatório.
+
+## ADR-0015 — Preço de lançamento do Pro: R$ 59/mês, anual R$ 490 · 2026-09-14 · aceita (decisão do dono, hipótese a validar)
+**Decisão:** Free (diagnóstico, DNA de 1 concurso, plano básico, 20 questões/dia, painel com curva) · **Pro R$ 59/mês ou R$ 490/ano (≈ R$ 40,80/mês, −31 %)** · Elite (R$ 149+, só na fase 3). Pix e cartão desde o dia 1; cancelamento em um clique; no limite do tier, o roteador degrada o modelo, nunca corta a sessão.
+**Alternativas:** R$ 49 (protótipo); R$ 39 (parear com Tec Concursos).
+**Por quê:** `docs/01-pesquisa-mercado.md` §6 — IA-first cobram R$ 25–50/mês e vendem cronograma; incumbentes cobram R$ 744 a R$ 2.375/ano e vendem conteúdo humano; o AprovaOS vende resultado acompanhado com base validada, e a única usuária entrevistada leu R$ 49 como "barato". Testar a faixa alta primeiro: baixar preço é fácil, subir não. Métrica de corte da visão §9 (custo LLM ≤ 25 % do preço → ≤ R$ 14,75/usuário Pro/mês) vale para a Fase 3 (`06-custos.md`).
+
+## ADR-0016 — Piloto com uma usuária real antes dos 10 primeiros pagantes · 2026-09-14 · aceita (decisão do dono)
+**Decisão:** a Linda (persona A1, concurseira que trabalha) usa o produto como piloto, sozinha, por um período definido no PRD, e o produto evolui com o estudo dela antes de abrir para qualquer outra pessoa. Os 10 primeiros pagantes e a regra de corte (visão §9) contam **a partir da abertura pública**, não do piloto.
+**Alternativas:** abrir direto para 20–30 concurseiros do círculo dela; SEO programático desde o início.
+**Por quê:** poucas horas por semana do dono — um piloto de n=1 com acesso direto rende mais aprendizado por hora do que dez usuários remotos; a entrevista mostrou que ela sabe articular o que falta (`2026-09-14-entrevista-linda.md`). Risco assumido: viés de n=1 e proximidade — o PRD define critérios de saída do piloto que não dependem só da opinião dela.

@@ -5,7 +5,7 @@
 
 **Resumo em cinco linhas.**
 1. **Exame inicial: concursos com Cebraspe + FGV, confirmado pelos números — mas não pelos motivos que a hipótese supunha.** Ganha por calendário contínuo (dezenas de editais ativos o ano todo, sem pico único), pela maior disposição a pagar do segmento (assinaturas de R$ 744 a R$ 2.375/ano nos incumbentes) e pelas fontes abertas de legislação/jurisprudência que cobrem as matérias de maior peso. Perde do ENEM em público (4,8 M contra centenas de milhares) e da OAB em provas abertas e organizadas (47 edições num só lugar).
-2. **A maior lacuna é a nossa própria matéria-prima:** os sites da Cebraspe e da FGV não abriram por HTTP simples (JavaScript), então **o volume de provas públicas e os termos de uso das duas bancas continuam não medidos**. É a primeira coisa a fazer antes da Fase 3 (P-11), com navegador.
+2. **A matéria-prima existe e é coletável** (P-11, feita com navegador em 14/09 — `docs/evidencias/2026-09-14-p11-provas-cebraspe-fgv.md`): a Cebraspe expõe uma **API JSON pública** com ~500 concursos (2014–2026) e provas/gabaritos em PDF, `robots.txt` aberto e sem termos restritivos; a FGV lista 338 concursos com PDFs públicos, RSS e sitemap, mas os **Termos de Uso vedam automação e reprodução** para quem aceita a plataforma — risco contratual a tratar em `RISCOS.md`.
 3. **A concorrência "IA-first" já vende "cole o edital → cronograma" por R$ 25–50/mês** (MisterConcursos, Concursa.ai, Clipping.ai). O cronograma automático **não é diferencial**; é entrada. O diferencial defensável está no que ninguém mostrou: conteúdo validado com fonte, revisão/memória interligada, previsão com intervalo, agente que explica e reajusta.
 4. **Mobile: web responsiva + PWA instalável com push**, não app. 58 % dos usuários de internet no Brasil acessam só pelo celular (87 % nas classes DE), o app do Qconcursos tem 81 mil avaliações no iOS, mas o app do Estratégia tem nota 1,4 — app ruim custa mais que app nenhum. Web Push no iOS existe desde o 16.4 para PWA instalada. A usuária entrevistada estuda no notebook.
 5. **Jurídico: leis e atos oficiais não são protegidos por direito autoral (Lei 9.610, art. 8º, IV); questões de prova, "por si só", também não, segundo o TJ-SP (secundário); regime de pequeno porte da ANPD dispensa DPO.** Faltam os termos de uso das bancas e do INEP e a leitura literal do art. 5º, II da LGPD (humor/energia) — vão para `RISCOS.md`.
@@ -47,8 +47,8 @@
 |---|---|---|---|---|---|
 | **INEP — ENEM** | https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos | PDF por ano (abas 1998–2025, carregam via JS); detecção: **desconhecida** | **CC BY-ND 3.0 Não Adaptada** — atribuição obrigatória e **proíbe obras derivadas** | 28 anos | ✔ `[fontes-provas-01]` |
 | **OAB/FGV — Exame de Ordem** | https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0 | download individual ou pacote único; formato presumido PDF; detecção: desconhecida | sem termos localizados; titularidade não confirmada | **47 edições** (2010.2 → atual) | ✔ `[fontes-provas-02]` |
-| **Cebraspe** | https://www.cebraspe.org.br/concursos/ | JS; não exposto por HTTP | termos não localizados (`/politica-de-privacidade/` 404) | não medido | ✔ sobre a limitação `[fontes-provas-03]` |
-| **FGV Conhecimento** | https://conhecimento.fgv.br/node/141 | hub sem listagem | termos não localizados | não medido | ✔ sobre a limitação `[fontes-provas-04]` |
+| **Cebraspe** | https://www.cebraspe.org.br/concursos/ · **API** `https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/fase/{fase}` e `/eventos/{id}` | JSON (lista por fase, `arquivosGabarito[]` com data) + PDF no CDN; detecção: **API** | robots aberto; sem termos/copyright localizados além de "© 2019" | **423 encerrados + 77 ativos** (14/09/2026) | ✔ P-11 (navegador) |
+| **FGV Conhecimento** | https://conhecimento.fgv.br/concursos (paginada) · `/concursos/{id}` · PDFs em `/sites/default/files/concursos/*.pdf` | HTML (Drupal) + PDF com nome legível; detecção: **`rss.xml` + `sitemap.xml`** | robots permite; **Termos de Uso (jan/2026) vedam ferramentas automatizadas e reprodução** — risco contratual (P-11 §2) | **338 concursos** (2021–2026) | ✔ P-11 (navegador) |
 | **DOU (Imprensa Nacional)** | https://www.in.gov.br/servicos/diario-oficial-da-uniao | WebFetch falhou; a API WS-INCom **parece** restrita (snippet, não evidência) | não verificado | — | ✘ (sem evidência) |
 | PCI Concursos / Concursos no Brasil (agregadores de editais) | https://www.pciconcursos.com.br/ · https://www.concursosnobrasil.com.br/ | HTML; termos de uso não localizados (404) | republicam edital do órgão | — | ✘ (sem evidência) |
 | **Tec Concursos** (agregador de questões — *não* é fonte) | https://www.tecconcursos.com.br/termos-de-uso | — | **proíbe expressamente** robôs, crawlers, scrapers e "ferramentas de inteligência artificial" para coleta/extração (Seção 18, 8.1) | — | ✔ `[fontes-provas-05]` |
@@ -79,8 +79,8 @@
 | 2 | **Planalto ccivil_03** | é a fonte canônica citada nas aulas (texto consolidado com redação vigente) | **bloqueou o fetch**; usar via LexML/cache e navegador; confirmar RSS |
 | 3 | **STJ informativos + repetitivos** | jurisprudência recente é o que a Cebraspe cobra; assinatura por e-mail serve de gatilho de novidade | licença não explicitada; periodicidade a confirmar |
 | 4 | **STF (informativos, súmulas, teses)** | idem, e súmulas superadas (ex.: 347) são pegadinha clássica | **não aberto** — P-15 |
-| 5 | **Cebraspe — provas e gabaritos** | matéria-prima do DNA e das questões originais (exigência da usuária) | **URL, formato, termos: não medidos** — P-11 (bloqueante) |
-| 6 | **FGV Conhecimento — provas** | idem para a segunda banca | idem — P-11 |
+| 5 | **Cebraspe — provas e gabaritos (API)** | matéria-prima do DNA e das questões originais (exigência da usuária); API JSON pública, PDFs no CDN, robots aberto | nomes de arquivo opacos (hash) — mapear pela API; sobe para nº 1 na fatia 2 da Fase 5 |
+| 6 | **FGV Conhecimento — provas (RSS + PDF)** | idem para a segunda banca; A–E, 100 questões, 4 tipos | **Termos de Uso vedam automação/reprodução**: baixa frequência via RSS/sitemap, sem login, ou autorização por `demanda.conhecimento@fgv.br` — `RISCOS.md` |
 | 7 | **Câmara / Senado dados abertos** | tramitação e texto de normas novas, atualização diária | licença a confirmar no FAQ |
 | 8 | **DOU** | editais e retificações (tela "Editais e radar") | API/RSS não verificados; alternativa: agregadores (termos não localizados) — P-15 |
 | 9 | **OAB/FGV — 47 provas** | pronto para o adapter OAB (fase 2 do produto) | titularidade não confirmada |
@@ -166,23 +166,23 @@ A **consolidação cruzada** dos seis nichos (`consolida:cross-nicho`) foi o age
 | critério | **Concursos Cebraspe + FGV** | **ENEM** | **OAB (FGV)** |
 |---|---|---|---|
 | público anual | CNU 761 mil inscritos (um concurso); universo total **não medido** (dezenas de editais ativos só na Cebraspe) | **4,81 M** inscritos confirmados | ~130 mil por edição × 3/ano ≈ **~400 mil** inscrições/ano; 14 % de aprovação |
-| provas públicas abertas | **não medido** (sites JS; P-11) | 28 anos, PDF, **CC BY-ND** (sem derivados) | **47 edições** num endpoint, termos não localizados |
-| padrão de banca | Cebraspe: C/E com anulação (variável por edital) — muito marcado; FGV: não confirmado | uma "banca" (INEP), TRI, 180 itens | uma banca (FGV), 80 questões, corte 40 |
+| provas públicas abertas | **Cebraspe ~500 concursos (2014–2026) via API; FGV 338 (2021–2026) via HTML/RSS** — PDFs públicos (P-11) | 28 anos, PDF, **CC BY-ND** (sem derivados) | **47 edições** num endpoint, termos não localizados |
+| padrão de banca | Cebraspe: C/E com anulação (variável por edital) — muito marcado; **FGV: A–E, 100 questões, 4 tipos de caderno, sem penalização nas instruções** (P-11) | uma "banca" (INEP), TRI, 180 itens | uma banca (FGV), 80 questões, corte 40 |
 | sazonalidade | **contínua**: editais o ano inteiro | **um pico** (nov) — 11 meses de vale | 3 picos/ano |
 | fontes abertas para as matérias | **excelentes**: LexML (API, RSS, licença aberta), STJ, Câmara/Senado; Planalto a resolver | conteúdo escolar amplo; SciELO pouco útil; sem "lei" a monitorar | as mesmas de concursos (direito) |
 | disposição a pagar (preços lidos) | **alta**: Gran R$ 744/ano; Estratégia R$ 1.187–2.375/ano; Tec R$ 39,90/30d; IA-first R$ 25–50/mês | não medido; simulados grátis saturam o SEO | não medido |
 | concorrência | incumbentes com IA rasa; **IA-first já vende "edital → cronograma"** | portais grátis, KD alta | cursinhos OAB; não mapeado |
-| pontos contra | matéria-prima (provas) ainda não mapeada; concorrência IA-first no pitch de cronograma; universo total não dimensionado | licença ND; sazonal; público de menor renda (classes DE 87 % só celular); SEO saturado | público menor; uma prova só limita o "agente diário" a ciclos de 4 meses |
+| pontos contra | Termos de Uso da FGV (risco contratual na coleta); concorrência IA-first no pitch de cronograma; universo total não dimensionado | licença ND; sazonal; público de menor renda (classes DE 87 % só celular); SEO saturado | público menor; uma prova só limita o "agente diário" a ciclos de 4 meses |
 | fit com a persona entrevistada | **sim** (A1) | não | parcial |
 
 **Recomendação: concursos com Cebraspe + FGV**, com dois adendos que a hipótese não tinha:
 1. **Justificativa numérica que sustenta:** calendário contínuo (visão §5 exige plano *diário* o ano todo — só concursos oferecem isso), maior WTP medida do segmento (assinaturas de R$ 744 a R$ 2.375/ano contra IA-first a R$ 300–600/ano — há espaço para R$ 49–59/mês), e fontes abertas de legislação com API e licença verificadas cobrindo Direito Constitucional/Administrativo/AFO, que são metade do peso de um edital típico. O ENEM ganharia só por público, e perde em licença (ND), sazonalidade e SEO. A OAB **é o segundo adapter natural** (mesma banca FGV, 47 provas prontas, 3 ciclos/ano) — antes do ENEM.
-2. **Condição:** a recomendação fica **provisória até P-11** (mapear as provas da Cebraspe e da FGV com navegador). Se as provas não estiverem acessíveis de forma coletável ou os termos proibirem reprodução, o exame inicial troca para **OAB** (fonte primária aberta, banca única), não para ENEM.
+2. **Condição (resolvida em 14/09/2026, P-11):** as provas da Cebraspe são acessíveis por API pública sem termos restritivos; as da FGV são públicas, mas os Termos de Uso vedam automação — risco contratual tratável (RSS de baixa frequência sem login, ou autorização). A recomendação deixa de ser provisória; a FGV entra como fonte nº 2 com política própria de coleta.
 
 **Fatos não sustentados que pesariam se fossem verdadeiros:** FGV com microsites de provas por edital (`bancas-05/-11 ✘` — se verdadeiro, a coleta é mais fácil); Estratégia com 1 M de instalações (`mobile-09 ✘`); contagens de concursos por banca (583/474/147, só snippet); DOU com API restrita (só snippet — se verdadeiro, o radar de editais depende de agregadores).
 
 ## 13. O que faltou medir (vai para `PENDENCIAS.md`)
-- **P-11** (bloqueante para Fase 3/5): mapear com navegador a seção de provas e gabaritos de Cebraspe e FGV — URL, formato, anos, volume, termos de uso, sitemap/RSS; confirmar formato de questão FGV.
+- **P-11** ✅ 14/09/2026 — `docs/evidencias/2026-09-14-p11-provas-cebraspe-fgv.md`.
 - **P-12**: volumes de busca dos 37 termos no Keyword Planner (dono).
 - **P-13** (→ `RISCOS.md`): LGPD art. 5º, II literal; art. 46 da Lei 9.610; termos de uso Cebraspe/FGV/INEP; marca da banca no INPI; o que a licença ND do INEP permite.
 - **P-14**: reclamações 1–2★ (Google Play, App Store, Capterra) dos concorrentes e "onde a IA é rasa"; preço do Qconcursos; universo de concurseiros ativos e gasto médio; survey de estudo no celular.

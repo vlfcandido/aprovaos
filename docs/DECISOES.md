@@ -82,3 +82,52 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 **Decisão:** a Linda (persona A1, concurseira que trabalha) usa o produto como piloto, sozinha, por um período definido no PRD, e o produto evolui com o estudo dela antes de abrir para qualquer outra pessoa. Os 10 primeiros pagantes e a regra de corte (visão §9) contam **a partir da abertura pública**, não do piloto.
 **Alternativas:** abrir direto para 20–30 concurseiros do círculo dela; SEO programático desde o início.
 **Por quê:** poucas horas por semana do dono — um piloto de n=1 com acesso direto rende mais aprendizado por hora do que dez usuários remotos; a entrevista mostrou que ela sabe articular o que falta (`2026-09-14-entrevista-linda.md`). Risco assumido: viés de n=1 e proximidade — o PRD define critérios de saída do piloto que não dependem só da opinião dela.
+
+## ADR-0017 — Backend: Python 3.13 + FastAPI + SQLAlchemy 2.0 + Pydantic v2, gerido por `uv` · 2026-09-14 · aceita (decisão do dono, Fase 3)
+**Decisão:** `backend/` em Python **3.13** pinado (`.python-version`, `uv`), FastAPI (0.141) para HTML e JSON, SQLAlchemy 2.0 (`DeclarativeBase`/`Mapped`) com Alembic, Pydantic v2 em toda fronteira. Resolve P-07 (local é 3.14.3; o alvo é 3.13 porque é a versão cujas docs baseiam as decisões — CLAUDE.md global — e `litellm` declara `<3.15`).
+**Alternativas:** Django (mais pesado, ORM próprio); Litestar (menor ecossistema).
+**Por quê:** stack de referência do dono; uma linguagem para domínio, agentes, jobs e templates; versões e licenças conferidas no PyPI em 14/09/2026.
+
+## ADR-0018 — Agentes em ADK (`google-adk` 2.9, Apache-2.0) com Gemini; roteamento por tier e teto de gasto · 2026-09-14 · aceita (decisão do dono)
+**Decisão:** cada papel da spec §7.2 é um `LlmAgent` com `output_schema` Pydantic, `include_contents='none'`, tools que só passam pelo repositório; orquestração em código (pipeline), sem agente-orquestrador; `Runner` + `DatabaseSessionService`. Modelos: **Gemini 2.5 Flash-Lite** para gerar/porquê/tutor, **Gemini 2.5 Flash** para validar, DNA e dossiês (preços oficiais em `06-custos.md`); roteador por tier com teto diário (R$ 3/dia sem receita; 25 % da receita com receita) e degradação que nunca bloqueia a sessão. O LLM **não decide o plano**: escolhe entre candidatos por regra e escreve o porquê.
+**Alternativas:** pydantic-ai + LiteLLM (multi-provedor, mais uma camada); LangGraph (pesado); cru (sem tracing/sessão prontos).
+**Por quê:** custo (Flash-Lite US$ 0,10/0,40 por 1M) cabe no teto; ADK é a referência do dono; ADK aceita outros provedores via LiteLLM se o Google mudar preço (R-12). Docs: https://adk.dev/agents/llm-agents/ .
+
+## ADR-0019 — Front: HTMX + Jinja + ilhas de JS vanilla; PWA · 2026-09-14 · aceita (decisão do dono)
+**Decisão:** páginas server-rendered (Jinja) com HTMX para interação; ilhas de JS vanilla reaproveitadas do protótipo (popover de referência, grifos/anotações, gráficos SVG, controles segmentados); tokens de tema desde o dia 1 (claro/escuro), movimento só com `prefers-reduced-motion: no-preference`, atalhos de teclado; `manifest.json` + service worker + Web Push. Padrões de UI em `docs/evidencias/2026-09-14-aprendizados-mockups.md` §3 viram requisitos (resolve P-10).
+**Alternativas:** SvelteKit; Next.js.
+**Por quê:** uma base de código em Python, SEO nativo para as páginas programáticas (Fase 6), tudo que o protótipo fez já é vanilla JS; poucas horas do dono.
+
+## ADR-0020 — Deploy: VPS Hetzner CX23 + Docker Compose (Caddy, web, jobs, Postgres 16 + pgvector) · 2026-09-14 · aceita (decisão do dono)
+**Decisão:** um host; `pg_dump` diário para storage externo com restauração testada por mês; deploy por GitHub Actions via SSH após testes; `.env` só no servidor. Preço € 5,49/mês (fonte secundária, set/2026 — confirmar no console). Região UE (latência aceitável para HTMX; R-13).
+**Alternativas:** Fly.io; Cloud Run + Cloud SQL (Cloud SQL mínimo consome o teto); Railway.
+**Por quê:** é a única opção que deixa ≈ R$ 60/mês para LLM (`06-custos.md` §2).
+
+## ADR-0021 — Vetores: pgvector no mesmo Postgres · 2026-09-14 · aceita
+**Decisão:** `embedding vector(768)` em `questao`, `dossie_topico` e `aula` com Gemini Embedding 2; índice HNSW quando > 50k linhas; dedup por cosseno ≥ 0,97.
+**Alternativas:** Weaviate/Qdrant (mais um serviço no host); só BM25.
+**Por quê:** volume do MVP (≈ 5k itens) cabe em Postgres; um serviço a menos para manter.
+
+## ADR-0022 — Revisão espaçada com `fsrs` (py-fsrs 6.3, MIT); diagnóstico adaptativo por proxy, não TRI completa · 2026-09-14 · aceita
+**Decisão:** cartões usam `fsrs.Scheduler`/`Card`/`Rating` (estado serializado em `cartao`); parâmetros padrão no MVP, otimização por aluno quando houver ≥ 200 revisões. Diagnóstico e proficiência usam **proxy**: estimativa por matéria = média ponderada pela discriminação estimada dos itens (calibrador) com intervalo por bootstrap; seleção do próximo item pelo que mais reduz a variância da matéria mais incerta; termina em ≤ 30 itens ou ±8 em todas. TRI 2PL de verdade só quando o calibrador tiver n ≥ 300 respostas por item nos itens-âncora.
+**Alternativas:** SM-2 (pior que FSRS, sem parâmetros por aluno); py-irt/2PL já no MVP (sem dados para calibrar).
+**Por quê:** FSRS é aberto, mantido e usado pelo Anki (pesquisa §4); TRI sem dados calibrados é falsa precisão — a previsão v0 já é honesta com intervalo.
+
+## ADR-0023 — Ingestão de PDF com `pypdfium2` (BSD/Apache) + `pdfplumber` (MIT); PyMuPDF vetado (AGPL) · 2026-09-14 · aceita
+**Decisão:** texto e render por `pypdfium2`; tabelas de gabarito por `pdfplumber`; segmentação em itens por adapter (regex de numeração + regras da banca); OCR só se uma prova vier como imagem (Tesseract, Apache). PyMuPDF não entra: dupla licença AGPL/comercial (PyPI, 14/09/2026) incompatível com SaaS fechado sem licença paga.
+**Por quê:** licenças conferidas; PDFs das duas bancas são texto (P-11: caderno FGV com 36 páginas extraído por `pdftotext` sem OCR).
+
+## ADR-0024 — Observabilidade: OpenTelemetry com spans gravados em Postgres (`traco`) e página de admin; sem vendor no MVP · 2026-09-14 · aceita
+**Decisão:** instrumentar FastAPI e agentes ADK com OTel; exporter próprio grava em `traco` (modelo, tokens, custo, latência, usuário, agente); `/admin/tracos` e `/admin/custos`; alarme por e-mail (teto, rejeição do validador). Trocar o exporter para um backend externo quando houver volume.
+**Alternativas:** Langfuse/Logfire/Grafana desde o início (custo ou serviço a mais; não verificados nesta sessão).
+**Por quê:** "traços de agente obrigatórios" (PROMPT Fase 3) com zero custo e zero serviço novo; a planilha de custos precisa desses dados.
+
+## ADR-0025 — Cobrança como pessoa física no piloto e nos 10 primeiros: Mercado Pago (link/assinatura, Pix sem taxa para PF) atrás de uma interface `GatewayPagamento`; MEI ao chegar a 10 pagantes · 2026-09-14 · aceita (decisão do dono; taxas exatas pendentes — P-02)
+**Decisão:** `GatewayPagamento` (criar cobrança, criar assinatura, cancelar, webhook) com implementação Mercado Pago; Pix e cartão; sem boleto. O que foi verificado: para PF, criar link de pagamento não custa e Pix não tem taxa (blog oficial do Mercado Pago, set/2026 — secundário); o produto "Planos de assinatura" existe (página oficial, sem detalhe legível). **Não verificado:** taxas de cartão para PF e elegibilidade de assinatura recorrente para conta PF — o dono confirma na própria conta antes da fatia 12. Imposto: rendimento de PF recebido de PF → **Carnê-Leão mensal** pelo Carnê-Leão Web (e-CAC), pago até o último dia útil do mês seguinte (Receita Federal, https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/pagamento/carne-leao/carne-leao). Ao chegar a 10 pagantes: abrir MEI e migrar para PJ (Asaas ou Mercado Pago PJ) sem mudar a interface.
+**Alternativas:** Stripe (exige CNPJ no Brasil — não verificado nesta sessão); Asaas PF; abrir MEI já.
+**Por quê:** o dono escolheu ficar PF até 10 pagantes; a interface isola a troca.
+
+## ADR-0026 — Auth: e-mail + senha (argon2) e Google OAuth via Authlib; sessão por cookie assinado; sem serviço externo · 2026-09-14 · aceita
+**Decisão:** `authlib` para OAuth do Google, `argon2-cffi` para senha, sessão server-side em Postgres com cookie `HttpOnly/Secure/SameSite=Lax`; verificação de e-mail; sem JWT no MVP (HTMX é same-origin).
+**Alternativas:** fastapi-users (mais opinativo), Auth0/Clerk (custo e dependência).
+**Por quê:** simples, auditável, sem custo; RF-20.

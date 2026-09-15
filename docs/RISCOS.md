@@ -1,0 +1,41 @@
+# Riscos
+> O que é: o que pode dar errado no AprovaOS — jurídico, dados pessoais, qualidade do conteúdo, técnico, negócio — com a mitigação escrita e o gatilho que obriga a reavaliar. Quando ler: antes da Fase 5 (cada fatia cita o risco que toca); ao abrir uma fonte nova, coletar dado novo ou lançar para o público. Resolve P-08 e a parte de mitigações de P-13.
+
+Formato: `R-nn · risco · probabilidade × impacto (B/M/A) · mitigação · gatilho de revisão · dono`.
+
+## Jurídico e fontes
+| id | risco | P×I | mitigação | gatilho |
+|---|---|---|---|---|
+| **R-01** | **Dados de energia/sono/humor tratados como sensíveis (LGPD art. 5º, II tangencia "saúde")** — texto literal não conferido (P-13) | M×A | Consentimento separado, com texto próprio e versão gravada (`usuario.consentimento_dados_rotina`); minimização (escala 1–5, sem texto livre); uso só para o plano e padrões do próprio aluno; agregação só com n ≥ 30; nunca em ranking/terceiros; exportar/excluir em um clique; regime de pequeno porte da ANPD (Res. 2/2022: sem DPO, registro simplificado, prazo em dobro — pesquisa §9) **mas** com canal de contato do titular na landing | ler o art. 5º, II no Planalto com navegador antes da fatia 8 (check-in); qualquer pedido de titular |
+| **R-02** | **Termos de Uso da FGV Conhecimento (jan/2026) vedam ferramentas automatizadas e reprodução "de qualquer parte da Plataforma"** (P-11 §2), embora `robots.txt` permita e as provas sejam atos públicos | M×A | Política de coleta por fonte: FGV **só** via `rss.xml`/`sitemap.xml` (feeds que a própria FGV publica para robôs), 1×/6 h, sem cadastro/login, user-agent identificado com e-mail, respeito a 429/`Retry-After`, cache por ETag; guardar o PDF original e **exibir o item com atribuição e link para a fonte**; pedir autorização expressa por `demanda.conhecimento@fgv.br` para uso educacional antes da abertura pública; se negada, FGV vira "provas originais com link" (sem cópia do enunciado) e a geração usa só o DNA | resposta da FGV; qualquer contato jurídico; bloqueio de IP |
+| **R-03** | Questões da banca protegidas por direito autoral (o TJ-SP disse que não, "por si só" — decisão de 2ª instância, fonte secundária, pesquisa §9) | B×A | Exibir sempre com origem (banca, órgão, ano, item, gabarito oficial, URL) — uso informativo com atribuição; questões **geradas** são derivadas do dossiê (fontes abertas), não da prova; art. 8º, IV da Lei 9.610 cobre leis/atos oficiais; consultar advogado antes da abertura pública (custo único) | notificação extrajudicial; mudança de jurisprudência |
+| **R-04** | Licença **CC BY-ND** do INEP proíbe derivados — vale para o adapter ENEM, não para o MVP | B×M | ENEM só exibe a prova original com atribuição; geração a partir de fontes abertas; adapter ENEM é o último do roadmap (PRD §8) | abrir o adapter ENEM |
+| **R-05** | Usar o nome da banca ("no padrão Cebraspe") — marca registrada/concorrência desleal (não pesquisado, P-13) | B×M | Uso nominativo e descritivo ("questões da prova TCU/2025 organizada pela Cebraspe"); nunca logotipo; nunca "oficial"; disclaimer na landing | pesquisar INPI + doutrina antes da landing (Fase 6) |
+| **R-06** | Fontes de conhecimento sem licença explícita (STJ, STF, Câmara/Senado) e Planalto recusando conexão | M×M | LexML (licença aberta com atribuição) como fonte primária de legislação; STJ/STF por citação e link, com trecho curto (direito de citação); Planalto via LexML/cache e navegador quando falhar (P-15) | Planalto ou STF publicarem termos restritivos |
+
+## Qualidade do conteúdo
+| id | risco | P×I | mitigação | gatilho |
+|---|---|---|---|---|
+| **R-07** | **Alucinação de lei/jurisprudência** chegando ao aluno (a irritação nº 1 da usuária) | A×A | Nada publicado sem `validador` (gabarito re-resolvido, estilo por embedding, RAG de citação: **100 % das citações resolvem em `dispositivo_legal`**); DeepEval de fidelidade em CI; reporte de erro com status; despublicação automática a > 2 % de reportes; súmulas superadas marcadas com data | taxa de reporte > 2 %; rejeição do validador > 30 % (prompt quebrou) |
+| **R-08** | Questão "no estilo" que não é o estilo (irritação nº 2) | M×A | Sempre 5 originais do tópico no contexto do gerador; validador compara por embedding e regras da banca; originais têm prioridade sobre inéditas na lista do dia; calibrador mede discriminação real | discriminação média das inéditas < originais por 2 semanas |
+| **R-09** | Plano que "só atrapalha" (gap est-piloto-05) | M×A | LLM não decide o plano (escolhe entre candidatos por regra); porquê obrigatório; desfazer/pular sem custo; nunca marcar concluído o que não foi feito | pedido de desligar o reajuste > 30 % das sessões do piloto |
+
+## Dados e operação
+| id | risco | P×I | mitigação | gatilho |
+|---|---|---|---|---|
+| **R-10** | Um único VPS: perda de disco ou host | M×A | `pg_dump` diário para storage externo + restauração testada mensalmente; PDFs originais recuperáveis pelas fontes; infra como código (Compose) | falha de restauração no teste |
+| **R-11** | Estouro de custo de LLM (lote ou abuso no Free) | M×M | Teto diário no roteador (R$ 3/dia sem receita; 25 % da receita com receita); degradação nunca bloqueia sessão; limites do Free; alarme por e-mail | gasto do dia > teto |
+| **R-12** | Dependência de um provedor de modelo (Google) | B×M | Agentes ADK com `model` como config; ADK suporta outros provedores via LiteLLM (docs ADK §Models); prompts sem sintaxe proprietária; testes de contrato por `output_schema` | preço +50 % ou depreciação de modelo |
+| **R-13** | Latência UE→BR (~200 ms) | B×B | HTMX com respostas pequenas; check-in sem LLM; se doer, migrar host (app não sabe onde roda) | p95 de página > 1,5 s |
+| **R-14** | Segredos e chaves (Gemini, gateway) no VPS | B×A | `.env` só no servidor, permissões 600, rotação a cada 90 dias; webhook com assinatura verificada; sem segredos em log/traço | vazamento; commit acidental (hook de pré-commit bloqueia) |
+
+## Negócio
+| id | risco | P×I | mitigação | gatilho |
+|---|---|---|---|---|
+| **R-15** | **Viés do piloto n = 1** (usuária próxima do dono) — ADR-0016 | A×M | Critérios de saída do piloto medidos, não opinativos (PRD §6); repetir o roteiro da entrevista com 3–5 concurseiros de fora antes de abrir; o que só ela pediu entra como opt-in quando barato | saída do piloto |
+| **R-16** | Concorrência IA-first já vende "edital → cronograma" a R$ 25–50 (pesquisa §6) | A×M | Pitch e produto centrados em memória validada + resultado acompanhado (PRD §4 lista o que **não** é o nosso pitch); questão original com origem; porquê em tudo | concorrente lançar validação com fonte ou FSRS integrado |
+| **R-17** | B2C de ticket baixo com churn ~6 %/mês (veto da fábrica assumido, visão §10) | A×M | Anual com desconto (R$ 490); Pix; cancelamento fácil (reduz chargeback e ódio); regra de corte D+30/D+60 sem exceção | renovação < 50 % no D+60 |
+| **R-18** | Cobrar como PF: carnê-leão mensal, limites de Pix/assinatura do gateway, sem nota fiscal (P-02) | M×M | ADR-0025: Mercado Pago PF com link/assinatura, Pix sem taxa para PF (blog MP), imposto mensal via Carnê-Leão Web no e-CAC até o último dia útil do mês seguinte (Receita Federal, pesquisa/ADR); abrir MEI ao chegar a 10 pagantes | 10 pagantes; qualquer exigência de CNPJ pelo gateway |
+
+## O que ainda não está mitigado (fica em PENDENCIAS)
+P-13 (leitura literal do art. 5º, II; art. 46; marca no INPI; consulta a advogado antes da abertura pública) · P-15 (Planalto/STF/DOU automáticos) · P-02 (taxas exatas do gateway PF e elegibilidade de assinatura para PF — confirmar na conta do dono).

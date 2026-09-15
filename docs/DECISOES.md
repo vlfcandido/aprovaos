@@ -51,3 +51,18 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 ## ADR-0010 — Estrutura do repositório nasce por fase, sem stubs · 2026-09-14 · aceita
 **Decisão:** herdada de fábrica/ADR-0005. A Fase 0 cria só `CLAUDE.md`, `docs/00-visao.md`, `docs/DECISOES.md`, `docs/PENDENCIAS.md`. `backend/`, `web/`, `adapters/`, `knowledge/`, `eval/`, `.claude/skills`, `.claude/agents`, `docs/01…07`, `RISCOS.md`, `HANDOFF.md` nascem quando a fase que os produz roda. `mobile/` só existe se a Fase 3 aprovar app.
 **Por quê:** regra 4 do prompt (poucos arquivos bons); stub vazio parece cobertura e engana o próximo modelo.
+
+## ADR-0011 — Exame inicial: concursos públicos com bancas Cebraspe + FGV · 2026-09-14 · aceita (decisão do dono no portão da Fase 1)
+**Decisão:** o MVP (lado A) atende concurseiros de concursos organizados por Cebraspe e FGV. O adapter `concursos/` é o primeiro. **Condição registrada:** se P-11 (mapeamento das provas e termos de uso das duas bancas com navegador) mostrar que as provas não são coletáveis ou que os termos proíbem reprodução, a troca combinada é para **OAB**, não para ENEM.
+**Alternativas:** ENEM (4,81 M inscritos em 2025, mas licença CC BY-ND do INEP proíbe derivados, um pico anual, SEO saturado por simulados grátis); OAB (47 provas abertas, banca única, ~130 mil inscritos por edição × 3/ano — público menor e ciclos de 4 meses).
+**Por quê:** `docs/01-pesquisa-mercado.md` §12: calendário contínuo (o plano diário do agente precisa de editais o ano inteiro), maior disposição a pagar medida (assinaturas de R$ 744 a R$ 2.375/ano nos incumbentes; IA-first a R$ 25–50/mês), fontes abertas de legislação com API e licença verificadas (LexML, STJ, Câmara/Senado) cobrindo as matérias de maior peso, e aderência à persona entrevistada (A1). Pontos contra assumidos: matéria-prima (provas) ainda não mapeada; concorrentes IA-first já vendem "edital → cronograma" — o pitch do produto não pode ser esse.
+
+## ADR-0012 — Segundo exame (adapter da fase 2 do produto): OAB antes de ENEM · 2026-09-14 · aceita (decisão do dono)
+**Decisão:** o segundo adapter é `oab/`, depois de tração no lado A com concursos.
+**Alternativas:** ENEM primeiro (público maior); decidir só no PRD.
+**Por quê:** mesma banca (FGV) do exame inicial, 47 edições abertas num único endpoint (`examedeordem.oab.org.br/EditaisProvas`), 3 ciclos por ano, matérias de direito já cobertas pelas fontes do Motor — custo marginal baixo. ENEM exige resolver a licença ND e uma sazonalidade que o agente diário sofre.
+
+## ADR-0013 — Mobile: web responsiva + PWA instalável com push; sem app nativo; gatilho de revisão · 2026-09-14 · aceita (decisão do dono; detalhamento técnico na Fase 3)
+**Decisão:** uma base de código web, responsiva, instalável como PWA com Web Push para o check-in matinal (iOS/iPadOS 16.4+ exige instalação na Tela de Início — WebKit). Nenhum app nas lojas. **Gatilho de revisão:** com ≥ 500 usuários ativos, medir D30 com e sem PWA instalada; se a PWA não retiver melhor e o push no iOS for a barreira principal, reavaliar Capacitor (nunca nativo com poucas horas/semana).
+**Alternativas:** web só (perde push); app nativo/cross (segunda base de código; veto da fábrica `comp1-12`).
+**Por quê:** `docs/01-pesquisa-mercado.md` §10: 58 % dos usuários de internet acessam só pelo celular (87 % nas classes DE) — a web tem de ser boa no celular; o app do Estratégia (1,4★, 376 avaliações) mostra o custo de app mal mantido; a usuária entrevistada estuda no notebook (n=1). `mobile/` não nasce (ADR-0010).

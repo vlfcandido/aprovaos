@@ -152,3 +152,136 @@ Novos: `backend/aprovaos/motor/curar.py`, `backend/tests/test_motor_curar.py`,
 `curador.py`, `classificacao.py`, `repositorio_questao.py` nem os modelos — o passo 12 só liga o
 que já existia). Banco real (`backend/dev.db`, fora do git) com 210 questões, 1 edital, 1 usuário
 de piloto (`linda.piloto@exemplo.com`) e as tabelas da migração `0003` aplicadas.
+
+## Passo 12b — Chave real: modelo trocado, limite de taxa, reclassificar e a recuragem com IA
+
+Executado em 18/09/2026, mesma máquina. O dono deu uma `GOOGLE_API_KEY` real (`.env` na raiz,
+fora do git) depois do passo 12. Sete mudanças, nesta ordem.
+
+### 1. Conserto do teste que o commit `2d05598` quebrou
+`POSTGRES_PORT` é variável do Compose, não campo de `Configuracoes` — tratada como
+`POSTGRES_PASSWORD`/`DATABASE_URL_TEST`, que o teste já tolerava.
+`uv run pytest tests/test_env_example.py` → `1 passed`.
+
+### 2. Troca de modelo: `gemini-2.5-flash` → `gemini-3.6-flash`
+Confirmado pelo dono contra a API real: `gemini-2.5-flash` responde 404 ("no longer available
+to new users") para esta chave. `modelo_dna`/`modelo_classificacao` (`config.py`, `.env.example`)
+e `PRECOS_USD_POR_MILHAO` (`roteador/custo.py`) atualizados. Preço do `gemini-3.6-flash`
+(paid tier, https://ai.google.dev/gemini-api/docs/pricing, lido em 18/09/2026, válido até
+31/12/2026): US$ 0,75/M entrada, US$ 3,75/M saída — no **free tier** (a chave do piloto) o custo
+real de entrada/saída é zero; a tabela existe para o teto diário proteger o dia em que a conta
+virar paga. Mantidas as entradas do 2.5 (quem tiver chave antiga continua funcionando). Testes
+novos: `test_estimar_custo_gemini_3_6_flash`, e os que dependiam do modelo padrão
+(`test_configuracoes_da_v2_tem_padroes`, `test_campos_da_v3`,
+`test_post_subir_usa_ia_quando_ha_chave_e_teto`, `test_concurso_gerado_por_ia`) atualizados para
+`"gemini-3.6-flash"`.
+
+### 3. Limite de taxa: retentativa com espera + achado real que corrigiu o desenho
+`_com_retentativa_de_limite` (`agentes/classificador.py`): genérica, só olha `erro.code`/
+`erro.details` — testável sem `google.*` (4 testes: espera e tenta de novo, desiste se a espera
+sugerida passa de `_ESPERA_MAXIMA_S=90s` — é cota diária, não por minuto —, esgota
+`_TENTATIVAS_MAX=3` e relança, não intercepta erro que não é 429).
+
+**Rodando de verdade contra a chave real** (ver §6), a primeira tentativa mostrou que o desenho
+inicial **não funcionava**: o traço gravado tinha `erro="RespostaDoModeloAusente"`, com
+`duracao_ms` < 1 s — nenhuma retentativa real aconteceu. Causa (lida em
+`google/adk/workflow/_node_runner.py::_execute_node`): o ADK não deixa o
+`google.genai.errors.ClientError` de 429 subir como exceção Python até `Runner.run_async` — ele
+captura a exceção do modelo e publica um `Event(error_code=erro.status ou o nome da classe,
+error_message=str(erro))`; para um 429, `.status` é a string `"RESOURCE_EXHAUSTED"`. `_rodar`
+tratava **qualquer** `error_code` como `RespostaDoModeloAusente` (sem `.code`), então
+`_com_retentativa_de_limite` nunca reconhecia o 429. Corrigido: `LimiteDeTaxaExcedido` (nova
+exceção, `.code = 429`, `.details` reconstruído por regex do texto "Please retry in Ns." — o
+`RetryInfo` estruturado não sobrevive à conversão do ADK para `Event`, só o texto); `_rodar`
+levanta essa classe quando `evento.error_code == "RESOURCE_EXHAUSTED"`, `RespostaDoModeloAusente`
+para qualquer outro `error_code`. 4 testes novos, 2 deles rodando `ClassificadorAdk._rodar` de
+verdade contra um `Runner`/`Event` dublês (sem rede) para provar a distinção.
+**Reexecutado depois do conserto** (§6): os traços passaram a mostrar `erro="LimiteDeTaxaExcedido"`
+com `duracao_ms` de ~78 s a ~120 s — a retentativa real aconteceu.
+
+### 4. Reclassificar sem duplicar
+`atualizar_classificacao` (`dados/repositorio_questao.py`): localiza por `hash_dedup` e muda só
+`topico_id`/`topico_confianca`/`topico_evidencia`/`publicavel`/`motivo_nao_publicavel` — nunca o
+texto, o gabarito ou a `origem`. 2 testes (muda tópico sem tocar o resto da linha; ignora hash
+inexistente sem criar nada). `curar_documento(..., reclassificar: bool = False)` e `--reclassificar`
+no comando trocam `salvar_questoes` por essa função. Teste de integração (com um classificador
+falso que joga tudo no mesmo tópico): 70 atualizadas, 0 novas, 0 repetidas, `questao` continua
+com 70 linhas — não 140.
+
+### 5. `thinking_budget=0`: aceito pelo SDK, não medido
+O dono mediu uma chamada real de classificação: 96 tokens de entrada, 102 de saída e **568 de
+"pensamento"** — grátis no free tier, mas custa como saída no paid tier e infla a latência. O
+`google-genai`/`google-adk` pinado aceita `GenerateContentConfig(thinking_config=ThinkingConfig(
+thinking_budget=0))` (confirmado por inspeção do schema Pydantic instalado, sem precisar de
+rede) — aplicado em `criar_classificador_adk`. `test_criar_classificador_adk_desliga_pensamento`
+confere o esquema (sem rede). **Não medido**: a cota diária esgotou (ver §6) antes de eu
+conseguir rodar uma chamada real para confirmar que a resposta continua correta com o
+pensamento desligado — pendência para a próxima vez que houver cota (um `uv run pytest -m llm`
+resolve).
+
+### 6. A recuragem real — bloqueada pela cota diária do free tier, não pelo código
+Ao testar a chave contra a API de verdade (passos 3 e 5 acima, mais a tentativa de recuragem em
+si), o free tier do AI Studio para `gemini-3.6-flash` acusou dois limites, não um:
+- **5 requisições/minuto** (o Fato 2 do dono, confirmado).
+- **20 requisições/dia por projeto por modelo** — `quotaId:
+  "GenerateRequestsPerDayPerProjectPerModel-FreeTier"`, `quotaValue: "20"` — **não estava nos
+  três fatos do dono** e é bem mais restritivo. Minhas próprias chamadas de diagnóstico (medir o
+  formato do erro 429 para escrever `_segundos_de_retentativa`, testar `thinking_budget=0`)
+  consumiram a maior parte dessa cota antes de eu perceber que ela existia — o resto se esgotou
+  tentando a recuragem em si.
+
+Uma vez esgotada, toda chamada nova (mesmo minutos depois, em processos separados) devolveu 429
+com a mesma mensagem (`retryDelay` variando entre ~40 s e ~60 s, mas nunca resolvendo) — não é um
+balde que reabastece rápido; é o teto do dia mesmo, e o `retryDelay` curto parece ser só o valor
+padrão que a API devolve para esse tipo de erro, não o instante real da renovação.
+
+**O que rodei mesmo assim, com a chave real** (não fabricado): `curar --evento
+TJ_PA_25_SERVIDOR --cargo 9 --edital <uuid> --reclassificar`, duas vezes (antes e depois do
+conserto do item 3). As duas vezes a IA levou 429 real em todos os 4 lotes; a segunda vez (com
+`LimiteDeTaxaExcedido` já corrigido) retentou de verdade — 3 tentativas por lote, esperando o
+`retryDelay` real entre elas (`traco.duracao_ms` de ~78 500 a ~120 100 ms) — e caiu para
+`ClassificadorPorRegras` em todos os 4 lotes depois de esgotar as tentativas. Resultado: **idêntico
+ao de regras** (nenhuma classificação por IA foi obtida), `atualizadas=70`, `novas=0`, `0`
+linhas duplicadas — a base não foi corrompida, só não melhorou.
+
+**Não repeti para `STJ_24`/`TRT10_24` cargo 12**: a cota é por projeto+modelo (não por evento
+curado), e a TJ-PA já provou de forma reprodutível (2 execuções, ~10 minutos de tentativas reais)
+que está esgotada agora — rodar de novo só gastaria mais ~10 minutos por evento para o mesmo
+resultado previsível, sem nenhuma informação nova.
+
+**Tabela antes × depois** (publicáveis por regras vs. com IA — pedida pelo coordenador):
+
+| eventoURL | cargo | publicáveis por regras | publicáveis com IA | tokens (IA) | custo estimado (IA) |
+|---|---|---|---|---|---|
+| `TJ_PA_25_SERVIDOR` | CARGO 9 | 12 | **bloqueado — cota diária esgotada** (caiu para regras: 12) | 0 (toda tentativa falhou antes de gerar conteúdo) | R$ 0,00 |
+| `STJ_24` | CARGO 19 | 19 | não tentado (mesma cota, já provada esgotada) | — | — |
+| `TRT10_24` | CARGO 12 | 12 | não tentado (mesma cota, já provada esgotada) | — | — |
+
+`traco` desta rodada: 8 linhas, todas `resultado="erro"`, `tokens_in`/`tokens_out`/`custo_brl`
+`NULL` (nenhuma chamada chegou a gerar conteúdo faturável) — 4 com `erro="RespostaDoModeloAusente"`
+(antes do conserto do item 3) e 4 com `erro="LimiteDeTaxaExcedido"` (depois).
+
+### O que fica para quando houver cota de novo
+1. `uv run python -m aprovaos.motor.curar --evento STJ_24 --cargo 19 --edital <uuid>
+   --reclassificar` e o mesmo para `TRT10_24 --cargo 12` — os comandos já existem e já foram
+   testados; só falta a cota.
+2. `GOOGLE_API_KEY=… uv run pytest -q -m llm` — mede se `thinking_budget=0` continua dando
+   resposta correta (item 5) e roda `test_classificador_llm.py`/`test_analista_adk_llm.py`
+   (P-27, ainda aberta).
+3. Se a cota diária de 20 continuar tão apertada mesmo fora do período de testes, `LOTE_CLASSIFICACAO`
+   maior (ex.: 35, dois lotes por caderno de 70 em vez de 4) reduz o nº de chamadas — troca lote
+   maior por prompt maior; não teve por que mexer nisso agora, registrado como opção.
+
+### Verde (passo 12b)
+`bash scripts/checar.sh` na raiz: ruff, `ruff format --check`, `mypy --strict` (89 arquivos),
+prova de import sem efeito colateral, suíte inteira `278 passed, 5 skipped` (`postgres` ×2,
+`llm` ×2, `rede` ×1).
+
+### Arquivos do passo 12b
+Tocados: `.env.example`, `backend/aprovaos/config.py`, `backend/aprovaos/roteador/custo.py`,
+`backend/aprovaos/agentes/classificador.py`, `backend/aprovaos/dados/repositorio_questao.py`,
+`backend/aprovaos/motor/curar.py`, `backend/tests/{test_env_example,test_config,test_roteador,
+test_rota_concurso,test_rota_subir_edital,test_classificacao,test_repositorio_questao,
+test_motor_curar}.py`, `docs/fatias/V3-execucao.md` (este bloco), `docs/02-produto.md` (§6).
+Banco real (`backend/dev.db`, fora do git): sem mudança de conteúdo (210 questões, mesmas 43
+publicáveis) — só 8 linhas novas em `traco`.

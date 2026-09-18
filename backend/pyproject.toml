@@ -19,6 +19,7 @@ dependencies = [
     "psycopg[binary]",
     "pypdfium2>=5.13.0",
     "google-adk>=2.9.1",
+    "httpx2>=2.13.0",
 ]
 
 [dependency-groups]
@@ -26,8 +27,9 @@ dev = [
     "pytest",
     "ruff",
     "mypy",
-    "httpx2>=2.13.0",
     "reportlab>=5.0.1",
+    "pyyaml",
+    "types-pyyaml",
 ]
 
 [build-system]
@@ -72,4 +74,5 @@ filterwarnings = [
 markers = [
     "postgres: exige DATABASE_URL_TEST apontando para um Postgres",
     "llm: exige GOOGLE_API_KEY (chama o Gemini de verdade)",
+    "rede: exige APROVAOS_TESTES_DE_REDE=1 (baixa da Cebraspe de verdade)",
 ]

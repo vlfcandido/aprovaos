@@ -65,3 +65,18 @@ def test_google_api_key_e_secreta(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(cfg.google_api_key, SecretStr)
     assert cfg.google_api_key.get_secret_value() == "abc"
     assert "abc" not in repr(cfg)
+
+
+def test_campos_da_v3() -> None:
+    cfg = Configuracoes(database_url="sqlite://", chave_secreta=SecretStr(CHAVE), _env_file=None)
+    assert cfg.documentos_dir is None
+    assert cfg.contato_coletor == "vlfcandido@gmail.com"
+    assert cfg.modelo_classificacao == "gemini-2.5-flash"
+    assert cfg.lote_classificacao == 20
+    with pytest.raises(pydantic.ValidationError):
+        Configuracoes(
+            database_url="sqlite://",
+            chave_secreta=SecretStr(CHAVE),
+            lote_classificacao=0,
+            _env_file=None,
+        )

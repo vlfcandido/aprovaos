@@ -17,10 +17,12 @@ apareceu como novidade.
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from types import TracebackType
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo
 
 import httpx2
+from pydantic import BaseModel
 
 from aprovaos.config import Configuracoes
 from aprovaos.motor.fontes.base import ArquivoBaixado, FonteIndisponivel, Novidade, TipoNovidade
@@ -108,6 +110,22 @@ def _converter_data_brasilia_para_utc(valor: str | None) -> datetime | None:
     ingenuo = datetime.fromisoformat(valor)
     de_brasilia = ingenuo.replace(tzinfo=_FUSO_BRASILIA)
     return de_brasilia.astimezone(UTC)
+
+
+class CargoEvento(BaseModel):
+    """Um cargo do evento, como a API descreve em `eventoCargos`.
+
+    Usado pelo passo 5 da V3 (`motor/coletar.py`) para achar o cargo de Direito de cada evento —
+    o número do cargo varia por concurso, então nunca é fixo no código.
+
+    Attributes:
+        id_area: `idArea` cru da API (ex.: `"09"`).
+        area: descrição do cargo, como a API escreve (ex.: `"CARGO 9: ANALISTA JUDICIÁRIO –
+            ESPECIALIDADE: DIREITO"`).
+    """
+
+    id_area: str
+    area: str
 
 
 class FonteCebraspe:
@@ -222,6 +240,47 @@ class FonteCebraspe:
                 )
             )
         return novidades
+
+    def cargos_do_evento(self, evento_url: str) -> list[CargoEvento]:
+        """Lista os cargos do evento (`eventoCargos` do detalhe).
+
+        Usado para achar o cargo de Direito antes de filtrar os arquivos (`motor/coletar.py`,
+        passo 5 da V3) — o número do cargo varia por concurso, nunca é fixo.
+
+        Args:
+            evento_url: o `eventoURL` do evento.
+
+        Returns:
+            Os cargos do evento, na ordem da API.
+
+        Raises:
+            FonteIndisponivel: a fonte está fora do ar.
+        """
+        detalhe = self._obter_json(URL_DETALHE.format(eventoURL=evento_url))
+        cargos = detalhe.get("eventoCargos") or []
+        return [CargoEvento(id_area=cargo["idArea"], area=cargo["area"]) for cargo in cargos]
+
+    def fechar(self) -> None:
+        """Fecha o cliente HTTP subjacente, se ele suportar `close()` (evita `ResourceWarning`).
+
+        Clientes falsos de teste sem `close()` são ignorados silenciosamente.
+        """
+        fechar = getattr(self._cliente, "close", None)
+        if callable(fechar):
+            fechar()
+
+    def __enter__(self) -> "FonteCebraspe":
+        """Permite `with criar_fonte_cebraspe(config) as fonte:` — devolve a própria fonte."""
+        return self
+
+    def __exit__(
+        self,
+        tipo_excecao: type[BaseException] | None,
+        excecao: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        """Fecha o cliente HTTP ao sair do bloco `with`, mesmo se uma exceção foi levantada."""
+        self.fechar()
 
     def baixar(self, novidade: Novidade) -> ArquivoBaixado:
         """Baixa o conteúdo de uma novidade (arquivo de prova/gabarito).

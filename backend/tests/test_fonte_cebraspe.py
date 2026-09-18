@@ -148,6 +148,41 @@ def test_arquivos_do_evento_classifica_por_descricao() -> None:
     assert cargo_9.publicado_em == datetime(2025, 9, 5, 22, 0, tzinfo=UTC)
 
 
+def test_cargos_do_evento_le_eventocargos() -> None:
+    """`cargos_do_evento` lê `eventoCargos` do detalhe; o CARGO 9 do fixture é Direito."""
+    detalhe = _carregar("detalhe-TJ_PA_25_SERVIDOR.json")
+    url = URL_DETALHE.format(eventoURL="TJ_PA_25_SERVIDOR")
+    cliente = ClienteFalso({url: _RespostaFalsa(200, corpo=detalhe)})
+    fonte = FonteCebraspe(cliente, CONTATO_TESTE)
+
+    cargos = fonte.cargos_do_evento("TJ_PA_25_SERVIDOR")
+
+    assert len(cargos) == 22
+    direito = next(c for c in cargos if "DIREITO" in c.area.upper())
+    assert direito.id_area == "09"
+    assert direito.area == "CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO"
+
+
+def test_fecha_cliente_no_gerenciador_de_contexto() -> None:
+    """`with FonteCebraspe(...) as fonte` fecha o cliente HTTP ao sair (evita `ResourceWarning`)."""
+
+    class _ClienteFechavel(ClienteFalso):
+        def __init__(self, respostas: dict[str, _RespostaFalsa]) -> None:
+            super().__init__(respostas)
+            self.fechado = False
+
+        def close(self) -> None:
+            self.fechado = True
+
+    v1 = _carregar("lista-encerrado-v1.json")
+    cliente = _ClienteFechavel({URL_LISTA: _RespostaFalsa(200, corpo=v1)})
+
+    with FonteCebraspe(cliente, CONTATO_TESTE) as fonte:
+        fonte.listar_novidades(vistos=set())
+
+    assert cliente.fechado is True
+
+
 def test_erro_http_levanta() -> None:
     """Um 503 na listagem levanta `FonteIndisponivel`, nunca `[]`."""
     cliente = ClienteFalso({URL_LISTA: _RespostaFalsa(503)})

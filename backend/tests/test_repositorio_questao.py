@@ -122,21 +122,45 @@ def test_salvar_questoes_dedup(db: Session) -> None:
     assert db.scalar(select(func.count()).select_from(Questao)) == 2
 
 
+def test_salvar_questoes_dedup_dentro_do_mesmo_lote(db: Session) -> None:
+    """A dedup não pode depender da `UNIQUE` do banco: duas entradas de mesmo `hash_dedup` na
+    **mesma** chamada (o cenário real de um caderno mal segmentado, ou de recoleta que reenvia a
+    mesma prova) já têm de resultar numa única linha, não em duas seguidas de um `IntegrityError`.
+    """
+    documento = _documento(db, "d1b")
+    topico = _topico(db, "dir-civ-01-prescricao")
+    repetida = _questao_curada(1, "Enunciado repetido.", topico.slug, documento.id)
+    repetida_de_novo = _questao_curada(2, "Enunciado repetido.", topico.slug, documento.id)
+    assert repetida.hash_dedup == repetida_de_novo.hash_dedup
+
+    novas, repetidas = salvar_questoes(db, [repetida, repetida_de_novo])
+    db.commit()
+
+    assert (novas, repetidas) == (1, 1)
+    assert db.scalar(select(func.count()).select_from(Questao)) == 1
+
+
 def test_contagem_por_topico(db: Session) -> None:
     tenant_id = _usuario(db, "a@exemplo.com").tenant_id
-    topico = _topico(db, "dir-civ-01-prescricao")
-    edital = _edital_com_topico(db, tenant_id, topico)
+    topico_a = _topico(db, "dir-civ-01-prescricao")
+    topico_b = _topico(db, "dir-civ-02-decadencia")
+    edital = _edital_com_topico(db, tenant_id, topico_a)
+    db.add(TopicoEdital(edital=edital, topico=topico_b, ordem=2, texto_original="2. Decadência."))
+    db.flush()
     documento = _documento(db, "d2")
     questoes = [
-        _questao_curada(1, "Um.", topico.slug, documento.id, publicavel=True),
-        _questao_curada(2, "Dois.", topico.slug, documento.id, publicavel=True),
-        _questao_curada(3, "Três.", topico.slug, documento.id, publicavel=False),
-        _questao_curada(4, "Quatro.", None, documento.id, publicavel=False),
+        _questao_curada(1, "Um.", topico_a.slug, documento.id, publicavel=True),
+        _questao_curada(2, "Dois.", topico_a.slug, documento.id, publicavel=True),
+        _questao_curada(3, "Três.", topico_a.slug, documento.id, publicavel=False),
+        _questao_curada(4, "Quatro.", topico_b.slug, documento.id, publicavel=True),
+        _questao_curada(5, "Cinco.", None, documento.id, publicavel=False),
     ]
     salvar_questoes(db, questoes)
     db.commit()
 
-    assert contagem_por_topico(db, edital.id) == {topico.id: 2}
+    # Dois tópicos com contagens diferentes: exercita o agrupamento por chave, não só o filtro
+    # de `publicavel`.
+    assert contagem_por_topico(db, edital.id) == {topico_a.id: 2, topico_b.id: 1}
 
 
 def test_proxima_questao_ignora_respondidas_e_reportadas(db: Session) -> None:
@@ -196,6 +220,26 @@ def test_registrar_resposta_grava_evento(db: Session) -> None:
 
     db.refresh(questao)
     assert (questao.publicavel, questao.gabarito, questao.gabarito_status) == antes
+
+
+def test_registrar_resposta_acertou_false(db: Session) -> None:
+    """A comparação `resposta == questao.gabarito` é a única regra de negócio do módulo — a
+    polaridade oposta (resposta errada) precisa ser exercida, não só o caso de acerto.
+    """
+    usuario = _usuario(db, "a@exemplo.com")
+    topico = _topico(db, "dir-civ-01-prescricao")
+    documento = _documento(db, "d4b")
+    salvar_questoes(db, [_questao_curada(1, "Um.", topico.slug, documento.id, gabarito="C")])
+    db.commit()
+    questao = db.scalars(select(Questao)).one()
+
+    evento = registrar_resposta(
+        db, usuario, questao, resposta="E", confianca="certeza", tempo_ms=2000
+    )
+    db.commit()
+
+    assert evento.acertou is False
+    assert evento.resposta == "E"
 
 
 def test_registrar_reporte(db: Session) -> None:

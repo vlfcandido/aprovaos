@@ -97,11 +97,14 @@ def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, in
 def contagem_por_topico(db: Session, edital_id: UUID) -> dict[UUID, int]:
     """Quantas questões publicáveis existem por tópico deste edital.
 
-    Junta por `topico_edital` (não pela FK direta de `questao.topico_id`) porque o tópico é
-    vocabulário global compartilhado entre editais (premissa D): a contagem tem que ficar presa
-    a *este* edital, não a todo edital que reaproveita o mesmo tópico. Tópico sem nenhuma
-    questão publicável simplesmente não aparece no dicionário — quem exibe decide o que fazer
-    com a ausência.
+    O que fica preso a *este* edital são os **tópicos** considerados — via `TopicoEdital.edital_id`
+    — não as questões contadas: `questao.topico_id` não sabe de edital nenhum, então a junção com
+    `topico_edital` é o único jeito de restringir "quais tópicos valem aqui". As questões somadas
+    são todas as publicáveis daquele `topico_id`, de qualquer documento/prova que as originou —
+    `questao` é um pool de conteúdo global (prova pública), compartilhado por qualquer edital que
+    reaproveite o mesmo tópico (premissa D: vocabulário global por `slug`). Tópico sem nenhuma
+    questão publicável simplesmente não aparece no dicionário — quem exibe decide o que fazer com
+    a ausência.
 
     Args:
         db: sessão do request.

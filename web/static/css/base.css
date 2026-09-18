@@ -1,0 +1,235 @@
+/* O que é: reset mínimo e componentes base do AprovaOS (layout de celular, botão, campo, mensagem
+   de erro), todos por tokens de `tokens.css`. Quando ler: ao criar uma tela nova — reutilize as
+   classes daqui antes de escrever CSS de página. Sem cor literal (teste `test_inicio.py`). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha);
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fonte-titulo);
+  line-height: 1.2;
+  margin: 0 0 var(--espaco-3);
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: var(--texto-titulo);
+}
+
+h2 {
+  font-size: var(--texto-grande);
+}
+
+p {
+  margin: 0 0 var(--espaco-4);
+}
+
+a {
+  color: var(--cor-acao);
+  text-underline-offset: 0.15em;
+}
+
+/* Largura de celular com gutter de 16px; nunca rola na horizontal */
+.pagina {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  padding-inline: var(--espaco-4);
+  padding-block: var(--espaco-6) var(--espaco-12);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  flex-wrap: wrap;
+  padding-block: var(--espaco-3);
+  border-bottom: 1px solid var(--cor-linha);
+  margin-bottom: var(--espaco-8);
+}
+
+.marca {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: var(--texto-medio);
+  color: var(--cor-texto);
+  text-decoration: none;
+}
+
+.navegacao {
+  display: flex;
+  gap: var(--espaco-4);
+  flex-wrap: wrap;
+}
+
+.navegacao a {
+  color: var(--cor-texto-2);
+  text-decoration: none;
+  font-size: var(--texto-pequeno);
+}
+
+.navegacao a:hover,
+.navegacao a:focus-visible,
+.navegacao .botao-link:hover,
+.navegacao .botao-link:focus-visible {
+  color: var(--cor-acao);
+  text-decoration: underline;
+}
+
+.navegacao__sair {
+  display: inline;
+  margin: 0;
+}
+
+/* Botão com cara de link: para ações POST na navegação (ex.: sair) */
+.botao-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-texto-2);
+  font: inherit;
+  font-size: var(--texto-pequeno);
+  cursor: pointer;
+}
+
+.frase {
+  font-size: var(--texto-medio);
+  color: var(--cor-texto-2);
+  margin-bottom: var(--espaco-8);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+/* Botão: alvo de toque de 44px, foco visível */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--espaco-2) var(--espaco-6);
+  border: 1px solid var(--cor-acao);
+  border-radius: var(--raio);
+  background: var(--cor-acao);
+  color: var(--cor-acao-texto);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botao:hover {
+  filter: brightness(1.08);
+}
+
+.botao--secundario {
+  background: transparent;
+  color: var(--cor-acao);
+}
+
+.botao:focus-visible,
+.campo input:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--cor-acao-suave);
+  outline-offset: 2px;
+}
+
+/* Campo de formulário */
+.campo {
+  display: grid;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-4);
+}
+
+.campo label {
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.campo input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+}
+
+.campo input:focus {
+  border-color: var(--cor-acao);
+}
+
+/* Mensagens: erro em vermelho semântico; "por quê" em âmbar com borda esquerda */
+.mensagem {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-pequeno);
+  margin-bottom: var(--espaco-4);
+  font-size: var(--texto-pequeno);
+}
+
+.mensagem--erro {
+  background: var(--cor-erro-suave);
+  color: var(--cor-erro);
+  border: 1px solid var(--cor-erro);
+}
+
+.mensagem--porque {
+  background: var(--cor-porque-suave);
+  color: var(--cor-texto);
+  border-left: 4px solid var(--cor-porque);
+}
+
+.rodape {
+  margin-top: var(--espaco-12);
+  color: var(--cor-texto-3);
+  font-size: var(--texto-pequeno);
+}
+
+/* A única transição da base: só com movimento permitido */
+@media (prefers-reduced-motion: no-preference) {
+  .botao,
+  .campo input,
+  .navegacao a {
+    transition:
+      background-color var(--duracao-curta) var(--curva-padrao),
+      border-color var(--duracao-curta) var(--curva-padrao),
+      color var(--duracao-curta) var(--curva-padrao),
+      filter var(--duracao-curta) var(--curva-padrao);
+  }
+}

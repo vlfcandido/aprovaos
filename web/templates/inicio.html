@@ -1,0 +1,17 @@
+{# O que é: landing mínima (`GET /`) — nome, uma frase e o botão de criar conta.
+   Quando ler: ao mudar a primeira impressão do produto; a landing definitiva com SEO é da Fase 6. -#}
+{% extends "base.html" %}
+{% block titulo %}AprovaOS — quem assume a sua aprovação{% endblock %}
+{% block conteudo %}
+  <h1>AprovaOS</h1>
+  <p class="frase">Um agente que assume a responsabilidade pela sua aprovação: planeja, ensina,
+    cobra e ajusta a rota — sempre explicando o porquê.</p>
+  <div class="acoes">
+    {% if usuario_email %}
+      <a class="botao" href="/conta">Ir para minha conta</a>
+    {% else %}
+      <a class="botao" href="/cadastro">Criar conta</a>
+      <a href="/entrar">Já tenho conta — entrar</a>
+    {% endif %}
+  </div>
+{% endblock %}

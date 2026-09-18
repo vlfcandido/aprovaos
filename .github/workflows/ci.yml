@@ -1,0 +1,23 @@
+# O que é: CI do AprovaOS — roda `scripts/checar.sh` (ruff, mypy, prova de import, pytest) em todo
+# push e pull request. Quando ler: ao mudar a checagem local (os dois têm de ser iguais) ou o Python.
+name: checar
+
+on: [push, pull_request]
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Instalar o Python pinado
+        run: uv python install
+        working-directory: backend
+      - name: Instalar dependências
+        run: uv sync --locked
+        working-directory: backend
+      - name: Checar
+        run: bash scripts/checar.sh

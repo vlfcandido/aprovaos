@@ -1,0 +1,39 @@
+{# O que é: layout base de toda página HTML do AprovaOS — head com viewport e tema, CSS por tokens,
+   htmx vendorizado, cabeçalho com navegação (reflete `usuario_email`, injetado por `renderizar`) e
+   blocos `titulo`/`conteudo`. Quando ler: ao criar uma página nova (`{% extends "base.html" %}`). -#}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block titulo %}AprovaOS{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <script src="/static/js/htmx.min.js" defer></script>
+</head>
+<body>
+  <div class="pagina">
+    <header class="cabecalho">
+      <a class="marca" href="/">AprovaOS</a>
+      <nav class="navegacao" aria-label="Principal">
+        {% if usuario_email %}
+          <a href="/conta">Minha conta</a>
+          <form method="post" action="/sair" class="navegacao__sair">
+            <button class="botao-link" type="submit">Sair</button>
+          </form>
+        {% else %}
+          <a href="/entrar">Entrar</a>
+          <a href="/cadastro">Criar conta</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main id="conteudo">
+      {% block conteudo %}{% endblock %}
+    </main>
+    <footer class="rodape">
+      <p>AprovaOS — piloto. Nada gerado chega a você sem validação.</p>
+    </footer>
+  </div>
+</body>
+</html>

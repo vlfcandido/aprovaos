@@ -28,6 +28,7 @@ Formato: `R-nn · risco · probabilidade × impacto (B/M/A) · mitigação · ga
 | **R-12** | Dependência de um provedor de modelo (Google) | B×M | Agentes ADK com `model` como config; ADK suporta outros provedores via LiteLLM (docs ADK §Models); prompts sem sintaxe proprietária; testes de contrato por `output_schema` | preço +50 % ou depreciação de modelo |
 | **R-13** | Latência UE→BR (~200 ms) | B×B | HTMX com respostas pequenas; check-in sem LLM; se doer, migrar host (app não sabe onde roda) | p95 de página > 1,5 s |
 | **R-14** | Segredos e chaves (Gemini, gateway) no VPS | B×A | `.env` só no servidor, permissões 600, rotação a cada 90 dias; webhook com assinatura verificada; sem segredos em log/traço | vazamento; commit acidental (hook de pré-commit bloqueia) |
+| **R-19** | Piloto v0 por `http://<ip-local>:8000` sem TLS (ADR-0030): cookie de sessão sem `Secure` (`COOKIE_SEGURO=false`) e tráfego em claro na rede doméstica | B×M | Só na rede local do dono, uma usuária, sem dado sensível na V1–V5 (energia/sono entram na fatia 7 com consentimento, R-01); cookie `HttpOnly`, `SameSite=Lax` e assinado por HMAC mesmo assim; `COOKIE_SEGURO=true` e Caddy/TLS entram na fatia 8 antes de qualquer acesso externo | qualquer acesso de fora da rede local antes da fatia 8 |
 
 ## Negócio
 | id | risco | P×I | mitigação | gatilho |

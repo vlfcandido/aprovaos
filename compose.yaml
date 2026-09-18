@@ -1,0 +1,33 @@
+# O que é: ambiente local do AprovaOS — Postgres 16 com pgvector e o serviço web (FastAPI).
+# Quando ler: ao subir o projeto (`docker compose up -d --build`) ou ao acrescentar serviço (jobs entra na fatia 8).
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: aprovaos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: aprovaos
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aprovaos -d aprovaos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      # Dentro do container o banco é o serviço `postgres`, não localhost.
+      DATABASE_URL: postgresql+psycopg://aprovaos:${POSTGRES_PASSWORD}@postgres:5432/aprovaos
+      WEB_DIR: /web
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy

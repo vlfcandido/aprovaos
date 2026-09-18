@@ -131,6 +131,7 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 **Decisão:** `authlib` para OAuth do Google, `argon2-cffi` para senha, sessão server-side em Postgres com cookie `HttpOnly/Secure/SameSite=Lax`; verificação de e-mail; sem JWT no MVP (HTMX é same-origin).
 **Alternativas:** fastapi-users (mais opinativo), Auth0/Clerk (custo e dependência).
 **Por quê:** simples, auditável, sem custo; RF-20.
+**Adendo 17/09/2026 (V1):** assinatura do cookie por HMAC-SHA256 da stdlib (`hmac`/`secrets`), valor `<token>.<hmac>`, só `sha256(token)` no banco; `itsdangerous` não entrou. Verificação de e-mail adiada (P-21).
 
 ## ADR-0027 — Piloto pelo edital da usuária em PDF, com questões originais da base Cebraspe nos mesmos tópicos · 2026-09-17 · aceita (decisão do dono, abertura da Fase 4)
 **Decisão:** o piloto (ADR-0016) não usa um concurso do catálogo Cebraspe+FGV: a Linda **sobe o edital em PDF** do concurso que for prestar (assessor de gabinete e similares em Cascavel-PR, matérias de Direito, bancas locais). O `analista-de-edital` gera o `DnaConcurso` a partir do PDF (F1.5 sobe da fatia 13 para as primeiras fatias); as **questões originais** vêm da base Cebraspe (API pública, P-11) nos mesmos tópicos do edital, sempre exibidas com banca/órgão/ano/item — nunca apresentadas como "da banca dela". A ADR-0011 continua valendo para o catálogo e para o produto aberto; esta ADR vale para o piloto e para qualquer aluno cujo concurso não esteja no catálogo.
@@ -158,3 +159,4 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 **Testes sem Docker:** V1 e V2 não têm coluna vetorial, então os testes de repositório rodam em SQLite em memória; testes marcados `@pytest.mark.postgres` rodam só com `DATABASE_URL_TEST` definido. A partir da V3 (pgvector) a suíte exige Postgres (Compose local).
 **CI:** `.github/workflows/ci.yml` (pytest, ruff, mypy, checagem de import sem efeito colateral) entra na V1; o repositório ainda não tem remoto — criar o repo no GitHub é decisão do dono (P-19).
 **Por quê:** CLAUDE.md regra 8 (fábrica → externo → do zero) cumprida com veredito escrito; a stack da ADR-0017/0019/0026 é específica demais para um template genérico valer o custo de adaptação.
+**Adendo 17/09/2026:** V1 entregue (66 testes, `scripts/checar.sh` verde, fluxo real com Alembic + uvicorn verificado); `httpx2` no lugar de `httpx` nos testes (Starlette 1.6 depreciou `httpx` no `TestClient`); copiar para `fabrica-saas/template-saas/` = P-20.

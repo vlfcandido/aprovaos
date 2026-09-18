@@ -1,0 +1,18 @@
+O que é: licença do htmx vendorizado em `web/static/js/htmx.min.js` — versão 2.0.10, baixado em
+2026-09-17 de https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js (licença Zero-Clause BSD, abaixo).
+Quando ler: ao atualizar o htmx (troque o arquivo minificado, esta versão e a data) ou ao auditar
+licenças de terceiros. O minificado não é editado; a versão fica aqui, não nele.
+
+Zero-Clause BSD
+=============
+
+Permission to use, copy, modify, and/or distribute this software for
+any purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL
+WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

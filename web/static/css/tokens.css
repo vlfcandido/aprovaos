@@ -1,0 +1,116 @@
+/* O que é: os tokens de tema do AprovaOS — a única fonte de cor, espaço, raio e tipografia
+   (ADR-0019; aprendizados dos mockups §3). Quando ler: ao precisar de uma cor nova (crie o token
+   aqui, nos dois temas) ou ao ajustar o tema escuro. Nenhum outro arquivo usa cor literal. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Superfícies e texto (tema claro) */
+  --cor-fundo: #f3f5f8;
+  --cor-superficie: #ffffff;
+  --cor-superficie-2: #e9edf3;
+  --cor-texto: #131b2e;
+  --cor-texto-2: #4a5470;
+  --cor-texto-3: #7c86a2;
+  --cor-linha: #d6dce7;
+
+  /* Ação */
+  --cor-acao: #2f46b8;
+  --cor-acao-texto: #ffffff;
+  --cor-acao-suave: #e4e9fa;
+
+  /* Semânticas: "por quê" (âmbar), acerto, erro, alerta */
+  --cor-porque: #b7791f;
+  --cor-porque-suave: #fbf3e3;
+  --cor-ok: #1f7a4d;
+  --cor-ok-suave: #e3f3ea;
+  --cor-erro: #b3261e;
+  --cor-erro-suave: #fbe7e5;
+  --cor-alerta: #9a5b00;
+  --cor-alerta-suave: #fdf0dc;
+
+  --sombra: 0 1px 2px rgb(19 27 46 / 0.06), 0 8px 24px rgb(19 27 46 / 0.06);
+
+  /* Espaço (gutter de celular = --espaco-4 = 16px) */
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-6: 1.5rem;
+  --espaco-8: 2rem;
+  --espaco-12: 3rem;
+
+  /* Raio */
+  --raio: 10px;
+  --raio-pequeno: 6px;
+  --raio-total: 999px;
+
+  /* Tipografia: fonte do sistema até a Fase 6 (premissa J, Q4); Sora/IBM Plex só se forem locais */
+  --fonte-titulo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fonte-corpo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fonte-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --texto-pequeno: 0.875rem;
+  --texto-base: 1rem;
+  --texto-medio: 1.125rem;
+  --texto-grande: 1.5rem;
+  --texto-titulo: 2rem;
+  --altura-linha: 1.55;
+
+  /* Movimento (só aplicado sob prefers-reduced-motion: no-preference) */
+  --duracao-curta: 120ms;
+  --curva-padrao: ease-out;
+}
+
+/* Tema escuro automático, a menos que a pessoa tenha fixado o claro */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="claro"]) {
+    --cor-fundo: #0f1524;
+    --cor-superficie: #171f33;
+    --cor-superficie-2: #1f2940;
+    --cor-texto: #eef1f8;
+    --cor-texto-2: #b6bed3;
+    --cor-texto-3: #7f89a6;
+    --cor-linha: #2c3650;
+
+    --cor-acao: #8ea0f0;
+    --cor-acao-texto: #0f1524;
+    --cor-acao-suave: #24305c;
+
+    --cor-porque: #e0b15c;
+    --cor-porque-suave: #3a2e15;
+    --cor-ok: #6fcf97;
+    --cor-ok-suave: #15321f;
+    --cor-erro: #f08a83;
+    --cor-erro-suave: #3d1a17;
+    --cor-alerta: #f0b860;
+    --cor-alerta-suave: #3a2a10;
+
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  }
+}
+
+/* Tema escuro fixado pela pessoa (vence a preferência do sistema) */
+:root[data-theme="escuro"] {
+  --cor-fundo: #0f1524;
+  --cor-superficie: #171f33;
+  --cor-superficie-2: #1f2940;
+  --cor-texto: #eef1f8;
+  --cor-texto-2: #b6bed3;
+  --cor-texto-3: #7f89a6;
+  --cor-linha: #2c3650;
+
+  --cor-acao: #8ea0f0;
+  --cor-acao-texto: #0f1524;
+  --cor-acao-suave: #24305c;
+
+  --cor-porque: #e0b15c;
+  --cor-porque-suave: #3a2e15;
+  --cor-ok: #6fcf97;
+  --cor-ok-suave: #15321f;
+  --cor-erro: #f08a83;
+  --cor-erro-suave: #3d1a17;
+  --cor-alerta: #f0b860;
+  --cor-alerta-suave: #3a2a10;
+
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}

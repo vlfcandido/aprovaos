@@ -1,0 +1,30 @@
+{# O que é: formulário de criar conta (`GET/POST /cadastro`) — e-mail + senha, envio por htmx com
+   troca só do formulário (`hx-select`/`hx-target`) e funcionando sem JS. Quando ler: ao mudar campos,
+   mensagens ou o fluxo de cadastro. -#}
+{% extends "base.html" %}
+{% block titulo %}Criar conta — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Criar conta</h1>
+  <form id="form-cadastro" method="post" action="/cadastro"
+        hx-post="/cadastro" hx-select="#form-cadastro" hx-target="#form-cadastro" hx-swap="outerHTML">
+    {% if erros %}
+      <div class="mensagem mensagem--erro" role="alert">
+        {% for erro in erros %}<p>{{ erro }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <div class="campo">
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required
+             value="{{ email }}" inputmode="email">
+    </div>
+    <div class="campo">
+      <label for="senha">Senha (8 a 128 caracteres)</label>
+      <input id="senha" name="senha" type="password" autocomplete="new-password" required
+             minlength="8" maxlength="128">
+    </div>
+    <div class="acoes">
+      <button class="botao" type="submit">Criar conta</button>
+      <a href="/entrar">Já tenho conta — entrar</a>
+    </div>
+  </form>
+{% endblock %}

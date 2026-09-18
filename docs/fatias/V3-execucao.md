@@ -315,30 +315,53 @@ problema de cota).
 --reclassificar`, um caderno por vez, na ordem pedida. As três rodaram sem erro (4 chamadas
 `resultado="ok"` cada, 12 no total — exatamente o orçamento previsto).
 
-**Tabela antes × depois** (publicáveis por regras vs. com IA de verdade, `gemini-3.5-flash-lite`):
+**Tabela antes × depois** (publicáveis por regras vs. com IA de verdade, `gemini-3.5-flash-lite`)
+— **corrigida na rodada de revisão do passo 12** (ver "Correção do método" logo abaixo; os
+números de "só IA"/"só regras" mudaram, os de publicáveis e tokens/custo não:
 
-| eventoURL | cargo | publicáveis (regras) | publicáveis (IA) | sem tópico (regras→IA) | itens que a IA achou e as regras não | itens que a IA perdeu (regras achavam) | tokens in/out | custo estimado |
-|---|---|---|---|---|---|---|---|---|
-| `TJ_PA_25_SERVIDOR` | CARGO 9 | 12 | **37** | 57 → 29 | 29 | 2 | 14 307 / 4 692 | R$ 0,0865 |
-| `STJ_24` | CARGO 19 | 19 | **19** | 51 → 50 | 6 | 5 | 15 022 / 3 648 | R$ 0,0736 |
-| `TRT10_24` | CARGO 12 | 12 | **7** | 57 → 62 | 4 | 9 | 14 755 / 3 757 | R$ 0,0746 |
-| **Total** | | **43** | **63** | 165 → 141 | 39 | 16 | 44 084 / 12 097 | **R$ 0,2347** |
+| eventoURL | cargo | publicáveis (regras) | publicáveis (IA) | só IA (itens) | só regras (itens) | tokens in/out | custo estimado |
+|---|---|---|---|---|---|---|---|
+| `TJ_PA_25_SERVIDOR` | CARGO 9 | 12 | **37** | 27 | 2 (57, 78) | 14 307 / 4 692 | R$ 0,0865 |
+| `STJ_24` | CARGO 19 | 19 | **19** | 5 (58, 81, 82, 83, 84) | 5 (75, 99, 107, 118, 120) | 15 022 / 3 648 | R$ 0,0736 |
+| `TRT10_24` | CARGO 12 | 12 | **7** | 4 (59, 61, 70, 72) | 9 (51, 63, 96, 99, 113–117) | 14 755 / 3 757 | R$ 0,0746 |
+| **Total** | | **43** | **63** | 36 | 16 | 44 084 / 12 097 | **R$ 0,2347** |
 
 Custo real gasto: **R$ 0,00** — a chave está no free tier; a coluna "custo estimado" é o que
-`traco.custo_brl` grava (o preço do paid tier, o que o teto diário protegeria). "Itens que a IA
-achou e as regras não"/"que a IA perdeu" contados batendo, item a item, a classificação atual
-(IA, no banco) contra `classificar_por_regras` rodado offline sobre os mesmos itens segmentados
-do PDF (determinístico, sem rede) — a base não guarda mais o valor "antes" depois do
-`--reclassificar`, então essa é a forma de reconstruir a comparação sem ter salvo um snapshot.
+`traco.custo_brl` grava (o preço do paid tier, o que o teto diário protegeria).
 
-**Achado honesto, não escondido**: na TJ-PA a IA claramente ajudou (12 → 37 publicáveis, quase
-triplicou). Na STJ_24 ficou **igual** (19 → 19) — ganhou 6 itens, perdeu 5, o saldo líquido não
-mudou o total de publicáveis porque os itens trocados não bateram exatamente nos mesmos. No
-TRT10_24 a IA **piorou** o número de publicáveis (12 → 7) — perdeu 9 itens que as regras tinham
-classificado (provavelmente falsos positivos do léxico: termo isolado casando por acaso) contra
-só 4 que ganhou. Isso não é necessariamente "a IA está errada" — pode ser o contrário (regras
-mais permissiva demais nesse caderno); só dá para saber olhando os 9 itens perdidos um a um, o
-que não coube neste passo. Registrado como pendência de revisão manual.
+**Correção do método (rodada de revisão do passo 12).** A primeira versão deste diário contava
+"a IA achou, as regras não" só olhando `topico_slug`/`topico_confianca` — sem aplicar o resto do
+gate de publicação (`dominio.questao.decidir_publicacao`, que também olha `gabarito_status` e
+`origem`). Isso inflava o número: na TJ-PA, os itens **104 e 105 são anulados** (gabarito não
+serve para nada, publicável nunca) — o método antigo contava os dois como "a IA achou" porque
+regras não tinha atribuído tópico a eles, mas nenhum dos dois é publicável de qualquer jeito, com
+IA ou sem. O método corrigido chama `decidir_publicacao` de verdade — mesmo gate que grava
+`questao.publicavel` — com a classificação de `classificar_por_regras` (rodado offline sobre os
+itens segmentados do PDF, sem rede) e com `gabarito_status`/`origem` **reais** lidos do banco;
+"só IA" e "só regras" são a diferença simétrica dos dois conjuntos de publicáveis resultantes.
+28 → 27 na TJ-PA (2 itens anulados saíram da contagem, 1 outro ajuste); 6 → 5 na STJ_24. As duas
+somas agora fecham: `publicáveis (regras) + só IA − só regras = publicáveis (IA)` em todas as
+três linhas (ex.: TJ-PA: 12 + 27 − 2 = 37).
+
+**Auditoria dos 9 itens que o TRT10_24 perdeu com a IA — conclusão: 8 são melhora de precisão,
+não regressão.** Lidos os nove enunciados reais contra o motivo que o léxico usou para
+classificá-los:
+- **Item 51** — trata de **LGPD / dados pessoais sensíveis**; as regras casaram o termo "lei de
+  introdução às normas do direito brasileiro" (LINDB) de passagem — **falso positivo**.
+- **Item 63** — demonstrativo de cálculo em **execução fiscal**; casou "petição inicial" de
+  passagem — **falso positivo**.
+- **Item 99** — **revelia e confissão ficta**; casou "petição inicial" — **falso positivo**.
+- **Itens 113, 114, 115, 116 e 117** — todos sobre **previdência complementar e seguridade
+  social**; casaram "servidores públicos" — **falso positivo** (é Direito Previdenciário, matéria
+  que nem está no edital da Linda).
+- **Item 96** — indeferimento de **petição inicial** por falta de documento indispensável: aqui
+  o termo "petição inicial" era mesmo o assunto do item — **as regras estavam certas e a IA
+  errou**, deixando sem tópico (registrado como pendência, P-29 em `docs/PENDENCIAS.md`).
+
+**8 dos 9 itens que a TRT10_24 "perdeu" eram falso positivo do léxico por regras — a IA filtrou
+lixo.** O "12 → 7" publicáveis do TRT10_24 é **melhora de precisão, não regressão**, ao preço de
+uma perda ocasional (o item 96). Sem essa auditoria, o número parece um fracasso da IA; com ela,
+é o oposto: o léxico estava inflando "publicáveis" com item que não é do tópico que ele diz ser.
 
 ### Amostra de 5 classificações que a IA fez e as regras não (TJ-PA, com `topico_evidencia`)
 | item | tópico (IA) | confiança | evidência da IA |
@@ -353,7 +376,8 @@ As cinco batem com o enunciado real do item (conferido à mão): 51 é sobre aut
 rever atos), 65 sobre classificação de Constituições, 79 sobre prazo prescricional de
 benfeitorias, 89 sobre LINDB/eficácia da lei no espaço, 93 sobre valoração de prova no CPC —
 nenhuma parece invenção; são exatamente os tópicos que o léxico por regras não tinha termo para
-casar (por isso ficavam "sem tópico" antes).
+casar (por isso ficavam "sem tópico" antes). Estes cinco continuam corretos na correção do
+método acima — nenhum dos cinco é item anulado nem muda de lado.
 
 ### 4. `thinking_budget` — item cancelado, não pendente
 O passo 12b deixou como pendência "medir se a resposta continua correta com
@@ -382,3 +406,56 @@ Tocados: `backend/aprovaos/config.py`, `.env.example`, `backend/aprovaos/roteado
 test_classificacao}.py`, `docs/fatias/V3-execucao.md` (este bloco), `docs/02-produto.md` (§6).
 Banco real (`backend/dev.db`, fora do git): mesmas 210 questões, agora **63 publicáveis** (era
 43) — 12 linhas novas em `traco`, todas `resultado="ok"`.
+
+## Rodada de correção dos passos 12/12b/12c
+
+Revisão trouxe 3 Importantes + 1 Menor; o dono rodou a auditoria do TRT10 que tinha ficado em
+aberto (§ acima, já incorporada) porque o revisor deste projeto é read-only, sem `Bash`.
+
+### Importante 1 — números "só IA"/"só regras" corrigidos
+Ver "Correção do método", na seção da tabela antes × depois acima: o método antigo não aplicava
+`decidir_publicacao` por inteiro (ignorava `gabarito_status`), contando itens anulados como se
+fossem "publicáveis só pela IA". Corrigido; as três linhas agora fecham
+(`regras + só IA − só regras = IA`).
+
+### Importante 2 — auditoria do TRT10: 8 dos 9 itens eram falso positivo do léxico
+Ver "Auditoria dos 9 itens…", na mesma seção acima. Conclusão do dono, registrada com as
+palavras dele: o "12 → 7" do TRT10_24 é **melhora de precisão, não regressão** — a IA filtrou
+lixo do léxico por regras, ao custo de um falso negativo real (item 96, P-29).
+
+### Importante 3 — `curar_documento` agora confere que prova e gabarito são o mesmo par
+`ParDivergente` (`motor/curar.py`): `_conferir_par(documento_prova, documento_gabarito)` compara
+`evento`/`cargo` dos dois `Documento` (os mesmos dois campos que `_origem_base` já deriva) logo
+depois de carregá-los, antes de ler qualquer PDF. Chamar `curar_documento` com um par trocado
+(prova de um evento/cargo, gabarito de outro) levanta `ParDivergente` em vez de gerar `Origem` e
+gabarito silenciosamente errados. Dois testes novos: par de eventos diferentes
+(`TJ_PA_25_SERVIDOR` × `STJ_24`) e mesmo evento com cargo diferente (`CARGO 9` × `CARGO 18`).
+
+### Menor — todo modelo default de `Configuracoes` tem preço tabelado
+`test_todo_modelo_default_de_configuracoes_tem_preco_tabelado` (`test_roteador.py`): itera os
+campos `modelo_*` de `Configuracoes` e confere que o valor default de cada um está em
+`PRECOS_USD_POR_MILHAO`. Passou de primeira (nada estava quebrado); existe para a **próxima**
+troca de modelo não quebrar o roteador só em produção.
+
+### Importante 4 — ADR-0018 e `06-custos.md` ganharam adendo de 18/09/2026
+`docs/DECISOES.md` (ADR-0018) e `docs/06-custos.md` (§7, novo) registram: `gemini-2.5-flash`
+responde 404 para chave nova; `modelo_dna` = `gemini-3.6-flash`, `modelo_classificacao` =
+`gemini-3.5-flash-lite`; preços novos com fonte (18/09/2026); `gemini-3.5-flash-lite` rejeita
+`thinking_config`; free tier real = R$ 0,00, cota de 5 req/min e **20 req/dia por modelo**.
+
+### `docs/PENDENCIAS.md`
+P-27 reescrita: a chave existe desde 18/09/2026, o bloqueio agora é a cota diária (20 req/dia
+por modelo), não a falta de chave — os testes `llm` continuam sem rodar. P-29 nova: o item 96 do
+TRT10_24 (Importante 2) — a IA deixou sem tópico um item que o léxico por regras acertava; caso
+isolado, registrado para quando houver mais dado para comparar.
+
+### Verde (rodada de correção)
+`uv run pytest -q`: `282 passed, 5 skipped` (eram 279; +3: os dois testes de `ParDivergente` e o
+de preço tabelado). `bash scripts/checar.sh` na raiz: ruff, `ruff format --check`, `mypy
+--strict` (92 arquivos), import sem efeito colateral — tudo verde.
+
+### Arquivos da rodada de correção
+Tocados: `backend/aprovaos/motor/curar.py` (`ParDivergente`, `_conferir_par`),
+`backend/tests/{test_motor_curar,test_roteador}.py`, `docs/DECISOES.md` (ADR-0018),
+`docs/06-custos.md` (§1 e §7 novos), `docs/PENDENCIAS.md` (P-27, P-29), `docs/fatias/V3-execucao.md`
+(este bloco e a correção da tabela antes × depois acima).

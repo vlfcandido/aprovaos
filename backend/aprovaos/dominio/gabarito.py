@@ -107,8 +107,21 @@ def ler_gabarito_cebraspe(texto: str) -> dict[int, EntradaGabarito]:
     valor do texto, `valor_preliminar` = o primeiro); um item com valor único é definitivo, salvo
     se o documento só tiver a palavra "preliminar" (nunca "definitivo") — aí é preliminar.
 
+    Pré-condição: **o texto é de um único caderno/cargo**. A detecção de "alterado" decide pelo
+    número do item aparecer duas vezes no texto com valores diferentes — ela não sabe distinguir
+    "o mesmo item, dois quadros (preliminar e definitivo)" de "dois cargos diferentes, cada um
+    com seu próprio item 1". Um PDF que consolidasse o gabarito de vários cargos na mesma matriz
+    (a Cebraspe faz isso em alguns editais) produziria itens de cargos diferentes com o mesmo
+    número, e a função os leria como um único item "alterado" por engano, em silêncio — por isso
+    quem chama tem de garantir de antemão que o texto é de um cargo só (ex.: já separou o PDF por
+    página/seção de cargo antes de extrair o texto). Não há checagem barata e honesta para essa
+    pré-condição (faixa de itens não contígua também acontece legitimamente dentro de um cargo só,
+    por causa dos "0" de preenchimento do quadro) — por isso ela é só documentada aqui, não
+    imposta em código; ver `docs/PENDENCIAS.md`.
+
     Args:
-        texto: texto do gabarito, já extraído do PDF (`dominio.pdf.extrair_texto`).
+        texto: texto do gabarito de **um único caderno/cargo**, já extraído do PDF
+            (`dominio.pdf.extrair_texto`).
 
     Returns:
         Um mapa `numero_item -> EntradaGabarito`. Consultar um item que não está no mapa (fora do

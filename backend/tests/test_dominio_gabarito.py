@@ -63,15 +63,19 @@ def test_alterado() -> None:
 
     Nenhum dos quatro gabaritos reais desta fatia traz uma seção "GABARITO PRELIMINAR" separada
     da definitiva (são documentos só de gabarito definitivo — ver `passo-7-report.md`); por isso
-    este caso usa texto sintético, no formato de grade que os quatro arquivos reais usam.
+    este caso usa texto sintético, no formato de grade que os quatro arquivos reais usam — com o
+    rótulo de cada seção **depois** do próprio quadro, como a extração real produz (o rótulo
+    "GABARITOS OFICIAIS DEFINITIVOS" sai depois da grade de números nos quatro PDFs reais, não
+    antes; a leitura não depende da posição do rótulo, só de o item aparecer duas vezes com
+    valores diferentes).
     """
     texto = """\
-GABARITO PRELIMINAR
 1 2
 C E
-GABARITOS OFICIAIS DEFINITIVOS
+GABARITO PRELIMINAR
 1 2
 C C
+GABARITOS OFICIAIS DEFINITIVOS
 """
     gabarito = ler_gabarito_cebraspe(texto)
     assert gabarito[1] == EntradaGabarito(valor="C", status="definitivo", valor_preliminar=None)

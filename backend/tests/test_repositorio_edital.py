@@ -140,6 +140,28 @@ def test_registrar_edital_cria_tudo(
     assert registro.conteudo == resultado.dna.model_dump(mode="json")
 
 
+def test_registrar_edital_guarda_grupo(
+    db: Session, resultado: ResultadoDna, materias: list[MateriaExtraida], documento: DadosDocumento
+) -> None:
+    """P-26: `topico_edital.grupo` vem de `MateriaExtraida.grupo`, não é derivado do slug."""
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    concurso = registrar_edital(db, tenant_id, resultado, materias, documento)
+    db.commit()
+    edital = edital_atual(db, concurso.id)
+    assert edital is not None
+    linhas = db.scalars(
+        select(TopicoEdital).where(TopicoEdital.edital_id == edital.id).order_by(TopicoEdital.ordem)
+    ).all()
+    grupos_por_materia = {linha.topico.materia: linha.grupo for linha in linhas}
+    assert grupos_por_materia["LÍNGUA PORTUGUESA"] is None
+    assert grupos_por_materia["RACIOCÍNIO LÓGICO"] is None
+    assert grupos_por_materia["LEGISLAÇÃO MUNICIPAL"] is None
+    assert grupos_por_materia["DIREITO CONSTITUCIONAL"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["DIREITO ADMINISTRATIVO"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["DIREITO CIVIL"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["DIREITO PROCESSUAL CIVIL"] == "CONHECIMENTOS ESPECÍFICOS"
+
+
 def test_registrar_edital_por_ia_guarda_modelo_e_data_desconhecida(
     db: Session, resultado: ResultadoDna, materias: list[MateriaExtraida], documento: DadosDocumento
 ) -> None:

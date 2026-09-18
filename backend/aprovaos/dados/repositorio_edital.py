@@ -162,6 +162,7 @@ def registrar_edital(
                     ordem=ordem,
                     peso_edital=_peso_edital(peso.pct_uniforme) if peso else None,
                     texto_original=item.texto_original,
+                    grupo=materia.grupo,
                 )
             )
 

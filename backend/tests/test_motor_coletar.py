@@ -15,12 +15,12 @@ from sqlalchemy.orm import Session
 from aprovaos.config import Configuracoes
 from aprovaos.dados.modelos import Documento
 from aprovaos.motor.coletar import (
-    CargoDeDireitoAmbiguo,
     ParDeProva,
     ProvaSemGabarito,
     arquivos_do_cargo,
     cargo_de_direito,
     coletar_par,
+    main,
     parear,
     resolver_documentos_dir,
 )
@@ -192,24 +192,143 @@ def test_cargo_de_direito_acha_area_com_direito() -> None:
         CargoEvento(id_area="09", area="CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO"),
     ]
 
-    achado = cargo_de_direito(cargos)
+    achados = cargo_de_direito(cargos)
 
-    assert achado == (9, "CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO")
+    assert achados == [(9, "CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO")]
 
 
 def test_cargo_de_direito_none_quando_ausente() -> None:
-    """`cargo_de_direito` devolve `None` quando nenhuma `area` cita Direito — nunca adivinha."""
-    cargos = [CargoEvento(id_area="01", area="CARGO 1: ANALISTA JUDICIÁRIO – ÁREA JUDICIÁRIA")]
+    """`cargo_de_direito` devolve `[]` quando nenhuma `area` casa o léxico — nunca adivinha."""
+    cargos = [CargoEvento(id_area="01", area="CARGO 1: ANALISTA JUDICIÁRIO – ÁREA ADMINISTRATIVA")]
 
-    assert cargo_de_direito(cargos) is None
+    assert cargo_de_direito(cargos) == []
 
 
-def test_cargo_de_direito_ambiguo_levanta() -> None:
-    """Mais de uma `area` com `DIREITO` é ambiguidade — levanta, nunca escolhe sozinho."""
-    cargos = [
-        CargoEvento(id_area="01", area="CARGO 1: PROCURADOR — DIREITO CIVIL"),
-        CargoEvento(id_area="02", area="CARGO 2: PROCURADOR — DIREITO TRIBUTÁRIO"),
+@pytest.mark.parametrize("termo", ["DIREITO", "JUDICIÁRIA", "JURÍDICA", "JURÍDICO"])
+def test_cargo_de_direito_casa_todo_o_lexico(termo: str) -> None:
+    """O léxico casa DIREITO, JUDICIÁRIA, JURÍDICA e JURÍDICO — sem diferenciar acento/caixa.
+
+    "JUDICIÁRIA" existe porque, nos tribunais, o cargo jurídico costuma se chamar "Analista
+    Judiciário — Área Judiciária", sem a palavra "Direito" (regra corrigida do dono).
+    """
+    area = f"CARGO 9: ANALISTA — especialidade {termo.lower()}"
+    cargos = [CargoEvento(id_area="09", area=area)]
+
+    assert cargo_de_direito(cargos) == [(9, area)]
+
+
+def test_cargo_de_direito_nao_casa_termo_fora_do_lexico() -> None:
+    """`"ANÁLISE DE SISTEMAS"` não é cargo de Direito — não é achado por acidente."""
+    cargos = [CargoEvento(id_area="03", area="CARGO 3: ANALISTA — ANÁLISE DE SISTEMAS")]
+
+    assert cargo_de_direito(cargos) == []
+
+
+def test_cargo_de_direito_prefere_nivel_superior_no_empate() -> None:
+    """Mais de um cargo casa o léxico: prefere o de nível superior (Analista/Procurador)."""
+    tecnico = CargoEvento(id_area="01", area="CARGO 1: TÉCNICO JUDICIÁRIO – ÁREA: JUDICIÁRIA")
+    analista = CargoEvento(
+        id_area="09", area="CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO"
+    )
+
+    assert cargo_de_direito([tecnico, analista]) == [(9, analista.area)]
+
+
+def test_cargo_de_direito_coleta_os_dois_no_empate_de_nivel_superior() -> None:
+    """Dois cargos de nível superior casam o léxico: coleta os dois — mais barato que arriscar."""
+    civil = CargoEvento(id_area="01", area="CARGO 1: PROCURADOR — DIREITO CIVIL")
+    tributario = CargoEvento(id_area="02", area="CARGO 2: PROCURADOR — DIREITO TRIBUTÁRIO")
+
+    achados = cargo_de_direito([civil, tributario])
+
+    assert achados == [(1, civil.area), (2, tributario.area)]
+
+
+def test_cargo_de_direito_coleta_os_dois_sem_nivel_superior_no_empate() -> None:
+    """Empate sem nenhum cargo de nível superior: coleta todos os que casaram o léxico."""
+    judiciaria = CargoEvento(id_area="01", area="CARGO 1: TÉCNICO JUDICIÁRIO – ÁREA: JUDICIÁRIA")
+    consumidor = CargoEvento(id_area="02", area="CARGO 2: TÉCNICO — DIREITO DO CONSUMIDOR")
+
+    achados = cargo_de_direito([judiciaria, consumidor])
+
+    assert achados == [(1, judiciaria.area), (2, consumidor.area)]
+
+
+def test_arquivos_do_cargo_ignora_conhecimentos_basicos_do_mesmo_cargo() -> None:
+    """`"CONHECIMENTOS BÁSICOS PARA O CARGO N"` também termina em "CARGO N", mas não é o caderno
+    de conhecimentos específicos que a V3 quer (achado real na coleta do STJ_24, cargo 19).
+    """
+
+    def _novidade(tipo: str, titulo: str) -> Novidade:
+        return Novidade(
+            id=f"STJ_24/{titulo}.pdf",
+            tipo=tipo,
+            titulo=titulo,
+            url=f"https://cdn.cebraspe.org.br/concursos/STJ_24/arquivos/{titulo}.pdf",
+            evento="STJ_24",
+            publicado_em=None,
+        )
+
+    novidades = [
+        _novidade("prova", "PROVA OBJETIVA – CONHECIMENTOS BÁSICOS PARA O CARGO 19"),
+        _novidade("gabarito", "GABARITO DEFINITIVO – CONHECIMENTOS BÁSICOS PARA O CARGO 19"),
+        _novidade("prova", "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 19"),
+        _novidade("gabarito", "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 19"),
     ]
 
-    with pytest.raises(CargoDeDireitoAmbiguo):
-        cargo_de_direito(cargos)
+    arquivos = arquivos_do_cargo(novidades, cargo_numero=19)
+
+    assert len(arquivos) == 2
+    assert all("ESPECÍFICOS" in a.titulo for a in arquivos)
+
+
+def test_main_pula_evento_sem_cargo_de_direito(
+    config_teste: Configuracoes, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Evento sem cargo de Direito: nada é baixado, a saída registra o motivo, código 0."""
+    detalhe = {
+        "eventoCargos": [{"idArea": "01", "area": "CARGO 1: ANALISTA — ÁREA ADMINISTRATIVA"}],
+        "arquivosGabarito": [],
+    }
+    cliente = ClienteFalso(
+        {URL_DETALHE.format(eventoURL="SEM_DIREITO"): _RespostaFalsa(200, corpo=detalhe)}
+    )
+    fonte = FonteCebraspe(cliente, "vlfcandido@gmail.com")
+
+    codigo = main(["--evento", "SEM_DIREITO"], config=config_teste, fonte=fonte)
+
+    saida = capsys.readouterr().out
+    assert codigo == 0
+    assert "SEM_DIREITO" in saida
+    assert "nenhum cargo de Direito" in saida
+    assert not config_teste.documentos_dir.exists()  # type: ignore[union-attr]
+
+
+def test_main_pula_cargo_sem_par_completo(
+    config_teste: Configuracoes, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Cargo de Direito achado, mas só tem prova (sem gabarito): pulado, registrado, código 0."""
+    detalhe = {
+        "eventoCargos": [
+            {"idArea": "09", "area": "CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO"}
+        ],
+        "arquivosGabarito": [
+            {
+                "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+                "nomeArquivo": "prova-cargo-9.pdf",
+            }
+        ],
+    }
+    cliente = ClienteFalso(
+        {URL_DETALHE.format(eventoURL="SO_PROVA"): _RespostaFalsa(200, corpo=detalhe)}
+    )
+    fonte = FonteCebraspe(cliente, "vlfcandido@gmail.com")
+
+    codigo = main(["--evento", "SO_PROVA"], config=config_teste, fonte=fonte)
+
+    saida = capsys.readouterr().out
+    assert codigo == 0
+    assert "cargo de Direito = 9" in saida
+    assert "falta gabarito" in saida
+    assert "pulado" in saida
+    assert not config_teste.documentos_dir.exists()  # type: ignore[union-attr]

@@ -1,15 +1,17 @@
 """O comando de coleta: prova + gabarito de Direito de um evento da Cebraspe.
 
-O que é: `arquivos_do_cargo` (filtra pelo cargo pedido), `cargo_de_direito` (acha esse cargo no
-`eventoCargos` do detalhe — o número varia por concurso, nunca é fixo), `parear` (casa prova com
-gabarito) e `coletar_par` (baixa, grava em disco e persiste os dois `Documento`, com dedup por
-hash). `main()` é o `argparse` que roda tudo isso para um evento: `--evento`, `--cargo` (opcional;
-descoberto sozinho quando omitido) e `--listar` (só mostra, não baixa). Passo 5 do plano
+O que é: `arquivos_do_cargo` (filtra pelo cargo pedido, só o caderno de conhecimentos
+específicos), `cargo_de_direito` (acha esse cargo no `eventoCargos` do detalhe — o número varia
+por concurso, nunca é fixo, e o cargo jurídico nem sempre diz "Direito": nos tribunais costuma
+ser "Analista Judiciário — Área Judiciária"), `parear` (casa prova com gabarito) e `coletar_par`
+(baixa, grava em disco e persiste os dois `Documento`, com dedup por hash). `main()` é o
+`argparse` que roda tudo isso para um evento: `--evento`, `--cargo` (opcional; descoberto sozinho
+quando omitido) e `--listar` (só mostra, não baixa). Passo 5 do plano
 `docs/fatias/V3-questoes-cebraspe.md`.
 
 Nenhuma execução acontece em import: `main()` só roda sob `if __name__ == "__main__"`, e é quem
-abre o `httpx2.Client` (com `with`) e o engine do banco — o dono desse ciclo de vida é este
-módulo, não a fábrica da fonte.
+abre a fonte (`criar_fonte_cebraspe`, com `with` — fecha o cliente HTTP ao sair) e o engine do
+banco — o dono desse ciclo de vida é este módulo.
 
 Quando ler: antes de rodar a coleta de um concurso novo, ou ao investigar por que um cargo de
 Direito não foi encontrado.
@@ -17,9 +19,9 @@ Direito não foi encontrado.
 
 import argparse
 import re
+import unicodedata
 from pathlib import Path
 
-import httpx2
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -29,11 +31,19 @@ from aprovaos.dados.base import agora_utc
 from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
 from aprovaos.dados.modelos import Documento
 from aprovaos.motor.fontes.base import FonteColetavel, Novidade
-from aprovaos.motor.fontes.cebraspe import CargoEvento, FonteCebraspe
+from aprovaos.motor.fontes.cebraspe import CargoEvento, FonteCebraspe, criar_fonte_cebraspe
 
 _ARQUIVOS_DO_CARGO_TIPOS = ("prova", "gabarito")
 _PADRAO_NUMERO_DO_CARGO = re.compile(r"CARGO\s+(\d+)", re.IGNORECASE)
 _RAIZ_DO_REPOSITORIO = Path(__file__).resolve().parents[3]
+
+# Léxico do cargo de Direito: nos tribunais o cargo jurídico costuma se chamar "Analista
+# Judiciário — Área Judiciária", sem a palavra "Direito" — por isso o léxico não é só "DIREITO"
+# (regra corrigida na rodada 1 de revisão do passo 5). Comparação sempre sem acento/maiúsculas
+# (`_normalizar`), porque a API mistura os dois estilos entre eventos.
+_TERMOS_CARGO_DE_DIREITO = ("DIREITO", "JUDICIARIA", "JURIDICA", "JURIDICO")
+_TERMOS_NIVEL_SUPERIOR = ("ANALISTA", "PROCURADOR")
+_TERMO_ESPECIFICOS = "ESPECIFICOS"
 
 
 class ParDeProva(BaseModel):
@@ -53,14 +63,6 @@ class ProvaSemGabarito(RuntimeError):
 
     A V3 nunca substitui o par por outro cargo nem inventa o arquivo que falta — o evento é
     pulado e o motivo vai para o relatório (decisão do dono, passo 5).
-    """
-
-
-class CargoDeDireitoAmbiguo(RuntimeError):
-    """Mais de uma `area` de `eventoCargos` contém "DIREITO" — a escolha exige um humano.
-
-    Nunca decidido sozinho: dois cargos de Direito no mesmo evento (ex.: "Direito Civil" e
-    "Direito Tributário" em concurso de Procurador) não têm um "o certo" óbvio.
     """
 
 
@@ -97,27 +99,51 @@ def _numero_do_cargo(area: str) -> int:
     return int(encontrado.group(1))
 
 
-def cargo_de_direito(cargos: list[CargoEvento]) -> tuple[int, str] | None:
-    """Acha, entre os cargos do evento, o único cuja `area` contém "DIREITO".
+def _normalizar(texto: str) -> str:
+    """Maiúsculas e sem acento.
+
+    Para comparar termos que a API escreve de formas diferentes entre eventos (`"Área:
+    Judiciária"` num, `"ÁREA: JUDICIÁRIA"` noutro).
+    """
+    sem_acento = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    return sem_acento.upper()
+
+
+def _cargos_pelo_lexico(cargos: list[CargoEvento]) -> list[CargoEvento]:
+    """Cargos cuja `area` casa o léxico de Direito (`_TERMOS_CARGO_DE_DIREITO`), na ordem da API."""
+    return [
+        cargo
+        for cargo in cargos
+        if any(termo in _normalizar(cargo.area) for termo in _TERMOS_CARGO_DE_DIREITO)
+    ]
+
+
+def cargo_de_direito(cargos: list[CargoEvento]) -> list[tuple[int, str]]:
+    """Acha, entre os cargos do evento, o(s) cargo(s) de Direito.
+
+    Casa `area` (sem acento, maiúsculas) contra o léxico "DIREITO", "JUDICIÁRIA", "JURÍDICA",
+    "JURÍDICO" — nos tribunais o cargo jurídico costuma se chamar "Analista Judiciário — Área
+    Judiciária", sem a palavra "Direito". Mais de um cargo casando o léxico prefere os de nível
+    superior ("Analista"/"Procurador"); persistindo o empate (dois de nível superior, ou nenhum),
+    devolve todos — mais barato coletar demais do que arriscar excluir o cargo certo.
 
     Args:
         cargos: os cargos do evento (`FonteCebraspe.cargos_do_evento`).
 
     Returns:
-        `(número do cargo, texto da área)` quando há exatamente um cargo de Direito; `None`
-        quando não há nenhum — nunca um palpite.
-
-    Raises:
-        CargoDeDireitoAmbiguo: mais de um cargo cita "DIREITO" na `area`.
+        `[(número do cargo, texto da área), ...]`, na ordem da API — vazia quando nenhum cargo
+        casa o léxico (nunca um palpite).
     """
-    achados = [cargo for cargo in cargos if "DIREITO" in cargo.area.upper()]
-    if not achados:
-        return None
+    achados = _cargos_pelo_lexico(cargos)
     if len(achados) > 1:
-        areas = [cargo.area for cargo in achados]
-        raise CargoDeDireitoAmbiguo(f"mais de um cargo de Direito: {areas}")
-    cargo = achados[0]
-    return _numero_do_cargo(cargo.area), cargo.area
+        nivel_superior = [
+            cargo
+            for cargo in achados
+            if any(termo in _normalizar(cargo.area) for termo in _TERMOS_NIVEL_SUPERIOR)
+        ]
+        if nivel_superior:
+            achados = nivel_superior
+    return [(_numero_do_cargo(cargo.area), cargo.area) for cargo in achados]
 
 
 def _termina_no_cargo(titulo: str, cargo_numero: int) -> bool:
@@ -139,13 +165,17 @@ def arquivos_do_cargo(novidades: list[Novidade], cargo_numero: int) -> list[Novi
 
     Returns:
         Os arquivos `tipo in ("prova", "gabarito")` cujo título termina em `"CARGO
-        <cargo_numero>"` — nunca os cadernos de conhecimentos gerais, mesmo que citem o cargo.
+        <cargo_numero>"` **e** contém "ESPECÍFICOS" — nunca os cadernos de conhecimentos gerais
+        (mesmo que citem o cargo) nem os de "conhecimentos básicos para o cargo N" (achado real
+        no STJ_24: o cargo 19 tem um caderno básico e um específico, os dois terminando em
+        "CARGO 19"; só o específico é o que a V3 quer).
     """
     return [
         novidade
         for novidade in novidades
         if novidade.tipo in _ARQUIVOS_DO_CARGO_TIPOS
         and _termina_no_cargo(novidade.titulo, cargo_numero)
+        and _TERMO_ESPECIFICOS in _normalizar(novidade.titulo)
     ]
 
 
@@ -237,19 +267,6 @@ def coletar_par(
     )
 
 
-def _criar_cliente_http(config: Configuracoes) -> httpx2.Client:
-    """Monta o `httpx2.Client` com o `User-Agent` identificado (ADR-0030).
-
-    O ciclo de vida deste cliente é de quem chama (`main()`, com `with`) — nenhuma fábrica
-    esconde essa responsabilidade.
-    """
-    return httpx2.Client(
-        headers={"User-Agent": f"AprovaOS-coletor/0.1 (+contato: {config.contato_coletor})"},
-        timeout=30,
-        follow_redirects=True,
-    )
-
-
 def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
     """Define e interpreta os argumentos de `main()`."""
     parser = argparse.ArgumentParser(
@@ -273,54 +290,122 @@ def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list[str] | None = None) -> None:
-    """Ponto de entrada do comando de coleta.
-
-    Abre o `httpx2.Client` e o engine do banco com `with`/bloco explícito e os fecha ao sair —
-    nenhum dos dois fica sem dono. Sem cargo de Direito no evento (`eventoCargos`), ou sem par
-    prova+gabarito completo desse cargo, o evento é pulado com uma mensagem — nunca adivinhado.
+def _candidatos_de_cargo(
+    fonte: FonteCebraspe, argumentos: argparse.Namespace
+) -> tuple[list[tuple[int, str | None]], str | None]:
+    """Resolve os cargos a coletar (`--cargo` explícito ou descoberta por `cargo_de_direito`).
 
     Args:
-        argv: argumentos da linha de comando; `None` usa `sys.argv` (padrão do `argparse`).
+        fonte: a fonte já aberta.
+        argumentos: os argumentos de `main()` (usa `--evento`/`--cargo`).
+
+    Returns:
+        `(candidatos, mensagem)`. `candidatos` é `[(número, área ou None)]` — `área` é `None`
+        quando o número veio de `--cargo` (escolha explícita, nada a registrar). `mensagem` é a
+        linha de log da descoberta (ou do motivo de pular); `candidatos` vazio + `mensagem`
+        preenchida significa "nenhum cargo de Direito neste evento — pule-o".
     """
-    argumentos = _analisar_argumentos(argv)
-    config = obter_configuracoes()
+    if argumentos.cargo is not None:
+        return [(argumentos.cargo, None)], None
 
-    with _criar_cliente_http(config) as cliente:
-        fonte = FonteCebraspe(cliente, config.contato_coletor)
+    cargos = fonte.cargos_do_evento(argumentos.evento)
+    brutos = _cargos_pelo_lexico(cargos)
+    if not brutos:
+        return [], f"{argumentos.evento}: nenhum cargo de Direito em eventoCargos — pulado"
 
-        cargo_numero = argumentos.cargo
-        if cargo_numero is None:
-            cargos = fonte.cargos_do_evento(argumentos.evento)
-            achado = cargo_de_direito(cargos)
-            if achado is None:
-                print(f"{argumentos.evento}: nenhum cargo de Direito em eventoCargos — pulado")
-                return
-            cargo_numero, area = achado
-            print(f"{argumentos.evento}: cargo de Direito = {cargo_numero} ({area})")
+    escolhidos = cargo_de_direito(cargos)
+    descricao = ", ".join(f"{numero} ({area})" for numero, area in escolhidos)
+    if len(escolhidos) == 1:
+        mensagem = f"{argumentos.evento}: cargo de Direito = {descricao}"
+    elif len(escolhidos) < len(brutos):
+        mensagem = (
+            f"{argumentos.evento}: {len(brutos)} cargos casaram o léxico de Direito; "
+            f"nível superior escolhido: {descricao}"
+        )
+    else:
+        mensagem = (
+            f"{argumentos.evento}: {len(escolhidos)} cargos de Direito empatados em nível "
+            f"— coletando todos: {descricao}"
+        )
+    return [(numero, area) for numero, area in escolhidos], mensagem
 
-        todos = fonte.arquivos_do_evento(argumentos.evento)
-        arquivos = arquivos_do_cargo(todos, cargo_numero)
 
+def _coletar(fonte: FonteCebraspe, config: Configuracoes, argumentos: argparse.Namespace) -> int:
+    """O corpo do comando com a fonte já aberta.
+
+    Chamado por `main()`; testável isoladamente (com `fonte` falsa) sem precisar simular o
+    gerenciador de contexto do cliente HTTP.
+
+    Args:
+        fonte: a fonte já aberta (real ou falsa, em teste).
+        config: configurações do backend.
+        argumentos: os argumentos de `main()`.
+
+    Returns:
+        `0` sempre que o comando roda até o fim — inclusive quando pula um evento/cargo sem par
+        completo (pular com registro não é erro; decisão do dono, passo 5).
+    """
+    candidatos, mensagem = _candidatos_de_cargo(fonte, argumentos)
+    if mensagem:
+        print(mensagem)
+    if not candidatos:
+        return 0
+
+    todos = fonte.arquivos_do_evento(argumentos.evento)
+    pares: list[ParDeProva] = []
+    for numero, _area in candidatos:
+        arquivos = arquivos_do_cargo(todos, numero)
         if argumentos.listar:
             for arquivo in arquivos:
                 print(f"{arquivo.tipo}\t{arquivo.titulo}\t{arquivo.url}")
-            return
-
+            continue
         try:
-            pares = parear(arquivos)
+            pares.extend(parear(arquivos))
         except ProvaSemGabarito as erro:
-            print(f"{argumentos.evento}: {erro} — pulado")
-            return
+            print(f"{argumentos.evento} (cargo {numero}): {erro} — pulado")
 
-        engine = criar_engine(config.database_url)
-        fabrica_sessao = criar_fabrica_sessao(engine)
-        with fabrica_sessao() as db:
-            for par in pares:
-                documento_prova, documento_gabarito = coletar_par(db, config, fonte, par)
-                print(f"gravado: {documento_prova.caminho} + {documento_gabarito.caminho}")
-            db.commit()
+    if argumentos.listar or not pares:
+        return 0
+
+    engine = criar_engine(config.database_url)
+    fabrica_sessao = criar_fabrica_sessao(engine)
+    with fabrica_sessao() as db:
+        for par in pares:
+            documento_prova, documento_gabarito = coletar_par(db, config, fonte, par)
+            print(f"gravado: {documento_prova.caminho} + {documento_gabarito.caminho}")
+        db.commit()
+    return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    config: Configuracoes | None = None,
+    fonte: FonteCebraspe | None = None,
+) -> int:
+    """Ponto de entrada do comando de coleta.
+
+    Abre a fonte (`criar_fonte_cebraspe(config)`, dentro de um `with` — fecha o cliente HTTP ao
+    sair) e o engine do banco com `with`/bloco explícito, fechando-o ao sair — nenhum dos dois
+    fica sem dono. Sem cargo de Direito no evento (`eventoCargos`), ou sem par prova+gabarito
+    completo desse cargo, o evento é pulado com uma mensagem — nunca adivinhado.
+
+    Args:
+        argv: argumentos da linha de comando; `None` usa `sys.argv` (padrão do `argparse`).
+        config: configurações explícitas (testes); `None` lê do ambiente/.env.
+        fonte: fonte já aberta (testes, com cliente HTTP falso); `None` abre
+            `criar_fonte_cebraspe(config)` num `with`, exercitando o fechamento de verdade.
+
+    Returns:
+        `0` sempre que o comando roda até o fim (inclusive ao pular um evento/cargo).
+    """
+    argumentos = _analisar_argumentos(argv)
+    config = config or obter_configuracoes()
+
+    if fonte is not None:
+        return _coletar(fonte, config, argumentos)
+    with criar_fonte_cebraspe(config) as fonte_aberta:
+        return _coletar(fonte_aberta, config, argumentos)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

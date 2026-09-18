@@ -384,19 +384,15 @@ def criar_classificador_adk(
         model=modelo,
         instruction=carregar_prompt(),
         include_contents="none",
+        # Sem `thinking_config`: o passo 12b tinha ligado `thinking_budget=0` para desligar o
+        # "pensamento" (medição do dono: 568 tokens de pensamento contra 96 de entrada e 102 de
+        # saída numa chamada de classificação). Rodando de verdade no passo 12c contra
+        # `gemini-3.5-flash-lite` (o modelo do classificador a partir daqui — cota diária é por
+        # modelo, achado do 12b), toda chamada com esse campo voltou `400 INVALID_ARGUMENT`; sem
+        # ele, funcionou. A pendência de medir `thinking_budget` está cancelada para este modelo,
+        # não só adiada — ver `docs/fatias/V3-execucao.md`.
         generate_content_config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.0,
-            # `thinking_budget=0` ("DISABLED", valor documentado no próprio SDK — não é
-            # heurística nossa) desliga o raciocínio interno: medido no passo 12b, uma chamada
-            # de classificação real gastou 96 tokens de entrada, 102 de saída e **568 de
-            # "pensamento"** — grátis no free tier, mas cobrado como saída no paid tier e ainda
-            # infla a latência. A tarefa é rotular um item num vocabulário fechado — não precisa
-            # de raciocínio em cadeia. Verificado só o esquema aqui (sem rede); a medição de que
-            # a resposta continua correta com `thinking_budget=0` fica pendente da chave real
-            # (quota diária do free tier esgotada no passo 12b antes de medir — registrado no
-            # diário da fatia).
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            response_mime_type="application/json", temperature=0.0
         ),
     )
     servico = InMemorySessionService()

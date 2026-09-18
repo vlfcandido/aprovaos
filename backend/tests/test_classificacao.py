@@ -536,12 +536,17 @@ async def test_retentativa_nao_intercepta_erro_que_nao_e_429() -> None:
     assert chamadas == 1
 
 
-def test_criar_classificador_adk_desliga_pensamento(config_teste: Configuracoes) -> None:
-    """`thinking_budget=0` no `GenerateContentConfig` (passo 12b): medido pelo dono, uma chamada
-    de classificação real gastou 96 tokens de entrada, 102 de saída e **568 de "pensamento"**
-    (grátis no free tier, mas custa como saída no paid tier e infla latência) — desligado aqui,
-    sem rede (só inspeciona o `LlmAgent` construído; `0` é o valor documentado pelo próprio SDK
-    para "DISABLED", não um número inventado).
+def test_criar_classificador_adk_nao_manda_thinking_config(config_teste: Configuracoes) -> None:
+    """`gemini-3.5-flash-lite` rejeita `thinking_config` (passo 12c: achado real).
+
+    O passo 12b tinha ligado `thinking_budget=0` para desligar o "pensamento" (medição do dono:
+    568 tokens de pensamento por chamada de classificação, contra 96 de entrada e 102 de saída).
+    Rodando de verdade contra `gemini-3.5-flash-lite` (o modelo do classificador a partir do
+    passo 12c — cota diária é por modelo, achado do 12b), toda chamada voltou
+    `400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Request contains an invalid
+    argument.', 'status': 'INVALID_ARGUMENT'}}` — sem `thinking_config` no `GenerateContentConfig`,
+    a mesma chamada funcionou. `criar_classificador_adk` não manda mais esse campo; a pendência de
+    medir `thinking_budget` (passo 12b, item 5) fica cancelada para este modelo, não só adiada.
     """
     from google.adk.agents import LlmAgent
 
@@ -550,9 +555,7 @@ def test_criar_classificador_adk_desliga_pensamento(config_teste: Configuracoes)
 
     assert isinstance(agente, LlmAgent)
     assert agente.generate_content_config is not None
-    thinking = agente.generate_content_config.thinking_config
-    assert thinking is not None
-    assert thinking.thinking_budget == 0
+    assert agente.generate_content_config.thinking_config is None
 
 
 # --- Rodada 12b, achado da execução real: o ADK não deixa o 429 subir como exceção Python ----

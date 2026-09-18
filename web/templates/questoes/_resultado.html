@@ -1,0 +1,17 @@
+{# O que é: fragmento HTMX devolvido por `POST /topico/{slug}/questoes` — o resultado da
+   resposta (só agora o gabarito aparece). Sem `{% extends %}`: é injetado dentro de `#questao`
+   da página `topico.html`. Mínimo do passo 13; a tela bonita é do passo 14. Quando ler: ao mudar
+   o que aparece depois de responder. -#}
+{% if evento %}
+  <p class="resultado__resposta">Você respondeu: <strong>{{ evento.resposta_texto }}</strong></p>
+  <p class="resultado__gabarito">
+    Gabarito: <strong>{{ evento.gabarito_texto }}</strong> —
+    {% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}
+  </p>
+  {% if evento.justificativa %}
+    <p class="resultado__justificativa">{{ evento.justificativa }}</p>
+  {% endif %}
+  <p><a href="/topico/{{ topico.slug }}/questoes">Próxima questão</a></p>
+{% else %}
+  <p>Ainda não temos questões deste tópico.</p>
+{% endif %}

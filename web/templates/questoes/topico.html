@@ -1,0 +1,45 @@
+{# O que é: página de resolver questão (`GET/POST /topico/{slug}/questoes`) — mínimo do passo 13,
+   a tela bonita é do passo 14. Mostra o comando, o texto de apoio, o enunciado e a origem
+   completa; nunca o gabarito antes de responder. O formulário de resposta troca só `#questao`
+   por htmx; sem JS, recarrega a página inteira (o fragmento também é HTML válido). Quando ler:
+   ao mexer no fluxo de resolver questão. -#}
+{% extends "base.html" %}
+{% block titulo %}{{ topico.nome }} — Questões — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>{{ topico.nome }}</h1>
+  <div id="questao">
+    {% if questao %}
+      <p class="questao__comando">{{ questao.comando }}</p>
+      {% if questao.texto_apoio %}
+        <p class="questao__apoio">{{ questao.texto_apoio }}</p>
+      {% endif %}
+      <p class="questao__enunciado">{{ questao.enunciado }}</p>
+      <p class="questao__origem">
+        {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} — item {{ origem.numero_item }}
+        {% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
+        — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
+      </p>
+      <form id="form-resposta" method="post" action="/topico/{{ topico.slug }}/questoes"
+            hx-post="/topico/{{ topico.slug }}/questoes" hx-target="#questao" hx-swap="innerHTML">
+        <fieldset>
+          <legend>Julgue o item</legend>
+          <label><input type="radio" name="resposta" value="C" required> Certo</label>
+          <label><input type="radio" name="resposta" value="E" required> Errado</label>
+        </fieldset>
+        <fieldset>
+          <legend>Você tem certeza ou dúvida?</legend>
+          <label><input type="radio" name="confianca" value="certeza" required> Certeza</label>
+          <label><input type="radio" name="confianca" value="duvida" required> Dúvida</label>
+        </fieldset>
+        <button class="botao" type="submit">Responder</button>
+      </form>
+      <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar">
+        <label for="motivo">Encontrou um erro nesta questão?</label>
+        <textarea id="motivo" name="motivo" required></textarea>
+        <button type="submit">Reportar erro</button>
+      </form>
+    {% else %}
+      <p>Ainda não temos questões deste tópico.</p>
+    {% endif %}
+  </div>
+{% endblock %}

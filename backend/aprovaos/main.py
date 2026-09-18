@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Engine
 
-from aprovaos.api import conta, editais, inicio, saude
+from aprovaos.api import conta, editais, inicio, questoes, saude
 from aprovaos.api.erros import registrar_tratadores
 from aprovaos.api.templates import criar_templates
 from aprovaos.config import Configuracoes, obter_configuracoes
@@ -46,6 +46,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.include_router(inicio.router)
     app.include_router(conta.router)
     app.include_router(editais.router)
+    app.include_router(questoes.router)
     app.include_router(saude.router)
     registrar_tratadores(app)
     return app

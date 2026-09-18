@@ -13,9 +13,16 @@ from pydantic import BaseModel
 
 # Preços (entrada, saída) em US$ por 1 milhão de tokens — `docs/06-custos.md` linhas 9–11,
 # conferidos em https://ai.google.dev/gemini-api/docs/pricing em 14/09/2026.
+# `gemini-3.6-flash` (passo 12b da V3, 18/09/2026): `gemini-2.5-flash` passou a responder 404
+# ("no longer available to new users") para chaves novas do AI Studio; o preço abaixo é do
+# **paid tier**, conferido em https://ai.google.dev/gemini-api/docs/pricing em 18/09/2026,
+# válido até 31/12/2026 (sobe para US$ 1,50/US$ 7,50 em 1/1/2027 — reconferir nessa data). No
+# **free tier** (ADR-0030, a chave do piloto) o custo real de entrada/saída é zero; a tabela
+# existe para o teto diário (`TetoDiario`) proteger o dia em que a conta virar paga.
 PRECOS_USD_POR_MILHAO: dict[str, tuple[Decimal, Decimal]] = {
     "gemini-2.5-flash": (Decimal("0.30"), Decimal("2.50")),
     "gemini-2.5-flash-lite": (Decimal("0.10"), Decimal("0.40")),
+    "gemini-3.6-flash": (Decimal("0.75"), Decimal("3.75")),
 }
 # Câmbio de referência de `docs/06-custos.md` (R$ 5,40 por US$), o mesmo do orçamento.
 CAMBIO_BRL_POR_USD = Decimal("5.40")

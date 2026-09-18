@@ -125,7 +125,7 @@ def test_concurso_gerado_por_ia(
     with TestClient(criar_app(config, engine=engine)) as cliente:
         assert cliente.post("/cadastro", data=CADASTRO, follow_redirects=False).status_code == 303
         corpo = cliente.get(_subir(cliente)).text
-    assert "Gerado por IA (gemini-2.5-flash)" in corpo
+    assert "Gerado por IA (gemini-3.6-flash)" in corpo
     assert "Gerado por regras" not in corpo
 
 

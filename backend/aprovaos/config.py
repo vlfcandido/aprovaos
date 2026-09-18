@@ -28,11 +28,14 @@ class Configuracoes(BaseSettings):
         web_dir: pasta `web/` (templates e estáticos); `None` = resolvida pela app.
         uploads_dir: pasta dos PDFs subidos; `None` = `data/uploads` na raiz, resolvida pela app.
         google_api_key: chave do Gemini (AI Studio, ADR-0030); `None` = DNA só por regras.
-        modelo_dna: modelo Gemini do agente `analista-de-edital` (ADR-0018: Flash).
+        modelo_dna: modelo Gemini do agente `analista-de-edital` (ADR-0018: Flash; passo 12b da
+            V3 — `gemini-2.5-flash` responde 404 para chaves novas, "no longer available to new
+            users"; trocado para `gemini-3.6-flash`, o sucessor indicado pela própria API).
         teto_diario_brl: gasto máximo com LLM por dia, em R$ (ADR-0018); vale desde a 1ª chamada.
         documentos_dir: pasta das provas coletadas; `None` = `knowledge/provas`, resolvida pela app.
         contato_coletor: e-mail no User-Agent do coletor (ADR-0030), identificando as requisições.
-        modelo_classificacao: modelo Gemini do curador de questões (ADR-0018: Flash).
+        modelo_classificacao: modelo Gemini do curador de questões (ADR-0018: Flash; mesma troca
+            do passo 12b — `gemini-3.6-flash`).
         lote_classificacao: quantas questões o curador classifica por chamada ao LLM.
     """
 
@@ -46,11 +49,11 @@ class Configuracoes(BaseSettings):
     web_dir: Path | None = None
     uploads_dir: Path | None = None
     google_api_key: SecretStr | None = None
-    modelo_dna: str = "gemini-2.5-flash"
+    modelo_dna: str = "gemini-3.6-flash"
     teto_diario_brl: Decimal = Decimal("3.00")
     documentos_dir: Path | None = None
     contato_coletor: str = "vlfcandido@gmail.com"
-    modelo_classificacao: str = "gemini-2.5-flash"
+    modelo_classificacao: str = "gemini-3.6-flash"
     lote_classificacao: int = Field(default=20, gt=0)
 
 

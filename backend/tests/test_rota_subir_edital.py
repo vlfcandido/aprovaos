@@ -220,7 +220,7 @@ def test_post_subir_usa_ia_quando_ha_chave_e_teto(
     assert resposta.status_code == 303
     registro = db.scalars(select(DnaConcursoRegistro)).one()
     assert registro.origem == "ia"
-    assert registro.modelo == "gemini-2.5-flash"
+    assert registro.modelo == "gemini-3.6-flash"
     assert registro.motivo_fallback is None
     usuario = db.scalars(select(Usuario)).one()
     traco = db.scalars(select(Traco)).one()

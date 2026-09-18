@@ -16,6 +16,8 @@ filtragem do passo 5, `motor.coletar.arquivos_do_cargo`, sobre o que já está e
 chama `curar_documento` com `asyncio.run` (`curar` é `async`). O pareamento de `--evento`/`--cargo`
 para os dois `Documento` é resolvido aqui, em `main()` — nunca dentro de `curar_documento`, que
 recebe os dois ids já resolvidos e nunca adivinha o par (decisão do dono, passo 12).
+`--reclassificar` (passo 12b) troca `salvar_questoes` por `atualizar_classificacao`: útil para
+rodar de novo com `GOOGLE_API_KEY` um caderno que já foi curado por regras, sem duplicar nada.
 
 Nenhuma execução acontece em import: `main()` só roda sob `if __name__ == "__main__"`, e é quem
 abre o engine do banco — o dono desse ciclo de vida é este módulo.
@@ -38,7 +40,7 @@ from aprovaos.config import Configuracoes, obter_configuracoes
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
 from aprovaos.dados.modelos import Documento, Topico, TopicoEdital
-from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dados.repositorio_questao import atualizar_classificacao, salvar_questoes
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.pdf import extrair_texto
 from aprovaos.dominio.questao import RegraProva
@@ -86,8 +88,14 @@ class RelatorioCuradoria(BaseModel):
             gabarito Cebraspe C/E não reconhecido, ou contagem de itens divergente do gabarito).
         problemas: o motivo de cada violação (de `curar`, quando `pendente_revisao`, ou de
             `verificar_curadoria`, quando não); lista vazia quando nada deu errado.
-        novas: quantas linhas novas `salvar_questoes` gravou; `0` quando `pendente_revisao`.
-        repetidas: quantas já existiam (dedup por `hash_dedup`); `0` quando `pendente_revisao`.
+        novas: quantas linhas novas `salvar_questoes` gravou; `0` quando `pendente_revisao` ou
+            `reclassificar=True` (reclassificar nunca cria linha).
+        repetidas: quantas já existiam (dedup por `hash_dedup`); `0` quando `pendente_revisao`
+            ou `reclassificar=True`.
+        atualizadas: quantas linhas `atualizar_classificacao` (passo 12b) mudou de
+            tópico/publicável; `0` fora do modo `reclassificar=True`.
+        nao_encontradas: quantas `hash_dedup` do lote reclassificado não bateram com nenhuma
+            linha existente (nada foi criado para elas); `0` fora do modo `reclassificar=True`.
     """
 
     total: int
@@ -98,6 +106,8 @@ class RelatorioCuradoria(BaseModel):
     problemas: list[str]
     novas: int
     repetidas: int
+    atualizadas: int = 0
+    nao_encontradas: int = 0
 
 
 def _vocabulario_do_edital(db: Session, edital_id: UUID) -> list[TopicoVocabulario]:
@@ -233,15 +243,20 @@ async def curar_documento(
     documento_prova_id: UUID,
     documento_gabarito_id: UUID,
     edital_id: UUID,
+    *,
+    reclassificar: bool = False,
 ) -> RelatorioCuradoria:
     """Cura um caderno já coletado e grava as questões publicáveis (passo 12 da V3).
 
     Lê os dois PDFs do disco (`resolver_documentos_dir(config) / documento.caminho`), monta a
     `OrigemBase` a partir do `Documento` da prova, classifica cada item no vocabulário de
     `edital_id` (IA quando há `GOOGLE_API_KEY` e teto, senão `ClassificadorPorRegras`) e grava
-    com `salvar_questoes` (dedup por `hash_dedup`). `pendente_revisao=True` não grava nenhuma
-    linha em `questao` — o motivo vai em `problemas`. Faz `add`/`flush`; o `commit` é de quem
-    chama (`main()`, ou o teste).
+    com `salvar_questoes` (dedup por `hash_dedup`) — ou, com `reclassificar=True`, atualiza as
+    linhas já gravadas por `atualizar_classificacao` (passo 12b) em vez de gravar de novo: é o
+    caminho para rodar `curar` outra vez sobre o mesmo par, agora com um classificador melhor
+    (ex.: a chave chegou depois da primeira rodada por regras), sem duplicar nada.
+    `pendente_revisao=True` não grava/atualiza nenhuma linha em `questao` — o motivo vai em
+    `problemas`. Faz `add`/`flush`; o `commit` é de quem chama (`main()`, ou o teste).
 
     Args:
         db: sessão de banco.
@@ -252,6 +267,11 @@ async def curar_documento(
             pareamento é decidido por quem chama (`main()`, a partir de `--evento`/`--cargo`);
             esta função nunca adivinha o par (decisão do dono, passo 12).
         edital_id: chave do `Edital` cujo vocabulário de tópicos classifica os itens.
+        reclassificar: `False` (padrão) grava questão nova por `salvar_questoes`; `True`
+            reclassifica as já gravadas (mesmo `hash_dedup`) por `atualizar_classificacao` — só
+            `topico_id`/`topico_confianca`/`topico_evidencia`/`publicavel`/
+            `motivo_nao_publicavel` mudam, o texto/gabarito/origem gravados na curadoria
+            original continuam os mesmos.
 
     Returns:
         `RelatorioCuradoria` com as contagens e, quando algo deu errado, os problemas.
@@ -298,7 +318,12 @@ async def curar_documento(
         )
 
     problemas = verificar_curadoria(resultado.questoes, total_itens=len(resultado.questoes))
-    novas, repetidas = salvar_questoes(db, resultado.questoes)
+    if reclassificar:
+        atualizadas, nao_encontradas = atualizar_classificacao(db, resultado.questoes)
+        novas, repetidas = 0, 0
+    else:
+        novas, repetidas = salvar_questoes(db, resultado.questoes)
+        atualizadas, nao_encontradas = 0, 0
     return RelatorioCuradoria(
         total=len(resultado.questoes),
         publicaveis=sum(1 for questao in resultado.questoes if questao.publicavel),
@@ -308,6 +333,8 @@ async def curar_documento(
         problemas=problemas,
         novas=novas,
         repetidas=repetidas,
+        atualizadas=atualizadas,
+        nao_encontradas=nao_encontradas,
     )
 
 
@@ -355,6 +382,14 @@ def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--edital", required=True, type=UUID, help="id do edital cujo vocabulário classifica"
     )
+    parser.add_argument(
+        "--reclassificar",
+        action="store_true",
+        help=(
+            "reclassifica as questões já gravadas deste par (por hash_dedup) em vez de gravar "
+            "de novo — use depois de rodar sem chave e a chave chegar (passo 12b)"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -363,7 +398,8 @@ def _relatar(evento: str, cargo: int, relatorio: RelatorioCuradoria) -> None:
     print(
         f"{evento} (cargo {cargo}): total={relatorio.total} publicaveis={relatorio.publicaveis} "
         f"anuladas={relatorio.anuladas} sem_topico={relatorio.sem_topico} "
-        f"novas={relatorio.novas} repetidas={relatorio.repetidas}"
+        f"novas={relatorio.novas} repetidas={relatorio.repetidas} "
+        f"atualizadas={relatorio.atualizadas} nao_encontradas={relatorio.nao_encontradas}"
     )
     if relatorio.pendente_revisao:
         print(f"{evento} (cargo {cargo}): PENDENTE_REVISAO — " + "; ".join(relatorio.problemas))
@@ -399,7 +435,12 @@ def main(argv: list[str] | None = None, config: Configuracoes | None = None) -> 
         documento_gabarito = _documento_do_par(db, argumentos.evento, argumentos.cargo, "gabarito")
         relatorio = asyncio.run(
             curar_documento(
-                db, config, documento_prova.id, documento_gabarito.id, argumentos.edital
+                db,
+                config,
+                documento_prova.id,
+                documento_gabarito.id,
+                argumentos.edital,
+                reclassificar=argumentos.reclassificar,
             )
         )
         db.commit()

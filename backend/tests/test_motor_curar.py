@@ -316,3 +316,105 @@ async def test_curar_registra_traco_por_chamada_de_llm(
     assert len(tracos) == 4
     assert all(traco.usuario_id is None for traco in tracos)
     assert all(traco.agente == "classificador-teste" for traco in tracos)
+
+
+class _ClassificadorTudoNoMesmoTopico:
+    """Dublê: classifica todo item num único tópico válido, confiança alta — sem rede.
+
+    Usado só para provar `reclassificar=True`: se toda questão migrar para o mesmo tópico
+    válido, dá para conferir que `atualizar_classificacao` (passo 12b) mexeu nas 70 sem duplicar
+    nenhuma linha.
+    """
+
+    def __init__(self, registrar_chamada: object, slug: str) -> None:
+        self._registrar_chamada = registrar_chamada
+        self._slug = slug
+
+    async def classificar_lote(
+        self, itens: list[ItemParaClassificar], vocabulario: list[object]
+    ) -> tuple[list[Classificacao], MotivosRejeicao]:
+        self._registrar_chamada(  # type: ignore[operator]
+            ChamadaLlm(
+                agente="classificador-teste",
+                modelo="modelo-falso",
+                iniciado_em=datetime.now(UTC),
+                duracao_ms=5,
+                tokens_in=10,
+                tokens_out=10,
+                custo_brl=None,
+                resultado="ok",
+            )
+        )
+        classificacoes = [
+            Classificacao(
+                numero_item=item.numero_item,
+                topico_slug=self._slug,
+                confianca="alta",
+                evidencia="dublê: tudo no mesmo tópico, de propósito",
+                origem="ia",
+            )
+            for item in itens
+        ]
+        return classificacoes, {}
+
+
+@pytest.mark.anyio
+async def test_curar_documento_reclassificar_atualiza_sem_duplicar(
+    db: Session, config_teste: Configuracoes, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`reclassificar=True`: reclassifica as 70 já gravadas, sem criar nenhuma linha nova."""
+    documento_prova = _documento_prova(
+        db,
+        caminho=CAMINHO_PROVA_TJ_PA,
+        evento="TJ_PA_25_SERVIDOR",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+    )
+    documento_gabarito = _documento_gabarito(
+        db,
+        caminho=CAMINHO_GABARITO_TJ_PA,
+        evento="TJ_PA_25_SERVIDOR",
+        descricao="GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+    )
+    edital = _edital_com_vocabulario_real(db)
+    db.commit()
+
+    relatorio_inicial = await curar_documento(
+        db, config_teste, documento_prova.id, documento_gabarito.id, edital.id
+    )
+    db.commit()
+    assert relatorio_inicial.novas == N_ITENS_TJ_PA
+    assert relatorio_inicial.sem_topico > 0  # por regras, boa parte fica sem tópico (medido: 57)
+
+    slug_alvo = "dir-adm-01-principios-administracao"
+    config_com_chave = config_teste.model_copy(update={"google_api_key": SecretStr("fake-key")})
+    monkeypatch.setattr(
+        "aprovaos.motor.curar.criar_classificador_adk",
+        lambda _config, registrar_chamada: _ClassificadorTudoNoMesmoTopico(
+            registrar_chamada, slug_alvo
+        ),
+    )
+
+    relatorio_reclassificado = await curar_documento(
+        db,
+        config_com_chave,
+        documento_prova.id,
+        documento_gabarito.id,
+        edital.id,
+        reclassificar=True,
+    )
+    db.commit()
+
+    assert relatorio_reclassificado.pendente_revisao is False
+    assert relatorio_reclassificado.novas == 0
+    assert relatorio_reclassificado.repetidas == 0
+    assert relatorio_reclassificado.atualizadas == N_ITENS_TJ_PA
+    assert relatorio_reclassificado.sem_topico == 0
+    assert relatorio_reclassificado.publicaveis == N_ITENS_TJ_PA - ANULADOS_TJ_PA
+    # nenhuma linha nova: ainda 70, não 140.
+    assert db.scalar(select(func.count()).select_from(Questao)) == N_ITENS_TJ_PA
+
+    topico = db.scalars(select(Topico).where(Topico.slug == slug_alvo)).one()
+    no_topico = db.scalar(
+        select(func.count()).select_from(Questao).where(Questao.topico_id == topico.id)
+    )
+    assert no_topico == N_ITENS_TJ_PA

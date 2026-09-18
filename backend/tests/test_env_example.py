@@ -1,5 +1,5 @@
 # O que é: teste do passo 15 da V1 — `.env.example` documenta toda chave que `Configuracoes` lê
-# (mais as duas do Compose/testes). Quando ler: ao acrescentar campo em `config.py`.
+# (mais as três do Compose/testes). Quando ler: ao acrescentar campo em `config.py`.
 from pathlib import Path
 
 from aprovaos.config import Configuracoes
@@ -18,5 +18,5 @@ def _chaves_do_env_example() -> set[str]:
 
 def test_env_example_cobre_todas_as_configuracoes() -> None:
     esperadas = {campo.upper() for campo in Configuracoes.model_fields}
-    esperadas |= {"DATABASE_URL_TEST", "POSTGRES_PASSWORD"}
+    esperadas |= {"DATABASE_URL_TEST", "POSTGRES_PASSWORD", "POSTGRES_PORT"}
     assert _chaves_do_env_example() == esperadas

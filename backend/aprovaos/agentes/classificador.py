@@ -4,11 +4,16 @@ O que é: `ClassificadorAdk` + `criar_classificador_adk` — a única função q
 e só quando chamada — e `escolher_classificador`, que decide se a IA entra (sem chave ou sem
 teto → `None` com o motivo, mesmo padrão de `api.editais._escolher_analista`). O contrato
 (`ClassificadorDeTopico`, `Classificacao`, `interpretar_resposta`, o fallback por regras) vive em
-`aprovaos.motor.curadoria.classificacao`. Quando ler: ao ligar a classificação num pipeline real,
-ao mudar o prompt, ou ao investigar por que um lote saiu "por regras".
+`aprovaos.motor.curadoria.classificacao`. `_com_retentativa_de_limite` (passo 12b da V3) é a
+retentativa com espera para o erro 429 (limite de taxa) do free tier — genérica e testável sem
+`google.*`: só olha `erro.code`/`erro.details`, o mesmo formato que
+`google.genai.errors.ClientError` expõe. Quando ler: ao ligar a classificação num pipeline real,
+ao mudar o prompt, ao investigar por que um lote saiu "por regras", ou ao mexer no limite de taxa.
 """
 
-from collections.abc import Callable
+import asyncio
+import re
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -49,9 +54,136 @@ APP_ADK = "aprovaos"
 MOTIVO_SEM_CHAVE = "sem GOOGLE_API_KEY"
 MOTIVO_TETO = "teto diário atingido"
 
+# Free tier do AI Studio (medido no passo 12b, 18/09/2026): 5 requisições/min para
+# `gemini-3.6-flash`. `_TENTATIVAS_MAX` cobre "pegou o minuto errado" sem virar laço infinito;
+# `_ESPERA_MAXIMA_S` distingue isso de cota **diária** esgotada (a mensagem real trouxe
+# `retryDelay` de dezenas de segundos para o limite por minuto — uma espera pedida na casa dos
+# minutos/horas é outro problema, que esperar aqui só disfarçaria); `_ESPERA_PADRAO_S` só entra
+# se a resposta trouxer `code == 429` sem o objeto `RetryInfo` (não observado até agora, mas o
+# contrato de `ClientError` não garante que venha sempre).
+_TENTATIVAS_MAX = 3
+_ESPERA_PADRAO_S = 5.0
+_ESPERA_MAXIMA_S = 90.0
+
+# "Please retry in 46.186756923s." — texto que a API do Gemini sempre inclui na mensagem de um
+# 429, visto tanto no `ClientError.details["error"]["message"]` cru quanto no
+# `Event.error_message` que sobra depois do ADK converter a exceção (ver `LimiteDeTaxaExcedido`).
+_MENSAGEM_RETRY_DELAY = re.compile(r"retry in ([\d.]+)s")
+
+
+def _segundos_de_retentativa(erro: Exception) -> float | None:
+    """Lê o `retryDelay` do `RetryInfo` de um erro 429, se ele vier na resposta.
+
+    Formato real (`google.genai.errors.ClientError.details`, medido no passo 12b):
+    `{"error": {..., "details": [{"@type": "…Help", …}, {"@type": "…RetryInfo", "retryDelay":
+    "22s"}]}}`. Duck-typed de propósito — funciona com o erro real do SDK e com qualquer dublê
+    de teste que só tenha o atributo `details` no mesmo formato.
+
+    Args:
+        erro: a exceção levantada pela chamada (só é chamada quando `erro.code == 429`).
+
+    Returns:
+        Os segundos sugeridos, ou `None` se a resposta não trouxer um `RetryInfo` reconhecível.
+    """
+    detalhes = getattr(erro, "details", None)
+    if not isinstance(detalhes, dict):
+        return None
+    interno = detalhes.get("error")
+    if not isinstance(interno, dict):
+        return None
+    for item in interno.get("details") or ():
+        if not isinstance(item, dict) or not str(item.get("@type", "")).endswith("RetryInfo"):
+            continue
+        bruto = item.get("retryDelay")
+        if isinstance(bruto, str) and bruto.endswith("s"):
+            try:
+                return float(bruto[:-1])
+            except ValueError:
+                return None
+    return None
+
+
+async def _com_retentativa_de_limite[T](operacao: Callable[[], Awaitable[T]]) -> T:
+    """Roda `operacao`, retentando com espera quando ela levanta erro 429 (limite de taxa).
+
+    Erro sem `code == 429` sobe na hora, sem espera — não é limite de taxa, é outra falha (a
+    classificação já degrada para regras nesse caso, em `motor.curadoria.classificacao`). Um
+    429 espera o `retryDelay` sugerido (ou `_ESPERA_PADRAO_S`, sem ele) e tenta de novo, até
+    `_TENTATIVAS_MAX` vezes; uma espera sugerida maior que `_ESPERA_MAXIMA_S` não é tratada como
+    "espere um pouco" — é cota diária esgotada, e bloquear a curadoria inteira por minutos/horas
+    seria pior que deixar aquele lote cair para `ClassificadorPorRegras`.
+
+    Args:
+        operacao: a chamada a repetir (ex.: `lambda: self._rodar(mensagem)`).
+
+    Returns:
+        O que `operacao()` devolveu, na primeira tentativa que teve sucesso.
+
+    Raises:
+        Exception: a exceção da última tentativa — de um erro que não é 429, de `code == 429`
+            esgotando as tentativas, ou de uma espera sugerida maior que `_ESPERA_MAXIMA_S`.
+    """
+    tentativa = 0
+    while True:
+        try:
+            return await operacao()
+        except Exception as erro:
+            tentativa += 1
+            if getattr(erro, "code", None) != 429 or tentativa >= _TENTATIVAS_MAX:
+                raise
+            espera = _segundos_de_retentativa(erro)
+            if espera is None:
+                espera = _ESPERA_PADRAO_S
+            if espera > _ESPERA_MAXIMA_S:
+                raise
+            await asyncio.sleep(espera)
+
+
+class LimiteDeTaxaExcedido(RuntimeError):
+    """O provedor recusou a chamada por limite de taxa — 429/`RESOURCE_EXHAUSTED`.
+
+    Achado da execução real do passo 12b: o ADK **não** deixa o `google.genai.errors.ClientError`
+    de 429 subir como exceção Python até `Runner.run_async` — `_node_runner.py` (`_execute_node`)
+    captura a exceção do modelo e publica um `Event(error_code=erro.status ou o nome da classe,
+    error_message=str(erro))`; para um erro 429, `.status` é a string `"RESOURCE_EXHAUSTED"` (o
+    mesmo `status` que vem no JSON da resposta, ao lado do `RetryInfo`). Sem esta classe, `_rodar`
+    tratava isso como `RespostaDoModeloAusente` — sem `.code` — e `_com_retentativa_de_limite`
+    nunca via um 429 para retentar; media aqui (`traco.duracao_ms < 1s` na rodada real) provou
+    isso: nenhuma retentativa real acontecia, cada lote caía direto para
+    `ClassificadorPorRegras` na primeira falha.
+
+    O objeto `RetryInfo` estruturado não sobrevive à conversão do ADK para `Event` — só o texto
+    da mensagem ("Please retry in 46.18s.") — por isso `.details` aqui é reconstruído por regex
+    (`_MENSAGEM_RETRY_DELAY`) em vez de vir pronto do provedor; `_segundos_de_retentativa` lê os
+    dois formatos (o de `ClientError.details` e este) sem saber a diferença.
+
+    Attributes:
+        code: sempre `429` — só existe uma razão para esta classe existir.
+        details: o mesmo formato de `google.genai.errors.ClientError.details`, montado a partir
+            do `retryDelay` encontrado no texto da mensagem (ou lista de `details` vazia, se a
+            mensagem não trouxer um "retry in Ns" reconhecível).
+    """
+
+    def __init__(self, mensagem: str) -> None:
+        """Guarda `code=429` e reconstrói `details` a partir do texto de `mensagem`."""
+        self.code = 429
+        encontrado = _MENSAGEM_RETRY_DELAY.search(mensagem)
+        detalhes_retry = (
+            [
+                {
+                    "@type": "type.googleapis.com/google.rpc.RetryInfo",
+                    "retryDelay": f"{encontrado.group(1)}s",
+                }
+            ]
+            if encontrado
+            else []
+        )
+        self.details = {"error": {"code": 429, "details": detalhes_retry}}
+        super().__init__(mensagem)
+
 
 class RespostaDoModeloAusente(RuntimeError):
-    """O ADK terminou sem resposta final com texto (ou com `error_code`)."""
+    """O ADK terminou sem resposta final com texto (ou `error_code` que não é limite de taxa)."""
 
 
 def carregar_prompt() -> str:
@@ -128,15 +260,19 @@ class ClassificadorAdk:
             ClassificacaoInvalida: a resposta inteira não é aproveitável (não é JSON, ou não é
                 uma lista) — uma entrada individual ruim não levanta, vem em
                 `motivos_rejeicao`.
-            Exception: qualquer falha do ADK/provedor, relançada após o registro.
+            Exception: qualquer falha do ADK/provedor (depois de esgotar a retentativa de 429,
+                `_com_retentativa_de_limite`), relançada após o registro.
         """
         slugs_validos = {topico.slug for topico in vocabulario}
+        mensagem = montar_mensagem(itens, vocabulario)
         iniciado_em = datetime.now(UTC)
         t0 = perf_counter()
         tokens_in: int | None = None
         tokens_out: int | None = None
         try:
-            resposta, tokens_in, tokens_out = await self._rodar(montar_mensagem(itens, vocabulario))
+            resposta, tokens_in, tokens_out = await _com_retentativa_de_limite(
+                lambda: self._rodar(mensagem)
+            )
         except Exception as erro:
             self._registrar_chamada(
                 ChamadaLlm(
@@ -185,7 +321,10 @@ class ClassificadorAdk:
             if not evento.is_final_response():
                 continue
             if evento.error_code:
-                raise RespostaDoModeloAusente(f"{evento.error_code}: {evento.error_message}")
+                mensagem = f"{evento.error_code}: {evento.error_message}"
+                if evento.error_code == "RESOURCE_EXHAUSTED":
+                    raise LimiteDeTaxaExcedido(mensagem)
+                raise RespostaDoModeloAusente(mensagem)
             if evento.content is not None and evento.content.parts:
                 # Partes de "pensamento" (thought=True) não são a resposta.
                 texto_final = "".join(
@@ -246,7 +385,18 @@ def criar_classificador_adk(
         instruction=carregar_prompt(),
         include_contents="none",
         generate_content_config=types.GenerateContentConfig(
-            response_mime_type="application/json", temperature=0.0
+            response_mime_type="application/json",
+            temperature=0.0,
+            # `thinking_budget=0` ("DISABLED", valor documentado no próprio SDK — não é
+            # heurística nossa) desliga o raciocínio interno: medido no passo 12b, uma chamada
+            # de classificação real gastou 96 tokens de entrada, 102 de saída e **568 de
+            # "pensamento"** — grátis no free tier, mas cobrado como saída no paid tier e ainda
+            # infla a latência. A tarefa é rotular um item num vocabulário fechado — não precisa
+            # de raciocínio em cadeia. Verificado só o esquema aqui (sem rede); a medição de que
+            # a resposta continua correta com `thinking_budget=0` fica pendente da chave real
+            # (quota diária do free tier esgotada no passo 12b antes de medir — registrado no
+            # diário da fatia).
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
     servico = InMemorySessionService()

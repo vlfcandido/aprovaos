@@ -5,12 +5,25 @@
 # o léxico para um edital real que ele não cobre, ou ao mudar o fluxo de fallback da
 # classificação.
 import json
+from collections.abc import AsyncIterator
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from pydantic import SecretStr
 from sqlalchemy.orm import Session
 
-from aprovaos.agentes.classificador import MOTIVO_SEM_CHAVE, escolher_classificador
+from aprovaos.agentes.classificador import (
+    _TENTATIVAS_MAX,
+    MOTIVO_SEM_CHAVE,
+    ClassificadorAdk,
+    LimiteDeTaxaExcedido,
+    RespostaDoModeloAusente,
+    _com_retentativa_de_limite,
+    _segundos_de_retentativa,
+    criar_classificador_adk,
+    escolher_classificador,
+)
 from aprovaos.config import Configuracoes
 from aprovaos.dados.modelos import Tenant, Usuario
 from aprovaos.dominio.edital import extrair_conteudo_programatico
@@ -441,3 +454,231 @@ def test_sem_chave_vai_para_regras(db: Session, config_teste: Configuracoes) -> 
 
     assert classificador is None
     assert motivo == MOTIVO_SEM_CHAVE
+
+
+class _ErroDeLimite(Exception):
+    """Dublê do `google.genai.errors.ClientError` de 429 — só o que a retentativa usa.
+
+    O formato de `details` é o real, medido contra a API (passo 12b): `error.details` é uma
+    lista de objetos tipados, um deles com `@type` terminando em `RetryInfo` e `retryDelay`
+    como string de segundos (`"22s"`).
+    """
+
+    def __init__(self, retry_delay: str | None) -> None:
+        self.code = 429
+        detalhes_retry = (
+            [{"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": retry_delay}]
+            if retry_delay
+            else []
+        )
+        self.details = {"error": {"code": 429, "details": detalhes_retry}}
+        super().__init__("429 RESOURCE_EXHAUSTED")
+
+
+@pytest.mark.anyio
+async def test_retentativa_espera_o_retry_delay_e_tenta_de_novo() -> None:
+    """429 uma vez, com `retryDelay`, depois sucesso: 1 retentativa, resultado da 2ª chamada."""
+    chamadas = 0
+
+    async def operacao() -> str:
+        nonlocal chamadas
+        chamadas += 1
+        if chamadas == 1:
+            raise _ErroDeLimite("0.01s")
+        return "resposta-boa"
+
+    resultado = await _com_retentativa_de_limite(operacao)
+
+    assert resultado == "resposta-boa"
+    assert chamadas == 2
+
+
+@pytest.mark.anyio
+async def test_retentativa_desiste_quando_a_espera_sugerida_e_maior_que_o_teto() -> None:
+    """`retryDelay` gigante (cota diária, não por minuto) → desiste na hora, sem dormir."""
+
+    async def operacao() -> str:
+        raise _ErroDeLimite("3600s")
+
+    with pytest.raises(_ErroDeLimite):
+        await _com_retentativa_de_limite(operacao)
+
+
+@pytest.mark.anyio
+async def test_retentativa_esgota_tentativas_e_relanca_o_ultimo_erro() -> None:
+    """429 sempre, sem nunca ter sucesso: relança depois de `_TENTATIVAS_MAX` tentativas."""
+    chamadas = 0
+
+    async def operacao() -> str:
+        nonlocal chamadas
+        chamadas += 1
+        raise _ErroDeLimite("0.01s")
+
+    with pytest.raises(_ErroDeLimite):
+        await _com_retentativa_de_limite(operacao)
+
+    assert chamadas == _TENTATIVAS_MAX
+
+
+@pytest.mark.anyio
+async def test_retentativa_nao_intercepta_erro_que_nao_e_429() -> None:
+    """Erro sem `code == 429` sobe na primeira tentativa, sem esperar nem tentar de novo."""
+    chamadas = 0
+
+    async def operacao() -> str:
+        nonlocal chamadas
+        chamadas += 1
+        raise RuntimeError("erro qualquer, não é limite de taxa")
+
+    with pytest.raises(RuntimeError):
+        await _com_retentativa_de_limite(operacao)
+
+    assert chamadas == 1
+
+
+def test_criar_classificador_adk_desliga_pensamento(config_teste: Configuracoes) -> None:
+    """`thinking_budget=0` no `GenerateContentConfig` (passo 12b): medido pelo dono, uma chamada
+    de classificação real gastou 96 tokens de entrada, 102 de saída e **568 de "pensamento"**
+    (grátis no free tier, mas custa como saída no paid tier e infla latência) — desligado aqui,
+    sem rede (só inspeciona o `LlmAgent` construído; `0` é o valor documentado pelo próprio SDK
+    para "DISABLED", não um número inventado).
+    """
+    from google.adk.agents import LlmAgent
+
+    config = config_teste.model_copy(update={"google_api_key": SecretStr("chave-falsa")})
+    agente = criar_classificador_adk(config, lambda chamada: None).agente
+
+    assert isinstance(agente, LlmAgent)
+    assert agente.generate_content_config is not None
+    thinking = agente.generate_content_config.thinking_config
+    assert thinking is not None
+    assert thinking.thinking_budget == 0
+
+
+# --- Rodada 12b, achado da execução real: o ADK não deixa o 429 subir como exceção Python ----
+#
+# Medido rodando `curar --reclassificar` de verdade (com `GOOGLE_API_KEY` real, contra a cota do
+# free tier já esgotada): o traço gravado tinha `erro="RespostaDoModeloAusente"`, não
+# `_ResourceExhaustedError`, e a duração era < 1s — nenhuma retentativa real aconteceu.
+# `google/adk/workflow/_node_runner.py` (`_execute_node`) captura a exceção do modelo e publica
+# um `Event(error_code=getattr(erro, "status", None) or type(erro).__name__, ...)` — para um
+# `ClientError` de 429, `.status` é a string `"RESOURCE_EXHAUSTED"` (vem de `response_json`, o
+# mesmo JSON que carrega o `RetryInfo`). `_rodar` via só `evento.error_code`, então tratava
+# QUALQUER erro do modelo como `RespostaDoModeloAusente` — sem `.code`, `_com_retentativa_de_limite`
+# nunca reconhecia o 429. `LimiteDeTaxaExcedido` existe para fechar esse buraco.
+
+
+def test_limite_de_taxa_excedido_extrai_retry_delay_da_mensagem_do_adk() -> None:
+    """A mensagem real do ADK (`error_code: error_message`) ainda traz "Please retry in Ns.".
+
+    O objeto `RetryInfo` estruturado não sobrevive à conversão do ADK de exceção para `Event`
+    (só sobra o texto) — por isso a extração aqui é por regex na mensagem, não no `.details`
+    completo que `google.genai.errors.ClientError` traria diretamente.
+    """
+    mensagem = (
+        "RESOURCE_EXHAUSTED: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': "
+        "'You exceeded your current quota... \\nPlease retry in 46.186756923s.', "
+        "'status': 'RESOURCE_EXHAUSTED'}}"
+    )
+
+    erro = LimiteDeTaxaExcedido(mensagem)
+
+    assert erro.code == 429
+    assert _segundos_de_retentativa(erro) == pytest.approx(46.186756923)
+
+
+def test_limite_de_taxa_excedido_sem_retry_delay_no_texto() -> None:
+    """Mensagem sem "retry in Ns" reconhecível: `código` continua 429, mas sem espera sugerida
+    (`_com_retentativa_de_limite` cai para `_ESPERA_PADRAO_S` nesse caso).
+    """
+    erro = LimiteDeTaxaExcedido("RESOURCE_EXHAUSTED: mensagem sem o texto de retentativa")
+
+    assert erro.code == 429
+    assert _segundos_de_retentativa(erro) is None
+
+
+class _EventoFalso:
+    """Dublê do `Event` do ADK — só os quatro campos/método que `_rodar` lê."""
+
+    def __init__(
+        self,
+        *,
+        final: bool,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        usage_metadata: object | None = None,
+        content: object | None = None,
+    ) -> None:
+        self.error_code = error_code
+        self.error_message = error_message
+        self.usage_metadata = usage_metadata
+        self.content = content
+        self._final = final
+
+    def is_final_response(self) -> bool:
+        return self._final
+
+
+class _RunnerFalso:
+    """Dublê de `Runner`: `run_async` devolve os eventos dados, na ordem, sem rede."""
+
+    def __init__(self, eventos: list[_EventoFalso]) -> None:
+        self._eventos = eventos
+        self.agent = None
+
+    async def run_async(
+        self, *, user_id: str, session_id: str, new_message: object
+    ) -> AsyncIterator[_EventoFalso]:
+        for evento in self._eventos:
+            yield evento
+
+
+class _ServicoSessaoFalso:
+    """Dublê de `BaseSessionService`: `create_session` só devolve os ids recebidos."""
+
+    async def create_session(
+        self, *, app_name: str, user_id: str, session_id: str
+    ) -> SimpleNamespace:
+        return SimpleNamespace(user_id=user_id, id=session_id)
+
+
+def _classificador_com_eventos(eventos: list[_EventoFalso]) -> ClassificadorAdk:
+    return ClassificadorAdk(
+        runner=_RunnerFalso(eventos),  # type: ignore[arg-type]
+        servico_sessao=_ServicoSessaoFalso(),  # type: ignore[arg-type]
+        modelo="gemini-3.6-flash",
+        registrar_chamada=lambda chamada: None,
+        novo_conteudo=lambda texto: texto,  # type: ignore[arg-type,return-value]
+    )
+
+
+@pytest.mark.anyio
+async def test_rodar_reconhece_resource_exhausted_como_limite_de_taxa() -> None:
+    """`error_code == "RESOURCE_EXHAUSTED"` vira `LimiteDeTaxaExcedido` (`.code == 429`), não
+    `RespostaDoModeloAusente` (sem `.code`) — é o que faz `_com_retentativa_de_limite` reconhecer
+    e retentar em vez de desistir na primeira falha (achado da execução real, passo 12b).
+    """
+    evento = _EventoFalso(
+        final=True,
+        error_code="RESOURCE_EXHAUSTED",
+        error_message="429 RESOURCE_EXHAUSTED. ... Please retry in 12.5s.",
+    )
+    classificador = _classificador_com_eventos([evento])
+
+    with pytest.raises(LimiteDeTaxaExcedido) as excinfo:
+        await classificador._rodar("mensagem")
+
+    assert excinfo.value.code == 429
+    assert _segundos_de_retentativa(excinfo.value) == pytest.approx(12.5)
+
+
+@pytest.mark.anyio
+async def test_rodar_outro_error_code_continua_resposta_ausente() -> None:
+    """`error_code` que não é `RESOURCE_EXHAUSTED` continua virando `RespostaDoModeloAusente`
+    (comportamento anterior, preservado) — não é todo erro do modelo que é limite de taxa.
+    """
+    evento = _EventoFalso(final=True, error_code="ValueError", error_message="schema inválido")
+    classificador = _classificador_com_eventos([evento])
+
+    with pytest.raises(RespostaDoModeloAusente):
+        await classificador._rodar("mensagem")

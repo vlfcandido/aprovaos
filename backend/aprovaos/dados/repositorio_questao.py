@@ -1,14 +1,15 @@
 """Repositório de questões: grava o que o curador produziu e serve as consultas de estudo.
 
 O que é: `salvar_questoes` (dedup por `hash_dedup`, sem depender de `IntegrityError` para
-funcionar), `contagem_por_topico` (quantas publicáveis por tópico de um edital, para o "0 de 36"
-da V2 virar contagem real), `proxima_questao` (a próxima publicável de um tópico que o usuário
-nunca respondeu nem reportou — premissa H do plano da V3), `registrar_resposta`/
-`registrar_reporte` (gravam `evento_estudo`, nunca alteram `questao`) e `topicos_vistos`
-(premissa N: tópicos com pelo menos uma resposta do usuário naquele edital). Quando ler: ao
-ligar o comando de curadoria (passo 12) ou as rotas de questão (passo 13). Como o repositório da
-V2 (`repositorio_edital.py`): funções soltas recebendo `Session` como primeiro parâmetro, fazem
-`add`/`flush`; o `commit` é sempre da rota/comando.
+funcionar), `atualizar_classificacao` (passo 12b — reclassifica uma questão já gravada sem
+duplicar nem tocar texto/gabarito/origem), `contagem_por_topico` (quantas publicáveis por tópico
+de um edital, para o "0 de 36" da V2 virar contagem real), `proxima_questao` (a próxima
+publicável de um tópico que o usuário nunca respondeu nem reportou — premissa H do plano da V3),
+`registrar_resposta`/`registrar_reporte` (gravam `evento_estudo`, nunca alteram `questao`) e
+`topicos_vistos` (premissa N: tópicos com pelo menos uma resposta do usuário naquele edital).
+Quando ler: ao ligar o comando de curadoria (passo 12) ou as rotas de questão (passo 13). Como o
+repositório da V2 (`repositorio_edital.py`): funções soltas recebendo `Session` como primeiro
+parâmetro, fazem `add`/`flush`; o `commit` é sempre da rota/comando.
 """
 
 from uuid import UUID
@@ -92,6 +93,58 @@ def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, in
         novas += 1
     db.flush()
     return novas, repetidas
+
+
+def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, int]:
+    """Reclassifica questões já gravadas (passo 12b), sem duplicar e sem tocar no resto da linha.
+
+    Localiza cada questão existente por `hash_dedup` e atualiza **só**
+    `topico_id`/`topico_confianca`/`topico_evidencia`/`publicavel`/`motivo_nao_publicavel` — o
+    texto (`comando`, `texto_apoio`, `enunciado`), o gabarito e a `origem` continuam os da
+    curadoria original, sempre. Existe porque rodar `curar` de novo sobre o mesmo par com um
+    classificador melhor (ex.: IA depois de ter rodado por regras) não pode virar `salvar_questoes`
+    de novo — aquilo só conta repetidas, nunca atualiza uma linha existente.
+
+    Args:
+        db: sessão do request/comando.
+        questoes: a nova saída do curador para o mesmo caderno (mesmos `hash_dedup` de antes;
+            só a classificação de tópico deve ter mudado).
+
+    Returns:
+        `(quantidade atualizada, quantidade ignorada)` — ignorada é toda `QuestaoCurada` cujo
+        `hash_dedup` não bate com nenhuma linha existente (nunca cria uma nova).
+    """
+    if not questoes:
+        return 0, 0
+
+    hashes = [questao.hash_dedup for questao in questoes]
+    existentes: dict[str, Questao] = {
+        encontrada.hash_dedup: encontrada
+        for encontrada in db.scalars(select(Questao).where(Questao.hash_dedup.in_(hashes))).all()
+    }
+    slugs = {questao.topico_slug for questao in questoes if questao.topico_slug is not None}
+    topicos_por_slug: dict[str, Topico] = {}
+    if slugs:
+        for encontrado in db.scalars(select(Topico).where(Topico.slug.in_(slugs))).all():
+            topicos_por_slug[encontrado.slug] = encontrado
+
+    atualizadas = 0
+    ignoradas = 0
+    for questao in questoes:
+        existente = existentes.get(questao.hash_dedup)
+        if existente is None:
+            ignoradas += 1
+            continue
+        existente.topico = (
+            topicos_por_slug.get(questao.topico_slug) if questao.topico_slug else None
+        )
+        existente.topico_confianca = questao.topico_confianca
+        existente.topico_evidencia = questao.topico_evidencia
+        existente.publicavel = questao.publicavel
+        existente.motivo_nao_publicavel = questao.motivo_nao_publicavel
+        atualizadas += 1
+    db.flush()
+    return atualizadas, ignoradas
 
 
 def contagem_por_topico(db: Session, edital_id: UUID) -> dict[UUID, int]:

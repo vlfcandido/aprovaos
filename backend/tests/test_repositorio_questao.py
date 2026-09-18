@@ -1,6 +1,7 @@
 # O que é: testes do passo 11 da V3 — repositório de questões (grava o que o curador produziu,
-# conta por tópico, serve a próxima questão, registra resposta e reporte). Quando ler: ao mexer
-# em `dados/repositorio_questao.py` ou nas tabelas `questao`/`evento_estudo`/`reporte_erro`.
+# conta por tópico, serve a próxima questão, registra resposta e reporte) — e do passo 12b
+# (`atualizar_classificacao`, para reclassificar sem duplicar). Quando ler: ao mexer em
+# `dados/repositorio_questao.py` ou nas tabelas `questao`/`evento_estudo`/`reporte_erro`.
 from datetime import timedelta
 from typing import Literal
 from uuid import UUID, uuid4
@@ -21,6 +22,7 @@ from aprovaos.dados.modelos import (
 )
 from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_questao import (
+    atualizar_classificacao,
     contagem_por_topico,
     proxima_questao,
     registrar_reporte,
@@ -296,3 +298,58 @@ def test_topicos_vistos(db: Session) -> None:
     registrar_resposta(db, usuario, questao_b, resposta="E", confianca="duvida", tempo_ms=200)
     db.commit()
     assert topicos_vistos(db, usuario.id, edital.id) == {topico_a.id, topico_b.id}
+
+
+def test_atualizar_classificacao_muda_topico_sem_tocar_texto_gabarito_ou_origem(
+    db: Session,
+) -> None:
+    """Reclassificar (passo 12b): só `topico_id`/`topico_confianca`/`topico_evidencia`/
+    `publicavel`/`motivo_nao_publicavel` mudam — o resto da linha gravada na curadoria original
+    é imutável (texto, gabarito, origem).
+    """
+    documento = _documento(db, "d7")
+    topico_novo = _topico(db, "dir-civ-01-prescricao")
+    original = _questao_curada(1, "Enunciado original.", None, documento.id, publicavel=False)
+    salvar_questoes(db, [original])
+    db.commit()
+    salva = db.scalars(select(Questao)).one()
+    assert salva.topico_id is None
+    assert salva.publicavel is False
+    assert salva.motivo_nao_publicavel == "tópico não identificado"
+    enunciado_antes, comando_antes, origem_antes, gabarito_antes = (
+        salva.enunciado,
+        salva.comando,
+        salva.origem,
+        salva.gabarito,
+    )
+
+    reclassificada = _questao_curada(
+        1, "Enunciado original.", topico_novo.slug, documento.id, publicavel=True
+    )
+    atualizadas, ignoradas = atualizar_classificacao(db, [reclassificada])
+    db.commit()
+
+    assert (atualizadas, ignoradas) == (1, 0)
+    db.refresh(salva)
+    assert salva.topico_id == topico_novo.id
+    assert salva.topico_confianca == "alta"
+    assert salva.topico_evidencia == reclassificada.topico_evidencia
+    assert salva.publicavel is True
+    assert salva.motivo_nao_publicavel is None
+    # nada além de topico/publicavel mudou:
+    assert salva.enunciado == enunciado_antes
+    assert salva.comando == comando_antes
+    assert salva.origem == origem_antes
+    assert salva.gabarito == gabarito_antes
+
+
+def test_atualizar_classificacao_ignora_hash_inexistente(db: Session) -> None:
+    """Uma `QuestaoCurada` cujo `hash_dedup` não está na base é ignorada, nunca criada."""
+    documento = _documento(db, "d8")
+    inexistente = _questao_curada(99, "Este enunciado nunca foi gravado.", None, documento.id)
+
+    atualizadas, ignoradas = atualizar_classificacao(db, [inexistente])
+    db.commit()
+
+    assert (atualizadas, ignoradas) == (0, 1)
+    assert db.scalar(select(func.count()).select_from(Questao)) == 0

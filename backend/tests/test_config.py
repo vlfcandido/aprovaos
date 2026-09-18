@@ -55,7 +55,7 @@ def test_configuracoes_da_v2_tem_padroes() -> None:
     cfg = Configuracoes(database_url="sqlite://", chave_secreta=SecretStr(CHAVE), _env_file=None)
     assert cfg.uploads_dir is None
     assert cfg.google_api_key is None
-    assert cfg.modelo_dna == "gemini-2.5-flash"
+    assert cfg.modelo_dna == "gemini-3.6-flash"
     assert cfg.teto_diario_brl == Decimal("3.00")
 
 
@@ -71,7 +71,7 @@ def test_campos_da_v3() -> None:
     cfg = Configuracoes(database_url="sqlite://", chave_secreta=SecretStr(CHAVE), _env_file=None)
     assert cfg.documentos_dir is None
     assert cfg.contato_coletor == "vlfcandido@gmail.com"
-    assert cfg.modelo_classificacao == "gemini-2.5-flash"
+    assert cfg.modelo_classificacao == "gemini-3.6-flash"
     assert cfg.lote_classificacao == 20
     with pytest.raises(pydantic.ValidationError):
         Configuracoes(

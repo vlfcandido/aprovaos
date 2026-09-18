@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import httpx2
 import pytest
 from pydantic import SecretStr
 
@@ -58,6 +59,18 @@ class ClienteFalso:
         if url not in self._respostas:
             raise KeyError(f"ClienteFalso sem resposta cadastrada para {url}")
         return self._respostas[url]
+
+
+class ClienteQueFalha:
+    """Cliente HTTP falso que levanta `httpx2.HTTPError` em toda chamada — nenhuma rede real.
+
+    Simula a falha de transporte (rede fora do ar, sem resposta HTTP nenhuma), distinta do
+    status HTTP >= 400 (que `_RespostaFalsa`/`ClienteFalso` já cobrem em `test_erro_http_levanta`).
+    """
+
+    def get(self, url: str, *, headers: Mapping[str, str] | None = None) -> _RespostaFalsa:
+        """Levanta `httpx2.ConnectError` para simular a rede fora do ar."""
+        raise httpx2.ConnectError("falha de transporte simulada")
 
 
 def _carregar(nome: str) -> Any:
@@ -142,6 +155,30 @@ def test_erro_http_levanta() -> None:
 
     with pytest.raises(FonteIndisponivel):
         fonte.listar_novidades(vistos=set())
+
+
+def test_falha_de_transporte_levanta_na_listagem() -> None:
+    """Rede fora do ar (sem resposta HTTP) na listagem levanta `FonteIndisponivel`, não `[]`."""
+    fonte = FonteCebraspe(ClienteQueFalha(), CONTATO_TESTE)
+
+    with pytest.raises(FonteIndisponivel):
+        fonte.listar_novidades(vistos=set())
+
+
+def test_falha_de_transporte_levanta_no_baixar() -> None:
+    """Rede fora do ar (sem resposta HTTP) em `baixar` levanta `FonteIndisponivel`."""
+    novidade = Novidade(
+        id="TJ_PA_25_SERVIDOR/arquivo.pdf",
+        tipo="prova",
+        titulo="PROVA OBJETIVA",
+        url="https://cdn.cebraspe.org.br/concursos/TJ_PA_25_SERVIDOR/arquivos/arquivo.pdf",
+        evento="TJ_PA_25_SERVIDOR",
+        publicado_em=None,
+    )
+    fonte = FonteCebraspe(ClienteQueFalha(), CONTATO_TESTE)
+
+    with pytest.raises(FonteIndisponivel):
+        fonte.baixar(novidade)
 
 
 def test_baixar_devolve_conteudo_e_hash() -> None:

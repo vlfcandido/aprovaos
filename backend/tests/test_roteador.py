@@ -48,6 +48,13 @@ def test_estimar_custo_gemini_3_6_flash() -> None:
     assert estimar_custo_brl("gemini-3.6-flash", 0, 1_000_000) == Decimal("20.250000")
 
 
+def test_estimar_custo_gemini_3_5_flash_lite() -> None:
+    # Preço paid tier (passo 12c — modelo do classificador; free tier real é zero):
+    # 1M de entrada × US$ 0,30/M × 5,40 = R$ 1,62; 1M de saída × US$ 2,50/M × 5,40 = R$ 13,50.
+    assert estimar_custo_brl("gemini-3.5-flash-lite", 1_000_000, 0) == Decimal("1.620000")
+    assert estimar_custo_brl("gemini-3.5-flash-lite", 0, 1_000_000) == Decimal("13.500000")
+
+
 def test_modelo_sem_preco() -> None:
     with pytest.raises(ModeloSemPreco):
         estimar_custo_brl("gemini-x", 1, 1)

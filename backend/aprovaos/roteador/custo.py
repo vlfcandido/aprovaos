@@ -19,10 +19,16 @@ from pydantic import BaseModel
 # válido até 31/12/2026 (sobe para US$ 1,50/US$ 7,50 em 1/1/2027 — reconferir nessa data). No
 # **free tier** (ADR-0030, a chave do piloto) o custo real de entrada/saída é zero; a tabela
 # existe para o teto diário (`TetoDiario`) proteger o dia em que a conta virar paga.
+# `gemini-3.5-flash-lite` (passo 12c da V3, 18/09/2026): modelo do `classificador` — a cota
+# diária de `gemini-3.6-flash` (20 req/dia/projeto/modelo, achado do passo 12b) é *por modelo*;
+# classificar item de prova num vocabulário fechado é "simple data processing" (a própria
+# página do modelo o descreve assim), e o Flash-Lite é o mais barato da família no paid tier.
+# Preço conferido em https://ai.google.dev/gemini-api/docs/pricing em 18/09/2026.
 PRECOS_USD_POR_MILHAO: dict[str, tuple[Decimal, Decimal]] = {
     "gemini-2.5-flash": (Decimal("0.30"), Decimal("2.50")),
     "gemini-2.5-flash-lite": (Decimal("0.10"), Decimal("0.40")),
     "gemini-3.6-flash": (Decimal("0.75"), Decimal("3.75")),
+    "gemini-3.5-flash-lite": (Decimal("0.30"), Decimal("2.50")),
 }
 # Câmbio de referência de `docs/06-custos.md` (R$ 5,40 por US$), o mesmo do orçamento.
 CAMBIO_BRL_POR_USD = Decimal("5.40")

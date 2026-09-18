@@ -34,8 +34,11 @@ class Configuracoes(BaseSettings):
         teto_diario_brl: gasto máximo com LLM por dia, em R$ (ADR-0018); vale desde a 1ª chamada.
         documentos_dir: pasta das provas coletadas; `None` = `knowledge/provas`, resolvida pela app.
         contato_coletor: e-mail no User-Agent do coletor (ADR-0030), identificando as requisições.
-        modelo_classificacao: modelo Gemini do curador de questões (ADR-0018: Flash; mesma troca
-            do passo 12b — `gemini-3.6-flash`).
+        modelo_classificacao: modelo Gemini do curador de questões (ADR-0018: Flash; passo 12c —
+            `gemini-3.5-flash-lite`, não `gemini-3.6-flash`: cada modelo tem cota diária própria
+            no free tier, achado do passo 12b, e classificar item num vocabulário fechado é
+            "simple data processing" — o Lite é o mais barato da família e a tarefa certa para
+            ele; `modelo_dna` continua Flash porque o DNA do edital é raciocínio, não triagem).
         lote_classificacao: quantas questões o curador classifica por chamada ao LLM.
     """
 
@@ -53,7 +56,7 @@ class Configuracoes(BaseSettings):
     teto_diario_brl: Decimal = Decimal("3.00")
     documentos_dir: Path | None = None
     contato_coletor: str = "vlfcandido@gmail.com"
-    modelo_classificacao: str = "gemini-3.6-flash"
+    modelo_classificacao: str = "gemini-3.5-flash-lite"
     lote_classificacao: int = Field(default=20, gt=0)
 
 

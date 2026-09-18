@@ -96,8 +96,33 @@ Lado B inteiro (F6+); segundo exame (OAB, ADR-0012, fase 2); social (ranking, gr
 
 ## 6. Piloto com a usuária real (ADR-0016) e os 10 primeiros pagantes
 
-**Piloto (n = 1, Linda).** Começa quando as fatias 1–9 da Fase 5 estiverem no ar (conta, Motor v0 com o concurso dela, DNA, dossiês, questões validadas, aulas, diagnóstico, plano + check-in, questões servidas + FSRS). Duração mínima: **3 semanas com ≥ 15 dias ativos**. O que ela faz: estuda de verdade para o concurso dela; reporta erro em qualquer conteúdo (fila do calibrador); responde 5 perguntas por semana (o mesmo formato da entrevista). O que o produto faz: grava tudo como evento; o dono não corrige "na mão" — corrige o pipeline.
-**Critérios de saída do piloto (todos):** (1) ≥ 4 sessões/semana nas últimas 2 semanas; (2) plano concluído em ≥ 50 % dos dias ativos; (3) reporte de erro < 2 % das questões respondidas e zero afirmação de lei sem fonte encontrada por ela; (4) ela explica o porquê de 3 decisões do agente sem ajuda; (5) zero bug bloqueante por 7 dias; (6) ela diz que continuaria sem o Vinicius por perto. Se (1) ou (2) falharem por 2 semanas seguidas, a causa vira a próxima fatia, não uma feature nova.
+**Piloto em dois estágios (ADR-0027, ADR-0028 — 17/09/2026).** A Linda estuda para o concurso **dela** (edital em PDF, bancas locais de Cascavel-PR, matérias de Direito), não para um concurso do catálogo. As questões originais vêm da base Cebraspe nos mesmos tópicos, sempre com banca/órgão/ano/item visíveis.
+
+- **Piloto v0** (fatias V1–V5 da tabela abaixo): conta → subir edital → edital verticalizado → questões originais com origem → cartão de erro + FSRS → fio da memória (b). Ela começa a estudar e a reportar erro; o resto entra enquanto ela usa. Métrica do v0: ≥ 4 sessões/semana e reporte de erro < 2 % — nada mais é medido ainda.
+- **Piloto completo (n = 1, Linda).** Conta a partir de a fatia 8 (plano + check-in) estar no ar. Duração mínima: **3 semanas com ≥ 15 dias ativos**. O que ela faz: estuda de verdade para o concurso dela; reporta erro em qualquer conteúdo (fila do calibrador); responde 5 perguntas por semana (o mesmo formato da entrevista). O que o produto faz: grava tudo como evento; o dono não corrige "na mão" — corrige o pipeline.
+
+**Critérios de saída do piloto completo (todos):** (1) ≥ 4 sessões/semana nas últimas 2 semanas; (2) plano concluído em ≥ 50 % dos dias ativos; (3) reporte de erro < 2 % das questões respondidas e zero afirmação de lei sem fonte encontrada por ela; (4) ela explica o porquê de 3 decisões do agente sem ajuda; (5) zero bug bloqueante por 7 dias; (6) ela diz que continuaria sem o Vinicius por perto. Se (1) ou (2) falharem por 2 semanas seguidas, a causa vira a próxima fatia, não uma feature nova.
+
+### Fatias — ordem real de construção e estado (fonte única de rastreio; ADR-0028)
+Convenção: `V` = piloto v0; o número entre parênteses é a fatia da spec §17 que ela realiza (parcial ou inteira). Status: `não iniciada` · `em andamento` · `no ar (data)`. Nada sai desta tabela: o que for adiado ganha linha com o motivo.
+
+| ordem | fatia | o que entra | o que fica de fora (e por quê) | status |
+|---|---|---|---|---|
+| V1 (1) | Template base | conta e-mail+senha (ADR-0026), tenant PF, modelo de dados base, Docker Compose, CI, landing mínima | Google OAuth, billing (fatia 12), SEO (fatia 13) — não bloqueiam a Linda | não iniciada |
+| V2 (3+13 parcial) | Subir edital → DNA reduzido + edital verticalizado | PDF → tópicos por matéria (`analista-de-edital`), F1.6 verticalizado zerado, `DnaConcurso` com `peso_real=desconhecido` declarado | peso por prova, corte histórico e estilo da banca local (P-17); radar/catálogo (F1.1–F1.3) — a Linda não usa catálogo | não iniciada |
+| V3 (2+9 parcial) | Questões originais Cebraspe por tópico | `coletor`+`curador` da API Cebraspe (só provas de Direito do edital dela), F4.1 servida com origem, "certeza/dúvida", reportar erro (F4.7) | geração de inéditas (fatia 5), FGV (P-13), cobertura medida do exame inteiro | não iniciada |
+| V4 (9) | Cartão de erro + FSRS | F4.3 com `fsrs`; vencidos aparecem numa lista "revisar hoje" | plano do dia (fatia 8) — a lista substitui o plano até lá | não iniciada |
+| V5 (9 parcial) | Fio da memória (b) | 3 itens de tópicos já vistos intercalados no bloco de questões | fio (a) e (c) — dependem de aulas/dossiês | não iniciada |
+| 4 | Dossiês dos tópicos de maior peso do edital dela | `pesquisador-de-topico` | — | não iniciada |
+| 6 | Trilha + aulas em texto (fio (a), popover de lei, mnemônicos, grifos) | `gerador-aula` + validador | áudio (Pro) até o piloto mostrar uso | não iniciada |
+| 5 | Geração validada de questões inéditas (marcadas) | só onde a base Cebraspe não cobre o tópico | — | não iniciada |
+| 7 | Diagnóstico adaptativo + rotina | F2.1, F2.2 | — | não iniciada |
+| 8 | Plano do dia + job noturno + check-in + porquê/discordar + distração | F3.x; **abre o piloto completo** | — | não iniciada |
+| 10 | Painel: curva, padrões, previsão v0, fio (c), semana da prova | F5.x, F4.4c | — | não iniciada |
+| 11 | Calibrador | eventos → dificuldade, sinalização | — | não iniciada |
+| 1b | Radar/catálogo Cebraspe+FGV, Google OAuth | F1.1–F1.3 (ADR-0011) | — | não iniciada |
+| 12 | Billing real + limites por tier | condição de lançamento | — | não iniciada |
+| 13 | Landing programática + lançamento | Fase 6 | — | não iniciada |
 
 **10 primeiros pagantes do lado A (após o piloto).** Convite direto a 20–30 concurseiros de controle/TCU do círculo dela e de grupos de Telegram/WhatsApp, com Pro grátis por 30 dias e onboarding acompanhado (uma chamada de 20 min); converter ≥ 10 ao fim dos 30 dias com Pix anual (R$ 490) ou mensal. Métrica de corte da visão §9 conta a partir daqui (D+30 / D+60). SEO programático (pesquisa §8) começa em paralelo, sem depender dele.
 

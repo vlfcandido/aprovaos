@@ -1,0 +1,14 @@
+{
+  "_o_que_e": "Fixture — eventos de estudo agregados por questão em 14 dias, para testar `calibracao-de-questoes`. Números inventados. n = respostas; acertos; tempo_mediano_s; confianca_alta_erro = respostas marcadas 'certeza' que erraram; reportes = reportes de erro abertos pelos alunos; dificuldade_est = estimativa atual na tabela `questao`.",
+  "periodo": "2026-09-03 a 2026-09-17",
+  "questoes": [
+    {"questao_id": "q-51", "topico": "atos administrativos", "n": 212, "acertos": 187, "tempo_mediano_s": 34, "confianca_alta_erro": 3, "reportes": 0, "dificuldade_est": 0.35, "origem": "cebraspe 2024 tce-xx item 51"},
+    {"questao_id": "q-52", "topico": "princípios", "n": 198, "acertos": 61, "tempo_mediano_s": 41, "confianca_alta_erro": 44, "reportes": 9, "dificuldade_est": 0.40, "origem": "cebraspe 2024 tce-xx item 52", "reportes_motivos": ["gabarito parece invertido", "o enunciado diz o contrário da CF", "gabarito errado", "acho que é C e não E", "confuso", "gabarito", "errado", "inverteram", "o item está certo"]},
+    {"questao_id": "q-53", "topico": "atos administrativos", "n": 205, "acertos": 33, "tempo_mediano_s": 58, "confianca_alta_erro": 12, "reportes": 1, "dificuldade_est": 0.55, "origem": "cebraspe 2024 tce-xx item 53", "reportes_motivos": ["muito difícil"]},
+    {"questao_id": "q-56", "topico": "controle externo", "n": 190, "acertos": 171, "tempo_mediano_s": 12, "confianca_alta_erro": 1, "reportes": 0, "dificuldade_est": 0.60, "origem": "cebraspe 2024 tce-xx item 56"},
+    {"questao_id": "q-58", "topico": "licitações", "n": 24, "acertos": 9, "tempo_mediano_s": 66, "confianca_alta_erro": 6, "reportes": 2, "dificuldade_est": 0.50, "origem": "cebraspe 2024 tce-xx item 58", "reportes_motivos": ["o texto de apoio não apareceu", "faltou o texto"]},
+    {"questao_id": "q-60", "topico": "improbidade", "n": 176, "acertos": 40, "tempo_mediano_s": 45, "confianca_alta_erro": 31, "reportes": 5, "dificuldade_est": 0.45, "origem": "cebraspe 2024 tce-xx item 60", "reportes_motivos": ["a lei mudou em 2021, prazo não é mais esse", "desatualizada", "Lei 14.230 alterou", "prazo mudou", "errado"]},
+    {"questao_id": "g-1041", "topico": "controle externo", "n": 8, "acertos": 2, "tempo_mediano_s": 90, "confianca_alta_erro": 1, "reportes": 0, "dificuldade_est": 0.50, "origem": "inédita validada (gerador v3, 2026-09-10)"},
+    {"questao_id": "g-1077", "topico": "princípios", "n": 143, "acertos": 141, "tempo_mediano_s": 9, "confianca_alta_erro": 0, "reportes": 0, "dificuldade_est": 0.50, "origem": "inédita validada (gerador v3, 2026-09-10)"}
+  ]
+}

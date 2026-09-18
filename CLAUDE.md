@@ -24,11 +24,11 @@ Dono: Vinicius — Senior AI Engineer (~13 anos de software, ~5 em IA generativa
 | fase | entrega | status |
 |---|---|---|
 | 0 — Setup, visão e perguntas | `CLAUDE.md`, `docs/00-visao.md`, `docs/DECISOES.md` (ADR-0001…0010), `docs/PENDENCIAS.md` | **entregue em 14/09/2026** |
-| 1 — Deep research | `docs/01-pesquisa-mercado.md` (rodada `wf_09928095-f09` + síntese em sessão; raw em `docs/evidencias/raw/2026-09-14-fase1/`) | **entregue em 14/09/2026 — aguarda decisão do dono no portão (exame inicial, provisório até P-11)** |
+| 1 — Deep research | `docs/01-pesquisa-mercado.md` (rodada `wf_09928095-f09` + síntese em sessão; raw em `docs/evidencias/raw/2026-09-14-fase1/`) | **entregue em 14/09/2026** (portão decidido: ADR-0011 Cebraspe+FGV, P-11 feita) |
 | 2 — Produto (PRD) | `docs/02-produto.md`, skill `.claude/skills/avaliador-de-feature/` (testada com Haiku, ADR-0014) | **entregue em 14/09/2026** |
 | 3 — Arquitetura e dados | `docs/03-arquitetura.md`, `04-modelo-de-dados.md`, `06-custos.md`, `RISCOS.md`, ADR-0013 e 0017…0026 | **entregue em 14/09/2026** |
-| 4 — Skills e subagents | `.claude/skills/*`, `.claude/agents/*`, decisão subagents vs teams | não iniciada |
-| 5 — MVP em fatias verticais | `backend/`, `web/`, `adapters/concursos/`, `knowledge/`, `eval/` (13 fatias, spec §17) | não iniciada |
+| 4 — Skills e subagents | 7 skills do Motor em `.claude/skills/*` (testadas com Haiku, RED→GREEN→REFACTOR; evidências em `docs/evidencias/2026-09-17-fase4-skills/`), 5 subagents em `.claude/agents/*`, ADR-0027…0029 (piloto por PDF, piloto v0, subagents vs teams) | **entregue em 17/09/2026** |
+| 5 — MVP em fatias verticais | `backend/`, `web/`, `adapters/concursos/`, `knowledge/`, `eval/` — **ordem real e estado na tabela "Fatias" do PRD §6** (piloto v0 = V1–V5, ADR-0028) | não iniciada |
 | 6 — Landing, SEO e lançamento | `docs/05-playbook-seo.md`, `docs/07-playbook-lancamento.md` | não iniciada |
 | 7 — Handoff | `CLAUDE.md` definitivo, `docs/HANDOFF.md` | não iniciada |
 
@@ -43,7 +43,9 @@ docs/PENDENCIAS.md            # o que ficou para depois e por quê              
 docs/01-pesquisa-mercado.md   # concorrentes, bancas, fontes, SEO, mobile                 (fase 1)
 docs/02-produto.md            # PRD                                                       (fase 2)
 docs/03-arquitetura.md · 04-modelo-de-dados.md · 06-custos.md · RISCOS.md                (fase 3)
-.claude/skills/ · .claude/agents/                                                        (fase 4)
+.claude/skills/               # avaliador-de-feature + 7 skills do Motor (contratos de DNA, ingestão, fontes, pesquisa, aula, questão, calibração)  (fases 2 e 4)
+.claude/agents/               # pesquisador-de-topico · dev-agentes · dev-backend · dev-web · qa-eval (+ globais po-planejador/dev-executor/revisor)  (fase 4)
+docs/evidencias/              # entrevistas, mockups, P-11, testes das skills (fixtures reutilizáveis na Fase 5)
 backend/ · web/ · adapters/ · knowledge/ · data/ · eval/                                 (fase 5)
 mobile/                       # só se a fase 3 aprovar app
 docs/05-playbook-seo.md · 07-playbook-lancamento.md                                      (fase 6)
@@ -54,5 +56,5 @@ docs/HANDOFF.md                                                                 
 1. Abra o Claude Code **dentro desta pasta**, com a fábrica anexada:
    `cd ~/PycharmProjects/aprovaos && claude --add-dir ~/PycharmProjects/fabrica-saas`
 2. Leia, nesta ordem: `docs/HANDOFF.md` (quando existir) → `docs/PENDENCIAS.md` → `docs/00-visao.md` → `docs/DECISOES.md` → a fase em andamento no `PROMPT-aprovaos.md`. A spec inteira antes de qualquer fase que toque produto ou arquitetura.
-3. **Estado em 14/09/2026:** Fases 0 a 3 entregues. Houve uma rodada de mockups + entrevista com usuária-alvo (`docs/evidencias/2026-09-14-entrevista-linda.md`, `-aprendizados-mockups.md`, `mockups/`). Próximo passo: o dono decide no portão da Fase 1 (exame inicial; a recomendação é concursos Cebraspe+FGV, provisória até P-11); depois **P-11 com navegador** e abertura da **Fase 2** com as perguntas em lote (inclui P-05 skill-creator, P-09 sugestões da entrevista, P-14).
+3. **Estado em 17/09/2026:** Fases 0 a 4 entregues. Decisões da abertura da Fase 4: a usuária-piloto presta concursos **locais** (assessor de gabinete, Cascavel-PR, Direito) → piloto pelo **edital dela em PDF** com questões originais da base Cebraspe (ADR-0027); **piloto v0** primeiro (fatias V1–V5 do PRD §6: conta → subir edital → edital verticalizado → questões com origem → FSRS → fio da memória b), o resto entra enquanto ela usa, tudo rastreado na tabela do PRD §6 (ADR-0028); squad em subagents nativos, Agent Teams opt-in por sessão (ADR-0029, teste final = P-18). Próximo passo: **abrir a Fase 5 pela fatia V1** com as perguntas em lote (VPS/domínio, chave Gemini, e-mail de contato do coletor, nome do produto P-01) e o `po-planejador` gerando o plano da fatia.
 4. Nenhuma fase começa antes de o dono confirmar a anterior.

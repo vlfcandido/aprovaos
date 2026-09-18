@@ -17,6 +17,8 @@ dependencies = [
     "python-multipart",
     "argon2-cffi",
     "psycopg[binary]",
+    "pypdfium2>=5.13.0",
+    "google-adk>=2.9.1",
 ]
 
 [dependency-groups]
@@ -25,6 +27,7 @@ dev = [
     "ruff",
     "mypy",
     "httpx2>=2.13.0",
+    "reportlab>=5.0.1",
 ]
 
 [build-system]
@@ -52,11 +55,21 @@ strict = true
 files = ["aprovaos", "tests", "../scripts"]
 plugins = ["pydantic.mypy"]
 
+# reportlab e pypdfium2 não publicam `py.typed` nem stubs no pacote (plano V2, passo 1).
+[[tool.mypy.overrides]]
+module = ["reportlab.*", "pypdfium2.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 filterwarnings = [
     "error::ResourceWarning",
     # Aviso interno do Starlette 1.6 (alias do anyio); não é código nosso.
     "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+    # Aviso interno do google-adk 2.9.1 ao carregar suas próprias classes de agente (V2, passo 10).
+    "ignore:BaseAgentConfig is deprecated:DeprecationWarning",
 ]
-markers = ["postgres: exige DATABASE_URL_TEST apontando para um Postgres"]
+markers = [
+    "postgres: exige DATABASE_URL_TEST apontando para um Postgres",
+    "llm: exige GOOGLE_API_KEY (chama o Gemini de verdade)",
+]

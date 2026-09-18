@@ -1,5 +1,7 @@
 # O que é: testes do passo 2 da V1 — `Configuracoes` só lê ambiente quando instanciada.
 # Quando ler: ao adicionar campo de configuração ou mudar a fábrica `obter_configuracoes`.
+from decimal import Decimal
+
 import pydantic
 import pytest
 from pydantic import SecretStr
@@ -47,3 +49,19 @@ def test_chave_secreta_nao_vaza_em_repr() -> None:
     assert isinstance(cfg.chave_secreta, SecretStr)
     assert CHAVE not in repr(cfg)
     assert CHAVE not in str(cfg)
+
+
+def test_configuracoes_da_v2_tem_padroes() -> None:
+    cfg = Configuracoes(database_url="sqlite://", chave_secreta=SecretStr(CHAVE), _env_file=None)
+    assert cfg.uploads_dir is None
+    assert cfg.google_api_key is None
+    assert cfg.modelo_dna == "gemini-2.5-flash"
+    assert cfg.teto_diario_brl == Decimal("3.00")
+
+
+def test_google_api_key_e_secreta(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GOOGLE_API_KEY", "abc")
+    cfg = Configuracoes(database_url="sqlite://", chave_secreta=SecretStr(CHAVE), _env_file=None)
+    assert isinstance(cfg.google_api_key, SecretStr)
+    assert cfg.google_api_key.get_secret_value() == "abc"
+    assert "abc" not in repr(cfg)

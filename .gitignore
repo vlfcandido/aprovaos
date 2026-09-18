@@ -23,6 +23,7 @@ node_modules/
 data/raw/
 knowledge/raw/
 *.pdf
+!knowledge/fixtures/**/*.pdf
 
 # Recursos externos em avaliação
 externos/

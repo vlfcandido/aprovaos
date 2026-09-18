@@ -18,6 +18,7 @@
       <a class="marca" href="/">AprovaOS</a>
       <nav class="navegacao" aria-label="Principal">
         {% if usuario_email %}
+          <a href="/editais">Meus editais</a>
           <a href="/conta">Minha conta</a>
           <form method="post" action="/sair" class="navegacao__sair">
             <button class="botao-link" type="submit">Sair</button>

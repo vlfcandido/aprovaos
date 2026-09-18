@@ -2,6 +2,7 @@
 # memória, app, cliente HTTP e sessão de banco. Quando ler: antes de escrever teste de rota.
 import os
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -17,22 +18,29 @@ from aprovaos.main import criar_app
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Pula os testes marcados `postgres` quando `DATABASE_URL_TEST` não está definida."""
-    if os.environ.get("DATABASE_URL_TEST"):
-        return
-    pular = pytest.mark.skip(reason="defina DATABASE_URL_TEST")
-    for item in items:
-        if "postgres" in item.keywords:
-            item.add_marker(pular)
+    """Pula `postgres` sem `DATABASE_URL_TEST` e `llm` sem `GOOGLE_API_KEY`."""
+    marcadores = {
+        "postgres": ("DATABASE_URL_TEST", "defina DATABASE_URL_TEST"),
+        "llm": ("GOOGLE_API_KEY", "defina GOOGLE_API_KEY"),
+    }
+    for marcador, (variavel, motivo) in marcadores.items():
+        if os.environ.get(variavel):
+            continue
+        pular = pytest.mark.skip(reason=motivo)
+        for item in items:
+            if marcador in item.keywords:
+                item.add_marker(pular)
 
 
 @pytest.fixture
-def config_teste() -> Configuracoes:
+def config_teste(tmp_path: Path) -> Configuracoes:
+    # `google_api_key` fica None de propósito: testes de rota seguem o caminho por regras.
     return Configuracoes(
         database_url="sqlite://",
         chave_secreta=SecretStr("t" * 32),
         ambiente="teste",
         cookie_seguro=False,
+        uploads_dir=tmp_path / "uploads",
         _env_file=None,
     )
 

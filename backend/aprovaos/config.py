@@ -4,6 +4,7 @@ O que é: `Configuracoes` (pydantic-settings) e `obter_configuracoes()` com cach
 precisar de um valor de ambiente novo — acrescente o campo aqui e a chave em `.env.example`.
 """
 
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -25,6 +26,10 @@ class Configuracoes(BaseSettings):
         cookie_seguro: envia o cookie de sessão com `Secure` (desligar só em rede local http).
         sessao_dias: validade da sessão em dias.
         web_dir: pasta `web/` (templates e estáticos); `None` = resolvida pela app.
+        uploads_dir: pasta dos PDFs subidos; `None` = `data/uploads` na raiz, resolvida pela app.
+        google_api_key: chave do Gemini (AI Studio, ADR-0030); `None` = DNA só por regras.
+        modelo_dna: modelo Gemini do agente `analista-de-edital` (ADR-0018: Flash).
+        teto_diario_brl: gasto máximo com LLM por dia, em R$ (ADR-0018); vale desde a 1ª chamada.
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -35,6 +40,10 @@ class Configuracoes(BaseSettings):
     cookie_seguro: bool = True
     sessao_dias: int = 30
     web_dir: Path | None = None
+    uploads_dir: Path | None = None
+    google_api_key: SecretStr | None = None
+    modelo_dna: str = "gemini-2.5-flash"
+    teto_diario_brl: Decimal = Decimal("3.00")
 
 
 @lru_cache

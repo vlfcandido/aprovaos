@@ -1,7 +1,9 @@
-"""Exceções de domínio da conta (regras de negócio, independentes de HTTP e de banco).
+"""Exceções de domínio (regras de negócio, independentes de HTTP e de banco).
 
-O que é: `ErroDominio` e as subclasses `EmailJaCadastrado` e `CredenciaisInvalidas`. Quando ler:
-ao tratar falhas esperadas de cadastro/login numa rota ou ao criar uma regra de domínio nova.
+O que é: `ErroDominio` e as subclasses de conta (`EmailJaCadastrado`, `CredenciaisInvalidas`) e
+de edital (`ArquivoInvalido`, `PdfSemTexto`, `ConteudoProgramaticoNaoEncontrado`). Quando ler: ao
+tratar falhas esperadas numa rota ou ao criar regra de domínio nova; `str(erro)` é o texto pt-BR
+mostrado ao aluno.
 """
 
 
@@ -15,3 +17,27 @@ class EmailJaCadastrado(ErroDominio):
 
 class CredenciaisInvalidas(ErroDominio):
     """E-mail inexistente, senha errada ou conta excluída — sem distinguir qual (login)."""
+
+
+class ConteudoProgramaticoNaoEncontrado(ErroDominio):
+    """O texto do edital não tem o marcador "CONTEÚDO PROGRAMÁTICO" nem matéria com itens.
+
+    A mensagem padrão é a que a página de upload mostra à aluna (premissa N da V2).
+    """
+
+    MENSAGEM_PADRAO = (
+        "Não encontrei o conteúdo programático neste PDF. Confira se o edital traz o anexo "
+        "com as matérias e os itens numerados (1., 2., ...) e envie o arquivo completo."
+    )
+
+    def __init__(self, mensagem: str | None = None) -> None:
+        """Cria a exceção com a mensagem padrão em pt-BR, salvo se outra for dada."""
+        super().__init__(mensagem or self.MENSAGEM_PADRAO)
+
+
+class ArquivoInvalido(ErroDominio):
+    """O upload não é um PDF aceitável (tipo, tamanho ou bytes corrompidos); mensagem em pt-BR."""
+
+
+class PdfSemTexto(ErroDominio):
+    """O PDF abriu, mas não tem texto extraível (provável imagem digitalizada; OCR é ADR-0023)."""

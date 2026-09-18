@@ -1,0 +1,81 @@
+{# O que é: página do concurso (`GET /concurso/{id}`) — DNA reduzido (identificação, origem, pesos
+   por matéria em % de pontos, regra de correção, etapas, lacunas) e o edital verticalizado
+   (matérias → tópicos, todos "não visto", cobertura "0 de N"). Quando ler: ao mudar o que a aluna
+   vê do DNA ou ao ligar o status dos tópicos aos eventos de estudo (V3/V4). -#}
+{% extends "base.html" %}
+{% block titulo %}{{ concurso.cargo }} — {{ concurso.orgao }} — AprovaOS{% endblock %}
+{% block conteudo %}
+  <p class="migalha"><a href="/editais">Meus editais</a></p>
+  <h1>{{ concurso.cargo }}</h1>
+  <p class="frase">{{ concurso.orgao }}</p>
+
+  <dl class="ficha">
+    <div><dt>Banca</dt><dd>{% if concurso.banca == "desconhecido" %}não informada no edital{% else %}{{ concurso.banca }}{% endif %}</dd></div>
+    <div><dt>Edital</dt><dd>{% if concurso.edital == "desconhecido" %}número não informado{% else %}{{ concurso.edital }}{% endif %}</dd></div>
+    <div><dt>Data da prova</dt><dd>{% if concurso.data_prova %}{{ concurso.data_prova }}{% else %}data não informada no edital{% endif %}</dd></div>
+  </dl>
+
+  {% if origem.tipo == "ia" %}
+    <p class="selo selo--ia">Gerado por IA ({{ origem.modelo }})</p>
+  {% else %}
+    <p class="selo selo--regras">Gerado por regras{% if origem.motivo %} — {{ origem.motivo }}{% endif %}</p>
+  {% endif %}
+
+  <section aria-labelledby="titulo-dna">
+    <h2 id="titulo-dna">DNA reduzido</h2>
+    <p class="nota">Peso real é por pontos, não por número de questões. Fonte de cada linha: o edital.</p>
+    <table class="tabela-pesos">
+      <thead>
+        <tr><th scope="col">Matéria de prova</th><th scope="col">Peso</th><th scope="col">Questões</th></tr>
+      </thead>
+      <tbody>
+        {% for m in materias_prova %}
+          <tr style="--pct: {{ m.pct_barra }}">
+            <th scope="row">{{ m.nome }}<span class="barra" aria-hidden="true"></span></th>
+            <td>{{ m.pct_pontos | pct }}</td>
+            <td>{% if m.questoes == "desconhecido" %}desconhecido{% else %}{{ m.questoes }} × {{ m.peso_questao }} = {{ m.pontos }} pt{% endif %}
+              <small class="fonte">{{ m.fonte }}</small></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Regra de correção</h3>
+    <ul class="lista-limpa">
+      <li>Itens: {{ regra.tipo_item }}{% if regra.alternativas %} ({{ regra.alternativas }} alternativas){% endif %}.</li>
+      <li>Erros: {{ regra.anula }}.</li>
+      <li>Mínimos: {{ regra.minimo_global }}; por matéria, {{ regra.minimo_por_materia }}.</li>
+    </ul>
+    <p class="fonte">Fonte: {{ regra.fonte }}</p>
+
+    <h3>Etapas</h3>
+    <ul class="lista-limpa">
+      {% for e in etapas %}
+        <li>{{ e.nome | capitalize }}: {% if e.pontos == "desconhecido" %}pontos não informados{% else %}{{ e.pontos }} pontos{% endif %}{% if e.quem_faz %} — {{ e.quem_faz }}{% endif %} <small class="fonte">{{ e.fonte }}</small></li>
+      {% endfor %}
+    </ul>
+
+    <div class="mensagem mensagem--porque">
+      <h3>O que este DNA ainda não sabe</h3>
+      <ul>
+        {% for lacuna in lacunas %}<li>{{ lacuna }}</li>{% endfor %}
+      </ul>
+      {% if peso_uniforme %}<p>{{ texto_peso_uniforme }}</p>{% endif %}
+    </div>
+  </section>
+
+  <section aria-labelledby="titulo-vertical">
+    <h2 id="titulo-vertical">Edital verticalizado</h2>
+    <p class="cobertura">Cobertura: <strong>{{ topicos_vistos }} de {{ total_topicos }}</strong> tópicos vistos.</p>
+    {% for m in materias %}
+      <details open class="materia">
+        <summary><span class="materia__nome">{{ m.nome_exibicao }}</span> <small>{{ m.topicos | length }} tópicos</small></summary>
+        <ol class="topicos">
+          {% for t in m.topicos %}
+            <li data-slug="{{ t.slug }}"><span class="topico__texto">{{ t.texto_original }}</span> <span class="status status--nao-visto">{{ t.status }}</span></li>
+          {% endfor %}
+        </ol>
+      </details>
+    {% endfor %}
+  </section>
+{% endblock %}

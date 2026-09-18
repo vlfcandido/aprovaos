@@ -63,9 +63,11 @@ def test_nav_reflete_login(cliente: TestClient, db: Session) -> None:
     assert "Entrar" in corpo
     assert "Criar conta" in corpo
     assert "Minha conta" not in corpo
+    assert "Meus editais" not in corpo
     _entrar(cliente, db)
     corpo = cliente.get("/").text
     assert "Minha conta" in corpo
+    assert "Meus editais" in corpo
     assert "Criar conta" not in corpo
     assert "Sair" in corpo
 

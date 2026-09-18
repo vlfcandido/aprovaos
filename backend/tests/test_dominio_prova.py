@@ -2,6 +2,9 @@
 # (`dominio/prova.py`). Quando ler: ao mudar `segmentar_cebraspe` ou o fixture real da TJ_PA.
 from pathlib import Path
 
+import pytest
+
+from aprovaos.dominio.erros import SegmentacaoAmbigua
 from aprovaos.dominio.pdf import extrair_texto
 from aprovaos.dominio.prova import segmentar_cebraspe
 
@@ -28,6 +31,59 @@ def test_segmenta_caderno_real() -> None:
     assert len(itens) == N_ITENS_TJ_PA
     numeros = [item.numero_item for item in itens]
     assert numeros == list(range(51, 51 + N_ITENS_TJ_PA))
+
+
+# Os quatro itens do caderno real da TJ_PA cujo bloco tem uma narrativa de situação hipotética
+# sem marcador "Texto para..." entre o fim do próprio item e o comando seguinte (achado da
+# rodada de correção 1; ver `passo-6-report.md`). Cada entrada é
+# (numero_do_item, primeira_frase_da_narrativa_que_não_pode_grudar, itens_que_a_narrativa_apoia).
+_CASOS_DE_NARRATIVA_IMPLICITA = [
+    (
+        99,
+        "Em ação indenizatória ajuizada por Maria, vítima do compartilhamento não autorizado "
+        "de imagens íntimas suas em um aplicativo de mensagens",
+        [100, 101, 102, 103],
+    ),
+    (
+        106,
+        "João, de 19 anos de idade, e Pedro, de 17 anos de idade, assaltaram uma loja de "
+        "eletrônicos",
+        [107, 108, 109, 110, 111],
+    ),
+    (
+        111,
+        "Durante uma operação policial, Roberto, funcionário público, foi flagrado recebendo "
+        "R$ 5 mil de um empresário",
+        [112, 113, 114, 115, 116],
+    ),
+    (
+        116,
+        "Lucas invadiu a residência de sua ex-namorada, Sandra, durante a madrugada",
+        [117, 118, 119, 120],
+    ),
+]
+
+
+def test_narrativa_implicita_nao_gruda_no_enunciado_do_item_anterior() -> None:
+    """A narrativa de situação hipotética sem marcador não fica no `enunciado` de quem a antecede.
+
+    Achado da rodada de correção 1 (revisão do PDF real, página 4): sem marcador "Texto para...",
+    a narrativa que introduz os itens seguintes ficava colada ao enunciado do item anterior.
+    """
+    itens = {item.numero_item: item for item in segmentar_cebraspe(_texto_do_pdf(FIXTURE_PROVA))}
+    for numero, primeira_frase_da_narrativa, _itens_apoiados in _CASOS_DE_NARRATIVA_IMPLICITA:
+        assert primeira_frase_da_narrativa not in itens[numero].enunciado, numero
+
+
+def test_narrativa_implicita_vira_texto_apoio_dos_itens_seguintes() -> None:
+    """A narrativa não marcada vira `texto_apoio` dos itens que vêm depois do comando seguinte."""
+    itens = {item.numero_item: item for item in segmentar_cebraspe(_texto_do_pdf(FIXTURE_PROVA))}
+    for _numero, primeira_frase_da_narrativa, itens_apoiados in _CASOS_DE_NARRATIVA_IMPLICITA:
+        for apoiado in itens_apoiados:
+            item = itens[apoiado]
+            assert item.texto_apoio is not None, apoiado
+            assert item.texto_apoio.startswith(primeira_frase_da_narrativa), apoiado
+            assert item.texto_apoio_itens == itens_apoiados, apoiado
 
 
 def test_comando_vale_ate_o_proximo() -> None:
@@ -114,6 +170,34 @@ def test_segmentacao_bate_com_gabarito_nos_cadernos_de_conferencia() -> None:
         assert len(itens) == n_esperado, nome_relativo
         numeros = [item.numero_item for item in itens]
         assert numeros == list(range(numeros[0], numeros[0] + len(numeros))), nome_relativo
+
+
+def test_mais_de_duas_fronteiras_de_comando_no_bloco_do_item_levanta_erro() -> None:
+    """Um bloco com 3+ fronteiras candidatas é estrutura fora do padrão — não adivinha, para."""
+    texto = """\
+Comando inicial. Julgue os itens a seguir.
+1 Primeira sentença do item.
+Narrativa um que não é apoio marcado.
+Narrativa dois, ainda sem julgue, mas fecha frase.
+Comando novo. Julgue os itens seguintes.
+2 Segundo item.
+"""
+    with pytest.raises(SegmentacaoAmbigua):
+        segmentar_cebraspe(texto)
+
+
+def test_mais_de_uma_fronteira_no_bloco_de_texto_de_apoio_levanta_erro() -> None:
+    """O bloco entre o marcador "Texto para..." e o comando só tolera uma fronteira conhecida."""
+    texto = """\
+Texto para os itens 1 e 2
+Corpo do texto de apoio.
+Narrativa extra que também termina em ponto.
+Comando do texto de apoio. Julgue os itens a seguir.
+1 Primeiro item do intervalo.
+2 Segundo item do intervalo.
+"""
+    with pytest.raises(SegmentacaoAmbigua):
+        segmentar_cebraspe(texto)
 
 
 def test_ignora_cabecalho_e_rodape() -> None:

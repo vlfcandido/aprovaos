@@ -11,6 +11,8 @@ import re
 
 from pydantic import BaseModel
 
+from aprovaos.dominio.erros import SegmentacaoAmbigua
+
 # Maiúsculas latinas com acento (faixa Latin-1 À–Ý) — usadas para reconhecer o início de uma
 # frase nova (item ou comando), nunca a continuação de uma frase quebrada pelo PDF.
 _MAIUSCULA = "A-ZÀ-Ý"
@@ -112,26 +114,27 @@ def _juntar(linhas: list[str]) -> str:
     return texto
 
 
-def _fronteira_do_comando(linhas: list[str], minimo: int = 1) -> int | None:
-    """Acha onde, dentro de um bloco de linhas, começa um comando novo (se houver).
+def _fronteiras_candidatas(linhas: list[str], minimo: int = 1) -> list[int]:
+    """Acha, dentro de um bloco de linhas, todos os pontos onde uma frase nova com "julgue" começa.
 
-    Um comando novo começa numa linha que (a) é o início de uma frase — a linha anterior termina
-    em ponto final e esta começa com maiúscula — e (b) o texto dali até o fim do bloco contém o
-    verbo "julgue" (só o comando o usa; o enunciado de um item nunca usa). Entre todas as
-    posições que satisfazem isso, a função devolve a última (a mais próxima do fim do bloco) —
-    é o que mantém no item toda frase que lhe pertence, mesmo quando o item tem mais de uma
-    frase (ex.: um enunciado de situação hipotética), e isola só o comando de fato.
+    Uma fronteira candidata é uma linha que (a) é o início de uma frase — a linha anterior
+    termina em ponto final e esta começa com maiúscula — e (b) o texto dali até o fim do bloco
+    contém o verbo "julgue" (só um comando o usa; o enunciado de um item nunca usa). Um bloco
+    pode ter mais de uma: um item de situação hipotética pode ter uma sentença extra antes do
+    comando (candidata única) ou uma narrativa de apoio implícita, sem marcador "Texto para...",
+    entre o fim do item e o comando (duas candidatas — a primeira fecha o enunciado, a segunda
+    abre o comando). Quem decide o que fazer com cada quantidade é quem chama.
 
     Args:
         linhas: as linhas do bloco, na ordem.
-        minimo: primeiro índice a considerar como possível início de comando; `1` nos blocos de
-            item (o índice `0` é sempre conteúdo do item, nunca comando).
+        minimo: primeiro índice a considerar como possível fronteira; `1` nos blocos de item (o
+            índice `0` é sempre conteúdo do item, nunca comando).
 
     Returns:
-        O índice de `linhas` onde o comando começa, ou `None` se o bloco inteiro é conteúdo do
-        item (nenhum comando novo apareceu).
+        Os índices de `linhas` onde uma fronteira começa, na ordem em que aparecem no bloco;
+        lista vazia se o bloco inteiro é uma coisa só (nenhuma fronteira nova apareceu).
     """
-    fronteira: int | None = None
+    candidatas: list[int] = []
     for indice in range(minimo, len(linhas)):
         anterior = linhas[indice - 1]
         atual = linhas[indice]
@@ -140,8 +143,8 @@ def _fronteira_do_comando(linhas: list[str], minimo: int = 1) -> int | None:
             continue
         cauda = " ".join(linhas[indice:])
         if _JULGUE.search(cauda):
-            fronteira = indice
-    return fronteira
+            candidatas.append(indice)
+    return candidatas
 
 
 def _extrair_texto_apoio(
@@ -150,9 +153,10 @@ def _extrair_texto_apoio(
     """Remove os blocos "Texto para os itens X a Y" das linhas e devolve o texto de cada um.
 
     O bloco entre o marcador e o início do primeiro item do intervalo pode conter, no fim, um
-    comando (achado por `_fronteira_do_comando`) — esse comando não é texto de apoio; ele volta
+    comando (achado por `_fronteiras_candidatas`) — esse comando não é texto de apoio; ele volta
     para o fluxo de linhas normal, no lugar do bloco removido, para ser tratado como o comando
-    do item seguinte.
+    do item seguinte. O padrão conhecido aqui tem **no máximo uma** fronteira (corpo do texto de
+    apoio, opcionalmente seguido do comando); mais de uma é estrutura que a função não cobre.
 
     Args:
         linhas: linhas já sem cabeçalho/rodapé/marcador de seção.
@@ -160,6 +164,10 @@ def _extrair_texto_apoio(
     Returns:
         Uma tupla com as linhas sem o marcador nem o corpo do texto de apoio (mas com o comando,
         se houver, preservado no lugar) e um mapa `numero_item -> (texto_apoio, itens_do_bloco)`.
+
+    Raises:
+        SegmentacaoAmbigua: o bloco entre o marcador e o item tem mais de uma fronteira
+            candidata — não dá para saber sozinho onde o texto de apoio termina.
     """
     resultado: list[str] = []
     mapa: dict[int, tuple[str, list[int]]] = {}
@@ -176,9 +184,15 @@ def _extrair_texto_apoio(
         while fim_bloco < len(linhas) and _INICIO_DE_ITEM.match(linhas[fim_bloco]) is None:
             fim_bloco += 1
         bloco = linhas[indice + 1 : fim_bloco]
-        fronteira = _fronteira_do_comando(bloco, minimo=1) if len(bloco) > 1 else None
-        linhas_apoio = bloco if fronteira is None else bloco[:fronteira]
-        linhas_comando = [] if fronteira is None else bloco[fronteira:]
+        candidatas = _fronteiras_candidatas(bloco, minimo=1)
+        if len(candidatas) > 1:
+            raise SegmentacaoAmbigua(
+                f"Bloco de texto de apoio dos itens {inicio_intervalo} a {fim_intervalo} tem "
+                f"{len(candidatas)} fronteiras de comando candidatas (máximo tratado: 1) — "
+                "revisão manual necessária."
+            )
+        linhas_apoio = bloco if not candidatas else bloco[: candidatas[0]]
+        linhas_comando = [] if not candidatas else bloco[candidatas[0] :]
         texto_apoio = _juntar(linhas_apoio)
         itens_do_bloco = list(range(inicio_intervalo, fim_intervalo + 1))
         for numero in itens_do_bloco:
@@ -213,14 +227,32 @@ def _blocos_por_item(linhas: list[str]) -> list[tuple[int | None, list[str]]]:
     return blocos
 
 
+class _Segmento:
+    """Um comando vigente (com ou sem apoio implícito) e os itens que o usam (uso interno).
+
+    `itens` é preenchido conforme os itens são processados e continua mutável enquanto o
+    segmento está vigente; depois que um novo segmento é aberto, o anterior nunca é tocado de
+    novo — por isso é seguro montar o `ItemBruto` de cada item só no fim, lendo `itens` do seu
+    próprio segmento já completo.
+    """
+
+    def __init__(self, comando: str | None, texto_apoio: str | None) -> None:
+        self.comando = comando
+        self.texto_apoio = texto_apoio
+        self.itens: list[int] = []
+
+
 def segmentar_cebraspe(texto: str) -> list[ItemBruto]:
     """Segmenta o texto de um caderno Cebraspe certo/errado em itens, sem IA e sem rede.
 
     Implementa a linha "Cebraspe (C/E)" da tabela "Segmentação por banca" da skill
     `ingestao-de-provas`: cada item começa com o número no início da linha; o comando vigente é
     a última instrução de julgamento ("julgue os itens...") encontrada antes dele e vale até o
-    próximo comando aparecer; um bloco "Texto para os itens X a Y" vira `texto_apoio` de cada
-    item do intervalo.
+    próximo comando aparecer. O texto de apoio pode vir de duas formas, e as duas viram
+    `texto_apoio` dos itens do intervalo: um bloco marcado "Texto para os itens X a Y", ou uma
+    narrativa de situação hipotética sem marcador nenhum, encontrada entre o fim do enunciado de
+    um item e o comando que introduz os itens seguintes (duas fronteiras no mesmo bloco: a
+    primeira fecha o enunciado de quem a antecede, a segunda abre o comando novo).
 
     Args:
         texto: texto do caderno, já extraído do PDF (`dominio.pdf.extrair_texto`).
@@ -228,32 +260,62 @@ def segmentar_cebraspe(texto: str) -> list[ItemBruto]:
     Returns:
         Os itens na ordem do caderno, com `numero_item` estritamente crescente e sem buracos
         quando o caderno em si não tiver buracos de numeração.
+
+    Raises:
+        SegmentacaoAmbigua: um bloco (de item ou de texto de apoio explícito) tem mais
+            fronteiras de comando candidatas do que o padrão conhecido cobre.
     """
     linhas = _linhas_relevantes(texto)
-    linhas, mapa_apoio = _extrair_texto_apoio(linhas)
-    itens: list[ItemBruto] = []
-    comando_atual: str | None = None
+    linhas, mapa_apoio_explicito = _extrair_texto_apoio(linhas)
+
+    segmento_atual = _Segmento(comando=None, texto_apoio=None)
+    pendentes: list[tuple[int, str, _Segmento]] = []  # (numero, enunciado, segmento_do_item)
+
     for numero, linhas_do_bloco in _blocos_por_item(linhas):
         if numero is None:
             texto_preambulo = _juntar(linhas_do_bloco)
             if texto_preambulo and _JULGUE.search(texto_preambulo):
-                comando_atual = texto_preambulo
+                segmento_atual.comando = texto_preambulo
             continue
-        fronteira = _fronteira_do_comando(linhas_do_bloco, minimo=1)
-        linhas_enunciado = linhas_do_bloco if fronteira is None else linhas_do_bloco[:fronteira]
-        linhas_comando_novo = [] if fronteira is None else linhas_do_bloco[fronteira:]
+
+        candidatas = _fronteiras_candidatas(linhas_do_bloco, minimo=1)
+        if len(candidatas) > 2:
+            raise SegmentacaoAmbigua(
+                f"Bloco do item {numero} tem {len(candidatas)} fronteiras de comando "
+                "candidatas (máximo tratado: 2 — enunciado + narrativa de apoio implícita) — "
+                "revisão manual necessária."
+            )
+
+        fim_do_enunciado = candidatas[0] if candidatas else len(linhas_do_bloco)
+        linhas_enunciado = linhas_do_bloco[:fim_do_enunciado]
         primeira_linha = _INICIO_DE_ITEM.sub("", linhas_enunciado[0], count=1)
         enunciado = _juntar([primeira_linha, *linhas_enunciado[1:]])
-        texto_apoio, itens_do_apoio = mapa_apoio.get(numero, (None, []))
+        pendentes.append((numero, enunciado, segmento_atual))
+        segmento_atual.itens.append(numero)
+
+        if len(candidatas) == 1:
+            comando_novo = _juntar(linhas_do_bloco[candidatas[0] :])
+            segmento_atual = _Segmento(comando=comando_novo, texto_apoio=None)
+        elif len(candidatas) == 2:
+            apoio_implicito = _juntar(linhas_do_bloco[candidatas[0] : candidatas[1]])
+            comando_novo = _juntar(linhas_do_bloco[candidatas[1] :])
+            segmento_atual = _Segmento(comando=comando_novo, texto_apoio=apoio_implicito)
+
+    itens: list[ItemBruto] = []
+    for numero, enunciado, segmento in pendentes:
+        if numero in mapa_apoio_explicito:
+            texto_apoio, itens_do_apoio = mapa_apoio_explicito[numero]
+        elif segmento.texto_apoio is not None:
+            texto_apoio, itens_do_apoio = segmento.texto_apoio, list(segmento.itens)
+        else:
+            texto_apoio, itens_do_apoio = None, []
         itens.append(
             ItemBruto(
                 numero_item=numero,
-                comando=comando_atual,
+                comando=segmento.comando,
                 texto_apoio=texto_apoio,
                 texto_apoio_itens=itens_do_apoio,
                 enunciado=enunciado,
             )
         )
-        if linhas_comando_novo:
-            comando_atual = _juntar(linhas_comando_novo)
     return itens

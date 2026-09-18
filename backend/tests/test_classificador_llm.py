@@ -64,22 +64,25 @@ async def test_classifica_lote_real(config_com_chave: Configuracoes) -> None:
     chamadas: list[ChamadaLlm] = []
     classificador = criar_classificador_adk(config_com_chave, chamadas.append)
 
-    classificacoes = await classificador.classificar_lote(itens, vocabulario)
+    classificacoes, motivos_rejeicao = await classificador.classificar_lote(itens, vocabulario)
 
-    # O que o piloto precisa saber: tokens, custo e se algum slug veio fora do vocabulário
-    # (não deveria — `interpretar_resposta` já teria rejeitado antes de chegar aqui).
+    # O que o piloto precisa saber: tokens, custo, e se alguma entrada foi rejeitada (slug fora
+    # do vocabulário ou fora do contrato) — `interpretar_resposta` já teria isolado essa entrada
+    # sem derrubar as outras.
     print(f"\nchamada: {chamadas[0].model_dump()}")
     for classificacao in classificacoes:
         print(
             f"item {classificacao.numero_item}: {classificacao.topico_slug} "
             f"({classificacao.confianca}) — {classificacao.evidencia}"
         )
+    for numero_item, motivo in motivos_rejeicao.items():
+        print(f"item {numero_item}: rejeitado — {motivo}")
     assert len(chamadas) == 1
     assert chamadas[0].resultado == "ok"
     assert chamadas[0].modelo == config_com_chave.modelo_classificacao
     assert chamadas[0].tokens_in is not None and chamadas[0].tokens_in > 0
     assert chamadas[0].custo_brl is not None and chamadas[0].custo_brl > 0
-    assert len(classificacoes) == len(itens)
+    assert len(classificacoes) + len(motivos_rejeicao) == len(itens)
     assert all(
         classificacao.topico_slug is None or classificacao.topico_slug in slugs_validos
         for classificacao in classificacoes

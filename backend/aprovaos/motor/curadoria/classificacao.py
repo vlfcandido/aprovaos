@@ -11,11 +11,12 @@ pipeline de curadoria, ao ajustar o léxico para um edital real que ele não cob
 investigar por que um item saiu "por regras" (`Classificacao.motivo_fallback`).
 """
 
+import json
 import re
 import unicodedata
 from typing import Literal, Protocol, runtime_checkable
 
-from pydantic import BaseModel, TypeAdapter, ValidationError
+from pydantic import BaseModel, ValidationError
 
 Confianca = Literal["alta", "media", "baixa"]
 
@@ -26,15 +27,27 @@ SEM_CORRESPONDENCIA = "sem correspondência no vocabulário"
 #: Motivo de fallback quando a IA classificou o lote mas não devolveu entrada para um item.
 ITEM_AUSENTE = "item ausente na resposta do modelo"
 
+#: Confiança do léxico por regras quando o único casamento achado foi uma palavra isolada do
+#: `texto_original` de um tópico (Ruling 21, rodada 1 de correção do passo 8): uma palavra só é
+#: comum demais no vocabulário jurídico para decidir sozinha — vira `"baixa"`, sem `topico_slug`,
+#: em vez de `"media"`.
+_TERMO_ISOLADO_NAO_BASTA = (
+    'termo isolado "{termo}" (tópico {slug}) não basta para classificar — é preciso frase de '
+    "2 ou mais palavras"
+)
+
 _CERCA_DE_CODIGO = re.compile(r"\A```[a-zA-Z]*\s*\n?(.*?)\n?```\Z", re.DOTALL)
 
 
 class ClassificacaoInvalida(ValueError):
-    """A resposta da IA não tem a forma esperada ou cita um `topico_slug` fora do vocabulário.
+    """A resposta da IA não é aproveitável: não é JSON, ou não é uma lista.
 
-    Levantada por `interpretar_resposta`; nunca escapa até o aluno — `classificar` a converte em
-    fallback por regras para o lote (mesmo espírito de `gerar_dna`: uma resposta que descumpre o
-    contrato vale tanto quanto uma chamada que falhou).
+    Levantada por `interpretar_resposta` só quando **nenhuma** entrada é recuperável — corpo
+    malformado ou fora do formato esperado. Uma entrada individual com `topico_slug` fora do
+    vocabulário, ou com campo faltando, **não** levanta esta exceção: ela é só rejeitada (ver o
+    segundo item da tupla que `interpretar_resposta` devolve), sem derrubar as outras entradas
+    boas da mesma resposta. Nunca escapa até o aluno — `classificar` cai para regras no que não
+    deu (mesmo espírito de `gerar_dna`: uma chamada que falhou vale regras para o lote inteiro).
     """
 
 
@@ -104,6 +117,11 @@ class ResultadoClassificacao(BaseModel):
     classificacoes: list[Classificacao]
 
 
+#: Motivo por `numero_item`: por que uma entrada da resposta foi rejeitada (slug fora do
+#: vocabulário, campo faltando/tipo errado) e não virou uma `Classificacao` de origem IA.
+MotivosRejeicao = dict[int, str]
+
+
 @runtime_checkable
 class ClassificadorDeTopico(Protocol):
     """Porta do classificador.
@@ -113,7 +131,7 @@ class ClassificadorDeTopico(Protocol):
 
     async def classificar_lote(
         self, itens: list[ItemParaClassificar], vocabulario: list[TopicoVocabulario]
-    ) -> list[Classificacao]:
+    ) -> tuple[list[Classificacao], MotivosRejeicao]:
         """Classifica todo o lote de uma vez.
 
         Args:
@@ -121,8 +139,11 @@ class ClassificadorDeTopico(Protocol):
             vocabulario: os tópicos do conteúdo programático do edital.
 
         Returns:
-            Uma `Classificacao` por item que a implementação conseguiu decidir; um item ausente
-            na lista devolvida é tratado por quem chama como "sem resposta para ele".
+            `(classificacoes, motivos_rejeicao)`: uma `Classificacao` por item que a
+            implementação conseguiu decidir com confiança na própria resposta, e o motivo de
+            cada item que ela tentou decidir mas rejeitou (ex.: slug fora do vocabulário). Um
+            item que não aparece em nenhum dos dois é tratado por quem chama como "sem resposta
+            para ele" (`ITEM_AUSENTE`).
         """
         ...
 
@@ -156,8 +177,16 @@ class _EntradaBruta(BaseModel):
     evidencia: str
 
 
-def interpretar_resposta(texto: str, slugs_validos: set[str]) -> list[Classificacao]:
-    """Converte a resposta do lote (JSON) em `Classificacao`, uma por entrada devolvida.
+def interpretar_resposta(
+    texto: str, slugs_validos: set[str]
+) -> tuple[list[Classificacao], MotivosRejeicao]:
+    """Converte a resposta do lote (JSON) em `Classificacao`, entrada a entrada.
+
+    Cada entrada da lista é validada por si: uma entrada com a forma certa e `topico_slug` do
+    vocabulário vira `Classificacao` (`origem="ia"`); uma entrada com `topico_slug` fora do
+    vocabulário, ou com campo faltando/tipo errado, é **rejeitada** — não vira `Classificacao`,
+    mas também não derruba as outras entradas da mesma resposta (correção do passo 8, rodada 1:
+    "aquele item cai para regras", não o lote inteiro).
 
     Args:
         texto: resposta bruta do modelo (JSON, possivelmente entre cerca de código).
@@ -165,27 +194,42 @@ def interpretar_resposta(texto: str, slugs_validos: set[str]) -> list[Classifica
             disso é aceito.
 
     Returns:
-        Uma `Classificacao` (`origem="ia"`) por entrada da resposta, na ordem em que vieram.
-        Pode ter menos itens do que o lote pedido — quem chama (`classificar`) decide o que
-        fazer com os que faltaram.
+        `(classificacoes, motivos_rejeicao)`: as `Classificacao` válidas (`origem="ia"`), na
+        ordem em que vieram, e um mapa `numero_item -> motivo` para as entradas rejeitadas que
+        ao menos traziam um `numero_item` legível. Pode ter menos entradas do que o lote pedido
+        (nem toda entrada rejeitada tem `numero_item` reconhecível) — quem chama (`classificar`)
+        decide o que fazer com o que faltou.
 
     Raises:
-        ClassificacaoInvalida: o JSON não tem a forma esperada, ou alguma entrada cita um
-            `topico_slug` que não está em `slugs_validos` (o modelo inventou um tópico).
+        ClassificacaoInvalida: a resposta inteira não é aproveitável — não é JSON, ou não é uma
+            lista (nenhuma entrada individual para tentar validar).
     """
     limpo = texto.strip()
     cercado = _CERCA_DE_CODIGO.match(limpo)
     if cercado is not None:
         limpo = cercado.group(1).strip()
     try:
-        entradas = TypeAdapter(list[_EntradaBruta]).validate_json(limpo)
-    except ValidationError as erro:
-        raise ClassificacaoInvalida(f"resposta fora do contrato: {erro}") from erro
-    resultado: list[Classificacao] = []
-    for entrada in entradas:
+        bruto = json.loads(limpo)
+    except json.JSONDecodeError as erro:
+        raise ClassificacaoInvalida(f"resposta não é JSON: {erro}") from erro
+    if not isinstance(bruto, list):
+        raise ClassificacaoInvalida("resposta não é uma lista JSON de entradas")
+
+    classificacoes: list[Classificacao] = []
+    motivos_rejeicao: MotivosRejeicao = {}
+    for entrada_bruta in bruto:
+        numero_item = entrada_bruta.get("numero_item") if isinstance(entrada_bruta, dict) else None
+        try:
+            entrada = _EntradaBruta.model_validate(entrada_bruta)
+        except ValidationError as erro:
+            if isinstance(numero_item, int):
+                motivos_rejeicao[numero_item] = f"resposta fora do contrato: {erro}"
+            continue
         if entrada.topico_slug is not None and entrada.topico_slug not in slugs_validos:
-            raise ClassificacaoInvalida(f"slug fora do vocabulário: {entrada.topico_slug}")
-        resultado.append(
+            motivo = f"slug fora do vocabulário: {entrada.topico_slug}"
+            motivos_rejeicao[entrada.numero_item] = motivo
+            continue
+        classificacoes.append(
             Classificacao(
                 numero_item=entrada.numero_item,
                 topico_slug=entrada.topico_slug,
@@ -194,7 +238,7 @@ def interpretar_resposta(texto: str, slugs_validos: set[str]) -> list[Classifica
                 origem="ia",
             )
         )
-    return resultado
+    return classificacoes, motivos_rejeicao
 
 
 # --- Léxico por regras -------------------------------------------------------------------
@@ -259,20 +303,32 @@ def _leis_no_texto(texto: str) -> set[str]:
     return {f"{numero}/{ano}" for numero, ano in _LEI_REGEX.findall(texto)}
 
 
-def _frases_do_topico(texto_original: str) -> list[str]:
-    """As frases do léxico de um tópico: o núcleo do `texto_original`, partido em candidatos.
+def _termos_do_topico(texto_original: str) -> tuple[list[str], list[str]]:
+    """Os termos do léxico de um tópico: o núcleo do `texto_original`, partido em candidatos.
 
     O núcleo é o texto sem o número do item, sem parênteses (citações de artigo) e só até o
     primeiro `:`/`—` (o que vem depois costuma ser a lista de subitens, não o nome do tópico).
-    Cada candidato (separado por vírgula ou por " e ") vira uma frase do léxico, normalizada,
-    desde que tenha pelo menos uma palavra fora da lista de conectivos — palavra isolada só
-    entra se tiver 6 letras ou mais (evita termo genérico demais, tipo "poder").
+    Cada candidato (separado por vírgula ou por " e ") vira um termo do léxico, normalizado,
+    desde que tenha pelo menos uma palavra fora da lista de conectivos.
+
+    Um candidato com 2 ou mais palavras significativas é uma **frase de média confiança**.
+    Um candidato reduzido a 1 palavra só entra se tiver 6 letras ou mais, e vira um **termo
+    isolado**: sozinho, uma palavra é comum demais no vocabulário jurídico para decidir um
+    tópico (Ruling 21) — por isso fica separado das frases, não soma confiança "media".
+
+    Os termos de `_ENRIQUECIMENTO_POR_MARCADOR` são a única exceção: mesmo sendo uma palavra
+    só, são curados a dedo (o texto do próprio artigo citado) e entram como frase de média
+    confiança, não como termo isolado.
+
+    Returns:
+        `(frases_media, termos_isolados)`.
     """
     sem_numero = _PREFIXO_NUMERO.sub("", texto_original).strip()
     marcadores = [m for m in _ENRIQUECIMENTO_POR_MARCADOR if m in sem_numero.lower()]
     sem_parenteses = _PARENTESES.sub("", sem_numero)
     nucleo = _SEPARADOR_DE_NUCLEO.split(sem_parenteses, maxsplit=1)[0]
-    frases: list[str] = []
+    frases_media: list[str] = []
+    termos_isolados: list[str] = []
     for candidato in _SEPARADOR_DE_CANDIDATO.split(nucleo):
         normalizado = _normalizar(candidato).strip(" .")
         if not normalizado:
@@ -281,12 +337,14 @@ def _frases_do_topico(texto_original: str) -> list[str]:
         significativas = [p for p in palavras if p not in _STOPWORDS]
         if not significativas:
             continue
-        if len(significativas) == 1 and len(significativas[0]) < 6:
+        if len(significativas) == 1:
+            if len(significativas[0]) >= 6:
+                termos_isolados.append(normalizado)
             continue
-        frases.append(normalizado)
+        frases_media.append(normalizado)
     for marcador in marcadores:
-        frases.extend(_ENRIQUECIMENTO_POR_MARCADOR[marcador])
-    return frases
+        frases_media.extend(_ENRIQUECIMENTO_POR_MARCADOR[marcador])
+    return frases_media, termos_isolados
 
 
 def _leis_do_topico(texto_original: str) -> list[str]:
@@ -295,24 +353,52 @@ def _leis_do_topico(texto_original: str) -> list[str]:
 
 
 class _Lexico:
-    """Termos e leis por tópico, prontos para casar contra o texto de um item (uso interno)."""
+    """Frases, termos isolados e leis por tópico (uso interno).
+
+    Prontos para casar contra o texto normalizado de um item.
+    """
 
     def __init__(
-        self, termos: list[tuple[str, list[str]]], leis: list[tuple[str, list[str]]]
+        self,
+        frases_media: list[tuple[str, list[str]]],
+        termos_isolados: list[tuple[str, list[str]]],
+        leis: list[tuple[str, list[str]]],
     ) -> None:
-        self.termos = termos
+        self.frases_media = frases_media
+        self.termos_isolados = termos_isolados
         self.leis = leis
 
 
 def _construir_lexico(vocabulario: list[TopicoVocabulario]) -> _Lexico:
-    """Monta o léxico (termos e leis) de cada tópico do vocabulário recebido."""
-    termos = [(t.slug, _frases_do_topico(t.texto_original)) for t in vocabulario]
+    """Monta o léxico (frases, termos isolados e leis) de cada tópico do vocabulário recebido."""
+    frases_media: list[tuple[str, list[str]]] = []
+    termos_isolados: list[tuple[str, list[str]]] = []
+    for topico in vocabulario:
+        frases, isolados = _termos_do_topico(topico.texto_original)
+        frases_media.append((topico.slug, frases))
+        termos_isolados.append((topico.slug, isolados))
     leis = [(t.slug, _leis_do_topico(t.texto_original)) for t in vocabulario]
-    return _Lexico(termos=termos, leis=leis)
+    return _Lexico(frases_media=frases_media, termos_isolados=termos_isolados, leis=leis)
+
+
+def _melhor_casamento(
+    normalizado: str, termos_por_topico: list[tuple[str, list[str]]]
+) -> tuple[str, str] | None:
+    """O `(slug, termo)` mais longo entre os que aparecem em `normalizado`, ou `None`."""
+    melhor: tuple[str, str] | None = None
+    for slug, termos in termos_por_topico:
+        for termo in termos:
+            if termo and termo in normalizado and (melhor is None or len(termo) > len(melhor[1])):
+                melhor = (slug, termo)
+    return melhor
 
 
 def _classificar_um(item: ItemParaClassificar, lexico: _Lexico) -> Classificacao:
-    """Classifica um item pelo léxico: lei citada (alta) > termo mais específico (media) > nada."""
+    """Classifica um item pelo léxico.
+
+    Ordem: lei citada (alta) > frase de 2+ palavras mais específica (media) > termo isolado, que
+    não basta sozinho (baixa, sem tópico) > nada (baixa, sem correspondência).
+    """
     texto = f"{item.comando or ''} {item.enunciado}"
     normalizado = _normalizar(texto)
     citadas = _leis_no_texto(texto)
@@ -326,19 +412,24 @@ def _classificar_um(item: ItemParaClassificar, lexico: _Lexico) -> Classificacao
                 evidencia=f"cita a Lei nº {achada}, do tópico",
                 origem="regras",
             )
-    melhor: tuple[str, str] | None = None
-    for slug, frases in lexico.termos:
-        for frase in frases:
-            if frase and frase in normalizado:
-                if melhor is None or len(frase) > len(melhor[1]):
-                    melhor = (slug, frase)
-    if melhor is not None:
-        slug_melhor, frase_melhor = melhor
+    melhor_frase = _melhor_casamento(normalizado, lexico.frases_media)
+    if melhor_frase is not None:
+        slug_melhor, frase_melhor = melhor_frase
         return Classificacao(
             numero_item=item.numero_item,
             topico_slug=slug_melhor,
             confianca="media",
             evidencia=f'contém o termo "{frase_melhor}" do tópico',
+            origem="regras",
+        )
+    melhor_isolado = _melhor_casamento(normalizado, lexico.termos_isolados)
+    if melhor_isolado is not None:
+        slug_isolado, termo_isolado = melhor_isolado
+        return Classificacao(
+            numero_item=item.numero_item,
+            topico_slug=None,
+            confianca="baixa",
+            evidencia=_TERMO_ISOLADO_NAO_BASTA.format(termo=termo_isolado, slug=slug_isolado),
             origem="regras",
         )
     return Classificacao(
@@ -372,9 +463,13 @@ class ClassificadorPorRegras:
 
     async def classificar_lote(
         self, itens: list[ItemParaClassificar], vocabulario: list[TopicoVocabulario]
-    ) -> list[Classificacao]:
-        """Classifica o lote inteiro só com o léxico (ver `classificar_por_regras`)."""
-        return classificar_por_regras(itens, vocabulario)
+    ) -> tuple[list[Classificacao], MotivosRejeicao]:
+        """Classifica o lote inteiro só com o léxico (ver `classificar_por_regras`).
+
+        Nunca rejeita nada — o léxico sempre decide algo (mesmo que `"baixa"`/sem
+        correspondência) — então `motivos_rejeicao` vem sempre vazio.
+        """
+        return classificar_por_regras(itens, vocabulario), {}
 
 
 # --- Orquestração (IA em lote, com fallback por regras) -----------------------------------
@@ -391,39 +486,28 @@ def _por_regras_com_motivo(
     return ResultadoClassificacao(classificacoes=classificacoes)
 
 
-async def classificar(
+async def _classificar_um_lote(
     itens: list[ItemParaClassificar],
     vocabulario: list[TopicoVocabulario],
-    classificador_ia: ClassificadorDeTopico | None,
-    motivo_sem_ia: str | None,
-) -> ResultadoClassificacao:
-    """Classifica um lote pela IA quando há uma; cai para regras onde ela não decidiu.
+    classificador_ia: ClassificadorDeTopico,
+) -> list[Classificacao]:
+    """Classifica um único lote (já do tamanho de `config.lote_classificacao`) pela IA.
 
-    Mesmo desenho de `agentes.analista_de_edital.gerar_dna`: nunca levanta por falha do
-    provedor — uma chamada que falhou vira regras para o lote inteiro; uma resposta que veio mas
-    não cobriu um item (ausente ou com `topico_slug` inventado, que `interpretar_resposta` já
-    rejeitou) vira regras só para aquele item, preservando os que a IA decidiu certo.
-
-    Args:
-        itens: os itens do lote.
-        vocabulario: os tópicos do conteúdo programático do edital.
-        classificador_ia: implementação da porta com modelo, ou `None` (sem chave / teto
-            atingido).
-        motivo_sem_ia: motivo registrado quando `classificador_ia` é `None`.
-
-    Returns:
-        `ResultadoClassificacao` com uma `Classificacao` por item; nunca levanta por falha do
-        modelo.
+    Cada item que a IA não decidiu com sucesso (chamada inteira que falhou, entrada rejeitada
+    por `interpretar_resposta`, ou item que ela simplesmente não devolveu) cai para regras —
+    nunca o lote inteiro por causa de um item só, exceto quando a chamada em si falhou (aí não
+    há nenhuma resposta aproveitável de jeito nenhum).
     """
-    if classificador_ia is None:
-        return _por_regras_com_motivo(itens, vocabulario, motivo_sem_ia)
     try:
-        recebidas = await classificador_ia.classificar_lote(itens, vocabulario)
+        recebidas, motivos_rejeicao = await classificador_ia.classificar_lote(itens, vocabulario)
     except Exception as erro:  # noqa: BLE001 — deliberado: qualquer falha do provedor (rede,
-        # cota, resposta fora do esquema) degrada para regras — arquitetura §8, "nunca bloquear".
+        # cota, resposta que nem é JSON) degrada para regras — arquitetura §8, "nunca bloquear".
         # Só o tipo vai para o motivo, para não vazar detalhe do provedor.
         motivo = f"erro na IA: {type(erro).__name__}"
-        return _por_regras_com_motivo(itens, vocabulario, motivo)
+        return [
+            c.model_copy(update={"motivo_fallback": motivo})
+            for c in classificar_por_regras(itens, vocabulario)
+        ]
 
     por_numero = {c.numero_item: c for c in recebidas}
     regras_fallback: dict[int, Classificacao] | None = None
@@ -435,7 +519,49 @@ async def classificar(
             continue
         if regras_fallback is None:
             regras_fallback = {c.numero_item: c for c in classificar_por_regras(itens, vocabulario)}
+        motivo = motivos_rejeicao.get(item.numero_item, ITEM_AUSENTE)
         resultado.append(
-            regras_fallback[item.numero_item].model_copy(update={"motivo_fallback": ITEM_AUSENTE})
+            regras_fallback[item.numero_item].model_copy(update={"motivo_fallback": motivo})
         )
+    return resultado
+
+
+async def classificar(
+    itens: list[ItemParaClassificar],
+    vocabulario: list[TopicoVocabulario],
+    classificador_ia: ClassificadorDeTopico | None,
+    motivo_sem_ia: str | None,
+    tamanho_lote: int,
+) -> ResultadoClassificacao:
+    """Classifica todos os itens em lotes de `tamanho_lote`, pela IA quando há uma.
+
+    Fatia `itens` com `montar_lotes` e chama `classificador_ia` uma vez por lote — é assim que
+    o teto diário de custo se mantém (um caderno de 70 itens com lote de 20 faz 4 chamadas, não
+    70). Mesmo desenho de `agentes.analista_de_edital.gerar_dna`: nunca levanta por falha do
+    provedor.
+
+    Args:
+        itens: todos os itens a classificar (ex.: os itens de um caderno inteiro).
+        vocabulario: os tópicos do conteúdo programático do edital.
+        classificador_ia: implementação da porta com modelo, ou `None` (sem chave / teto
+            atingido).
+        motivo_sem_ia: motivo registrado quando `classificador_ia` é `None`.
+        tamanho_lote: quantos itens vão em cada chamada à IA (`config.lote_classificacao`);
+            ignorado quando `classificador_ia` é `None` (regras não precisa de lote).
+
+    Returns:
+        `ResultadoClassificacao` com uma `Classificacao` por item, na ordem de `itens`; nunca
+        levanta por falha do modelo.
+    """
+    if not itens:
+        return ResultadoClassificacao(classificacoes=[])
+    if classificador_ia is None:
+        return _por_regras_com_motivo(itens, vocabulario, motivo_sem_ia)
+
+    resultado: list[Classificacao] = []
+    inicio = 0
+    for tamanho in montar_lotes(len(itens), tamanho_lote):
+        lote = itens[inicio : inicio + tamanho]
+        resultado.extend(await _classificar_um_lote(lote, vocabulario, classificador_ia))
+        inicio += tamanho
     return ResultadoClassificacao(classificacoes=resultado)

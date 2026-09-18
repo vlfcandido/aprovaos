@@ -26,6 +26,7 @@ from aprovaos.motor.curadoria.classificacao import (
     Classificacao,
     ClassificadorDeTopico,
     ItemParaClassificar,
+    MotivosRejeicao,
     TopicoVocabulario,
     interpretar_resposta,
 )
@@ -119,12 +120,14 @@ class ClassificadorAdk:
 
     async def classificar_lote(
         self, itens: list[ItemParaClassificar], vocabulario: list[TopicoVocabulario]
-    ) -> list[Classificacao]:
+    ) -> tuple[list[Classificacao], MotivosRejeicao]:
         """Roda o agente uma vez sobre o lote e devolve as classificações interpretadas.
 
         Raises:
             RespostaDoModeloAusente: sem resposta final com texto.
-            ClassificacaoInvalida: resposta fora do contrato ou com slug fora do vocabulário.
+            ClassificacaoInvalida: a resposta inteira não é aproveitável (não é JSON, ou não é
+                uma lista) — uma entrada individual ruim não levanta, vem em
+                `motivos_rejeicao`.
             Exception: qualquer falha do ADK/provedor, relançada após o registro.
         """
         slugs_validos = {topico.slug for topico in vocabulario}

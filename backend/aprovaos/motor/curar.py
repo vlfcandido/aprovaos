@@ -76,6 +76,18 @@ class DocumentoNaoEncontrado(RuntimeError):
     """
 
 
+class ParDivergente(RuntimeError):
+    """A prova e o gabarito dados não são do mesmo evento/cargo (achado da revisão do passo 12).
+
+    `curar_documento` recebe os dois ids já resolvidos e nunca adivinha o par — mas até este
+    conserto também nunca *conferia* que os dois eram, de fato, o mesmo par: uma chamada fora de
+    `main()` com um par trocado gerava uma `Origem` só com os dados da prova e lia o gabarito de
+    outro caderno como se fosse dela, silenciosamente (nenhuma exceção, nenhum teste pegava
+    isso). Esta é a asserção redundante que fecha esse buraco — barata de checar, porque os dois
+    valores (`evento`, `cargo`) já são exatamente o que `_origem_base` deriva de qualquer forma.
+    """
+
+
 class RelatorioCuradoria(BaseModel):
     """O que `curar_documento` devolve — o que entra no diário da fatia (`V3-execucao.md`).
 
@@ -237,6 +249,30 @@ def _escolher_classificador(
     return criar_classificador_adk(config, registrar), None
 
 
+def _conferir_par(documento_prova: Documento, documento_gabarito: Documento) -> None:
+    """Confere que os dois documentos são do mesmo evento/cargo (achado da revisão do passo 12).
+
+    Usa os mesmos dois campos que `_origem_base` já deriva de `documento_prova` — nenhum campo
+    novo, nenhuma consulta nova; só compara o que a prova diz com o que o gabarito diz.
+
+    Args:
+        documento_prova: o `Documento` de tipo `"prova"`.
+        documento_gabarito: o `Documento` de tipo `"gabarito"`.
+
+    Raises:
+        ParDivergente: `evento` ou `cargo` divergem entre os dois.
+    """
+    evento_prova = documento_prova.metadados.get("evento")
+    evento_gabarito = documento_gabarito.metadados.get("evento")
+    cargo_prova = _cargo_da_descricao(documento_prova.metadados.get("descricao", ""))
+    cargo_gabarito = _cargo_da_descricao(documento_gabarito.metadados.get("descricao", ""))
+    if evento_prova != evento_gabarito or cargo_prova != cargo_gabarito:
+        raise ParDivergente(
+            f"prova ({evento_prova}, {cargo_prova}) ≠ gabarito ({evento_gabarito}, "
+            f"{cargo_gabarito})"
+        )
+
+
 async def curar_documento(
     db: Session,
     config: Configuracoes,
@@ -278,6 +314,7 @@ async def curar_documento(
 
     Raises:
         DocumentoNaoEncontrado: `documento_prova_id` ou `documento_gabarito_id` não existem.
+        ParDivergente: os dois documentos não são do mesmo evento/cargo.
     """
     documento_prova = db.get(Documento, documento_prova_id)
     if documento_prova is None:
@@ -285,6 +322,7 @@ async def curar_documento(
     documento_gabarito = db.get(Documento, documento_gabarito_id)
     if documento_gabarito is None:
         raise DocumentoNaoEncontrado(f"documento {documento_gabarito_id} não encontrado")
+    _conferir_par(documento_prova, documento_gabarito)
 
     documentos_dir = resolver_documentos_dir(config)
     texto_prova = extrair_texto((documentos_dir / documento_prova.caminho).read_bytes())

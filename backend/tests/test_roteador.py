@@ -7,11 +7,17 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from aprovaos.config import Configuracoes
 from aprovaos.dados.modelos import Traco
 from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_traco import gasto_do_dia, registrar_traco
 from aprovaos.dominio.conta import DadosCadastro
-from aprovaos.roteador.custo import ChamadaLlm, ModeloSemPreco, estimar_custo_brl
+from aprovaos.roteador.custo import (
+    PRECOS_USD_POR_MILHAO,
+    ChamadaLlm,
+    ModeloSemPreco,
+    estimar_custo_brl,
+)
 from aprovaos.roteador.teto import TetoDiario
 
 AGORA = datetime(2026, 9, 17, 15, 30, tzinfo=UTC)
@@ -58,6 +64,23 @@ def test_estimar_custo_gemini_3_5_flash_lite() -> None:
 def test_modelo_sem_preco() -> None:
     with pytest.raises(ModeloSemPreco):
         estimar_custo_brl("gemini-x", 1, 1)
+
+
+def test_todo_modelo_default_de_configuracoes_tem_preco_tabelado() -> None:
+    """Menor da revisão do passo 12: sem isso, a próxima troca de modelo (`modelo_dna`/
+    `modelo_classificacao`, ou um campo `modelo_*` novo) só quebra o roteador em produção
+    (`ModeloSemPreco` na primeira chamada), não aqui.
+    """
+    campos_de_modelo = {
+        nome: campo.default
+        for nome, campo in Configuracoes.model_fields.items()
+        if nome.startswith("modelo_")
+    }
+    assert campos_de_modelo, "nenhum campo `modelo_*` encontrado em Configuracoes — teste inútil"
+    for nome, modelo_padrao in campos_de_modelo.items():
+        assert modelo_padrao in PRECOS_USD_POR_MILHAO, (
+            f"{nome}={modelo_padrao!r} sem preço em PRECOS_USD_POR_MILHAO"
+        )
 
 
 def test_registrar_traco_grava_linha(db: Session) -> None:

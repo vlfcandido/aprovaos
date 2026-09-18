@@ -20,7 +20,7 @@ from aprovaos.motor.curadoria.classificacao import (
     ItemParaClassificar,
     MotivosRejeicao,
 )
-from aprovaos.motor.curar import curar_documento
+from aprovaos.motor.curar import ParDivergente, curar_documento
 from aprovaos.roteador.custo import ChamadaLlm
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -418,3 +418,63 @@ async def test_curar_documento_reclassificar_atualiza_sem_duplicar(
         select(func.count()).select_from(Questao).where(Questao.topico_id == topico.id)
     )
     assert no_topico == N_ITENS_TJ_PA
+
+
+@pytest.mark.anyio
+async def test_curar_documento_par_trocado_levanta_erro(
+    db: Session, config_teste: Configuracoes
+) -> None:
+    """Prova de um evento/cargo com gabarito de outro: `ParDivergente`, sem gerar `Origem` errada.
+
+    Achado da revisão do passo 12: `curar_documento` recebe os dois ids já resolvidos e nunca
+    adivinha o par (decisão do dono) — mas até aqui também nunca *conferia* que os dois
+    `Documento` eram do mesmo evento/cargo. Chamar a função fora do `main()` com um par trocado
+    gerava uma `Origem` só com os dados da prova e lia o gabarito de outro caderno como se fosse
+    dela, silenciosamente. Esta é a asserção redundante que fecha esse buraco.
+    """
+    documento_prova = _documento_prova(
+        db,
+        caminho=CAMINHO_PROVA_TJ_PA,
+        evento="TJ_PA_25_SERVIDOR",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+    )
+    # Gabarito de outro evento/cargo (STJ_24, cargo 19) — o par certo seria o de TJ_PA cargo 9.
+    documento_gabarito_trocado = _documento_gabarito(
+        db,
+        caminho="STJ_24/GAB_DEFINITIVO_018_STJ_019_01.PDF",
+        evento="STJ_24",
+        descricao="GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 19",
+    )
+    edital = _edital_vazio(db)
+    db.commit()
+
+    with pytest.raises(ParDivergente):
+        await curar_documento(
+            db, config_teste, documento_prova.id, documento_gabarito_trocado.id, edital.id
+        )
+
+
+@pytest.mark.anyio
+async def test_curar_documento_mesmo_evento_cargo_diferente_levanta_erro(
+    db: Session, config_teste: Configuracoes
+) -> None:
+    """Mesmo evento, cargo diferente: `ParDivergente` também pega esse caso (não só evento)."""
+    documento_prova = _documento_prova(
+        db,
+        caminho=CAMINHO_PROVA_TJ_PA,
+        evento="TJ_PA_25_SERVIDOR",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+    )
+    documento_gabarito_outro_cargo = _documento_gabarito(
+        db,
+        caminho="TJ_PA_25_SERVIDOR/outro.pdf",
+        evento="TJ_PA_25_SERVIDOR",
+        descricao="GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 18",
+    )
+    edital = _edital_vazio(db)
+    db.commit()
+
+    with pytest.raises(ParDivergente):
+        await curar_documento(
+            db, config_teste, documento_prova.id, documento_gabarito_outro_cargo.id, edital.id
+        )

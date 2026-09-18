@@ -31,3 +31,9 @@ externos/
 .DS_Store
 .idea/
 .vscode/
+
+# Claude Code (sessão local)
+.claude/settings.local.json
+
+# Volumes locais do Compose
+data/

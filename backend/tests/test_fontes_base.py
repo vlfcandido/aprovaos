@@ -2,7 +2,7 @@
 # o `Protocol` e os erros tipados) em `aprovaos/motor/fontes/base.py`.
 # Quando ler: ao mudar o contrato que toda fonte concreta do coletor (Cebraspe, passo 4) segue.
 import hashlib
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from pydantic import ValidationError
@@ -33,6 +33,40 @@ def test_novidade_exige_campos() -> None:
             evento="X",
             publicado_em=datetime(2025, 10, 1, 11, 30, tzinfo=UTC),
         )
+
+
+def test_novidade_publicado_em_exige_aware_e_normaliza_utc() -> None:
+    """`publicado_em` naive é rejeitado; aware em qualquer fuso é normalizado para UTC."""
+    with pytest.raises(ValidationError):
+        Novidade(
+            id="X/Y.pdf",
+            tipo="prova",
+            titulo="PROVA OBJETIVA – …",
+            url="https://…",
+            evento="X",
+            publicado_em=datetime(2025, 10, 1, 11, 30),  # naive
+        )
+
+    aware_utc = Novidade(
+        id="X/Y.pdf",
+        tipo="prova",
+        titulo="PROVA OBJETIVA – …",
+        url="https://…",
+        evento="X",
+        publicado_em=datetime(2025, 10, 1, 11, 30, tzinfo=UTC),
+    )
+    assert aware_utc.publicado_em == datetime(2025, 10, 1, 11, 30, tzinfo=UTC)
+
+    fuso_menos_tres = timezone(timedelta(hours=-3))
+    aware_outro_fuso = Novidade(
+        id="X/Y.pdf",
+        tipo="prova",
+        titulo="PROVA OBJETIVA – …",
+        url="https://…",
+        evento="X",
+        publicado_em=datetime(2025, 10, 1, 8, 30, tzinfo=fuso_menos_tres),
+    )
+    assert aware_outro_fuso.publicado_em == datetime(2025, 10, 1, 11, 30, tzinfo=UTC)
 
 
 def test_arquivo_baixado_calcula_hash() -> None:

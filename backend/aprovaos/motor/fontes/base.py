@@ -8,10 +8,10 @@ qualquer fonte.
 """
 
 import hashlib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal, Protocol, runtime_checkable
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 TipoNovidade = Literal["prova", "gabarito", "edital", "desconhecido"]
 
@@ -19,25 +19,22 @@ TipoNovidade = Literal["prova", "gabarito", "edital", "desconhecido"]
 class Novidade(BaseModel):
     """Um item novo detectado numa fonte — evento da listagem ou arquivo do detalhe.
 
-    As duas identidades cabem neste mesmo modelo: uma novidade de *listagem* é um evento (na
-    Cebraspe, `id == eventoURL`, `tipo="desconhecido"` — o tipo só se sabe ao abrir o detalhe);
-    uma novidade de *detalhe* é um arquivo (na Cebraspe, `id == "{eventoURL}/{nomeArquivo}"`).
-
     Attributes:
         id: identidade estável do item na fonte, entre rodadas de coleta — nunca hash de título
-            nem posição na lista (skill `monitor-de-fontes`, passo 2). Cada fonte concreta define
-            o que é essa identidade (URL canônica, id da API, guid do RSS) e a documenta na sua
-            ficha em `knowledge/fontes.yaml`.
+            nem posição na lista (skill `monitor-de-fontes`, passo 2). As duas identidades cabem
+            neste mesmo campo: uma novidade de *listagem* é a identidade do evento (prova/
+            concurso), com `tipo="desconhecido"` até o detalhe ser aberto; uma novidade de
+            *detalhe* é a identidade do arquivo dentro desse evento. Cada fonte concreta define
+            como compõe esses ids e documenta isso na sua ficha em `knowledge/fontes.yaml`.
         tipo: classificação do item; `"desconhecido"` quando a fonte não a informa (ex.: evento
             da listagem, antes de abrir o detalhe) ou quando nenhuma regra da ficha casa.
-        titulo: texto descritivo cru da fonte, sem normalização — na Cebraspe, o
-            `descricaoArquivo` da API tal como veio (ex.: `"PROVA OBJETIVA – CONHECIMENTOS
-            ESPECÍFICOS – CARGO 9"`). Este modelo não conhece vocabulário de nenhuma fonte
-            específica; quem preenche este campo é a fonte concreta.
+        titulo: texto descritivo cru do item, exatamente como a fonte o descreve, sem
+            normalização. Quem preenche este campo é a fonte concreta.
         url: URL de onde o item foi listado ou de onde o arquivo será baixado.
         evento: identidade do evento (prova/concurso) ao qual o item pertence na fonte.
         publicado_em: instante de publicação, *aware* em UTC; `None` quando a fonte não informa.
-            Quem converte o fuso da fonte para UTC é a fonte concreta.
+            Quem converte o fuso da fonte para UTC é a fonte concreta; um `datetime` naive é
+            rejeitado (mesma regra de `DataHoraUtc` em `aprovaos/dados/base.py`).
     """
 
     id: str
@@ -46,6 +43,16 @@ class Novidade(BaseModel):
     url: str
     evento: str
     publicado_em: datetime | None
+
+    @field_validator("publicado_em", mode="after")
+    @classmethod
+    def _exige_aware_e_normaliza_utc(cls, valor: datetime | None) -> datetime | None:
+        """Rejeita `datetime` naive e normaliza qualquer fuso *aware* para UTC."""
+        if valor is None:
+            return None
+        if valor.tzinfo is None:
+            raise ValueError("publicado_em exige datetime aware (com tzinfo)")
+        return valor.astimezone(UTC)
 
 
 class ArquivoBaixado(BaseModel):

@@ -51,3 +51,13 @@ class SegmentacaoAmbigua(ErroDominio):
     explícito. Uma fronteira a mais é estrutura que a regra não cobre — a função para em vez de
     adivinhar qual delas é a certa; o documento fica para revisão manual.
     """
+
+
+class GabaritoNaoReconhecido(ErroDominio):
+    """O texto não tem forma de gabarito Cebraspe C/E reconhecível (grade de itens numerados).
+
+    Levantada por `dominio/gabarito.ler_gabarito_cebraspe` em vez de devolver um mapa vazio —
+    mapa vazio esconderia falha de leitura pelo mesmo motivo que `FonteIndisponivel` existe para
+    o coletor: "sem entradas" não pode significar "não consegui ler". Cobre tanto um PDF
+    qualquer quanto um gabarito de banca em formato diferente (ex.: múltipla escolha A–E).
+    """

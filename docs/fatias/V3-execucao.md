@@ -285,3 +285,100 @@ test_rota_concurso,test_rota_subir_edital,test_classificacao,test_repositorio_qu
 test_motor_curar}.py`, `docs/fatias/V3-execucao.md` (este bloco), `docs/02-produto.md` (§6).
 Banco real (`backend/dev.db`, fora do git): sem mudança de conteúdo (210 questões, mesmas 43
 publicáveis) — só 8 linhas novas em `traco`.
+
+## Passo 12c — Cota é por modelo: `gemini-3.5-flash-lite` e a recuragem real, de verdade
+
+Executado em 18/09/2026, mesma máquina. Achado do coordenador: a cota diária de 20 req/dia do
+free tier (passo 12b) é **por modelo**, não geral por projeto — `gemini-3.6-flash` está esgotado
+no dia, mas `gemini-3.5-flash-lite` respondia 200 com cota intacta. Escolha também certa pela
+tarefa: classificar item de prova num vocabulário fechado é "simple data processing" (a própria
+página do modelo o descreve assim), e o Lite é o mais barato da família no paid tier.
+
+### 1. Modelo do classificador trocado
+`modelo_classificacao` → `gemini-3.5-flash-lite` (`config.py`, `.env.example`); `modelo_dna`
+continua `gemini-3.6-flash` (DNA do edital é raciocínio, não triagem). `PRECOS_USD_POR_MILHAO`
+ganhou a entrada (US$ 0,30/M entrada, US$ 2,50/M saída, paid tier,
+https://ai.google.dev/gemini-api/docs/pricing, lido em 18/09/2026).
+
+### 2. Achado real nº 2 do dia: `thinking_config` quebra o Flash-Lite
+Primeira tentativa de recuragem real (TJ-PA) voltou **`400 INVALID_ARGUMENT`** nos 4 lotes —
+com o `thinking_config=ThinkingConfig(thinking_budget=0)` que o passo 12b tinha ligado (item 5
+de lá). Removido o campo do `GenerateContentConfig` do classificador; a chamada seguinte
+funcionou. A pendência "medir se `thinking_budget=0` mantém a resposta correta" (passo 12b, item
+5) fica **cancelada** para este modelo, não só adiada — ele não aceita o campo, então não há o
+que medir. Custo real desse achado: 4 chamadas gastas (todas `400`, sem gerar conteúdo — não deu
+para confirmar se contam contra a cota diária, mas nenhuma das rodadas seguintes indicou
+problema de cota).
+
+### 3. A recuragem real dos três cadernos — com sucesso desta vez
+`uv run python -m aprovaos.motor.curar --evento <evento> --cargo <n> --edital <uuid>
+--reclassificar`, um caderno por vez, na ordem pedida. As três rodaram sem erro (4 chamadas
+`resultado="ok"` cada, 12 no total — exatamente o orçamento previsto).
+
+**Tabela antes × depois** (publicáveis por regras vs. com IA de verdade, `gemini-3.5-flash-lite`):
+
+| eventoURL | cargo | publicáveis (regras) | publicáveis (IA) | sem tópico (regras→IA) | itens que a IA achou e as regras não | itens que a IA perdeu (regras achavam) | tokens in/out | custo estimado |
+|---|---|---|---|---|---|---|---|---|
+| `TJ_PA_25_SERVIDOR` | CARGO 9 | 12 | **37** | 57 → 29 | 29 | 2 | 14 307 / 4 692 | R$ 0,0865 |
+| `STJ_24` | CARGO 19 | 19 | **19** | 51 → 50 | 6 | 5 | 15 022 / 3 648 | R$ 0,0736 |
+| `TRT10_24` | CARGO 12 | 12 | **7** | 57 → 62 | 4 | 9 | 14 755 / 3 757 | R$ 0,0746 |
+| **Total** | | **43** | **63** | 165 → 141 | 39 | 16 | 44 084 / 12 097 | **R$ 0,2347** |
+
+Custo real gasto: **R$ 0,00** — a chave está no free tier; a coluna "custo estimado" é o que
+`traco.custo_brl` grava (o preço do paid tier, o que o teto diário protegeria). "Itens que a IA
+achou e as regras não"/"que a IA perdeu" contados batendo, item a item, a classificação atual
+(IA, no banco) contra `classificar_por_regras` rodado offline sobre os mesmos itens segmentados
+do PDF (determinístico, sem rede) — a base não guarda mais o valor "antes" depois do
+`--reclassificar`, então essa é a forma de reconstruir a comparação sem ter salvo um snapshot.
+
+**Achado honesto, não escondido**: na TJ-PA a IA claramente ajudou (12 → 37 publicáveis, quase
+triplicou). Na STJ_24 ficou **igual** (19 → 19) — ganhou 6 itens, perdeu 5, o saldo líquido não
+mudou o total de publicáveis porque os itens trocados não bateram exatamente nos mesmos. No
+TRT10_24 a IA **piorou** o número de publicáveis (12 → 7) — perdeu 9 itens que as regras tinham
+classificado (provavelmente falsos positivos do léxico: termo isolado casando por acaso) contra
+só 4 que ganhou. Isso não é necessariamente "a IA está errada" — pode ser o contrário (regras
+mais permissiva demais nesse caderno); só dá para saber olhando os 9 itens perdidos um a um, o
+que não coube neste passo. Registrado como pendência de revisão manual.
+
+### Amostra de 5 classificações que a IA fez e as regras não (TJ-PA, com `topico_evidencia`)
+| item | tópico (IA) | confiança | evidência da IA |
+|---|---|---|---|
+| 51 | `dir-adm-03-poderes-administrativos` | alta | "o comando cita os poderes da administração pública, especificamente a autotutela" |
+| 65 | `dir-con-01-constituicao-conceito` | alta | "o comando e o enunciado tratam explicitamente da classificação das Constituições" |
+| 79 | `dir-civ-04-prescricao-decadencia` | alta | "o comando cita a prescrição e o enunciado aborda prazo prescricional" |
+| 89 | `dir-civ-01-lei-introducao` | alta | "o comando menciona a eficácia das leis no espaço (LINDB)" |
+| 93 | `dir-pro-civ-03-atos-processuais` | media | "o comando trata da valoração da prova com base no Código de Processo Civil" |
+
+As cinco batem com o enunciado real do item (conferido à mão): 51 é sobre autotutela (poder de
+rever atos), 65 sobre classificação de Constituições, 79 sobre prazo prescricional de
+benfeitorias, 89 sobre LINDB/eficácia da lei no espaço, 93 sobre valoração de prova no CPC —
+nenhuma parece invenção; são exatamente os tópicos que o léxico por regras não tinha termo para
+casar (por isso ficavam "sem tópico" antes).
+
+### 4. `thinking_budget` — item cancelado, não pendente
+O passo 12b deixou como pendência "medir se a resposta continua correta com
+`thinking_budget=0`". Não sobrou o que medir: o achado do item 2 já respondeu — o modelo em uso
+não aceita o campo. Fechado.
+
+### Verde (passo 12c)
+`uv run pytest -q`: `279 passed, 5 skipped`. `bash scripts/checar.sh` na raiz: ruff, `ruff
+format --check`, `mypy --strict` (92 arquivos), import sem efeito colateral — tudo verde.
+
+### Qual modelo classificou o quê (para não esquecer daqui a um mês)
+- **`gemini-3.6-flash`**: gera o `DnaConcurso` do edital (`analista-de-edital`, V2) — nunca
+  classificou questão nenhuma.
+- **`gemini-3.5-flash-lite`**: classifica o tópico de cada item de prova desde o passo 12c —
+  é o modelo por trás das 63 publicáveis atuais (37 + 19 + 7) que têm `topico_confianca` "alta"
+  ou "media" com evidência em português corrido (não a frase fixa de `ClassificadorPorRegras`,
+  do tipo "contém o termo […] do tópico" ou "cita a Lei nº […]").
+- **Por regras (`ClassificadorPorRegras`)**: nenhuma questão atual foi classificada só por
+  regras sem depois passar pela reclassificação com IA — as três rodadas do passo 12 (regras)
+  foram todas sobrescritas pelas do passo 12c (IA) via `--reclassificar`. Continua sendo o
+  fallback de qualquer lote que a IA não conseguir responder (ver passo 12b, item 3).
+
+### Arquivos do passo 12c
+Tocados: `backend/aprovaos/config.py`, `.env.example`, `backend/aprovaos/roteador/custo.py`,
+`backend/aprovaos/agentes/classificador.py`, `backend/tests/{test_config,test_roteador,
+test_classificacao}.py`, `docs/fatias/V3-execucao.md` (este bloco), `docs/02-produto.md` (§6).
+Banco real (`backend/dev.db`, fora do git): mesmas 210 questões, agora **63 publicáveis** (era
+43) — 12 linhas novas em `traco`, todas `resultado="ok"`.

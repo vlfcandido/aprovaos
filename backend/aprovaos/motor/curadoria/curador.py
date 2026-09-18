@@ -43,7 +43,9 @@ class OrigemBase(BaseModel):
         orgao: órgão do concurso.
         cargo: cargo do caderno.
         ano: ano do concurso.
-        tipo_caderno: identificador do caderno na banca.
+        tipo_caderno: identificador do caderno na banca, só quando a fonte o declara; `None`
+            quando não declara (ver `dominio.questao.Origem.tipo_caderno`, Ruling 25 do passo 9
+            — não inventar valor).
         url_prova: URL do PDF da prova, igual ao `Documento` gravado pelo coletor.
         documento_id: id do `Documento` da prova gravado pelo coletor.
     """
@@ -52,7 +54,7 @@ class OrigemBase(BaseModel):
     orgao: str
     cargo: str
     ano: int
-    tipo_caderno: str
+    tipo_caderno: str | None
     url_prova: str
     documento_id: str
 
@@ -227,9 +229,13 @@ def verificar_curadoria(questoes: list[QuestaoCurada], total_itens: int) -> list
     if sem_apoio_no_bloco:
         problemas.append(f"itens num bloco de texto de apoio sem texto_apoio: {sem_apoio_no_bloco}")
 
-    sem_comando = sorted(questao.numero_item for questao in questoes if questao.comando is None)
-    if sem_comando:
-        problemas.append(f"itens sem comando: {sem_comando}")
+    # A skill permite `comando is None` quando o caderno inteiro não tem comandos (raro na
+    # Cebraspe); só é suspeita quando outro item do mesmo caderno tem comando preenchido.
+    algum_comando_preenchido = any(questao.comando is not None for questao in questoes)
+    if algum_comando_preenchido:
+        sem_comando = sorted(questao.numero_item for questao in questoes if questao.comando is None)
+        if sem_comando:
+            problemas.append(f"itens sem comando: {sem_comando}")
 
     publicados = sorted(questao.numero_item for questao in questoes if questao.publicado)
     if publicados:

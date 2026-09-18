@@ -17,7 +17,12 @@ from aprovaos.dominio.questao import (
     decidir_publicacao,
     hash_dedup,
 )
-from aprovaos.motor.curadoria.classificacao import TopicoVocabulario
+from aprovaos.motor.curadoria.classificacao import (
+    Classificacao,
+    ItemParaClassificar,
+    MotivosRejeicao,
+    TopicoVocabulario,
+)
 from aprovaos.motor.curadoria.curador import (
     OrigemBase,
     ResultadoCuradoria,
@@ -44,7 +49,9 @@ ORIGEM_BASE_TJ_PA = OrigemBase(
     orgao="TJ-PA",
     cargo="Analista Judiciário — Direito",
     ano=2025,
-    tipo_caderno="único",
+    # a API da Cebraspe não declara tipo de caderno para este concurso — `None` é o valor
+    # correto (Ruling 25 do passo 9), nunca um placeholder inventado.
+    tipo_caderno=None,
     url_prova="https://www.cebraspe.org.br/concursos/tj_pa_25_servidor",
     documento_id="11111111-1111-1111-1111-111111111111",
 )
@@ -92,6 +99,21 @@ _TEXTO_GABARITO_SINTETICO_2_ENTRADAS = "GABARITOS OFICIAIS DEFINITIVOS\n51 52\nC
 # entrada (e a entrada do item 54, que não existe no caderno, não é usada por ninguém).
 _TEXTO_GABARITO_SINTETICO_SEM_53 = "GABARITOS OFICIAIS DEFINITIVOS\n51 52 54\nC E C\n"
 
+# Bloco do item 51 com 3 fronteiras de comando candidatas (3 frases terminadas em "." antes do
+# comando "Julgue os itens subsequentes.") — o padrão conhecido de `segmentar_cebraspe` trata no
+# máximo 2 (fim do enunciado + narrativa de apoio implícita); a 3ª levanta `SegmentacaoAmbigua`.
+# Confirmado por execução direta antes de escrever o teste (não é achismo).
+_TEXTO_PROVA_SEGMENTACAO_AMBIGUA = (
+    "Acerca de direito administrativo, julgue o item subsequente.\n"
+    "51 Primeira frase do item, ainda descrevendo uma situação hipotética.\n"
+    "Segunda frase de contexto adicional que também poderia ser comando.\n"
+    "Terceira frase extra de contexto, cada vez mais parecida com um comando.\n"
+    "Julgue os itens subsequentes.\n"
+)
+# Nenhuma grade de gabarito Cebraspe C/E reconhecível — nem uma linha de números seguida de uma
+# linha de valores C/E/X.
+_TEXTO_GABARITO_INVALIDO = "não há gabarito aqui, só texto qualquer.\n"
+
 
 @pytest.fixture
 def anyio_backend() -> str:
@@ -136,6 +158,78 @@ async def _curar_tj_pa(
         motivo_sem_ia="sem GOOGLE_API_KEY",
         tamanho_lote=100,
     )
+
+
+class _ClassificadorComSlugEConfiancaBaixa:
+    """Dublê da porta: devolve sempre um slug válido do vocabulário, mas com confiança baixa.
+
+    O classificador por regras real (`ClassificadorPorRegras`) nunca produz essa combinação —
+    confiança baixa sempre vem sem slug (Ruling 21 do passo 8, "termo isolado não basta"). Este
+    dublê existe só para alcançar o cenário "tópico identificado com confiança baixa" do gate de
+    publicação, que o contrato da porta `ClassificadorDeTopico` não proíbe.
+    """
+
+    def __init__(self, slug: str) -> None:
+        """Guarda o slug que toda chamada de `classificar_lote` vai devolver."""
+        self._slug = slug
+
+    async def classificar_lote(
+        self, itens: list[ItemParaClassificar], vocabulario: list[TopicoVocabulario]
+    ) -> tuple[list[Classificacao], MotivosRejeicao]:
+        """Devolve, para cada item, o slug fixo com confiança `"baixa"`."""
+        classificacoes = [
+            Classificacao(
+                numero_item=item.numero_item,
+                topico_slug=self._slug,
+                confianca="baixa",
+                evidencia="dublê: slug válido, confiança baixa de propósito",
+                origem="ia",
+            )
+            for item in itens
+        ]
+        return classificacoes, {}
+
+
+@pytest.mark.anyio
+async def test_segmentacao_ambigua_vira_pendente_revisao(
+    vocabulario: list[TopicoVocabulario],
+) -> None:
+    """Bloco com 3 fronteiras de comando candidatas (`SegmentacaoAmbigua`) — tudo pendente."""
+    resultado = await curar(
+        texto_prova=_TEXTO_PROVA_SEGMENTACAO_AMBIGUA,
+        texto_gabarito=_TEXTO_GABARITO_INVALIDO,  # nunca chega a ser lido — a exceção é antes
+        vocabulario=vocabulario,
+        origem_base=ORIGEM_BASE_TJ_PA,
+        regra_prova=REGRA_PROVA_TJ_PA,
+        classificador_ia=None,
+        motivo_sem_ia="sem GOOGLE_API_KEY",
+        tamanho_lote=100,
+    )
+
+    assert resultado.pendente_revisao is True
+    assert resultado.questoes == []
+    assert any("fronteiras de comando candidatas" in problema for problema in resultado.problemas)
+
+
+@pytest.mark.anyio
+async def test_gabarito_nao_reconhecido_vira_pendente_revisao(
+    vocabulario: list[TopicoVocabulario],
+) -> None:
+    """Texto de gabarito sem nenhuma grade reconhecível (`GabaritoNaoReconhecido`) — pendente."""
+    resultado = await curar(
+        texto_prova=_TEXTO_PROVA_SINTETICO,
+        texto_gabarito=_TEXTO_GABARITO_INVALIDO,
+        vocabulario=vocabulario,
+        origem_base=ORIGEM_BASE_TJ_PA,
+        regra_prova=REGRA_PROVA_TJ_PA,
+        classificador_ia=None,
+        motivo_sem_ia="sem GOOGLE_API_KEY",
+        tamanho_lote=100,
+    )
+
+    assert resultado.pendente_revisao is True
+    assert resultado.questoes == []
+    assert any("gabarito Cebraspe" in problema for problema in resultado.problemas)
 
 
 @pytest.mark.anyio
@@ -218,13 +312,40 @@ async def test_sem_gabarito_nao_publicavel(vocabulario: list[TopicoVocabulario])
 
 
 @pytest.mark.anyio
-async def test_confianca_baixa_nao_publicavel(
+async def test_confianca_baixa_nao_publicavel(vocabulario: list[TopicoVocabulario]) -> None:
+    """Slug válido do vocabulário, mas confiança baixa: motivo distingue de "sem tópico".
+
+    O classificador por regras real nunca produz essa combinação (Ruling 21 do passo 8) — por
+    isso o dublê `_ClassificadorComSlugEConfiancaBaixa` força o cenário.
+    """
+    slug_valido = vocabulario[0].slug
+    resultado = await curar(
+        texto_prova=_TEXTO_PROVA_SINTETICO,
+        texto_gabarito=_TEXTO_GABARITO_SINTETICO_SEM_53,
+        vocabulario=vocabulario,
+        origem_base=ORIGEM_BASE_TJ_PA,
+        regra_prova=REGRA_PROVA_TJ_PA,
+        classificador_ia=_ClassificadorComSlugEConfiancaBaixa(slug_valido),
+        motivo_sem_ia=None,
+        tamanho_lote=100,
+    )
+
+    questao_51 = next(q for q in resultado.questoes if q.numero_item == 51)
+    assert questao_51.topico_slug == slug_valido
+    assert questao_51.topico_confianca == "baixa"
+    assert questao_51.publicavel is False
+    assert questao_51.motivo_nao_publicavel == "tópico identificado com confiança baixa"
+
+
+@pytest.mark.anyio
+async def test_sem_topico_nao_publicavel(
     texto_prova_real: str, texto_gabarito_real: str, vocabulario: list[TopicoVocabulario]
 ) -> None:
-    """Item 52 real: só o termo isolado "jurídicas" casa — confiança baixa, sem tópico."""
+    """Item 52 real: só o termo isolado "jurídicas" casa — sem slug, "tópico não identificado"."""
     resultado = await _curar_tj_pa(texto_prova_real, texto_gabarito_real, vocabulario)
     questao_52 = next(q for q in resultado.questoes if q.numero_item == 52)
 
+    assert questao_52.topico_slug is None
     assert questao_52.topico_confianca == "baixa"
     assert questao_52.publicavel is False
     assert questao_52.motivo_nao_publicavel == "tópico não identificado"
@@ -258,14 +379,16 @@ def test_hash_dedup_normaliza() -> None:
     assert hash_dedup(com_quebras) != hash_dedup(sem_quebras + " diferente")
 
 
-def _origem_valida(**overrides: str | int) -> Origem:
-    base: dict[str, str | int] = {
+def _origem_valida(**overrides: str | int | None) -> Origem:
+    # `tipo_caderno=None` por padrão — é o valor legítimo quando a fonte não declara (Ruling 25
+    # do passo 9), e o padrão aqui prova que `None` não quebra o gate nem a verificação.
+    base: dict[str, str | int | None] = {
         "banca": "cebraspe",
         "orgao": "TJ-PA",
         "cargo": "Analista Judiciário — Direito",
         "ano": 2025,
         "numero_item": 51,
-        "tipo_caderno": "único",
+        "tipo_caderno": None,
         "url_prova": "https://exemplo.org/prova.pdf",
         "documento_id": "doc-1",
     }
@@ -327,10 +450,25 @@ def test_verificar_curadoria() -> None:
     problemas = verificar_curadoria([questao_com_apoio, questao_sem_apoio], total_itens=2)
     assert any("texto_apoio" in problema and "52" in problema for problema in problemas)
 
-    # 3. item sem comando (a skill só permite `None` quando o caderno inteiro não tem comando,
-    # o que não é o caso desta checagem isolada).
-    problemas = verificar_curadoria([_questao_valida(comando=None)], total_itens=1)
+    # 3a. item sem comando quando outro item do mesmo caderno tem comando preenchido — suspeita.
+    problemas = verificar_curadoria(
+        [
+            _questao_valida(numero_item=51, comando="Julgue o item."),
+            _questao_valida(numero_item=52, comando=None),
+        ],
+        total_itens=2,
+    )
     assert any("sem comando" in problema for problema in problemas)
+
+    # 3b. caderno inteiro sem comando nenhum — caso permitido pela skill, sem violação.
+    problemas = verificar_curadoria(
+        [
+            _questao_valida(numero_item=51, comando=None),
+            _questao_valida(numero_item=52, comando=None),
+        ],
+        total_itens=2,
+    )
+    assert not any("sem comando" in problema for problema in problemas)
 
     # 4. anulado com gabarito preenchido (o outro lado desta checagem, "publicado: true" na
     # saída do curador, é impedido pelo próprio tipo de `QuestaoCurada.publicado`, que só aceita

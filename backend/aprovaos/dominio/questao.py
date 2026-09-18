@@ -41,7 +41,11 @@ class Origem(BaseModel):
         cargo: cargo do caderno, como o edital nomeia (ex.: `"Analista Judiciário — Direito"`).
         ano: ano do concurso.
         numero_item: número do item impresso no caderno.
-        tipo_caderno: identificador do caderno na banca (ex.: `"único"`, `"A"`).
+        tipo_caderno: identificador do caderno na banca (ex.: `"TIPO 1"`), só quando a fonte o
+            declara; `None` quando não declara — a API da Cebraspe não expõe tipo de caderno de
+            forma determinística no que já foi medido até este passo (Ruling 25 do passo 9).
+            `None` aqui é um valor legítimo de procedência, não um campo faltando: nenhum campo
+            é inventado só para preencher a lacuna (`origem_completa` não exige este campo).
         url_prova: URL do PDF da prova, igual ao `Documento` gravado pelo coletor.
         documento_id: id do `Documento` da prova gravado pelo coletor.
     """
@@ -51,7 +55,7 @@ class Origem(BaseModel):
     cargo: str
     ano: int
     numero_item: int
-    tipo_caderno: str
+    tipo_caderno: str | None
     url_prova: str
     documento_id: str
 
@@ -152,28 +156,32 @@ def hash_dedup(enunciado: str) -> str:
 
 
 def origem_completa(origem: Origem) -> bool:
-    """`True` se os 8 campos de `origem` estão de fato preenchidos (não vazios/zerados).
+    """`True` se os 8 campos de `origem` existem como chave e os obrigatórios estão preenchidos.
 
     Usada pelo gate de publicação (`decidir_publicacao`) e pela verificação 5 da skill
-    `ingestao-de-provas` (`motor.curadoria.curador.verificar_curadoria`).
+    `ingestao-de-provas` (`motor.curadoria.curador.verificar_curadoria`). `tipo_caderno` fica de
+    fora da checagem de "preenchido": `None` é um valor legítimo desse campo (Ruling 25 do
+    passo 9 — a fonte não declara tipo de caderno na maioria dos casos), não uma ausência a
+    barrar a publicação.
 
     Args:
         origem: os 8 campos de procedência a conferir.
 
     Returns:
-        `True` se nenhum campo de texto está vazio/só espaços e `ano`/`numero_item` são
-        positivos.
+        `True` se nenhum dos campos de texto obrigatórios (todos, exceto `tipo_caderno`) está
+        vazio/só espaços e `ano`/`numero_item` são positivos.
     """
-    campos_texto = (
+    campos_obrigatorios = (
         origem.banca,
         origem.orgao,
         origem.cargo,
-        origem.tipo_caderno,
         origem.url_prova,
         origem.documento_id,
     )
     return (
-        all(campo.strip() for campo in campos_texto) and origem.ano > 0 and origem.numero_item > 0
+        all(campo.strip() for campo in campos_obrigatorios)
+        and origem.ano > 0
+        and origem.numero_item > 0
     )
 
 
@@ -189,7 +197,13 @@ def decidir_publicacao(
     `publicavel = True` exige, cumulativamente: gabarito definitivo (`"definitivo"` ou
     `"alterado"`), `origem` com os 8 campos preenchidos, `topico_slug` presente no vocabulário
     do edital e `topico_confianca != "baixa"`. A primeira condição que falha decide o motivo —
-    um item anulado nunca chega a ser avaliado pelas condições de tópico.
+    um item anulado nunca chega a ser avaliado pelas condições de tópico. O motivo distingue
+    duas causas-raiz diferentes de barrar por tópico: `"tópico não identificado"` (slug ausente
+    ou fora do vocabulário — problema de cobertura do vocabulário) e `"tópico identificado com
+    confiança baixa"` (slug válido, mas a classificação não confia nele — problema de calibração
+    do classificador). O classificador por regras nunca produz a segunda combinação sozinho
+    (confiança baixa sempre vem sem slug, Ruling 21 do passo 8), mas o contrato da porta
+    (`ClassificadorDeTopico`) não impede uma IA de devolver as duas coisas juntas.
 
     Args:
         gabarito_status: status do gabarito da questão (ver `GabaritoStatus`).
@@ -213,5 +227,5 @@ def decidir_publicacao(
     if topico_slug is None or topico_slug not in slugs_validos:
         return False, "tópico não identificado"
     if topico_confianca == "baixa":
-        return False, "tópico não identificado"
+        return False, "tópico identificado com confiança baixa"
     return True, None

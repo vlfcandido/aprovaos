@@ -13,6 +13,11 @@
   url_lista: https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/fase/encerrado
   url_detalhe: https://apis.cebraspe.org.br/cebraspe/eventos/{eventoURL}
   url_arquivo: https://cdn.cebraspe.org.br/concursos/{eventoURL}/arquivos/{nomeArquivo}
+  # Fatia 1b (radar de editais): o catálogo inteiro, todas as fases, numa só chamada. Medido em
+  # 19/09/2026 — errar o nome da fase no caminho (`/fase/andamento`, `/fase/aberto`,
+  # `/fase/todos`) devolve HTTP 200 com `[]`, não 404; por isso o radar usa este endpoint sem
+  # fase e lê `faseEvento` do corpo (`docs/fatias/1b-radar-e-conta.md` §1).
+  url_catalogo: https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos
   formato: api_json
   o_que_publica: [edital, prova, gabarito]
   identidade_do_item: "{eventoURL}/{nomeArquivo}"

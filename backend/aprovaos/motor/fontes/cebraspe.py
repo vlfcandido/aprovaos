@@ -13,6 +13,13 @@ A API da Cebraspe tem duas identidades de item, na mesma fonte:
 
 Quando ler: antes de mudar a coleta da Cebraspe ou de investigar por que um evento/arquivo não
 apareceu como novidade.
+
+`URL_CATALOGO` (fatia 1b, radar de editais) é um terceiro uso da mesma fonte: `obter_catalogo`
+devolve o catálogo **inteiro**, todas as fases numa só chamada — diferente de `URL_LISTA`, que é
+fixo em `/fase/encerrado`. Medido em 19/09/2026 (`docs/fatias/1b-radar-e-conta.md` §1): errar o
+nome da fase no caminho (`/fase/andamento`, `/fase/aberto`, `/fase/todos`) devolve HTTP 200 com
+`[]`, não 404 — por isso o radar nunca navega por fase, só lê o catálogo inteiro e classifica a
+fase pelo `faseEvento` de cada grupo (`dominio/radar.py::ler_catalogo`).
 """
 
 from collections.abc import Mapping
@@ -30,6 +37,7 @@ from aprovaos.motor.fontes.base import ArquivoBaixado, FonteIndisponivel, Novida
 URL_LISTA = "https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/fase/encerrado"
 URL_DETALHE = "https://apis.cebraspe.org.br/cebraspe/eventos/{eventoURL}"
 URL_ARQUIVO = "https://cdn.cebraspe.org.br/concursos/{eventoURL}/arquivos/{nomeArquivo}"
+URL_CATALOGO = "https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos"
 
 _FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -259,6 +267,38 @@ class FonteCebraspe:
         detalhe = self._obter_json(URL_DETALHE.format(eventoURL=evento_url))
         cargos = detalhe.get("eventoCargos") or []
         return [CargoEvento(id_area=cargo["idArea"], area=cargo["area"]) for cargo in cargos]
+
+    def obter_catalogo(self) -> Any:
+        """Devolve o catálogo inteiro (`URL_CATALOGO`): uma lista de grupos, um por fase.
+
+        Cada grupo traz `faseEvento`/`ordem`/`eventos[]` — quem classifica a fase de cada evento
+        é `dominio.radar.ler_catalogo`, nunca esta função (que só busca e devolve o JSON cru, sem
+        interpretar nada da fatia 1b).
+
+        Returns:
+            O corpo decodificado da resposta (lista de grupos), sem alteração.
+
+        Raises:
+            FonteIndisponivel: a fonte está fora do ar.
+        """
+        return self._obter_json(URL_CATALOGO)
+
+    def obter_detalhe(self, evento_url: str) -> Any:
+        """Devolve o detalhe cru de um evento (`URL_DETALHE`), sem interpretar nada.
+
+        Usado pela tela de detalhe do radar (fatia 1b, F1.1) para mostrar `eventoCargos` e
+        `arquivosEdital` — os dois só existem no detalhe, nunca no catálogo.
+
+        Args:
+            evento_url: o `eventoURL` do evento.
+
+        Returns:
+            O corpo decodificado da resposta (dicionário do evento), sem alteração.
+
+        Raises:
+            FonteIndisponivel: a fonte está fora do ar.
+        """
+        return self._obter_json(URL_DETALHE.format(eventoURL=evento_url))
 
     def fechar(self) -> None:
         """Fecha o cliente HTTP subjacente, se ele suportar `close()` (evita `ResourceWarning`).

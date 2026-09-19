@@ -17,6 +17,7 @@ from aprovaos.config import Configuracoes
 from aprovaos.motor.fontes.base import FonteIndisponivel, Novidade
 from aprovaos.motor.fontes.cebraspe import (
     URL_ARQUIVO,
+    URL_CATALOGO,
     URL_DETALHE,
     URL_LISTA,
     FonteCebraspe,
@@ -79,6 +80,12 @@ def _carregar(nome: str) -> Any:
 
 def _ids_dos_eventos(payload: Any) -> set[str]:
     return {evento["eventoURL"] for evento in payload[0]["eventos"]}
+
+
+@pytest.fixture
+def catalogo_todas_as_fases() -> Any:
+    """O catálogo inteiro (4 grupos), medido em 19/09/2026 — fatia 1b."""
+    return _carregar("catalogo-todas-as-fases-2026-09-19.json")
 
 
 def test_lista_vazia_devolve_todos() -> None:
@@ -264,6 +271,39 @@ def test_urls_do_codigo_estao_na_ficha() -> None:
     assert URL_LISTA == cebraspe["url_lista"]
     assert URL_DETALHE == cebraspe["url_detalhe"]
     assert URL_ARQUIVO == cebraspe["url_arquivo"]
+    assert URL_CATALOGO == cebraspe["url_catalogo"]
+
+
+def test_obter_catalogo_devolve_o_json_cru_sem_interpretar(catalogo_todas_as_fases: Any) -> None:
+    """`obter_catalogo` só busca e devolve — quem classifica fase é `dominio.radar.ler_catalogo`."""
+    cliente = ClienteFalso({URL_CATALOGO: _RespostaFalsa(200, corpo=catalogo_todas_as_fases)})
+    fonte = FonteCebraspe(cliente, CONTATO_TESTE)
+
+    catalogo = fonte.obter_catalogo()
+
+    assert catalogo == catalogo_todas_as_fases
+
+
+def test_obter_catalogo_indisponivel_levanta() -> None:
+    """Um 503 no catálogo levanta `FonteIndisponivel`, nunca uma lista vazia."""
+    cliente = ClienteFalso({URL_CATALOGO: _RespostaFalsa(503)})
+    fonte = FonteCebraspe(cliente, CONTATO_TESTE)
+
+    with pytest.raises(FonteIndisponivel):
+        fonte.obter_catalogo()
+
+
+def test_obter_detalhe_devolve_o_json_cru_do_evento() -> None:
+    """`obter_detalhe` devolve o dicionário do evento sem alterar nada."""
+    detalhe = _carregar("evento-AGEPAR_PR_26-2026-09-19.json")
+    url = URL_DETALHE.format(eventoURL="AGEPAR_PR_26")
+    cliente = ClienteFalso({url: _RespostaFalsa(200, corpo=detalhe)})
+    fonte = FonteCebraspe(cliente, CONTATO_TESTE)
+
+    obtido = fonte.obter_detalhe("AGEPAR_PR_26")
+
+    assert obtido == detalhe
+    assert obtido["eventoCargos"][2]["area"].endswith("DIREITO")
 
 
 @pytest.mark.rede

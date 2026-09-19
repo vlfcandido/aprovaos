@@ -117,22 +117,49 @@ _PADRAO_INCISO = re.compile(r"^([IVXLCDM]+)\s*[-–]\s")
 _PADRAO_ALINEA = re.compile(r"^([a-z])\)\s")
 
 
+_PADRAO_FIM_DE_DISPOSITIVO = re.compile(r"[.:;]\s*(?:\([^()]*\)\s*)*(?:\b(?:e|ou)\b\s*)?$")
+"""Marca o fim de um dispositivo de verdade: termina em `.`/`:`/`;`, opcionalmente seguido de
+uma ou mais anotações entre parênteses que `_PADRAO_ANOTACAO` não reconheceu (ex.:
+`"(Regulamento)"`, medido no art. 37, X/XXI/§ 8º da CF — anotação real, mas fora do vocabulário
+de procedência que este módulo extrai como `redacao_de`) e/ou do conectivo "e"/"ou" que fecha o
+penúltimo item de uma lista de alíneas (ex.: `"...companhia; e"`, Lei 6.404/1976 art. 116,
+alínea `a`, antes da alínea `b`). Todo dispositivo (caput, inciso, parágrafo, alínea) segue a
+técnica legislativa de terminar a frase com pontuação (LC 95/1998, art. 11, III); um título de
+divisão nunca termina assim — é um rótulo, não uma frase."""
+
+
 def _eh_titulo_estrutural(texto: str) -> bool:
-    """Reconhece um título de divisão do diploma (capítulo, título, seção...), não um dispositivo.
+    r"""Reconhece um título de divisão do diploma (capítulo, seção...), não um dispositivo.
 
     O Planalto intercala, entre o fim de um artigo e o caput do próximo, parágrafos como
     "CAPÍTULO IV" / "DOS AGENTES PÚBLICOS" (medido em `lei14133_planalto_compilada.htm`, entre
-    os arts. 6º e 7º) — não fazem parte do texto de nenhum dos dois artigos. O heurístico é
-    estrutural, não uma lista fixa de palavras: todo dispositivo de verdade (caput, inciso,
-    parágrafo, alínea) tem letra minúscula em algum lugar; um título de divisão, não.
+    os arts. 6º e 7º) — não fazem parte do texto de nenhum dos dois artigos. Dois heurísticos,
+    nenhum por lista fixa de palavras:
+
+    1. **Caixa alta**: todo dispositivo de verdade tem letra minúscula em algum lugar; um
+       título 100% CAIXA ALTA, não (achado original, `lei14133_planalto_compilada.htm`).
+    2. **Sem pontuação de fechamento**: títulos em *Title Case* (mistura de maiúscula/minúscula)
+       escapam do heurístico 1 — ex.: `"Seção II\nDos Atos de Improbidade Administrativa que
+       Causam Prejuízo ao Erário"` e `"CAPÍTULO III\nDas Penas"` (`lei8429_planalto_compilada
+       .htm`, entre os arts. 9º/10 e 10/11); `"Seção IV"` e a rubrica sem a palavra "Seção" que
+       vem na sequência (`lei11340_planalto_compilada.htm`, entre os arts. 24 e 24-A). Nenhum
+       título é uma frase — não termina em `.`/`:`/`;` como todo dispositivo termina (ver
+       `_PADRAO_FIM_DE_DISPOSITIVO`). Medido como seguro contra falso positivo: as únicas
+       ocorrências de dispositivo vigente sem essa pontuação nos HTMLs desta coleta são casos
+       de anotação não reconhecida sobrando no fim (ex.: `"(Regulamento)"`, CF art. 37
+       X/XXI/§ 8º), cobertos pela cauda opcional do próprio padrão.
 
     Args:
-        texto: o texto já limpo (sem tags, sem anotação) de um parágrafo.
+        texto: o texto já limpo (sem tags, sem anotação reconhecida) de um parágrafo.
 
     Returns:
-        `True` quando o texto não tem nenhuma letra minúscula (e tem pelo menos uma letra).
+        `True` quando o texto é 100% caixa alta, ou quando não termina em pontuação de
+        fechamento de dispositivo (P-40, achado 3 do `LEIA-ME.md` de
+        `knowledge/fixtures/juridico/`).
     """
-    return any(c.isalpha() for c in texto) and texto == texto.upper()
+    if any(c.isalpha() for c in texto) and texto == texto.upper():
+        return True
+    return _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None
 
 
 def _com_pontuacao_de_milhar(numero: str) -> str:

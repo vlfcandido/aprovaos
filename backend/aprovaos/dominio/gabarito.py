@@ -1,11 +1,12 @@
-"""Leitura do gabarito definitivo de um caderno Cebraspe certo/errado: texto → mapa de entradas.
+"""Leitura do gabarito definitivo de um caderno Cebraspe (C/E e A–E): texto → mapa de entradas.
 
-O que é: `EntradaGabarito` (Pydantic) e `ler_gabarito_cebraspe(texto: str) -> dict[int,
-EntradaGabarito]`, que implementam a seção "Gabarito: a ordem de verdade" da skill
-`ingestao-de-provas`. Função pura, sem IA, sem rede, sem disco — quem lê o PDF
-(`dominio/pdf.extrair_texto`) é quem chama; a decisão do que fazer com um item sem entrada no
-mapa (`dict.get` devolve `None`) é do curador. Quando ler: ao ajustar a leitura para um gabarito
-Cebraspe real que ela não entendeu, ou ao ligar o resultado ao `ItemBruto` de `dominio/prova.py`.
+O que é: `EntradaGabarito`/`ler_gabarito_cebraspe` (C/E) e `EntradaGabaritoAlternativa`/
+`ler_gabarito_multipla_escolha` (A–E), que implementam a seção "Gabarito: a ordem de verdade" da
+skill `ingestao-de-provas` para as duas formas de item. Funções puras, sem IA, sem rede, sem
+disco — quem lê o PDF (`dominio/pdf.extrair_texto`) é quem chama; a decisão do que fazer com um
+item sem entrada no mapa (`dict.get` devolve `None`) é do curador. Quando ler: ao ajustar a
+leitura para um gabarito Cebraspe real que ela não entendeu, ou ao ligar o resultado ao
+`ItemBruto`/`ItemBrutoAlternativas` de `dominio/prova.py`.
 """
 
 import re
@@ -165,4 +166,134 @@ def ler_gabarito_cebraspe(texto: str) -> dict[int, EntradaGabarito]:
             "definitivo" if tem_definitivo or not tem_preliminar else "preliminar"
         )
         gabarito[numero] = EntradaGabarito(valor=valor_final, status=status)
+    return gabarito
+
+
+_LINHA_DE_VALORES_ALTERNATIVA = re.compile(r"^[ABCDEX0\s]+$")
+"""A linha de valores do quadro A–E: uma letra (`A`–`E`) ou `X` de anulado por item, ou `0` onde
+o quadro não tem item — mesma tolerância a colunas grudadas sem espaço da versão C/E."""
+
+
+class EntradaGabaritoAlternativa(BaseModel):
+    """Uma linha do gabarito Cebraspe A–E para uma questão do caderno.
+
+    Attributes:
+        valor: a letra do gabarito da questão (`"A"`–`"E"`); `None` quando a questão foi anulada.
+        status: mesmo significado de `EntradaGabarito.status`.
+        valor_preliminar: a letra anterior à definitiva, só preenchida quando
+            `status == "alterado"`.
+    """
+
+    valor: Literal["A", "B", "C", "D", "E"] | None
+    status: Literal["definitivo", "preliminar", "anulado", "alterado"]
+    valor_preliminar: Literal["A", "B", "C", "D", "E"] | None = None
+
+
+def _pares_item_valor_multipla_escolha(linhas: list[str]) -> list[tuple[int, str]]:
+    """Acha, em sequência, todo par (linha de números de questão, linha de valores A–E) do texto.
+
+    Mesma lógica de `_pares_item_valor`, com o alfabeto de valores trocado de `C`/`E`/`X`/`0`
+    para `A`–`E`/`X`/`0` (a linha de números continua igual nas duas formas de gabarito).
+
+    Args:
+        linhas: linhas do texto extraído, sem vazias, na ordem do documento.
+
+    Returns:
+        Os pares `(numero_item, valor)` na ordem em que apareceram no texto.
+
+    Raises:
+        GabaritoNaoReconhecido: uma linha de valores reconhecida tem uma quantidade de letras
+            diferente da quantidade de itens não nulos da linha de números correspondente.
+    """
+    pares: list[tuple[int, str]] = []
+    indice = 0
+    while indice < len(linhas) - 1:
+        linha_numeros = linhas[indice]
+        if not _LINHA_DE_NUMEROS.fullmatch(linha_numeros):
+            indice += 1
+            continue
+        itens = [n for n in (int(tok) for tok in re.findall(r"\d+", linha_numeros)) if n != 0]
+        if not itens:
+            indice += 1
+            continue
+        linha_valores = linhas[indice + 1]
+        if not _LINHA_DE_VALORES_ALTERNATIVA.fullmatch(linha_valores):
+            indice += 1
+            continue
+        valores = re.findall(r"[ABCDEX]", linha_valores)
+        if not valores:
+            indice += 1
+            continue
+        if len(valores) != len(itens):
+            raise GabaritoNaoReconhecido(
+                f"Quadro do gabarito com {len(itens)} itens ({itens[0]}–{itens[-1]}) mas "
+                f"{len(valores)} valores na linha seguinte — estrutura não reconhecida."
+            )
+        pares.extend(zip(itens, valores, strict=True))
+        indice += 2
+    return pares
+
+
+def ler_gabarito_multipla_escolha(texto: str) -> dict[int, EntradaGabaritoAlternativa]:
+    """Lê o gabarito de um caderno Cebraspe A–E (nível médio), sem IA e sem rede.
+
+    Implementa a seção "Gabarito: a ordem de verdade" da skill `ingestao-de-provas` para a forma
+    A–E: mesma ordem de verdade do gabarito C/E (`ler_gabarito_cebraspe`) — definitivo >
+    preliminar; item marcado `X` é anulado (`valor=None`) e nunca sai com gabarito preenchido;
+    item com dois valores diferentes no texto é alterado.
+
+    Pré-condição: **o texto é de um único caderno/cargo** — mesma limitação documentada em
+    `ler_gabarito_cebraspe` (a detecção de "alterado" não distingue "mesmo item, dois quadros" de
+    "dois cargos com o mesmo número de item"); ver `docs/PENDENCIAS.md`.
+
+    Args:
+        texto: texto do gabarito de **um único caderno/cargo**, já extraído do PDF
+            (`dominio.pdf.extrair_texto`).
+
+    Returns:
+        Um mapa `numero_item -> EntradaGabaritoAlternativa`. Consultar um item fora do mapa é
+        responsabilidade de quem chama (`dict.get` devolve `None`).
+
+    Raises:
+        GabaritoNaoReconhecido: o texto não tem nenhuma grade de gabarito Cebraspe A–E
+            reconhecível — cobre tanto um PDF qualquer quanto um gabarito C/E (a grade C/E só usa
+            `C`/`E`/`X`, um subconjunto do alfabeto aceito aqui, mas sem as letras `A`, `B` ou `D`
+            ela nunca produz uma quantidade de valores igual à de itens de uma questão real que
+            de fato uso todas as cinco letras; na prática, um gabarito C/E real passado aqui só
+            "funciona" se a chamadora souber, pelo `regra_correcao.tipo_item` do DNA, que o
+            caderno é A–E — a mesma responsabilidade de quem chama já documentada acima).
+    """
+    linhas = [linha.strip() for linha in texto.split("\n") if linha.strip()]
+    pares = _pares_item_valor_multipla_escolha(linhas)
+    if not pares:
+        raise GabaritoNaoReconhecido(
+            "Não reconheci uma grade de gabarito Cebraspe A–E (itens numerados com valor "
+            "A–E/X) neste texto."
+        )
+
+    ocorrencias: dict[int, list[str]] = {}
+    for numero, valor in pares:
+        ocorrencias.setdefault(numero, []).append(valor)
+
+    tem_definitivo = bool(_MARCADOR_DEFINITIVO.search(texto))
+    tem_preliminar = bool(_MARCADOR_PRELIMINAR.search(texto))
+
+    gabarito: dict[int, EntradaGabaritoAlternativa] = {}
+    for numero, valores in ocorrencias.items():
+        valor_inicial, valor_final = valores[0], valores[-1]
+        if valor_final == "X":
+            gabarito[numero] = EntradaGabaritoAlternativa(valor=None, status="anulado")
+            continue
+        if len(valores) > 1 and valor_inicial != valor_final:
+            preliminar = valor_inicial if valor_inicial != "X" else None
+            gabarito[numero] = EntradaGabaritoAlternativa(
+                valor=valor_final,
+                status="alterado",
+                valor_preliminar=preliminar,
+            )
+            continue
+        status: Literal["definitivo", "preliminar"] = (
+            "definitivo" if tem_definitivo or not tem_preliminar else "preliminar"
+        )
+        gabarito[numero] = EntradaGabaritoAlternativa(valor=valor_final, status=status)
     return gabarito

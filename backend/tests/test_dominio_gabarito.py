@@ -1,11 +1,17 @@
-# O que é: testes do passo 7 da V3 — leitura do gabarito definitivo da Cebraspe (`dominio/
-# gabarito.py`). Quando ler: ao mudar `ler_gabarito_cebraspe` ou os fixtures reais de gabarito.
+# O que é: testes do passo 7 da V3 (gabarito C/E) e do passo 1 da V3b (gabarito A–E) —
+# `dominio/gabarito.py`. Quando ler: ao mudar `ler_gabarito_cebraspe`/`ler_gabarito_multipla_
+# escolha` ou os fixtures reais de gabarito.
 from pathlib import Path
 
 import pytest
 
 from aprovaos.dominio.erros import GabaritoNaoReconhecido
-from aprovaos.dominio.gabarito import EntradaGabarito, ler_gabarito_cebraspe
+from aprovaos.dominio.gabarito import (
+    EntradaGabarito,
+    EntradaGabaritoAlternativa,
+    ler_gabarito_cebraspe,
+    ler_gabarito_multipla_escolha,
+)
 from aprovaos.dominio.pdf import extrair_texto
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -108,3 +114,78 @@ def test_le_gabaritos_reais_de_conferencia() -> None:
         assert len(gabarito) == n_esperado, caminho.name
         anulados = {n for n, entrada in gabarito.items() if entrada.status == "anulado"}
         assert anulados == anulados_esperados, caminho.name
+
+
+# --- Passo 1 da fatia V3b: leitura do gabarito Cebraspe A–E (múltipla escolha) ------------------
+# Mesmo gabarito real de `FIXTURE_GAB_TJCE_ME`, agora lido pela função A–E: 40 questões (21 a
+# 60), com as questões 23, 27, 35, 38 e 40 marcadas "X" (anuladas) — conferido linha a linha no
+# texto extraído do PDF (`.superpowers/sdd/V3b-multipla-escolha/passo-1-report.md`).
+N_QUESTOES_TJ_CE = 40
+ANULADAS_TJ_CE = {23, 27, 35, 38, 40}
+
+# Os valores de todas as 40 questões, na ordem 21→60, conferidos na grade impressa do PDF
+# ("D C X B D A X E E D D B D E X B C X A X" seguido de "A A B D C E B E E E B B A D C E E B A B").
+_VALORES_TJ_CE = (
+    "D C _ B D A _ E E D D B D E _ B C _ A _ A A B D C E B E E E B B A D C E E B A B"
+).split()
+
+
+def test_le_gabarito_multipla_escolha_real() -> None:
+    """O gabarito real da TJ_CE tem 40 entradas (questões 21 a 60), cada uma A–E ou anulada."""
+    gabarito = ler_gabarito_multipla_escolha(_texto_do_pdf(FIXTURE_GAB_TJCE_ME))
+    assert len(gabarito) == N_QUESTOES_TJ_CE
+    assert set(gabarito) == set(range(21, 21 + N_QUESTOES_TJ_CE))
+    for entrada in gabarito.values():
+        assert entrada.valor in {"A", "B", "C", "D", "E", None}
+
+
+def test_anulada_multipla_escolha() -> None:
+    """Questão anulada (marcada "X" no quadro) vira valor=None, status=anulado."""
+    gabarito = ler_gabarito_multipla_escolha(_texto_do_pdf(FIXTURE_GAB_TJCE_ME))
+    anuladas = {numero for numero, entrada in gabarito.items() if entrada.status == "anulado"}
+    assert anuladas == ANULADAS_TJ_CE
+    for numero in ANULADAS_TJ_CE:
+        assert gabarito[numero] == EntradaGabaritoAlternativa(
+            valor=None, status="anulado", valor_preliminar=None
+        )
+
+
+def test_valores_multipla_escolha_conferidos_na_grade() -> None:
+    """Cada questão não anulada tem o valor exatamente igual ao impresso na grade do PDF."""
+    gabarito = ler_gabarito_multipla_escolha(_texto_do_pdf(FIXTURE_GAB_TJCE_ME))
+    for numero in range(21, 21 + N_QUESTOES_TJ_CE):
+        valor_esperado = _VALORES_TJ_CE[numero - 21]
+        if valor_esperado == "_":
+            assert gabarito[numero].status == "anulado", numero
+        else:
+            assert gabarito[numero].valor == valor_esperado, numero
+            assert gabarito[numero].status == "definitivo", numero
+
+
+def test_alterado_multipla_escolha() -> None:
+    """Questão com gabarito preliminar e definitivo diferentes vira status=alterado (sintético).
+
+    Mesmo motivo do teste equivalente do gabarito C/E (`test_alterado`): o único gabarito A–E
+    real desta fatia só tem grade definitiva, sem seção "GABARITO PRELIMINAR" separada.
+    """
+    texto = """\
+1 2
+A B
+GABARITO PRELIMINAR
+1 2
+A A
+GABARITOS OFICIAIS DEFINITIVOS
+"""
+    gabarito = ler_gabarito_multipla_escolha(texto)
+    assert gabarito[1] == EntradaGabaritoAlternativa(
+        valor="A", status="definitivo", valor_preliminar=None
+    )
+    assert gabarito[2] == EntradaGabaritoAlternativa(
+        valor="A", status="alterado", valor_preliminar="B"
+    )
+
+
+def test_formato_nao_reconhecido_levanta_erro_multipla_escolha() -> None:
+    """Um texto sem grade de gabarito A–E não devolve mapa vazio — a função para."""
+    with pytest.raises(GabaritoNaoReconhecido):
+        ler_gabarito_multipla_escolha("Isto não é um gabarito de forma nenhuma.")

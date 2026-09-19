@@ -1,13 +1,21 @@
-"""Segmentação determinística de um caderno Cebraspe certo/errado: texto → lista de itens.
+"""Segmentação determinística de um caderno Cebraspe: texto → lista de itens (C/E e A–E).
 
-O que é: `ItemBruto` (Pydantic) e `segmentar_cebraspe(texto: str) -> list[ItemBruto]`, que
-implementam a linha "Cebraspe (C/E)" da tabela "Segmentação por banca" da skill
-`ingestao-de-provas`. Função pura, sem IA, sem rede, sem disco — quem lê o PDF
-(`dominio/pdf.extrair_texto`) é quem chama. Quando ler: ao ajustar a segmentação para um
-caderno C/E real que ela não entendeu, ou ao estender para o padrão A–E (fora desta fatia).
+O que é: `ItemBruto`/`segmentar_cebraspe` (linha "Cebraspe (C/E)" da tabela "Segmentação por
+banca" da skill `ingestao-de-provas`) e `AlternativaBruta`/`ItemBrutoAlternativas`/
+`segmentar_multipla_escolha` (linha "Cebraspe (A–E, cargos de nível médio)" da mesma tabela).
+Funções puras, sem IA, sem rede, sem disco — quem lê o PDF (`dominio/pdf.extrair_texto`) é quem
+chama. Quando ler: ao ajustar qualquer uma das duas segmentações para um caderno real que ela não
+entendeu.
+
+`segmentar_multipla_escolha` não reconhece "Texto para as questões X a Y" (bloco de apoio
+compartilhado por várias questões) nem um comando compartilhado entre questões — o único caderno
+A–E real disponível nesta fatia (`TJ_CE_23_SERVIDOR`, Técnico Judiciário) não usa nenhum dos
+dois: cada questão é autocontida, com seu próprio enunciado terminado em "assinale a opção
+correta" (ou equivalente). Ver `.superpowers/sdd/V3b-multipla-escolha/passo-1-report.md`.
 """
 
 import re
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -316,6 +324,198 @@ def segmentar_cebraspe(texto: str) -> list[ItemBruto]:
                 texto_apoio=texto_apoio,
                 texto_apoio_itens=itens_do_apoio,
                 enunciado=enunciado,
+            )
+        )
+    return itens
+
+
+_LETRA = Literal["A", "B", "C", "D", "E"]
+_LETRAS_ALTERNATIVA: tuple[_LETRA, ...] = ("A", "B", "C", "D", "E")
+
+_INICIO_DE_QUESTAO = re.compile(r"(?i)^Questão\s+(\d+)$")
+"""Cabeçalho de questão do caderno A–E, ex.: "Questão 21" (a Cebraspe imprime em title case;
+a skill descreve o marcador como "QUESTÃO N" — a comparação é sem diferenciar caixa)."""
+
+_MARCADOR_DE_ALTERNATIVA = re.compile(r"^([A-E])\s+(?=\S)")
+"""Letra da alternativa no início da linha, seguida de espaço e conteúdo.
+
+Uma letra maiúscula sozinha no início de uma linha também aparece por acaso como artigo
+("A República..." ) ou conjunção ("E, ainda, ...") no meio do enunciado — por isso esta regex só
+identifica *candidatos*; `_indices_das_alternativas` é quem decide, por eliminação posicional
+(cada letra tem de aparecer antes da seguinte já resolvida), qual candidato é a alternativa de
+verdade. Ver achado do passo 1 no relatório da fatia."""
+
+_CABECALHO_MULTIPLA_ESCOLHA = re.compile(r"(?i)CEBRASPE")
+"""Cabeçalho repetido a cada página do caderno A–E, ex.: "82000101135697 CEBRASPE – TJ/CE –
+SERVIDOR – Edital: 2023" — ao contrário do caderno C/E, vem com um código numérico antes, por
+isso a busca é por conter "CEBRASPE" em qualquer posição da linha, não por começar com ele."""
+
+_ESPACO_LIVRE = re.compile(r"(?i)^Espaço livre$")
+"""Marcador de preenchimento de página do caderno A–E, sem conteúdo — nunca item nem alternativa."""
+
+
+class AlternativaBruta(BaseModel):
+    """Uma alternativa (A–E) tal como o caderno a imprime, ainda sem saber se é o gabarito.
+
+    Attributes:
+        letra: a letra impressa da alternativa.
+        texto: o texto da alternativa, linhas reunidas (hífen de quebra resolvido).
+    """
+
+    letra: _LETRA
+    texto: str
+
+
+class ItemBrutoAlternativas(BaseModel):
+    """Uma questão de múltipla escolha A–E tal como o caderno a apresenta, sem gabarito nem tópico.
+
+    Attributes:
+        numero_item: número da questão impresso no caderno (ex.: `21`).
+        enunciado: o texto da questão até a primeira alternativa, como o caderno imprimiu — inclui
+            qualquer instrução final embutida (ex.: "assinale a opção correta"), porque, no único
+            caderno real desta fatia, essa instrução não é um comando reaproveitado por outras
+            questões (ver módulo).
+        alternativas: as cinco alternativas, na ordem A, B, C, D, E.
+    """
+
+    numero_item: int
+    enunciado: str
+    alternativas: list[AlternativaBruta]
+
+
+def _linhas_relevantes_multipla_escolha(texto: str) -> list[str]:
+    """Divide o texto em linhas e descarta cabeçalho, rodapé, marcador de seção e "Espaço livre".
+
+    Args:
+        texto: texto integral extraído do PDF do caderno A–E.
+
+    Returns:
+        As linhas com conteúdo, já sem as pontas em branco, na ordem do caderno.
+    """
+    linhas: list[str] = []
+    for bruta in texto.split("\n"):
+        linha = bruta.strip()
+        if not linha:
+            continue
+        if _CABECALHO_MULTIPLA_ESCOLHA.search(linha):
+            continue
+        if _MARCADOR_DE_SECAO.match(linha):
+            continue
+        if _ESPACO_LIVRE.match(linha):
+            continue
+        linhas.append(linha)
+    return linhas
+
+
+def _blocos_por_questao(linhas: list[str]) -> list[tuple[int | None, list[str]]]:
+    """Agrupa as linhas em blocos: um preâmbulo (sem questão) e um por questão.
+
+    Args:
+        linhas: linhas já sem cabeçalho/rodapé/marcador de seção/"Espaço livre".
+
+    Returns:
+        Uma lista de `(numero_item, linhas_do_bloco)`; o primeiro elemento tem `numero_item`
+        `None` quando há texto antes da primeira questão.
+    """
+    blocos: list[tuple[int | None, list[str]]] = []
+    numero_atual: int | None = None
+    linhas_atuais: list[str] = []
+    for linha in linhas:
+        casamento = _INICIO_DE_QUESTAO.match(linha)
+        if casamento is not None:
+            blocos.append((numero_atual, linhas_atuais))
+            numero_atual = int(casamento.group(1))
+            linhas_atuais = []
+        else:
+            linhas_atuais.append(linha)
+    blocos.append((numero_atual, linhas_atuais))
+    return blocos
+
+
+def _indices_das_alternativas(linhas: list[str], numero_item: int) -> dict[_LETRA, int]:
+    """Acha, num bloco de questão, o índice de cada alternativa A–E, por eliminação posicional.
+
+    Junta todos os candidatos (linhas que começam com uma letra A–E seguida de espaço) e resolve
+    da direita para a esquerda: a alternativa E é o último candidato "E" do bloco; a D é o último
+    candidato "D" que vem antes da E já resolvida; e assim por diante até A. Isso decide sozinho,
+    sem adivinhar, qual candidato "A" é a alternativa de verdade quando o enunciado da questão
+    começa com o artigo "A" (achado do passo 1: 5 das 40 questões do caderno real começam assim).
+
+    Args:
+        linhas: as linhas do bloco da questão (sem a própria linha "Questão N").
+        numero_item: número da questão, só para a mensagem de erro.
+
+    Returns:
+        Um mapa `letra -> índice`, com os cinco índices em ordem estritamente crescente.
+
+    Raises:
+        SegmentacaoAmbigua: alguma letra não tem candidato, ou não tem candidato antes da letra
+            seguinte já resolvida — estrutura de alternativas não reconhecida.
+    """
+    candidatos: dict[_LETRA, list[int]] = {letra: [] for letra in _LETRAS_ALTERNATIVA}
+    for indice, linha in enumerate(linhas):
+        casamento = _MARCADOR_DE_ALTERNATIVA.match(linha)
+        if casamento is not None:
+            letra_encontrada = casamento.group(1)
+            assert letra_encontrada in _LETRAS_ALTERNATIVA  # regex só casa A-E
+            candidatos[letra_encontrada].append(indice)
+
+    faltando = [letra for letra in _LETRAS_ALTERNATIVA if not candidatos[letra]]
+    if faltando:
+        raise SegmentacaoAmbigua(
+            f"Questão {numero_item}: não encontrei a(s) alternativa(s) {', '.join(faltando)} — "
+            "estrutura de alternativas não reconhecida."
+        )
+
+    indices: dict[_LETRA, int] = {"E": candidatos["E"][-1]}
+    limite = indices["E"]
+    for letra in ("D", "C", "B", "A"):
+        anteriores = [indice for indice in candidatos[letra] if indice < limite]
+        if not anteriores:
+            raise SegmentacaoAmbigua(
+                f"Questão {numero_item}: a alternativa {letra} não aparece antes da alternativa "
+                "seguinte já resolvida — estrutura de alternativas não reconhecida."
+            )
+        indices[letra] = anteriores[-1]
+        limite = indices[letra]
+    return indices
+
+
+def segmentar_multipla_escolha(texto: str) -> list[ItemBrutoAlternativas]:
+    """Segmenta o texto de um caderno Cebraspe A–E (nível médio) em questões, sem IA e sem rede.
+
+    Implementa a linha "Cebraspe (A–E, cargos de nível médio)" da tabela "Segmentação por banca"
+    da skill `ingestao-de-provas`: cada questão começa em uma linha "Questão N"; o enunciado é o
+    texto até a primeira alternativa; as cinco alternativas são identificadas por eliminação
+    posicional (`_indices_das_alternativas`).
+
+    Args:
+        texto: texto do caderno, já extraído do PDF (`dominio.pdf.extrair_texto`).
+
+    Returns:
+        As questões na ordem do caderno, cada uma com exatamente cinco alternativas (A a E).
+
+    Raises:
+        SegmentacaoAmbigua: uma questão não tem as cinco alternativas reconhecíveis na ordem
+            esperada — a função para em vez de adivinhar; o documento fica para revisão manual.
+    """
+    linhas = _linhas_relevantes_multipla_escolha(texto)
+    itens: list[ItemBrutoAlternativas] = []
+    for numero, linhas_do_bloco in _blocos_por_questao(linhas):
+        if numero is None:
+            continue
+        indices = _indices_das_alternativas(linhas_do_bloco, numero)
+        enunciado = _juntar(linhas_do_bloco[: indices["A"]])
+        limites = [indices[letra] for letra in _LETRAS_ALTERNATIVA] + [len(linhas_do_bloco)]
+        alternativas: list[AlternativaBruta] = []
+        for posicao, letra in enumerate(_LETRAS_ALTERNATIVA):
+            inicio, fim = limites[posicao], limites[posicao + 1]
+            primeira_linha = _MARCADOR_DE_ALTERNATIVA.sub("", linhas_do_bloco[inicio], count=1)
+            texto_alternativa = _juntar([primeira_linha, *linhas_do_bloco[inicio + 1 : fim]])
+            alternativas.append(AlternativaBruta(letra=letra, texto=texto_alternativa))
+        itens.append(
+            ItemBrutoAlternativas(
+                numero_item=numero, enunciado=enunciado, alternativas=alternativas
             )
         )
     return itens

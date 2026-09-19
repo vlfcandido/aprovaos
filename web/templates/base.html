@@ -1,6 +1,8 @@
 {# O que é: layout base de toda página HTML do AprovaOS — head com viewport e tema, CSS por tokens,
    htmx vendorizado, cabeçalho com navegação (reflete `usuario_email`, injetado por `renderizar`) e
-   blocos `titulo`/`conteudo`. Quando ler: ao criar uma página nova (`{% extends "base.html" %}`). -#}
+   blocos `titulo`/`conteudo`/`script` (este último para a ilha de JS de uma tela específica, ex.
+   os atalhos de teclado de `questoes/topico.html` — ADR-0019). Quando ler: ao criar uma página
+   nova (`{% extends "base.html" %}`). -#}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -36,5 +38,6 @@
       <p>AprovaOS — piloto. Nada gerado chega a você sem validação.</p>
     </footer>
   </div>
+  {% block script %}{% endblock %}
 </body>
 </html>

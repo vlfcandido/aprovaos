@@ -400,6 +400,28 @@ small.fonte {
   color: var(--cor-texto-2);
 }
 
+.status--visto {
+  background: var(--cor-ok-suave);
+  color: var(--cor-ok);
+}
+
+.topico__contagem {
+  flex: none;
+  color: var(--cor-texto-3);
+  font-size: var(--texto-pequeno);
+  white-space: nowrap;
+}
+
+/* Cabeçalho de grupo do edital (ex.: "CONHECIMENTOS ESPECÍFICOS" — P-26), acima das matérias */
+.grupo {
+  margin: var(--espaco-6) 0 var(--espaco-2);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* Lista "Meus editais" (V2) */
 .concursos {
   list-style: none;
@@ -436,4 +458,133 @@ small.fonte {
 
 .concurso .fonte {
   margin: 0;
+}
+
+/* ---- Resolver questão (V3): comando, apoio recolhível, origem, confiança e os dois botões ---- */
+.questao__comando {
+  font-weight: 600;
+}
+
+.questao__apoio {
+  margin: 0 0 var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+}
+
+.questao__apoio summary {
+  cursor: pointer;
+  color: var(--cor-acao);
+  font-weight: 600;
+}
+
+.questao__apoio p {
+  margin: var(--espaco-3) 0 0;
+}
+
+.questao__enunciado {
+  font-size: var(--texto-medio);
+}
+
+.questao__origem {
+  color: var(--cor-texto-3);
+  font-size: var(--texto-pequeno);
+}
+
+fieldset {
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+  border: 0;
+}
+
+fieldset legend {
+  padding: 0 0 var(--espaco-2);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+  font-weight: 600;
+}
+
+.opcao-confianca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin: 0 var(--espaco-4) var(--espaco-2) 0;
+  font-size: var(--texto-pequeno);
+}
+
+.respostas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-3);
+}
+
+.botao-resposta {
+  width: 100%;
+  min-height: 3.5rem;
+  font-size: var(--texto-medio);
+  background: transparent;
+  color: var(--cor-texto);
+  border-color: var(--cor-linha);
+}
+
+.botao-resposta:hover {
+  border-color: var(--cor-acao);
+  filter: none;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 var(--espaco-1);
+  margin-left: var(--espaco-1);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-pequeno);
+}
+
+.resultado__gabarito {
+  font-weight: 600;
+}
+
+.resultado__gabarito--certo {
+  color: var(--cor-ok);
+}
+
+.resultado__gabarito--errado {
+  color: var(--cor-erro);
+}
+
+.resultado__justificativa {
+  color: var(--cor-texto-2);
+}
+
+.form-reportar {
+  margin-top: var(--espaco-6);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-linha);
+}
+
+.form-reportar label {
+  display: block;
+  margin-bottom: var(--espaco-1);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.form-reportar textarea {
+  width: 100%;
+  min-height: 4rem;
+  padding: var(--espaco-2) var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+  resize: vertical;
 }

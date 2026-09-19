@@ -64,6 +64,9 @@ def _edital_com_topico(db: Session, tenant_id: UUID, slug: str) -> tuple[Edital,
     return edital, topico
 
 
+TEXTO_APOIO_CURTO = "Texto de apoio compartilhado com outros itens."
+
+
 def _questao_curada(
     topico_slug: str,
     documento_id: UUID,
@@ -71,6 +74,7 @@ def _questao_curada(
     numero_item: int = 58,
     gabarito: str = "C",
     publicavel: bool = True,
+    texto_apoio: str = TEXTO_APOIO_CURTO,
 ) -> QuestaoCurada:
     origem = Origem(
         banca="cebraspe",
@@ -86,7 +90,7 @@ def _questao_curada(
         banca="cebraspe",
         numero_item=numero_item,
         comando="Julgue o item a seguir.",
-        texto_apoio="Texto de apoio compartilhado com outros itens.",
+        texto_apoio=texto_apoio,
         texto_apoio_itens=[numero_item],
         enunciado="O pregão eletrônico dispensa a fase de habilitação prévia.",
         gabarito_preliminar=None,
@@ -154,6 +158,31 @@ def test_get_mostra_questao_com_origem(logado: TestClient, db: Session) -> None:
     assert "Gabarito" not in corpo
 
 
+def test_apoio_curto_nao_fica_recolhido(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-2b")
+    _criar_questao(db, topico, documento.id, texto_apoio=TEXTO_APOIO_CURTO)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert "<details" not in corpo
+    assert TEXTO_APOIO_CURTO in corpo
+
+
+def test_apoio_longo_fica_recolhido(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-2c")
+    texto_longo = "Lei nº 14.133/2021, art. 1º. " * 25  # bem mais que 600 caracteres
+    assert len(texto_longo) > 600
+    _criar_questao(db, topico, documento.id, texto_apoio=texto_longo)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert "<details" in corpo
+    assert "<summary>ver texto de apoio</summary>" in corpo
+    assert texto_longo in corpo
+
+
 def test_post_resposta_sem_confianca_400(logado: TestClient, db: Session) -> None:
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
@@ -192,6 +221,45 @@ def test_post_resposta_grava_evento_e_devolve_fragmento(logado: TestClient, db: 
     assert eventos[0].questao_id == questao.id
     assert eventos[0].acertou is True
     assert eventos[0].confianca_declarada == "certeza"
+
+
+def test_resultado_mostra_origem_completa_e_reportar(logado: TestClient, db: Session) -> None:
+    """Decisão 4 do passo 14: a origem aparece no resultado, sempre — e o botão de reportar
+    continua disponível ali, já que o fragmento substituiu o resto de `#questao`.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-4b")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "cebraspe" in corpo
+    assert "TJ-PA" in corpo
+    assert "Analista Judiciário — Direito" in corpo
+    assert "2025" in corpo
+    assert "item 58" in corpo
+    assert 'href="https://cdn.cebraspe.org.br/prova.pdf"' in corpo
+    assert f'action="/questoes/{questao.id}/reportar"' in corpo
+
+
+def test_topico_tela_referencia_atalhos_de_teclado(logado: TestClient, db: Session) -> None:
+    """Os botões grandes e o link "próxima" carregam os `data-atalho` que a ilha de JS usa
+    (ADR-0019); sem o script, eles continuam clicáveis normalmente (decisão 5 do passo 14).
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-4c")
+    _criar_questao(db, topico, documento.id)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert '<script src="/static/js/atalhos-estudo.js" defer></script>' in corpo
+    assert 'data-atalho="certo"' in corpo
+    assert 'data-atalho="errado"' in corpo
 
 
 def test_post_resposta_questao_de_outro_topico_erro(logado: TestClient, db: Session) -> None:

@@ -271,3 +271,78 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
     return ArtigoExtraido(
         numero=numero, caput=caput, incisos=incisos, paragrafos=paragrafos_do_artigo
     )
+
+
+_PADRAO_SO_DIGITOS = re.compile(r"\D+")
+
+
+def _numero_do_identificador(identificador: str) -> str:
+    """`"§ 3º"` / `"§ 10."` → `"3"` / `"10"` — só os dígitos, para comparar com uma citação.
+
+    O identificador de parágrafo que `extrair_artigo` produz carrega a pontuação exata do
+    Planalto (`"º"` para 1º-9º, só `"."` a partir do 10º — achado real do HTML da CF); uma
+    citação (`dominio.citacao.ReferenciaLegal.paragrafo`) já chega normalizada para só dígitos.
+    Comparar por número evita depender dessa pontuação inconsistente da fonte.
+    """
+    return _PADRAO_SO_DIGITOS.sub("", identificador)
+
+
+def localizar_trecho(
+    artigo: ArtigoExtraido, *, inciso: str | None = None, paragrafo: str | None = None
+) -> TrechoDispositivo:
+    """Localiza, dentro de um artigo já extraído, o trecho exato que uma citação aponta.
+
+    É o elo entre `dominio.citacao.extrair_citacoes` (que só sabe ler o texto de uma questão) e
+    o artigo de verdade: dada a `ArtigoExtraido` (de `extrair_artigo`) e o `inciso`/`paragrafo`
+    de uma `ReferenciaLegal`, devolve o `TrechoDispositivo` correspondente — nunca inventa um
+    trecho que a citação não pediu.
+
+    Args:
+        artigo: o artigo já extraído (`extrair_artigo`).
+        inciso: identificador do inciso citado (ex.: `"II"`), em algarismos romanos; `None`
+            quando a citação não desce a esse nível.
+        paragrafo: número do parágrafo citado (só dígitos, ex.: `"3"`, `"10"` — o mesmo formato
+            que `dominio.citacao.ReferenciaLegal.paragrafo` produz); `None` quando a citação é do
+            caput ou não desce a esse nível.
+
+    Returns:
+        `artigo.caput` quando nem `inciso` nem `paragrafo` são dados (citação simples ao
+        artigo, ex.: `"art. 37 da CF"`, equivalente a `"art. 37, caput, da CF"`); o parágrafo
+        (ou o inciso dentro dele, quando os dois são dados) quando `paragrafo` é dado; o inciso
+        do caput quando só `inciso` é dado.
+
+    Raises:
+        DispositivoNaoEncontrado: o `inciso`/`paragrafo` pedido não existe neste artigo — nunca
+            devolve o caput como aproximação.
+    """
+    if paragrafo is not None:
+        encontrado_paragrafo = next(
+            (
+                p
+                for p in artigo.paragrafos
+                if _numero_do_identificador(p.identificador) == paragrafo
+            ),
+            None,
+        )
+        if encontrado_paragrafo is None:
+            raise DispositivoNaoEncontrado(f"§ {paragrafo} não encontrado no art. {artigo.numero}")
+        if inciso is None:
+            return encontrado_paragrafo
+        encontrado_inciso = next(
+            (i for i in encontrado_paragrafo.alineas if i.identificador == inciso), None
+        )
+        if encontrado_inciso is None:
+            raise DispositivoNaoEncontrado(
+                f"inciso {inciso} não encontrado no § {paragrafo} do art. {artigo.numero}"
+            )
+        return encontrado_inciso
+
+    if inciso is not None:
+        encontrado_inciso = next((i for i in artigo.incisos if i.identificador == inciso), None)
+        if encontrado_inciso is None:
+            raise DispositivoNaoEncontrado(
+                f"inciso {inciso} não encontrado no art. {artigo.numero}"
+            )
+        return encontrado_inciso
+
+    return artigo.caput

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from aprovaos.dominio.erros import DispositivoNaoEncontrado
-from aprovaos.dominio.legislacao import extrair_artigo
+from aprovaos.dominio.legislacao import extrair_artigo, localizar_trecho
 
 RAIZ = Path(__file__).resolve().parents[2]
 _JURIDICO = RAIZ / "knowledge/fixtures/juridico"
@@ -160,3 +160,69 @@ def test_artigo_inexistente_levanta_dispositivo_nao_encontrado() -> None:
     """Um número de artigo que não existe na norma levanta erro, nunca um resultado vazio."""
     with pytest.raises(DispositivoNaoEncontrado):
         extrair_artigo(HTML_CF, "999")
+
+
+# --- localizar_trecho (passo 2 da fundação jurídica: liga uma ReferenciaLegal ao trecho exato) ---
+
+
+def test_localizar_trecho_sem_inciso_nem_paragrafo_e_o_caput() -> None:
+    """Uma citação só ao artigo (sem inciso/parágrafo) resolve para o caput."""
+    artigo = extrair_artigo(HTML_CF, "37")
+
+    trecho = localizar_trecho(artigo)
+
+    assert trecho is artigo.caput
+
+
+def test_localizar_trecho_por_inciso_do_caput() -> None:
+    """Uma citação a um inciso do caput resolve para o inciso, não para o caput."""
+    artigo = extrair_artigo(HTML_LEI_14133, "6")
+
+    trecho = localizar_trecho(artigo, inciso="IX")
+
+    assert trecho.identificador == "IX"
+    assert trecho.texto.startswith("IX - licitante:")
+
+
+def test_localizar_trecho_por_paragrafo() -> None:
+    """Uma citação a um parágrafo resolve pelo número, sem depender do `º`/`.` do identificador."""
+    artigo = extrair_artigo(HTML_CF, "37")
+
+    trecho = localizar_trecho(artigo, paragrafo="3")
+
+    assert trecho.identificador == "§ 3º"
+
+
+def test_localizar_trecho_por_paragrafo_de_dois_digitos() -> None:
+    """`"§ 10."` no identificador (sem `º`) ainda casa com a citação `paragrafo="10"`."""
+    artigo = extrair_artigo(HTML_CF, "37")
+
+    trecho = localizar_trecho(artigo, paragrafo="10")
+
+    assert trecho.identificador == "§ 10."
+
+
+def test_localizar_trecho_por_inciso_dentro_de_paragrafo() -> None:
+    """Um inciso citado dentro de um parágrafo específico é achado nas alíneas dele."""
+    artigo = extrair_artigo(HTML_CF, "37")
+
+    trecho = localizar_trecho(artigo, paragrafo="3", inciso="II")
+
+    assert trecho.identificador == "II"
+    assert "Vide Lei nº 12.527, de 2011" in (trecho.redacao_de or "")
+
+
+def test_localizar_trecho_paragrafo_inexistente_levanta_dispositivo_nao_encontrado() -> None:
+    """Um parágrafo que o artigo não tem levanta erro, nunca devolve o caput por engano."""
+    artigo = extrair_artigo(HTML_LEI_14133, "6")  # art. 6º da Lei 14.133 não tem parágrafos
+
+    with pytest.raises(DispositivoNaoEncontrado):
+        localizar_trecho(artigo, paragrafo="1")
+
+
+def test_localizar_trecho_inciso_inexistente_levanta_dispositivo_nao_encontrado() -> None:
+    """Um inciso que o artigo não tem levanta erro, nunca devolve o caput por engano."""
+    artigo = extrair_artigo(HTML_CF, "37")
+
+    with pytest.raises(DispositivoNaoEncontrado):
+        localizar_trecho(artigo, inciso="XCIX")

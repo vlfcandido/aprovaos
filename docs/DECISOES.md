@@ -210,3 +210,71 @@ Ressalva honesta: a `janela` de 40–60 caracteres usada nas três correções s
 **O que esta ADR não decide:** não cria `clausula_com_conceito` agora — as três correções já feitas continuam com a regex restrita de cada uma, escrita à mão. A unificação num utilitário só entra quando houver um terceiro ou quarto edital real para validar o limiar de `janela` contra mais dados; unificar cedo demais, com dois exemplos, arriscaria fixar um número que não generaliza.
 **Alternativas:** aceitar o primeiro parágrafo que contém o termo-âncora, como antes (é exatamente o defeito que gerou os quatro achados); inferir por confiança numérica (0,6, 0,8...) em vez de proximidade textual (a skill `monitor-de-fontes` já veta "confiança inventada por palavra-chave" pelo mesmo motivo — não há medição que sustente o número); tratar cada achado como bug isolado sem registrar a regra geral (é o que este ADR existe para evitar — a próxima extração de fato nasceria com o mesmo defeito).
 **Por quê:** o princípio "nada gerado chega ao aluno sem validação; toda afirmação jurídica tem fonte" (CLAUDE.md regra 11) vale também para fato extraído do próprio edital, não só para conteúdo gerado por LLM — um `"Banca: <trecho de cláusula de recurso>"` na tela é tão enganoso quanto uma afirmação jurídica sem fonte. `desconhecido` com lacuna é o estado que o produto já sabe mostrar (a mesma convenção da skill `dna-do-concurso`); um dado errado com cara de fato não tem lugar equivalente para ser corrigido depois — ele parece certo.
+
+## ADR-0037 — User-Agent do coletor: híbrido `Mozilla/5.0 (compatible; ...)` onde o token é exigido, identificado puro onde já é aceito · 2026-09-19 · aceita
+**Decisão:** o coletor jurídico usa `Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato:
+vlfcandido@gmail.com)` como User-Agent para fontes que exigem o token `Mozilla/5.0` na borda
+(medido: Planalto e STF, ver abaixo). O User-Agent identificado puro
+(`AprovaOS-coletor/0.1 (+contato: vlfcandido@gmail.com)`, ADR-0030/ADR-0035) continua valendo
+onde já é aceito sem esse token — hoje, a Cebraspe (ficha em `knowledge/fontes.yaml`). Não é uma
+substituição: são dois formatos do mesmo UA identificado, escolhidos por fonte conforme o que ela
+exige — a ficha de cada fonte em `knowledge/fontes.yaml` registra qual dos dois usar.
+
+**O que isso obriga no código:** o cliente HTTP do coletor tem de **expor cabeçalhos
+explicitamente** (`httpx`/`httpx2` com `headers={"User-Agent": ...}` configurável por fonte, no
+padrão já usado pela Cebraspe — ADR-0034). Achado que torna isso requisito de desenho, não
+detalhe: uma ferramenta de fetch genérica sem esse controle (o `WebFetch` usado durante a própria
+medição desta ADR) continua falhando contra o Planalto (`ECONNRESET`) mesmo depois de a causa ser
+conhecida e corrigida para `curl` — porque ela não permite escolher o UA que envia. Um coletor de
+produção construído em cima de uma ferramenta assim herdaria a mesma cegueira sem nenhum aviso
+(o sintoma imita instabilidade de rede, não um 403 claro).
+
+**Por quê:** não mentimos sobre quem somos para conseguir acesso — o formato híbrido
+`Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato: ...)` é o mesmo padrão que bots
+legítimos usam para se identificar dentro do formato que os servidores aceitam (o próprio
+Googlebot se anuncia como `Mozilla/5.0 (compatible; Googlebot/2.1;
++http://www.google.com/bot.html)`). Medido em 19/09/2026 (`.superpowers/sdd/V3b-multipla-escolha/
+fontes-juridicas-report.md`, evidência em `knowledge/fixtures/juridico/`): o UA híbrido passa no
+Planalto (200, 1.839.482 bytes na CF — idêntico byte a byte ao UA de navegador puro) e no índice
+do STF (200, 139.841 bytes — idem); o identificado puro, sem o prefixo `Mozilla/5.0`, é recusado
+pelo Planalto (`000`, 0 bytes) apesar de ser a mesma informação de contato.
+
+**Fontes e rotas, estado medido em 19/09/2026** (corrige o diagnóstico presente na P-15 desde
+17/09/2026 — ver `docs/PENDENCIAS.md`):
+- **Planalto (Rota A da skill `deep-research-topico`) volta a ser a fonte primária de normas** —
+  não estava fora do ar; sem o token `Mozilla/5.0` no UA, o TLS fecha handshake normalmente mas o
+  corpo da resposta nunca chega, o que **imita** uma falha de rede sem ser uma. É também a fonte
+  mais rica das quatro medidas: mostra o texto revogado **riscado** (`<strike>`) ao lado do texto
+  vigente, com link direto para a Emenda/Lei que alterou o dispositivo — dá `redacao_de` e
+  "redação anterior × atual" numa fonte só.
+- **Câmara `legin` (Rota B) é a alternativa real**, inclusive dentro da própria Câmara: o `.html`
+  "normaatualizada" de uma norma específica pode cair (a Lei 14.133/2021 deu **504 Gateway
+  Timeout** em 3 tentativas seguidas) e o `.pdf`/`.doc` da mesma URL-base suprir — o extrator do
+  coletor precisa tratar HTML **e** PDF/DOC, não só HTML.
+- **STF (súmulas e súmulas vinculantes)** exige o UA de navegador (ou o híbrido, medido acima) e
+  uma resolução em **duas etapas**: o parâmetro `sumula=<id>` da URL é um ID interno, não o número
+  da súmula — só descobrível abrindo o índice (`base=30` para comuns, `base=26` para vinculantes)
+  e casando o texto do link com o `href`. Não dá para fixar um mapa número→id sem revalidar,
+  porque cancelamentos e súmulas novas mudam a lista.
+- **STJ (súmulas)** é a mais simples: um único PDF (`scon.stj.jus.br/.../VerbetesSTJ.pdf`) cobre
+  as ~676 súmulas, texto limpo, sem exigência de UA especial.
+- **LexML (Rota C) fica como lacuna declarada, não corrigida por esta ADR**: retestado com UA de
+  navegador, continua devolvendo a mesma página "Verificação de segurança — Senado Federal" (só o
+  campo `ts` interno muda) — não é filtro de UA, é desafio de JavaScript de verdade. Precisaria de
+  navegador real (Playwright/Chrome) para passar; fica pendente de o dono avaliar se o custo vale,
+  já que Planalto+Câmara cobrem normas e STF+STJ cobrem súmulas sem essa rota.
+
+**Nota sobre a skill `monitor-de-fontes`:** esta ADR não revoga a exigência de UA identificado —
+ela define **qual formato** cumpre essa exigência e passa nos servidores testados. A ficha de
+cada fonte em `knowledge/fontes.yaml` deve registrar qual dos dois formatos (identificado puro ou
+híbrido `Mozilla/5.0`) ela exige, medido caso a caso — não presumido.
+
+**Alternativas:** usar só o UA identificado puro em toda fonte (falha no Planalto e,
+provavelmente, em qualquer fonte com o mesmo filtro de borda); usar só um UA de navegador comum
+sem identificação (`Mozilla/5.0 (Macintosh...) Chrome/120.0...`, sem menção ao AprovaOS) — passa
+nos mesmos testes, mas contraria a exigência de identificação da skill `monitor-de-fontes` e
+tira da fonte a chance de nos contatar se algo der errado; construir o coletor em cima de uma
+ferramenta de fetch sem controle de header (descartada pelo achado acima — falha sem aviso claro).
+**Por quê (resumo):** o formato híbrido é o único, entre os testados, que satisfaz as duas
+exigências ao mesmo tempo — passar no filtro de borda **e** se identificar de verdade — sem
+recorrer a navegador automatizado para fontes que não exigem desafio de JavaScript.

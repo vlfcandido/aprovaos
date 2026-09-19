@@ -1,0 +1,75 @@
+CORREÇÃO — 2026-09-19 (mesma tarefa, depois da primeira coleta)
+
+O diagnóstico original deste arquivo ("Planalto fora do ar / falha de rede / ECONNRESET
+persistente") estava ERRADO. Mantenho o texto original abaixo, riscado com "❌", e registro o
+diagnóstico correto por cima — porque este é exatamente o tipo de arquivo que um próximo modelo
+citaria como fato sem reabrir a fonte.
+
+DIAGNÓSTICO CORRETO: o Planalto responde normalmente; ele apenas **recusa clientes cujo
+User-Agent não se parece com um navegador**. Sem `-A`, o `curl` usa `curl/8.7.1` como
+User-Agent — e a conexão TLS fecha, mas o servidor nunca envia o corpo da resposta (comportamento
+que imita uma falha de rede, mas é um filtro de borda por assinatura de UA). Com um User-Agent
+de navegador, ou mesmo um User-Agent **identificado que contenha o padrão `Mozilla/5.0`**, a
+mesma URL responde 200 com o conteúdo completo. Prova:
+
+  curl -sL "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"
+    -> status=000, size=0 (mesmo padrão de antes: TLS ok, 0 bytes de corpo)
+
+  curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36" \
+       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"
+    -> status=200, size=1839482  (== os 1,8 MB que o dono mediu no navegador dele)
+
+  curl -sL -A "Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato: vlfcandido@gmail.com)" \
+       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"
+    -> status=200, size=1839482  (idêntico ao UA de navegador puro — o filtro aceita UA
+       IDENTIFICADO desde que o token "Mozilla/5.0" esteja presente)
+
+  curl -sL -A "AprovaOS-coletor/0.1 (+contato: vlfcandido@gmail.com)" \
+       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"
+    -> status=000, size=0  (UA identificado SEM o prefixo "Mozilla/5.0" continua sendo recusado)
+
+Mesmo padrão confirmado para a Lei 14.133/2021 (`l14133.htm`): sem UA, 0 bytes; com UA de
+navegador ou com o UA híbrido `Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; ...)`, 200 e
+649.705 bytes (== os ~650 KB que o dono mediu).
+
+Isso também revê o diagnóstico da P-15 (17/09/2026, `docs/PENDENCIAS.md`): o "ECONNRESET"
+registrado lá provavelmente era o mesmo filtro de UA, não uma instabilidade de rede — ficou como
+diagnóstico errado por dois dias. Recomendo que quem ler `docs/PENDENCIAS.md` corrija a entrada
+da P-15 à luz disto.
+
+Ficam os HTMLs baixados com sucesso: `constituicao_planalto_compilada.htm` (1,8 MB, UA de
+navegador) e `lei14133_planalto_compilada.htm` (650 KB, UA de navegador) — ambos idênticos byte a
+byte ao que o UA híbrido identificado produz (testado e conferido para a CF; ver acima).
+
+Decisão pendente para o dono: o UA híbrido `Mozilla/5.0 (compatible; AprovaOS-coletor/0.1;
++contato: vlfcandido@gmail.com)` passa no Planalto sem mentir sobre quem somos — ele não afirma
+ser um navegador específico, só inclui o token que o filtro de borda exige. Uso esse formato como
+UA padrão do coletor, ou o dono prefere outro texto/contato? (Ver seção correspondente no
+relatório-mãe `fontes-juridicas-report.md`.)
+
+---
+TEXTO ORIGINAL (❌ diagnóstico incompleto — mantido por rastreabilidade, não usar como fato):
+
+Evidência de falha — Planalto (Rota A), coletada em 2026-09-19
+
+Tentativas via curl (rede local desta tarefa):
+1) https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm
+   -> TLS handshake OK (SSL certificate verify ok, TLSv1.2), GET enviado,
+      "Operation timed out after 20004 milliseconds with 0 bytes received"
+      (status=000, size=0, repetido 2x)
+2) https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm
+   -> mesmo padrão: handshake TLS ok, GET enviado, 0 bytes recebidos, timeout
+      (status=000, size=0, repetido 2x, inclusive com wget)
+3) https://www.planalto.gov.br/ (raiz)
+   -> mesmo padrão: handshake ok, GET enviado, 0 bytes recebidos em 20s
+
+Tentativas via WebFetch (ferramenta de fetch da tarefa, caminho de rede distinto do curl local):
+1) https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm -> erro "read ECONNRESET"
+2) https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm -> erro "read ECONNRESET"
+
+❌ Conclusão ORIGINAL (errada, não usar): "nesta tarefa e nesta máquina/rede, o Planalto NÃO
+respondeu ao conteúdo em nenhuma das duas ferramentas [...] o comportamento [...] é consistente
+com o ECONNRESET registrado na pendência P-15". Isso confundiu filtro de UA com falha de rede —
+ver diagnóstico correto no topo deste arquivo. O WebFetch (ferramenta interna, sem controle de
+UA por esta tarefa) continua sem confirmação de que envia UA de navegador — não retestado; ver
+lacuna no relatório-mãe.

@@ -3,12 +3,14 @@
    `topico.html`: "a revisão de um cartão de questão é, na prática, a questão de novo" (plano V4
    §5) — mesmo certeza/dúvida, mesma origem, mesmo botão de reportar. Sem cartão vencido, mostra
    o aviso de que não há nada para revisar agora (200, nunca erro — mesma decisão 7 da tela de
-   questão). Quando ler: ao mexer no fluxo de revisão. -#}
+   questão). `#questao` é `aria-live="polite"` e carrega as mesmas duas ilhas de `topico.html`
+   (atalhos de teclado e o bloqueio real de confiança) — mesmo raciocínio, fatia 14 §2.1. Quando
+   ler: ao mexer no fluxo de revisão. -#}
 {% extends "base.html" %}
 {% block titulo %}Revisar hoje — AprovaOS{% endblock %}
 {% block conteudo %}
   <h1>Revisar hoje</h1>
-  <div id="questao">
+  <div id="questao" aria-live="polite">
     {% if questao %}
       {% include "questoes/_cartao_questao.html" %}
     {% else %}
@@ -18,4 +20,5 @@
 {% endblock %}
 {% block script %}
   <script src="/static/js/atalhos-estudo.js" defer></script>
+  <script src="/static/js/confianca-questao.js" defer></script>
 {% endblock %}

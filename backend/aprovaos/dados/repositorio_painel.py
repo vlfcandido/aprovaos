@@ -25,18 +25,19 @@ from aprovaos.dados.modelos import Edital, EventoEstudo, Questao, Topico, Topico
 from aprovaos.dados.repositorio_edital import concurso_principal, dna_atual, edital_atual
 from aprovaos.dados.repositorio_perfil import perfil_atual
 from aprovaos.dominio.curva import Alerta, Curva, RespostaHistorica, alerta_da_curva, montar_curva
-from aprovaos.dominio.edital import slug_materia
+from aprovaos.dominio.edital import normalizar_materia, slug_materia
 from aprovaos.dominio.padroes import RespostaClassificada
 
 #: Fuso da aluna (Ruling 37, `docs/fatias/10-painel.md` §1) — `evento_estudo.ocorrido_em` é
 #: sempre UTC; toda hora do dia exibida no painel é convertida para cá e a tela diz isso.
 FUSO_BRASILIA: Final = ZoneInfo("America/Sao_Paulo")
 
-#: Mensagem exibida quando o DNA do edital não traz quantas questões cada matéria tem na prova
-#: (P-39) — a previsão usa peso `1` (uniforme) por matéria em vez de inventar uma distribuição.
+#: Mensagem exibida quando o DNA do edital não traz quantas questões cada matéria tem na prova —
+#: a previsão usa peso `1` (uniforme) por matéria em vez de inventar uma distribuição. Em
+#: linguagem da aluna, sem código interno de pendência.
 LACUNA_PESO_UNIFORME: Final = (
-    "o edital não informa quantas questões cada matéria tem na prova — a previsão está usando "
-    "peso uniforme por matéria (P-39)"
+    "o edital não informa quantas questões cada matéria tem, então o peso está uniforme entre "
+    "as matérias"
 )
 
 
@@ -99,7 +100,10 @@ def respostas_classificadas(
     Returns:
         Uma `RespostaClassificada` por `evento_estudo` de resposta (`materia`/`topico_nome` de
         `topico`, `banca` de `questao`, `hora_local` convertida para `America/Sao_Paulo` —
-        Ruling 37); mesma trava da P-34 de `respostas_historicas`.
+        Ruling 37); mesma trava da P-34 de `respostas_historicas`. `materia` já passa por
+        `normalizar_materia` — dado velho do bug de fusão pode ter a mesma matéria em duas
+        caixas (`"LÍNGUA PORTUGUESA"` e `"Língua Portuguesa"`); sem normalizar aqui ela vira
+        duas matérias na tela.
     """
     consulta = (
         select(
@@ -124,7 +128,7 @@ def respostas_classificadas(
     return [
         RespostaClassificada(
             acertou=bool(acertou),
-            materia=materia,
+            materia=normalizar_materia(materia),
             topico_nome=topico_nome,
             banca=banca,
             hora_local=ocorrido_em.astimezone(FUSO_BRASILIA).hour,
@@ -181,10 +185,11 @@ def pesos_por_materia(db: Session, edital_id: UUID) -> PesosMateria:
 
     Returns:
         `PesosMateria` com uma entrada por matéria do edital; `pesos={}` sem matéria nenhuma.
+        Os nomes já passam por `normalizar_materia` (mesmo motivo de `respostas_classificadas`).
     """
     materias = sorted(
         {
-            materia
+            normalizar_materia(materia)
             for (materia,) in db.execute(
                 select(Topico.materia)
                 .join(TopicoEdital, TopicoEdital.topico_id == Topico.id)

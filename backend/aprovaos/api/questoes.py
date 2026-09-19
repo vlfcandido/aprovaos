@@ -44,6 +44,7 @@ espírito de `/revisar`). Continuam sendo detalhe de implementação da camada `
 superfície pública do produto.
 """
 
+import re
 from collections.abc import Sequence
 from typing import Annotated, cast
 from uuid import UUID
@@ -79,6 +80,7 @@ from aprovaos.dados.repositorio_fio_memoria import (
     quantidade_no_bloco,
 )
 from aprovaos.dados.repositorio_questao import (
+    posicao_na_fila,
     proxima_questao,
     registrar_reporte,
     registrar_resposta,
@@ -131,6 +133,46 @@ MENSAGEM_QUESTAO_INDISPONIVEL = (
 )
 
 RESPOSTA_TEXTO = {"C": "Certo", "E": "Errado"}
+
+#: Nome próprio de exibição para as bancas conhecidas (achado do porte visual, fatia 14 §2.2:
+#: `origem.banca` é gravada em minúsculo, ex. `"cebraspe"`, porque é assim que o adapter identifica
+#: a banca internamente — a tela não deve mostrar esse identificador cru). Bancas fora deste mapa
+#: são exibidas como vieram: nunca aplicamos `.title()`/`.capitalize()` cegamente, porque um
+#: identificador que já é uma sigla (ex. `"AOCP"`, `"FCC"`) viraria `"Aocp"`/`"Fcc"` — pior que não
+#: mexer. Só Cebraspe (e FGV, ainda fora do piloto — ADR-0011) têm nome próprio conhecido hoje.
+NOMES_BANCA_PROPRIOS: dict[str, str] = {"cebraspe": "Cebraspe", "fgv": "FGV"}
+
+#: Um `cargo` que só repete o rótulo interno do coletor (`"CARGO 1"`, `"CARGO 19"` — nunca um
+#: cargo de verdade) — achado do porte visual, fatia 14 §2.2, contra o fixture fictício da V3
+#: (ADR-0027/0036). A tela nunca inventa um nome de cargo para substituir; ela apenas omite o
+#: campo quando ele é, com certeza, um identificador interno, e não silencia um cargo real.
+_PADRAO_CARGO_INTERNO = re.compile(r"^CARGO\s+\d+$", re.IGNORECASE)
+
+
+def _formatar_banca(banca: str) -> str:
+    """O nome próprio da banca para exibir na tela, ou a `banca` como veio, se não a conhecemos.
+
+    Args:
+        banca: `Questao.origem["banca"]`/`Origem.banca`, como o adapter gravou.
+
+    Returns:
+        `NOMES_BANCA_PROPRIOS[banca.lower()]` quando existe; senão `banca` sem nenhuma
+        transformação (nunca `.title()`/`.capitalize()` — corromperia uma sigla).
+    """
+    return NOMES_BANCA_PROPRIOS.get(banca.strip().lower(), banca)
+
+
+def _cargo_exibivel(cargo: str) -> str | None:
+    """`cargo`, ou `None` quando ele é só o rótulo interno `"CARGO <número>"` do coletor.
+
+    Args:
+        cargo: `Questao.origem["cargo"]`/`Origem.cargo`.
+
+    Returns:
+        `None` se `cargo` bate `_PADRAO_CARGO_INTERNO` (a tela então omite o campo, nunca inventa
+        um nome no lugar); `cargo` sem alteração nos demais casos.
+    """
+    return None if _PADRAO_CARGO_INTERNO.match(cargo.strip()) else cargo
 
 
 def _eh_htmx(request: Request) -> bool:
@@ -338,6 +380,14 @@ def contexto_questao(
     }
     if questao is not None:
         origem = questao.origem or {}
+        if origem:
+            # Banca com nome próprio; cargo omitido quando é só o rótulo interno do coletor
+            # (achado do porte visual, fatia 14 §2.2) — nunca inventado, só formatado/omitido.
+            origem = {
+                **origem,
+                "banca": _formatar_banca(origem["banca"]),
+                "cargo": _cargo_exibivel(origem["cargo"]),
+            }
         questao_contexto: dict[str, object] = {
             "id": str(questao.id),
             "tipo_item": questao.tipo_item,
@@ -551,7 +601,9 @@ def obter_questao(
     Returns:
         O HTML de `questoes/topico.html`; com `questao=None` no contexto quando não sobra
         nenhuma para este usuário (200, sem erro — decisão 7). Quando a questão é um item
-        intercalado, o contexto ganha `fio_da_memoria={"motivo": ...}`.
+        intercalado, o contexto ganha `fio_da_memoria={"motivo": ...}`. Para uma questão nativa,
+        ganha também `posicao={"atual", "total"}` (fatia 14 §2.2, "questão N de M") — omitido
+        para um item intercalado, cuja posição seria a do tópico de origem, não a desta URL.
 
     Raises:
         HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant (decisão 2).
@@ -581,6 +633,10 @@ def obter_questao(
 
     questao = proxima_questao(db, usuario.id, topico.id)
     contexto = contexto_questao(db, topico, questao, acao_post=f"/topico/{topico.slug}/questoes")
+    if questao is not None:
+        posicao = posicao_na_fila(db, usuario.id, topico.id)
+        if posicao is not None:
+            contexto["posicao"] = {"atual": posicao[0], "total": posicao[1]}
     return renderizar(request, "questoes/topico.html", contexto, usuario)
 
 
@@ -619,23 +675,28 @@ def responder_questao(
         resposta: `"C"`/`"E"` em `"certo_errado"`, `"A"`–`"E"` em `"multipla_escolha"` — o que
             o aluno marcou.
         questao_id: `id` da questão respondida, do campo oculto do formulário.
-        confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3).
+        confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) reexibe a questão com o aviso
+            (decisão 3 revista na fatia 14 — ver `Returns`).
         tempo_ms: tempo gasto na questão, em milissegundos; `0` quando o cliente não manda.
         fio_origem_topico_id: tópico de origem do item intercalado, quando é o caso.
         fio_motivo: o motivo já formatado (`dominio.fio_memoria.ItemIntercalado.motivo`), para o
             resultado ecoar sem recalcular.
 
     Returns:
-        O fragmento `questoes/_resultado.html` com o gabarito, o acerto e a origem (200).
+        O fragmento `questoes/_resultado.html` com o gabarito, o acerto e a origem (200). Sem
+        `confianca` válida, devolve **200** com `questoes/_cartao_questao.html` de novo — a mesma
+        questão, o mesmo formulário, mais `erro=MENSAGEM_CONFIANCA_OBRIGATORIA` (defeito nº 1 do
+        porte visual, fatia 14: um `4xx` aqui não é silencioso por acaso — o htmx não troca o DOM
+        em resposta de erro, e sem JS o navegador só mostra o JSON cru; clicar numa alternativa
+        sem marcar certeza/dúvida antes literalmente não fazia nada visível).
 
     Raises:
-        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant; 400 sem
-            `confianca`/fora de `CONFIANCAS_VALIDAS`, ou com `resposta` fora do que
-            `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o `tipo_item` desta questão.
+        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant; 400 com
+            `resposta` fora do que `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o `tipo_item` desta
+            questão (só alcançável adulterando o formulário — os botões da tela sempre mandam um
+            valor válido, por isso continua 4xx, sem o mesmo risco de silêncio do `confianca`).
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
-    if confianca not in CONFIANCAS_VALIDAS:
-        raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
 
     intercalado = False
     if fio_origem_topico_id is not None:
@@ -658,6 +719,32 @@ def responder_questao(
         contexto["proximo_rotulo"] = "Próxima questão"
         return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
+    campos_ocultos: list[tuple[str, str]] = []
+    fio_da_memoria: dict[str, object] | None = None
+    if intercalado:
+        campos_ocultos.append(("fio_origem_topico_id", str(fio_origem_topico_id)))
+        if fio_motivo is not None:
+            campos_ocultos.append(("fio_motivo", fio_motivo))
+            fio_da_memoria = {"motivo": fio_motivo}
+
+    if confianca not in CONFIANCAS_VALIDAS:
+        # Defeito nº 1 (fatia 14 §2.1): a mesma questão, de novo, com o aviso — nunca um 4xx que
+        # o htmx engole em silêncio. Nada é gravado; a aluna tenta de novo, agora marcando.
+        contexto = contexto_questao(
+            db,
+            topico,
+            questao,
+            acao_post=f"/topico/{topico.slug}/questoes",
+            campos_ocultos=campos_ocultos,
+            fio_da_memoria=fio_da_memoria,
+        )
+        contexto["erro"] = MENSAGEM_CONFIANCA_OBRIGATORIA
+        if not intercalado:
+            posicao = posicao_na_fila(db, usuario.id, topico.id)
+            if posicao is not None:
+                contexto["posicao"] = {"atual": posicao[0], "total": posicao[1]}
+        return renderizar(request, "questoes/_cartao_questao.html", contexto, usuario)
+
     # As respostas válidas dependem do tipo da questão de fato mostrada (não de um formato fixo
     # no formulário) — só se sabe depois de `_questao_pendente` confirmar qual questão é esta.
     respostas_validas = RESPOSTAS_VALIDAS_POR_TIPO[questao.tipo_item]
@@ -667,12 +754,10 @@ def responder_questao(
 
     agora = agora_utc()
     dados_evento: dict[str, object] = {"bloco_topico_id": str(topico.id)}
-    fio_da_memoria: dict[str, object] | None = None
     if intercalado:
         dados_evento["fio_origem_topico_id"] = str(fio_origem_topico_id)
         if fio_motivo is not None:
             dados_evento["fio_motivo"] = fio_motivo
-            fio_da_memoria = {"motivo": fio_motivo}
     evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms, dados_evento)
     if not evento.acertou:
         # F4.3 (V4): o erro faz nascer (ou atualiza, idempotente) o cartão daquela questão.
@@ -814,20 +899,20 @@ def responder_revisao(
         resposta: o que a pessoa respondeu ao cartão.
         questao_id: `id` da questão do cartão, do campo oculto do formulário.
         cartao_id: `id` do cartão revisado, do campo oculto do formulário.
-        confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3, igual à
-            tela de questão).
+        confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) reexibe o cartão com o aviso
+            (decisão 3 revista na fatia 14, igual à tela de questão — ver `Returns`).
         tempo_ms: tempo gasto na revisão, em milissegundos; `0` quando o cliente não manda.
 
     Returns:
-        O fragmento `questoes/_resultado.html`, com o link "Próxima revisão".
+        O fragmento `questoes/_resultado.html`, com o link "Próxima revisão". Sem `confianca`
+        válida, devolve **200** com `questoes/_cartao_questao.html` de novo (mesmo cartão, mesmo
+        formulário, `erro=MENSAGEM_CONFIANCA_OBRIGATORIA`) — mesmo defeito nº 1 do porte visual,
+        fatia 14, que `responder_questao` corrige: um `4xx` aqui não é silencioso por acaso.
 
     Raises:
-        HTTPException: 400 sem `confianca` válida, ou com `resposta` fora do que
-            `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o `tipo_item` da questão do cartão.
+        HTTPException: 400 com `resposta` fora do que `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o
+            `tipo_item` da questão do cartão (só alcançável adulterando o formulário).
     """
-    if confianca not in CONFIANCAS_VALIDAS:
-        raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
-
     cartao = _cartao_pendente(db, usuario.id, cartao_id, questao_id)
     if cartao is None or cartao.questao is None:
         # Mesma postura de `_questao_pendente`: 200 com aviso, nunca um 4xx que não faz swap
@@ -840,6 +925,19 @@ def responder_revisao(
         return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
     questao = cartao.questao
+    if confianca not in CONFIANCAS_VALIDAS:
+        # Defeito nº 1 (fatia 14 §2.1): o mesmo cartão, de novo, com o aviso — nunca um 4xx que
+        # o htmx engole em silêncio. Nada é gravado; a aluna tenta de novo, agora marcando.
+        contexto = contexto_questao(
+            db,
+            cartao.topico,
+            questao,
+            acao_post="/revisar",
+            campos_ocultos=[("cartao_id", str(cartao.id))],
+        )
+        contexto["erro"] = MENSAGEM_CONFIANCA_OBRIGATORIA
+        return renderizar(request, "questoes/_cartao_questao.html", contexto, usuario)
+
     respostas_validas = RESPOSTAS_VALIDAS_POR_TIPO[questao.tipo_item]
     if resposta not in respostas_validas:
         mensagem = MENSAGENS_RESPOSTA_INVALIDA_POR_TIPO[questao.tipo_item]

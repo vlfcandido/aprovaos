@@ -29,7 +29,7 @@ inédita depende de uma segunda chamada de IA que este módulo não faz.
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
@@ -246,6 +246,56 @@ def proxima_questao(db: Session, usuario_id: UUID, topico_id: UUID) -> Questao |
         .order_by(Questao.criado_em, Questao.id)
     )
     return db.scalars(consulta).first()
+
+
+def posicao_na_fila(db: Session, usuario_id: UUID, topico_id: UUID) -> tuple[int, int] | None:
+    """Em que posição da fila deste tópico está o próximo item, e quantos existem ao todo.
+
+    Mesmos filtros de `proxima_questao` (publicável, não despublicada, nem respondida nem
+    reportada por este usuário) — só que aqui conta em vez de escolher. É o "questão N de M" que
+    faltava na tela de resolver questão (achado do porte visual, fatia 14 §2.2): sem isso a aluna
+    não sabe quanto falta na lista de hoje.
+
+    Args:
+        db: sessão do request.
+        usuario_id: aluno que está respondendo.
+        topico_id: tópico do vocabulário global.
+
+    Returns:
+        `(posição do próximo item, total de publicáveis)`, ambos 1-based; `None` se o tópico não
+        tem nenhuma questão publicável (a tela então não mostra a contagem).
+    """
+    total = (
+        db.scalar(
+            select(func.count(Questao.id)).where(
+                Questao.topico_id == topico_id,
+                Questao.publicavel.is_(True),
+                Questao.despublicada_em.is_(None),
+            )
+        )
+        or 0
+    )
+    if total == 0:
+        return None
+
+    respondidas = select(EventoEstudo.questao_id).where(
+        EventoEstudo.usuario_id == usuario_id, EventoEstudo.tipo == "resposta"
+    )
+    reportadas = select(ReporteErro.conteudo_id).where(
+        ReporteErro.usuario_id == usuario_id, ReporteErro.conteudo_tipo == "questao"
+    )
+    ja_vistas = (
+        db.scalar(
+            select(func.count(Questao.id)).where(
+                Questao.topico_id == topico_id,
+                Questao.publicavel.is_(True),
+                Questao.despublicada_em.is_(None),
+                or_(Questao.id.in_(respondidas), Questao.id.in_(reportadas)),
+            )
+        )
+        or 0
+    )
+    return min(ja_vistas + 1, total), total
 
 
 def registrar_resposta(

@@ -54,6 +54,33 @@ def test_pouca_cobertura_da_confianca_baixa() -> None:
     assert previsao.confianca == "baixa"
 
 
+def test_porque_concorda_o_numero_de_questoes_da_materia_de_maior_peso() -> None:
+    """Defeito reproduzido no navegador (fatia 14): "pesa mais (1 questões)" — sem concordância.
+    Com peso 1, o texto tem que dizer "1 questão"; com mais de uma, "N questões"."""
+    materia_peso_um = DesempenhoMateria(
+        materia="Redação", proporcao=intervalo_wilson(1, 1), peso_questoes=1
+    )
+    previsao = prever_nota([materia_peso_um])
+    assert "1 questão)" in previsao.porque
+    assert "1 questões)" not in previsao.porque
+
+    materia_peso_dois = DesempenhoMateria(
+        materia="Direito Administrativo", proporcao=intervalo_wilson(8, 10), peso_questoes=2
+    )
+    previsao_plural = prever_nota([materia_peso_dois])
+    assert "2 questões)" in previsao_plural.porque
+
+
+def test_probabilidade_lacuna_sem_codigo_interno_de_pendencia() -> None:
+    """Defeito reproduzido no navegador (fatia 14): `(P-17/P-39)` vazava na tela da aluna."""
+    materia = DesempenhoMateria(
+        materia="Direito Administrativo", proporcao=intervalo_wilson(80, 100), peso_questoes=10
+    )
+    previsao = prever_nota([materia], corte_historico_pct=None)
+    assert previsao.probabilidade_lacuna is not None
+    assert "P-" not in previsao.probabilidade_lacuna
+
+
 def test_sem_corte_historico_e_lacuna_declarada_sem_probabilidade() -> None:
     materia = DesempenhoMateria(
         materia="Direito Administrativo", proporcao=intervalo_wilson(80, 100), peso_questoes=10

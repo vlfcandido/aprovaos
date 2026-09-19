@@ -4,16 +4,21 @@
    página só decide o título e o `<h1>` do tópico. A tela decide pelo `questao.tipo_item` dentro
    do parcial: `"certo_errado"` julga com os dois botões grandes; `"multipla_escolha"` lista as
    cinco `questao.alternativas`. O gabarito nunca aparece aqui, nos dois casos — só depois de
-   responder, no fragmento `_resultado.html` que o HTMX troca dentro de `#questao`. Os atalhos de
-   teclado (C/E/→ em certo/errado; A–E/→ em múltipla escolha) são a ilha `atalhos-estudo.js`
-   (ADR-0019), que só clica em botões/links que já existem — a tela funciona igual sem ela.
-   Quando ler: ao mexer no fluxo de resolver questão. -#}
+   responder, no fragmento `_resultado.html` que o HTMX troca dentro de `#questao`. `#questao` é
+   `aria-live="polite"`: quando o htmx troca o conteúdo (resultado, aviso de confiança faltando,
+   aviso de questão indisponível), um leitor de tela anuncia a troca sozinho — sem isso, o defeito
+   nº 1 do porte visual (fatia 14 §2.1) continuaria "silencioso" para quem usa leitor de tela,
+   mesmo depois da correção no servidor. Os atalhos de teclado (C/E/→ em certo/errado; A–E/→ em
+   múltipla escolha) são a ilha `atalhos-estudo.js` (ADR-0019); `confianca-questao.js` (mesmo
+   ADR) desabilita de verdade os botões de resposta até a confiança ser marcada — as duas
+   degradam sem quebrar: sem JS, os botões continuam clicáveis e é a rota quem avisa (mesmo
+   `api/questoes.py::responder_questao`). Quando ler: ao mexer no fluxo de resolver questão. -#}
 {% extends "base.html" %}
 {% block titulo %}{{ topico.nome }} — Questões — AprovaOS{% endblock %}
 {% block conteudo %}
   <h1>{{ topico.nome }}</h1>
   <p class="migalha"><a href="/topico/{{ topico.slug }}/aula">Ver aula deste tópico</a></p>
-  <div id="questao">
+  <div id="questao" aria-live="polite">
     {% if questao %}
       {% include "questoes/_cartao_questao.html" %}
     {% elif limite %}
@@ -28,4 +33,5 @@
 {% endblock %}
 {% block script %}
   <script src="/static/js/atalhos-estudo.js" defer></script>
+  <script src="/static/js/confianca-questao.js" defer></script>
 {% endblock %}

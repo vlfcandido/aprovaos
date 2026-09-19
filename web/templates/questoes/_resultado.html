@@ -9,32 +9,34 @@
    `correta`/`marcada` (mesmas cores semânticas, por alternativa) e a `justificativa` dela.
    A justificativa (`evento.justificativa_certo`/`justificativa_errado`, ou
    `alternativa.justificativa` — sempre a lista de `api/questoes.py::_afirmacoes_para_exibir`) só
-   aparece quando existe — a maioria das questões ainda não tem, e nesse caso não sobra
-   `<div class="justificativa">` nenhuma, nunca um placeholder tipo "explicação em breve". O selo
-   `.selo--porque` marca que a explicação é do AprovaOS, nunca da banca; a citação de cada frase
-   vira um `<details>` (popover sem JS) com o trecho literal do dispositivo, quando achado. O
-   link final (`proximo_url`/`proximo_rotulo`, V4) recarrega via `GET` a rota que trouxe esta
-   questão — `/topico/{slug}/questoes` (a próxima pendente) ou `/revisar` (o próximo cartão
-   vencido); este fragmento é o mesmo para os dois fluxos. `fio_da_memoria` (V5) repete, no
-   resultado, o mesmo selo de `_cartao_questao.html` quando a questão respondida era um item
-   intercalado. `questao.inedita` (fatia 5) troca o bloco de origem de prova pelo mesmo selo
-   "Questão inédita do AprovaOS" de `_cartao_questao.html` — sem procedência de prova, mas
-   distinguível sem esforço. Quando ler: ao mudar o que aparece depois de responder. -#}
+   aparece quando existe; sem ela, a tela não fica em silêncio (honestidade é o produto, regra 11
+   — achado do porte visual, fatia 14 §2.2: "questão sem justificativa caía num 'Você errou.'
+   seco") — mostra uma linha dizendo que ainda não há explicação escrita para este item, nunca um
+   texto inventado no lugar do gabarito. O `.chip novo` marca que a explicação é do AprovaOS,
+   nunca da banca; a citação de cada frase vira um `<details>` (popover sem JS) com o trecho
+   literal do dispositivo, quando achado. `origem.banca`/`origem.cargo` já chegam formatados por
+   `api/questoes.py::contexto_questao` (fatia 14 §2.2). O link final (`proximo_url`/
+   `proximo_rotulo`, V4) recarrega via `GET` a rota que trouxe esta questão —
+   `/topico/{slug}/questoes` (a próxima pendente) ou `/revisar` (o próximo cartão vencido); este
+   fragmento é o mesmo para os dois fluxos — o nome do botão não leva `→` colado (o atalho de
+   teclado continua no `<kbd aria-hidden="true">`, só visual). `fio_da_memoria` (V5) repete, no
+   resultado, o mesmo `.chip accent` de `_cartao_questao.html` quando a questão respondida era um
+   item intercalado. `questao.inedita` (fatia 5) troca o bloco de origem de prova pelo mesmo
+   `.chip warn` "Questão inédita" de `_cartao_questao.html`. Quando ler: ao mudar o que aparece
+   depois de responder. -#}
 {% import "_macros.html" as macros %}
 {% macro citacao(af) %}{{ macros.citacao_legal(af) }}{% endmacro %}
 {% if evento %}
-  <div class="cartao cartao--elevado questao">
+  <div class="card lift stack questao">
     {% if fio_da_memoria %}
-      <p class="selo selo--fio-da-memoria">
-        Fio da memória — <span>{{ fio_da_memoria.motivo }}</span>
-      </p>
+      <p class="chip accent">Fio da memória — {{ fio_da_memoria.motivo }}</p>
     {% endif %}
     {% if questao.comando %}
       <p class="questao__comando">{{ questao.comando }}</p>
     {% endif %}
     <p class="questao__enunciado">{{ questao.enunciado }}</p>
     {% if questao.tipo_item == "multipla_escolha" %}
-      {% if evento.tem_justificativa %}<p class="selo selo--porque">Explicação do AprovaOS</p>{% endif %}
+      {% if evento.tem_justificativa %}<p class="chip novo">Explicação do AprovaOS</p>{% endif %}
       <div class="alternativas alternativas--resultado">
         {% for alternativa in evento.alternativas %}
           <div class="alternativa{% if alternativa.correta %} alternativa--correta{% elif alternativa.marcada %} alternativa--marcada-errada{% endif %}">
@@ -58,6 +60,9 @@
       <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
         <p>{% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}</p>
       </div>
+      {% if not evento.tem_justificativa %}
+        <p class="small muted">Ainda não temos uma explicação escrita para este item — o gabarito acima já é a fonte oficial.</p>
+      {% endif %}
     {% else %}
       <p class="resultado__resposta">Você respondeu: <strong>{{ evento.resposta_texto }}</strong></p>
       <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
@@ -66,7 +71,7 @@
       </div>
       {% if evento.justificativa_certo or evento.justificativa_errado %}
         <div class="justificativa">
-          <p class="selo selo--porque">Explicação do AprovaOS</p>
+          <p class="chip novo">Explicação do AprovaOS</p>
           <table class="tabela-justificativa">
             <tbody>
               {% if evento.justificativa_certo %}
@@ -94,30 +99,38 @@
             </tbody>
           </table>
         </div>
+      {% else %}
+        <p class="small muted">Ainda não temos uma explicação escrita para este item — o gabarito acima já é a fonte oficial.</p>
       {% endif %}
     {% endif %}
     {% if questao.inedita %}
-      <p class="selo selo--inedita">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
+      <p class="chip warn">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
     {% else %}
-      <p class="questao__origem">
-        {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+      <p class="small muted mono">
+        {{ origem.banca }} — {{ origem.orgao }}{% if origem.cargo %} — {{ origem.cargo }}{% endif %} — {{ origem.ano }} —
         item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
         — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
       </p>
     {% endif %}
-    <p><a class="botao botao--secundario" href="{{ proximo_url }}" data-atalho="proxima">{{ proximo_rotulo }} <kbd>→</kbd></a></p>
+    <div class="row between">
+      <span class="small muted">Próximo: continuar a lista de hoje</span>
+      <a class="btn primary" href="{{ proximo_url }}" data-atalho="proxima" aria-label="{{ proximo_rotulo }}">{{ proximo_rotulo }} <kbd aria-hidden="true">→</kbd></a>
+    </div>
   </div>
 
-  <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
-        hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
-    <label for="motivo">Encontrou um erro nesta questão?</label>
-    <textarea id="motivo" name="motivo" required></textarea>
-    <button class="botao botao--secundario" type="submit">Reportar erro</button>
-  </form>
+  <details class="stack">
+    <summary class="small muted">Encontrou um erro nesta questão?</summary>
+    <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
+          hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
+      <label class="campo-rotulo" for="motivo">Descreva o erro</label>
+      <textarea class="entrada" id="motivo" name="motivo" required></textarea>
+      <button class="btn sm" type="submit">Reportar erro</button>
+    </form>
+  </details>
 {% elif aviso %}
-  <div class="cartao cartao--elevado questao">
+  <div class="card lift stack questao">
     <p>{{ aviso }}</p>
-    <p><a class="botao botao--secundario" href="{{ proximo_url }}" data-atalho="proxima">{{ proximo_rotulo }} <kbd>→</kbd></a></p>
+    <a class="btn primary" href="{{ proximo_url }}" data-atalho="proxima" aria-label="{{ proximo_rotulo }}">{{ proximo_rotulo }} <kbd aria-hidden="true">→</kbd></a>
   </div>
 {% else %}
   <p>Ainda não temos questões deste tópico.</p>

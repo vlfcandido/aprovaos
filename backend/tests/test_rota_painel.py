@@ -211,6 +211,105 @@ def test_painel_com_dado_mostra_banda_por_extenso(cliente: TestClient, db: Sessi
     assert edital_id  # o edital existe; a asserção acima é o que importa nesta tela
 
 
+def test_painel_nao_vaza_codigo_interno_de_pendencia(cliente: TestClient, db: Session) -> None:
+    """Defeito reproduzido no navegador (fatia 14): `(P-39)`/`(P-17/P-39)` apareciam na tela da
+    aluna. O fato continua dito — só sem o código interno."""
+    email = "sem-codigo@exemplo.com"
+    _entrar(cliente, email)
+    _, (topico,) = _cenario_com_edital(db, email)
+    usuario = _usuario_por_email(db, email)
+    questao = _gravar_questao(db, topico, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    assert "P-39" not in resposta.text
+    assert "P-17" not in resposta.text
+    assert "peso está uniforme" in resposta.text
+
+
+def test_previsao_usa_intervalo_da_biblioteca_sem_parecer_slider(
+    cliente: TestClient, db: Session
+) -> None:
+    """Defeito reproduzido no navegador (fatia 14): a banda da previsão era um `<svg>` com um
+    `<circle>` no meio de uma barra — lida como um controle arrastável. Agora é `.intervalo`
+    (faixa + traço, sem alça)."""
+    email = "sem-slider@exemplo.com"
+    _entrar(cliente, email)
+    _, (topico,) = _cenario_com_edital(db, email)
+    usuario = _usuario_por_email(db, email)
+    questao = _gravar_questao(db, topico, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    assert 'class="intervalo"' in resposta.text
+    assert "<circle" not in resposta.text
+    # sem data-alvo (`_cenario_com_edital` não define uma), a curva também cai no estado vazio —
+    # a página inteira fica sem nenhum `<svg>` neste cenário.
+    assert "<svg" not in resposta.text
+
+
+def test_previsao_nao_duplica_a_materia_sem_dado(cliente: TestClient, db: Session) -> None:
+    """Defeito reproduzido no navegador (fatia 14): a matéria sem dado aparecia duas vezes, em
+    parágrafos seguidos (uma vez dentro do "porquê", outra num parágrafo à parte)."""
+    email = "sem-duplicata@exemplo.com"
+    _entrar(cliente, email)
+    usuario = _usuario_por_email(db, email)
+    concurso = Concurso(
+        tenant_id=usuario.tenant_id, orgao="TJ-PR", cargo="Técnico", banca="cebraspe"
+    )
+    documento_edital = Documento(
+        tipo="edital",
+        hash="edital-sem-duplicata".ljust(64, "0")[:64],
+        caminho="edital.pdf",
+        baixado_em=agora_utc(),
+        metadados={},
+    )
+    db.add_all([concurso, documento_edital])
+    db.flush()
+    edital = Edital(concurso=concurso, versao=1, documento=documento_edital)
+    db.add(edital)
+    db.flush()
+
+    com_dado = Topico(materia="Direito Administrativo", nome="Poderes", slug="sd-a")
+    sem_dado = Topico(materia="Português Instrumental", nome="Crase", slug="sd-b")
+    db.add_all([com_dado, sem_dado])
+    db.flush()
+    db.add_all(
+        [
+            TopicoEdital(edital=edital, topico=com_dado, ordem=1, texto_original="1."),
+            TopicoEdital(edital=edital, topico=sem_dado, ordem=2, texto_original="2."),
+        ]
+    )
+    horas = dict.fromkeys(DIAS_SEMANA, 1.0)
+    salvar_perfil(
+        db,
+        usuario,
+        DadosRotina(
+            horas_por_dia_semana=horas,
+            horario_preferido="manha",
+            energia_tipica="media",
+            data_alvo=None,
+            concurso_principal_id=concurso.id,
+        ),
+    )
+    db.commit()
+
+    questao = _gravar_questao(db, com_dado, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    assert resposta.text.count("Português Instrumental") == 1
+
+
 def test_painel_questao_despublicada_nao_conta_no_numero(cliente: TestClient, db: Session) -> None:
     email = "p34-painel@exemplo.com"
     _entrar(cliente, email)

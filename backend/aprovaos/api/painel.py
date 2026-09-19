@@ -49,9 +49,10 @@ from aprovaos.dominio.resumo_semanal import montar_resumo
 
 router = APIRouter(include_in_schema=False)
 
+#: Sem caminho cru (`/rotina`) no texto — os botões logo abaixo já levam para lá.
 MENSAGEM_SEM_CONCURSO = (
-    "Suba um edital e configure sua rotina em /rotina para ver o painel — sem isso não há "
-    "curva, padrão nem previsão para calcular."
+    "Suba um edital e configure sua rotina para ver o painel — sem isso não há curva, padrão "
+    "nem previsão para calcular."
 )
 AVISO_FUSO = "Os horários desta página são os de Brasília (America/Sao_Paulo)."
 
@@ -142,28 +143,31 @@ def _svg_curva(curva: Curva, total: int) -> str:
     return "".join(partes)
 
 
-def _svg_previsao(previsao: Previsao) -> str:
-    """Uma barra translúcida com a banda de Wilson da nota (§8 do plano: "banda… é um `<rect>`").
+def _intervalo_previsao(previsao: Previsao) -> dict[str, str]:
+    """As posições (`%`, já formatadas para CSS) do componente `.intervalo` da biblioteca.
 
-    O número por extenso ("62 % — entre 48 % e 74 %") é escrito pelo template, ao lado — este
-    `<svg>` nunca é a única fonte da informação.
+    Substitui o `<svg>` com um `<circle>` no meio de uma barra — que a piloto leu como um
+    slider arrastável, não como uma banda estatística (defeito reproduzido no navegador,
+    `docs/fatias/14-ui.md`). `.intervalo` desenha a mesma informação sem alça: uma faixa (a
+    banda) e um traço fino (o ponto estimado). O número por extenso continua escrito pelo
+    template, ao lado — o desenho nunca é a única fonte da informação (ADR-0042).
+
+    Args:
+        previsao: a previsão já calculada.
+
+    Returns:
+        `{"esquerda": <início da faixa>, "largura": <largura da faixa>, "ponto": <posição do
+        traço>}`, cada um já como string `"38.2"` (ponto decimal, pronta para `style="left:…%"`
+        — nunca vírgula, que quebraria o CSS).
     """
-    largura, altura = 200, 16
-    escala = largura / 100
     inferior = max(0.0, min(100.0, previsao.nota_inferior_pct))
     superior = max(0.0, min(100.0, previsao.nota_superior_pct))
     ponto = max(0.0, min(100.0, previsao.nota_pct))
-    return (
-        f'<svg viewBox="0 0 {largura} {altura}" role="img" '
-        f'aria-label="Banda da nota prevista, de {inferior:.0f} a {superior:.0f} por cento">'
-        f'<rect x="0" y="6" width="{largura}" height="4" rx="2" '
-        'fill="var(--cor-superficie-2)"/>'
-        f'<rect x="{inferior * escala:.1f}" y="6" '
-        f'width="{(superior - inferior) * escala:.1f}" height="4" rx="2" '
-        'fill="var(--cor-acao-suave)"/>'
-        f'<circle cx="{ponto * escala:.1f}" cy="8" r="4" fill="var(--cor-acao)"/>'
-        "</svg>"
-    )
+    return {
+        "esquerda": f"{inferior:.1f}",
+        "largura": f"{superior - inferior:.1f}",
+        "ponto": f"{ponto:.1f}",
+    }
 
 
 def _contexto_curva(
@@ -241,7 +245,7 @@ def _contexto_previsao(
         "materias_sem_dado": previsao.materias_sem_dado,
         "probabilidade_lacuna": previsao.probabilidade_lacuna,
         "porque": previsao.porque,
-        "svg": _svg_previsao(previsao),
+        "intervalo": _intervalo_previsao(previsao),
     }
     return contexto, None
 

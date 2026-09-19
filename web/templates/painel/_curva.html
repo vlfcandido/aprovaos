@@ -1,31 +1,37 @@
 {# O que é: fragmento da curva de domínio (RF-16) e do alerta de atraso (RF-10) — o `<svg>` de
    duas polilinhas (real cheia, necessária tracejada) montado em `api/painel.py`, sempre com o
    número por extenso ao lado (o desenho nunca é a única fonte da informação). `curva.lacuna`
-   cobre os dois jeitos de não haver curva necessária: sem data da prova, ou data já passada.
+   cobre os dois jeitos de não haver curva necessária (sem data da prova, ou data já passada): a
+   tela mostra `.vazio` da biblioteca em vez de um gráfico quase em branco com um ponto só — o
+   honesto é dizer o que falta e oferecer o caminho, não desenhar pouco dado como se fosse muito.
    Incluído por `painel/pagina.html`. Quando ler: ao mudar o texto ou o gráfico da curva. #}
-<section class="cartao" aria-labelledby="curva-titulo">
-  <h2 id="curva-titulo">Curva de domínio</h2>
-
-  {% if semana_prova %}
-    <p class="selo selo--regras">
-      {% if dias_para_prova == 1 %}Falta 1 dia para a prova — semana da prova
-      {% else %}Faltam {{ dias_para_prova }} dias para a prova — semana da prova
-      {% endif %}
-    </p>
-  {% endif %}
+<div class="card stack">
+  <div class="row between">
+    <h2>Curva de domínio</h2>
+    {% if semana_prova %}
+      <span class="chip warn">
+        {% if dias_para_prova == 1 %}falta 1 dia para a prova{% else %}faltam {{ dias_para_prova }} dias para a prova{% endif %}
+        — semana da prova
+      </span>
+    {% endif %}
+  </div>
 
   {% if curva.lacuna %}
-    <p class="frase">
-      {{ curva.dominados_hoje }} de {{ curva.total_topicos }} tópicos dominados hoje.
-      {% if curva.lacuna == "sem data da prova" %}
-        Você ainda não informou a data da prova — sem isso não há como desenhar a curva
-        necessária. <a href="/rotina">Informar a data da prova</a>.
-      {% else %}
-        A data da prova que você informou já passou — atualize em <a href="/rotina">Rotina</a>.
-      {% endif %}
-    </p>
-  {% else %}
-    <p class="frase">
+    <div class="vazio">
+      <p>{{ curva.dominados_hoje }} de {{ curva.total_topicos }} tópicos dominados hoje.</p>
+      <p class="small">
+        {% if curva.lacuna == "sem data da prova" %}
+          Você ainda não informou a data da prova — sem isso não há como desenhar a curva
+          necessária.
+        {% else %}
+          A data da prova que você informou já passou — atualize em Rotina para ver a curva
+          necessária de novo.
+        {% endif %}
+      </p>
+      <div class="row acoes"><a class="btn primary" href="/rotina">Informar a data da prova</a></div>
+    </div>
+  {% elif curva.svg %}
+    <p>
       {{ curva.dominados_hoje }} de {{ curva.total_topicos }} tópicos dominados hoje — a prova é
       em {{ curva.data_alvo.strftime("%d/%m/%Y") }}.
       {% if curva.atraso_topicos > 0 %}
@@ -35,24 +41,21 @@
         No seu ritmo das últimas 4 semanas, você chega lá em dia.
       {% endif %}
     </p>
-  {% endif %}
-
-  {% if curva.svg %}
     <div class="chart-curva">{{ curva.svg | safe }}</div>
   {% else %}
-    <p class="nota">
-      Sem resposta registrada neste edital ainda — a curva aparece assim que você responder à
-      primeira questão.
-    </p>
-  {% endif %}
-
-  {% if curva.alerta %}
-    <div class="mensagem mensagem--porque" role="status">
-      <h3>{{ curva.alerta.titulo }}</h3>
-      <p>{{ curva.alerta.porque }}</p>
-      <p><strong>{{ curva.alerta.ajuste }}</strong></p>
+    <div class="vazio">
+      <p>Ainda não há resposta registrada neste edital.</p>
+      <p class="small">A curva aparece assim que você responder à primeira questão.</p>
+      <div class="row acoes"><a class="btn primary" href="/diagnostico">Fazer o diagnóstico</a></div>
     </div>
   {% endif %}
 
-  <p class="nota">{{ aviso_fuso }}</p>
-</section>
+  {% if curva.alerta %}
+    <div class="why">
+      <b>{{ curva.alerta.titulo }}</b>
+      <span>{{ curva.alerta.porque }}. {{ curva.alerta.ajuste }}.</span>
+    </div>
+  {% endif %}
+
+  <p class="small muted">{{ aviso_fuso }}</p>
+</div>

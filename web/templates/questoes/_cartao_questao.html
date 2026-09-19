@@ -1,22 +1,36 @@
 {# O que é: parcial do cartão de perguntar uma questão (comando — só quando existe —, texto de
    apoio recolhido atrás de "ver texto de apoio" quando `questao.apoio_recolhido` vem `true` do
    backend, enunciado e origem completa) mais o formulário de resposta e o de reportar erro.
-   Compartilhado (V4) por `topico.html` (`GET/POST /topico/{slug}/questoes`) e `revisao.html`
-   (`GET/POST /revisar`) — "a revisão de um cartão de questão é, na prática, a questão de novo"
-   (plano V4 §5): só o destino do formulário (`acao_post`) e os campos ocultos extras
-   (`campos_ocultos`, ex.: `cartao_id` na revisão) mudam entre os dois fluxos. `fio_da_memoria`
-   (V5) é o selo "de onde veio" quando a questão mostrada é um item intercalado de outro tópico
-   já visto (nunca aparece em `revisao.html`, que não intercala — plano V5 §5). `questao.inedita`
-   (fatia 5) troca o bloco de origem de prova pelo selo "Questão inédita do AprovaOS" — uma
-   inédita não tem procedência de prova para mostrar, mas precisa ser distinguível sem esforço
-   (regra 1 do produto: nada gerado chega ao aluno sem essa marcação). O gabarito nunca aparece
-   aqui — só depois de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no que
-   aparece antes de responder, nos dois fluxos, no selo do fio da memória ou no selo da inédita. -#}
-<div class="cartao cartao--elevado questao">
+   Compartilhado (V4) por `topico.html` (`GET/POST /topico/{slug}/questoes`), `revisao.html`
+   (`GET/POST /revisar`) e `diagnostico/andamento.html` ("responder é, na prática, a questão de
+   novo") — só o destino do formulário (`acao_post`), os campos ocultos extras (`campos_ocultos`,
+   ex.: `cartao_id` na revisão) e `posicao`/`erro` (abaixo, fatia 14 — nenhum dos dois entra no
+   diagnóstico, que tem o próprio progresso) mudam entre os fluxos. Porte visual (fatia 14 §2.1):
+   a confiança usa o controle `.seg` da biblioteca (rádio de verdade, só estilizado — funciona sem
+   JS) e cada alternativa/botão de resposta tem `aria-label` com o que ela faz — o defeito nº 1
+   (clicar sem marcar certeza/dúvida não fazia nada, sem erro nem aviso) é resolvido no servidor
+   (`api/questoes.py::responder_questao`/`responder_revisao`: sem confiança válida, a rota devolve
+   200 reexibindo este mesmo parcial com `erro` preenchido, nunca um 4xx que o htmx engole em
+   silêncio); a ilha `confianca-questao.js` (ADR-0019) reforça desabilitando de verdade os botões
+   de resposta até a confiança ser marcada — sem JS, eles continuam clicáveis e é o servidor quem
+   avisa. `origem.banca`/`origem.cargo` já chegam formatados por `api/questoes.py::contexto_questao`
+   (nome próprio da banca; cargo omitido quando é só o rótulo interno do coletor) — o template só
+   decide se mostra `origem.cargo` quando ele não foi omitido. `fio_da_memoria` (V5) e
+   `questao.inedita` (fatia 5) usam `.chip` da biblioteca (accent/warn), no lugar dos `.selo`
+   soltos de antes. O botão de reportar erro fica atrás de um `<details>` — nunca aberto por
+   padrão, para não ocupar espaço nobre acima da dobra. O gabarito nunca aparece aqui — só depois
+   de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no que aparece antes de
+   responder, nos três fluxos, no bloqueio de confiança, no selo do fio da memória ou no selo da
+   inédita. -#}
+<div class="card lift stack questao">
   {% if fio_da_memoria %}
-    <p class="selo selo--fio-da-memoria">
-      Fio da memória — <span>{{ fio_da_memoria.motivo }}</span>
-    </p>
+    <p class="chip accent">Fio da memória — {{ fio_da_memoria.motivo }}</p>
+  {% endif %}
+  {% if posicao %}
+    <p class="small muted">Questão <b class="mono">{{ posicao.atual }}</b> de <b class="mono">{{ posicao.total }}</b></p>
+  {% endif %}
+  {% if erro %}
+    <p class="mensagem mensagem--erro" role="alert">{{ erro }}</p>
   {% endif %}
   {% if questao.comando %}
     <p class="questao__comando">{{ questao.comando }}</p>
@@ -33,10 +47,10 @@
   {% endif %}
   <p class="questao__enunciado">{{ questao.enunciado }}</p>
   {% if questao.inedita %}
-    <p class="selo selo--inedita">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
+    <p class="chip warn">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
   {% else %}
-    <p class="questao__origem">
-      {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+    <p class="small muted mono">
+      {{ origem.banca }} — {{ origem.orgao }}{% if origem.cargo %} — {{ origem.cargo }}{% endif %} — {{ origem.ano }} —
       item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
       — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
     </p>
@@ -49,26 +63,24 @@
       <input type="hidden" name="{{ nome }}" value="{{ valor }}">
     {% endfor %}
 
-    <fieldset class="confianca">
+    <fieldset class="stack">
       <legend>Antes de responder: você tem certeza ou está em dúvida?</legend>
-      <div class="segmentado" role="radiogroup">
-        <label class="segmentado__opcao">
-          <input type="radio" name="confianca" value="certeza" required> Tenho certeza
-        </label>
-        <label class="segmentado__opcao">
-          <input type="radio" name="confianca" value="duvida" required> Estou em dúvida
-        </label>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="confianca" value="certeza" required> Tenho certeza</label>
+        <label><input type="radio" name="confianca" value="duvida" required> Estou em dúvida</label>
       </div>
     </fieldset>
 
     {% if questao.tipo_item == "multipla_escolha" %}
-      <fieldset class="julgamento">
+      <fieldset class="stack">
         <legend>Escolha a alternativa correta</legend>
+        <p class="small muted" data-aviso-confianca>Marque certeza ou dúvida para habilitar as alternativas.</p>
         <div class="alternativas">
           {% for alternativa in questao.alternativas %}
             <button type="submit" name="resposta" value="{{ alternativa.letra }}"
                     data-atalho="resposta-{{ alternativa.letra|lower }}"
-                    class="alternativa">
+                    class="alternativa"
+                    aria-label="Responder {{ alternativa.letra }}: {{ alternativa.texto }}">
               <span class="alternativa__letra">{{ alternativa.letra }}</span>
               <span class="alternativa__texto">{{ alternativa.texto }}</span>
             </button>
@@ -76,16 +88,17 @@
         </div>
       </fieldset>
     {% else %}
-      <fieldset class="julgamento">
+      <fieldset class="stack">
         <legend>Julgue o item</legend>
+        <p class="small muted" data-aviso-confianca>Marque certeza ou dúvida para habilitar a resposta.</p>
         <div class="respostas">
           <button type="submit" name="resposta" value="C" data-atalho="certo"
-                  class="botao-resposta">
-            Certo <kbd>C</kbd>
+                  class="botao-resposta" aria-label="Certo">
+            Certo <kbd aria-hidden="true">C</kbd>
           </button>
           <button type="submit" name="resposta" value="E" data-atalho="errado"
-                  class="botao-resposta">
-            Errado <kbd>E</kbd>
+                  class="botao-resposta" aria-label="Errado">
+            Errado <kbd aria-hidden="true">E</kbd>
           </button>
         </div>
       </fieldset>
@@ -93,9 +106,12 @@
   </form>
 </div>
 
-<form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
-      hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
-  <label for="motivo">Encontrou um erro nesta questão?</label>
-  <textarea id="motivo" name="motivo" required></textarea>
-  <button class="botao botao--secundario" type="submit">Reportar erro</button>
-</form>
+<details class="stack">
+  <summary class="small muted">Encontrou um erro nesta questão?</summary>
+  <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
+        hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
+    <label class="campo-rotulo" for="motivo">Descreva o erro</label>
+    <textarea class="entrada" id="motivo" name="motivo" required></textarea>
+    <button class="btn sm" type="submit">Reportar erro</button>
+  </form>
+</details>

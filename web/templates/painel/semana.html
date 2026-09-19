@@ -6,48 +6,75 @@
 {% extends "base.html" %}
 {% block titulo %}Resumo da semana — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Resumo da semana</h1>
+  <div class="stack">
+    <span class="eyebrow">Painel · resumo da semana</span>
+    <h1>Resumo da semana</h1>
+  </div>
+
   {% if sem_concurso %}
-    <p class="frase">{{ motivo }}</p>
-    <p class="acoes">
-      <a class="botao" href="/rotina">Configurar rotina</a>
-      <a href="/editais/subir">Subir edital</a>
-    </p>
+    <div class="vazio">
+      <p>{{ motivo }}</p>
+      <div class="row acoes">
+        <a class="btn primary" href="/rotina">Configurar rotina</a>
+        <a class="btn" href="/editais/subir">Subir edital</a>
+      </div>
+    </div>
   {% else %}
-    <p class="nota">
+    <p class="small muted">
       {{ resumo.inicio.strftime("%d/%m") }} a {{ resumo.fim.strftime("%d/%m/%Y") }} —
       {{ aviso_fuso }}
     </p>
 
     {% if resumo.respostas == 0 %}
-      <p class="frase">Semana sem estudo registrado.</p>
+      <div class="vazio">
+        <p>Semana sem estudo registrado.</p>
+        <p class="small">Sem resposta nesta semana não há nada para resumir — que tal um
+          diagnóstico rápido hoje?</p>
+        <div class="row acoes"><a class="btn primary" href="/diagnostico">Fazer o diagnóstico</a></div>
+      </div>
     {% else %}
-      <p class="frase">
-        {{ resumo.respostas }} resposta{{ "s" if resumo.respostas != 1 else "" }} —
-        {{ resumo.acertos.pct | pct }} de acerto (entre {{ resumo.acertos.inferior_pct | pct }}
-        e {{ resumo.acertos.superior_pct | pct }}), {{ resumo.acertos.acertos }} certas de
-        {{ resumo.acertos.total }}.
-      </p>
+      <div class="card stack">
+        <div class="kpis">
+          <div class="kpi">
+            <span class="eyebrow">Respostas</span>
+            <span class="v">{{ resumo.respostas }}</span>
+          </div>
+          <div class="kpi">
+            <span class="eyebrow">Acerto</span>
+            <span class="v">{{ resumo.acertos.pct | pct }}
+              <small>entre {{ resumo.acertos.inferior_pct | pct }} e {{ resumo.acertos.superior_pct | pct }}</small>
+            </span>
+          </div>
+          <div class="kpi">
+            <span class="eyebrow">Certas de respondidas</span>
+            <span class="v mono">{{ resumo.acertos.acertos }}<small>/{{ resumo.acertos.total }}</small></span>
+          </div>
+        </div>
+      </div>
 
       {% if resumo.conquista %}
-        <div class="mensagem mensagem--porque"><p>{{ resumo.conquista }}</p></div>
+        <div class="why"><b>Conquista da semana</b><span>{{ resumo.conquista }}</span></div>
       {% endif %}
 
       {% if resumo.topicos_novos %}
-        <h2>Tópicos novos esta semana</h2>
-        <ul class="lista-limpa">
-          {% for nome in resumo.topicos_novos %}<li>{{ nome }}</li>{% endfor %}
-        </ul>
+        <div class="card stack">
+          <h2>Tópicos novos esta semana</h2>
+          <ul class="stack" style="gap:var(--espaco-2);margin:0;padding-left:1.2em">
+            {% for nome in resumo.topicos_novos %}<li>{{ nome }}</li>{% endfor %}
+          </ul>
+        </div>
       {% endif %}
 
       {% if resumo.para_rever %}
-        <h2>Vale revisar</h2>
-        <ul class="lista-limpa">
-          {% for item in resumo.para_rever %}<li>{{ item.frase }}</li>{% endfor %}
-        </ul>
+        <div class="card stack">
+          <h2>Vale revisar</h2>
+          <ul class="stack" style="gap:var(--espaco-2);margin:0;padding-left:1.2em">
+            {% for item in resumo.para_rever %}<li>{{ item.frase }}</li>{% endfor %}
+          </ul>
+        </div>
       {% endif %}
     {% endif %}
 
-    <p class="acoes"><a href="/painel">Voltar ao painel</a></p>
+    <p><a href="/painel">Voltar ao painel</a></p>
   {% endif %}
 {% endblock %}

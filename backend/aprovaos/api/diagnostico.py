@@ -108,6 +108,26 @@ def _topico_pertence_ao_edital(db: Session, topico_id: UUID, edital_id: UUID) ->
     return db.scalars(consulta).first() is not None
 
 
+def _contexto_estimativa(estados: dict[str, EstadoAgregado]) -> list[dict[str, object]]:
+    """A "Estimativa até agora" da tela em andamento — uma linha por matéria já testada.
+
+    Reaproveita o mesmo `agrupar_por_materia` que a rota já calcula para decidir o próximo item
+    (`EstadoAgregado` por matéria); só traduz para o que o template precisa, em ordem alfabética.
+
+    Args:
+        estados: `dominio.diagnostico.agrupar_por_materia(respostas)`.
+
+    Returns:
+        Uma entrada por matéria com resposta: `{nome, estimativa_pct, margem}` — `estimativa_pct`
+        nunca é `None` aqui, porque só entram matérias de `estados` (`agrupar_por_materia` só
+        inclui quem já tem pelo menos uma resposta).
+    """
+    return [
+        {"nome": materia, "estimativa_pct": estado.estimativa_pct, "margem": estado.margem}
+        for materia, estado in sorted(estados.items())
+    ]
+
+
 def _contexto_resultado(
     total_itens: int,
     topicos: list[TopicoDisponivel],
@@ -218,6 +238,7 @@ def diagnostico(
             )
             contexto["progresso"] = {"atual": total_itens + 1, "maximo": MAXIMO_ITENS}
             contexto["motivo_item"] = candidato.motivo
+            contexto["estimativa_por_materia"] = _contexto_estimativa(estados)
             return renderizar(request, "diagnostico/andamento.html", contexto, usuario)
 
     contexto_final = _contexto_resultado(total_itens, topicos, respostas, estados)

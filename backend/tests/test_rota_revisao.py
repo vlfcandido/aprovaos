@@ -69,6 +69,8 @@ def test_get_revisar_mostra_a_questao_do_cartao_vencido(logado: TestClient, db: 
     assert 'action="/revisar"' in corpo
     assert f'value="{cartao.id}"' in corpo
     assert f'value="{questao.id}"' in corpo
+    assert 'id="questao" aria-live="polite"' in corpo
+    assert '<script src="/static/js/confianca-questao.js" defer></script>' in corpo
 
 
 def test_post_revisar_grava_evento_revisao_e_atualiza_due(logado: TestClient, db: Session) -> None:
@@ -103,6 +105,32 @@ def test_post_revisar_grava_evento_revisao_e_atualiza_due(logado: TestClient, db
     assert linha is not None
     assert linha.due != due_antes
     assert linha.due > due_antes  # acertou com certeza — o FSRS empurra a agenda para a frente
+
+
+def test_post_revisar_sem_confianca_reexibe_o_cartao_com_aviso(
+    logado: TestClient, db: Session
+) -> None:
+    """Mesmo defeito nº 1 do porte visual (fatia 14 §2.1), mesma correção: sem confiança válida,
+    200 reexibindo o cartão com o aviso — nunca um 400 que o htmx engoliria em silêncio.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    questao, cartao = _questao_e_cartao_vencido(db, dona, topico, hash_documento="rev-conf")
+
+    resposta = logado.post(
+        "/revisar",
+        data={"resposta": "C", "questao_id": str(questao.id), "cartao_id": str(cartao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "certeza ou dúvida" in corpo.lower()
+    assert 'role="alert"' in corpo
+    assert f'value="{cartao.id}"' in corpo  # o formulário continua ali, pronto para tentar de novo
+
+    eventos = list(
+        db.scalars(select(EventoEstudo).where(EventoEstudo.tipo == "revisao_cartao")).all()
+    )
+    assert eventos == []
 
 
 def test_post_revisar_de_cartao_de_outro_usuario_e_recusado(

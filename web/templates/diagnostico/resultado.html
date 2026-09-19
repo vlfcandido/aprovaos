@@ -1,20 +1,25 @@
 {# O que é: resultado do diagnóstico adaptativo (fatia 7, F2.1) — proficiência ± margem por
-   matéria, o porquê da parada e o sinal de domínio por tópico (o que o plano do dia, fatia 8,
-   vai consumir). Cada matéria fechada tem "Insistir" — o "discordar" desta fatia (§6 do plano):
-   um item a mais, mesmo com a margem já fechada, sempre respeitando o teto de 30. Quando ler: ao
-   mudar o que aparece quando o diagnóstico termina. -#}
+   matéria, o porquê da parada (a tese do produto: "o agente para quando já sabe") e o sinal de
+   domínio por tópico (o que o plano do dia, fatia 8, vai consumir). Cada matéria fechada tem
+   "Insistir" — o "discordar" desta fatia (§6 do plano): um item a mais, mesmo com a margem já
+   fechada, sempre respeitando o teto de 30. `.why` (fatia 14) carrega o porquê — antes era texto
+   corrido. Quando ler: ao mudar o que aparece quando o diagnóstico termina. -#}
 {% extends "base.html" %}
 {% block titulo %}Resultado do diagnóstico — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Diagnóstico concluído</h1>
-  <div class="mensagem mensagem--porque">
-    <h3>Por quê</h3>
-    <p>{{ motivo }}</p>
+  <div class="stack">
+    <span class="eyebrow">Diagnóstico</span>
+    <h1>Diagnóstico concluído</h1>
   </div>
 
-  <section aria-labelledby="titulo-materias">
+  <div class="why">
+    <b>Por que parei aqui</b>
+    <span>{{ motivo }}</span>
+  </div>
+
+  <div class="card stack">
     <h2 id="titulo-materias">Proficiência por matéria</h2>
-    <table class="tabela-pesos">
+    <table class="tabela-pesos" aria-labelledby="titulo-materias">
       <thead>
         <tr><th scope="col">Matéria</th><th scope="col">Estimativa</th><th scope="col">Itens</th><th scope="col"></th></tr>
       </thead>
@@ -24,46 +29,49 @@
             <th scope="row">{{ m.materia }}</th>
             <td>
               {% if not m.tem_questao %}
-                <span class="status status--nao-visto">sem questão na base</span>
+                <span class="chip">sem questão na base</span>
               {% elif m.estimativa_pct is none %}
-                <span class="status status--nao-visto">sem dado ainda</span>
+                <span class="chip">sem dado ainda</span>
               {% else %}
-                {{ m.estimativa_pct }}% <span class="fonte">± {{ m.margem }}</span>
+                <span class="mono">{{ m.estimativa_pct | pct }} <span class="muted">± {{ m.margem | pct }}</span></span>
               {% endif %}
             </td>
-            <td>{{ m.n_itens }}</td>
+            <td class="mono">{{ m.n_itens }}</td>
             <td>
               {% if m.fechado %}
-                <a class="botao sm botao--secundario" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
+                <a class="btn sm" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
               {% endif %}
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-  </section>
+  </div>
 
-  <section aria-labelledby="titulo-topicos">
+  <div class="card stack">
     <h2 id="titulo-topicos">Estado por tópico</h2>
-    <p class="nota">É este estado, tópico a tópico, que o plano do dia vai usar para decidir o que
-      entra no seu dia.</p>
-    <ul class="lista-limpa">
+    <p class="small muted">É este estado, tópico a tópico, que o plano do dia vai usar para
+      decidir o que entra no seu dia.</p>
+    <div class="stack" style="gap:8px">
       {% for t in topicos %}
-        <li>
-          <strong>{{ t.nome }}</strong> ({{ t.materia }}) —
-          <span class="status status--{{ 'visto' if t.situacao == 'dominado' else 'nao-visto' }}">
-            {% if t.situacao == "dominado" %}dominado
-            {% elif t.situacao == "a_estudar" %}a estudar
-            {% elif t.situacao == "sem_dado" %}sem dado ainda
-            {% else %}sem questão na base{% endif %}
-          </span>
-        </li>
+        <div class="row between">
+          <span class="small"><b>{{ t.nome }}</b> <span class="muted">({{ t.materia }})</span></span>
+          {% if t.situacao == "dominado" %}
+            <span class="chip good">dominado</span>
+          {% elif t.situacao == "a_estudar" %}
+            <span class="chip warn">a estudar</span>
+          {% elif t.situacao == "sem_dado" %}
+            <span class="chip">sem dado ainda</span>
+          {% else %}
+            <span class="chip">sem questão na base</span>
+          {% endif %}
+        </div>
       {% endfor %}
-    </ul>
-  </section>
+    </div>
+  </div>
 
-  <div class="acoes">
-    <a class="botao" href="/rotina">Ir para a rotina</a>
-    <a class="botao botao--secundario" href="/editais">Meus editais</a>
+  <div class="row acoes">
+    <a class="btn primary" href="/rotina">Ir para a rotina</a>
+    <a class="btn" href="/editais">Meus editais</a>
   </div>
 {% endblock %}

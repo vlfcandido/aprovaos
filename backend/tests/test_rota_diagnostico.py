@@ -176,6 +176,45 @@ def test_diagnostico_flui_ate_a_materia_fechar(logado: TestClient, db: Session) 
     assert "Insistir" in resultado.text  # Direito Administrativo fechou
 
 
+def test_diagnostico_mostra_barra_de_progresso_e_estimativa_apos_responder(
+    logado: TestClient, db: Session
+) -> None:
+    """Porte da fatia 14: barra de progresso (`.bar`) desde o primeiro item, e a "Estimativa até
+    agora" (uma matéria por linha) assim que alguma matéria já tem resposta."""
+    tenant_id = _tenant_id(db)
+    edital, com_questao, _sem_questao = _edital_com_topicos(db, tenant_id)
+    documento_prova = _documento(db, "prova-estimativa")
+    salvar_questoes(db, [_questao(com_questao, documento_prova.id, n) for n in range(1, 6)])
+    db.commit()
+
+    primeiro = logado.get("/diagnostico")
+    assert primeiro.status_code == 200
+    assert 'class="bar"' in primeiro.text
+    assert 'role="progressbar"' in primeiro.text
+    # ainda sem nenhuma resposta: a matéria ainda não aparece na estimativa.
+    assert "Estimativa até agora" not in primeiro.text
+
+    usuario = db.scalars(select(Usuario).where(Usuario.email == CADASTRO["email"])).one()
+    pendente = proxima_questao(db, usuario.id, com_questao.id)
+    assert pendente is not None
+    resposta_post = logado.post(
+        "/diagnostico",
+        data={
+            "resposta": "C",
+            "questao_id": str(pendente.id),
+            "topico_id": str(com_questao.id),
+            "confianca": "certeza",
+            "tempo_ms": "1000",
+        },
+    )
+    assert resposta_post.status_code == 200
+
+    segundo = logado.get("/diagnostico")
+    assert segundo.status_code == 200
+    assert "Estimativa até agora" in segundo.text
+    assert com_questao.materia in segundo.text
+
+
 def test_post_diagnostico_sem_confianca_400(logado: TestClient, db: Session) -> None:
     tenant_id = _tenant_id(db)
     edital, com_questao, _ = _edital_com_topicos(db, tenant_id)

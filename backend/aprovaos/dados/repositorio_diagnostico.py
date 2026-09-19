@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.modelos import EventoEstudo, Questao, Topico, TopicoEdital
 from aprovaos.dados.repositorio_questao import contagem_por_topico
 from aprovaos.dominio.diagnostico import Confianca, ItemDiagnostico, TopicoDisponivel
+from aprovaos.dominio.edital import normalizar_materia
 
 
 def topicos_do_diagnostico(db: Session, edital_id: UUID) -> list[TopicoDisponivel]:
@@ -28,7 +29,9 @@ def topicos_do_diagnostico(db: Session, edital_id: UUID) -> list[TopicoDisponive
 
     Returns:
         Um `TopicoDisponivel` por tópico do edital; a ordem não importa (`ordenar_candidatos`
-        reordena por margem/cobertura).
+        reordena por margem/cobertura). `materia` já passa por `normalizar_materia` (dado velho
+        do bug de fusão pode ter a mesma matéria em duas caixas — sem normalizar aqui ela vira
+        duas matérias no resultado do diagnóstico).
     """
     contagem = contagem_por_topico(db, edital_id)
     consulta = (
@@ -39,7 +42,7 @@ def topicos_do_diagnostico(db: Session, edital_id: UUID) -> list[TopicoDisponive
     return [
         TopicoDisponivel(
             topico_id=topico_id,
-            materia=materia,
+            materia=normalizar_materia(materia),
             nome=nome,
             tem_questao=contagem.get(topico_id, 0) > 0,
         )
@@ -84,7 +87,7 @@ def respostas_diagnostico(db: Session, usuario_id: UUID, edital_id: UUID) -> lis
         respostas.append(
             ItemDiagnostico(
                 topico_id=topico_id,
-                materia=materia,
+                materia=normalizar_materia(materia),
                 acertou=bool(evento.acertou),
                 confianca=confianca,
             )

@@ -1,33 +1,84 @@
 {# O que é: tela do diagnóstico em andamento (`GET/POST /diagnostico`, fatia 7, F2.1) — até 30
    itens, escolhidos pelo que ainda está incerto sobre a aluna. Reaproveita o parcial
    `questoes/_cartao_questao.html` ("responder no diagnóstico é, na prática, responder a questão
-   de novo"). `sem_concurso=True` quando o tenant ainda não tem concurso principal resolvível.
-   Quando ler: ao mudar o que aparece antes de responder um item do diagnóstico. -#}
+   de novo" — dono de outro agente, não editar). Markup portado de
+   `docs/evidencias/mockups/telas/s-diagnostico.html` ("Trinta questões, no máximo. O agente para
+   quando já sabe."), fatia 14. `sem_concurso=True` quando o tenant ainda não tem concurso
+   principal resolvível. Quando ler: ao mudar o que aparece antes de responder um item do
+   diagnóstico. -#}
 {% extends "base.html" %}
 {% block titulo %}Diagnóstico — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Trinta questões, no máximo. O agente para quando já sabe.</h1>
+  <div class="stack">
+    <span class="eyebrow">Diagnóstico</span>
+    <h1>Trinta questões, no máximo. O agente para quando já sabe.</h1>
+    <p class="prosa muted">Simulado adaptativo: cada item é escolhido pelo que ainda está incerto
+      sobre você. No fim, uma proficiência por matéria — com a margem de erro à mostra.</p>
+  </div>
+
   {% if sem_concurso %}
-    <p class="frase">Você ainda não tem um concurso principal — suba um edital para começar o
-      diagnóstico.</p>
-    <p><a class="botao" href="/editais/subir">Subir edital</a></p>
-  {% elif questao %}
-    <p class="cobertura">Item <strong>{{ progresso.atual }}</strong> de no máximo
-      <strong>{{ progresso.maximo }}</strong> — <span class="chip">{{ questao.tipo_item == "certo_errado" and "certo ou errado" or "múltipla escolha" }}</span></p>
-    <div class="mensagem mensagem--porque">
-      <h3>Por que este item</h3>
-      <p>{{ motivo_item }}</p>
+    <div class="vazio">
+      <p>Você ainda não tem um concurso principal — suba um edital para começar o diagnóstico.</p>
+      <div class="row acoes"><a class="btn primary" href="/editais/subir">Subir edital</a></div>
     </div>
+  {% elif questao %}
+    {% set item_atual %}
+      <div class="card stack">
+        <div class="row between">
+          <span class="chip">{{ topico.nome }}</span>
+          <span class="chip">{{ "certo ou errado" if questao.tipo_item == "certo_errado" else "múltipla escolha" }}</span>
+        </div>
+        <div class="bar" role="progressbar" aria-valuenow="{{ progresso.atual }}" aria-valuemin="0" aria-valuemax="{{ progresso.maximo }}" aria-label="Progresso do diagnóstico">
+          <i style="width:{{ (progresso.atual / progresso.maximo * 100) | round(1) }}%"></i>
+        </div>
+        <p class="cobertura small muted">Item <strong>{{ progresso.atual }}</strong> de no máximo
+          <strong>{{ progresso.maximo }}</strong></p>
+        <div class="why">
+          <b>Por que este item</b>
+          <span>{{ motivo_item }}</span>
+        </div>
+      </div>
+    {% endset %}
+
+    {% if estimativa_por_materia %}
+      <div class="grid-sb">
+        {{ item_atual }}
+        <div class="card stack">
+          <span class="eyebrow">Estimativa até agora</span>
+          <div class="stack" style="gap:8px">
+            {% for materia in estimativa_por_materia %}
+              <div class="row between">
+                <span class="small">{{ materia.nome }}</span>
+                {% if materia.estimativa_pct is none %}
+                  <span class="small muted">sem dado ainda</span>
+                {% else %}
+                  <span class="mono small">{{ materia.estimativa_pct | pct }} <span class="muted">± {{ materia.margem | pct }}</span></span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <p class="small muted">A faixa encolhe a cada resposta. O simulado termina quando todas
+            as matérias estiverem abaixo de ±8.</p>
+        </div>
+      </div>
+    {% else %}
+      {{ item_atual }}
+    {% endif %}
+
     <div id="questao">
       {% include "questoes/_cartao_questao.html" %}
     </div>
   {% elif limite %}
-    <div class="mensagem mensagem--porque" role="status">
-      <p>{{ limite.motivo }}</p>
-      <p><a class="botao" href="/assinar">{{ limite.convite }}</a></p>
+    <div class="why" role="status">
+      <b>Chegou ao limite de hoje</b>
+      <span>{{ limite.motivo }}</span>
     </div>
+    <p><a class="btn primary" href="/assinar">{{ limite.convite }}</a></p>
   {% else %}
-    <p class="frase">Ainda não temos questão nenhuma para o seu concurso principal — sem
-      diagnóstico possível por enquanto. <a href="/editais">Veja seus editais</a>.</p>
+    <div class="vazio">
+      <p>Ainda não temos questão nenhuma para o seu concurso principal.</p>
+      <p class="small">Sem questão não há diagnóstico possível por enquanto.</p>
+      <div class="row acoes"><a class="btn primary" href="/editais">Veja seus editais</a></div>
+    </div>
   {% endif %}
 {% endblock %}

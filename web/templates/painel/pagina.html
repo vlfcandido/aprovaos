@@ -1,25 +1,57 @@
 {# O que é: a tela "Painel" (`GET /painel`, fatia 10, §8) — curva de domínio com o alerta de
    atraso (RF-10), padrões de erro com suporte estatístico (RF-17) e previsão de nota v0 (RF-18).
    `sem_concurso=True` quando o usuário ainda não tem concurso principal/edital resolvível (P-23)
-   — a tela mostra o caminho para `/rotina`/`/editais/subir`, nunca um erro. Shell e paleta do
-   protótipo validado (`docs/evidencias/mockups/2026-09-14-prototipo-clicavel.html`). Quando ler:
-   ao mudar a ordem ou o texto dos blocos do painel. #}
+   — a tela mostra o caminho para `/rotina`/`/editais/subir`, nunca um erro. Markup portado de
+   `docs/evidencias/mockups/telas/s-painel.html` ("Você está na curva de aprovação?"), fatia 14.
+   Quando ler: ao mudar a ordem ou o texto dos blocos do painel. #}
 {% extends "base.html" %}
 {% block titulo %}Painel — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Painel</h1>
+  <div class="stack">
+    <span class="eyebrow">Painel e previsão</span>
+    <h1>Você está na curva de aprovação?</h1>
+    <p class="prosa muted">Toda resposta vira um evento: acerto, tempo, horário, energia. O
+      painel cruza isso com o peso da prova e o corte histórico e diz onde você está — sempre com
+      o intervalo e a confiança.</p>
+  </div>
+
   {% if sem_concurso %}
-    <p class="frase">{{ motivo }}</p>
-    <p class="acoes">
-      <a class="botao" href="/rotina">Configurar rotina</a>
-      <a href="/editais/subir">Subir edital</a>
-    </p>
+    <div class="vazio">
+      <p>{{ motivo }}</p>
+      <div class="row acoes">
+        <a class="btn primary" href="/rotina">Configurar rotina</a>
+        <a class="btn" href="/editais/subir">Subir edital</a>
+      </div>
+    </div>
   {% else %}
+    <div class="kpis">
+      <div class="card kpi">
+        <span class="eyebrow">Tópicos dominados hoje</span>
+        <span class="v">{{ curva.dominados_hoje }} <small>de {{ curva.total_topicos }}</small></span>
+      </div>
+      <div class="card kpi">
+        <span class="eyebrow">Nota líquida prevista</span>
+        {% if previsao %}
+          <span class="v">{{ previsao.nota_pct | pct }}
+            <small>{{ previsao.nota_inferior_pct | pct }}–{{ previsao.nota_superior_pct | pct }}</small>
+          </span>
+        {% else %}
+          <span class="v small muted">sem dado ainda</span>
+        {% endif %}
+      </div>
+      <div class="card kpi">
+        <span class="eyebrow">Padrões com suporte estatístico</span>
+        <span class="v">{{ padroes | length }}</span>
+      </div>
+    </div>
+
     {% include "painel/_curva.html" %}
     {% include "painel/_previsao.html" %}
     {% include "painel/_padroes.html" %}
-    <p class="acoes">
-      <a class="botao botao--secundario" href="/painel/semana">Ver resumo da semana</a>
-    </p>
+
+    <div class="row between">
+      <span class="small muted">Próximo: os últimos 7 dias</span>
+      <a class="btn primary" href="/painel/semana">Ver a semana da prova</a>
+    </div>
   {% endif %}
 {% endblock %}

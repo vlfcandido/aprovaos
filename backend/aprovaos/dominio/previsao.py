@@ -140,8 +140,11 @@ def prever_nota(
     confianca = _confianca(banda, cobertura)
 
     maior_peso = max(com_dado, key=lambda materia: materia.peso_questoes)
+    questoes_maior_peso = (
+        "1 questão" if maior_peso.peso_questoes == 1 else (f"{maior_peso.peso_questoes} questões")
+    )
     partes_porque = [
-        f"{maior_peso.materia} pesa mais ({maior_peso.peso_questoes} questões) e puxa a nota",
+        f"{maior_peso.materia} pesa mais ({questoes_maior_peso}) e puxa a nota",
         f"banda de {banda:.1f} p.p. com {cobertura * 100:.0f} % do peso da prova medido",
     ]
     if sem_dado:
@@ -150,7 +153,7 @@ def prever_nota(
     if corte_historico_pct is None:
         probabilidade_lacuna: str | None = (
             "não temos o corte histórico deste concurso, então não é possível estimar a "
-            "probabilidade de aprovação (P-17/P-39)"
+            "probabilidade de aprovação"
         )
     else:
         probabilidade_lacuna = None

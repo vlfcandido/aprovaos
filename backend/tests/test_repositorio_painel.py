@@ -251,6 +251,45 @@ def test_pesos_por_materia_sem_dna_cai_no_uniforme(db: Session) -> None:
     assert pesos.lacuna is not None
 
 
+def test_pesos_por_materia_agrega_grafias_diferentes_da_mesma_materia(db: Session) -> None:
+    """Defeito reproduzido no navegador (fatia 14): dado velho do bug de fusão (corrigido no
+    parser em `73f69a0`, não retroagido ao banco) grava a mesma matéria em duas caixas
+    (`"LÍNGUA PORTUGUESA"` e `"Língua Portuguesa"`) — sem normalizar na leitura, ela vira duas
+    matérias na tela. `pesos_por_materia` tem que agregar as duas sob o mesmo rótulo."""
+    usuario = criar_conta(db, DadosCadastro(email="grafias@exemplo.com", senha="12345678"))
+    concurso = Concurso(
+        tenant_id=usuario.tenant_id, orgao="TJ-PR", cargo="Técnico", banca="cebraspe"
+    )
+    documento_edital = Documento(
+        tipo="edital",
+        hash="edital-grafias".ljust(64, "0")[:64],
+        caminho="edital.pdf",
+        baixado_em=agora_utc(),
+        metadados={},
+    )
+    db.add_all([concurso, documento_edital])
+    db.flush()
+    edital = Edital(concurso=concurso, versao=1, documento=documento_edital)
+    db.add(edital)
+    db.flush()
+
+    topico_maiusculo = Topico(materia="LÍNGUA PORTUGUESA", nome="Crase", slug="grafias-a")
+    topico_misto = Topico(materia="Língua Portuguesa", nome="Concordância", slug="grafias-b")
+    db.add_all([topico_maiusculo, topico_misto])
+    db.flush()
+    db.add_all(
+        [
+            TopicoEdital(edital=edital, topico=topico_maiusculo, ordem=1, texto_original="1."),
+            TopicoEdital(edital=edital, topico=topico_misto, ordem=2, texto_original="2."),
+        ]
+    )
+    db.commit()
+
+    pesos = pesos_por_materia(db, edital.id)
+
+    assert pesos.pesos == {"Língua Portuguesa": 1}
+
+
 def test_pesos_por_materia_sem_topico_nenhum(db: Session) -> None:
     _usuario, edital_id, _topicos = _cenario(db, "pesosvazio@exemplo.com", quantidade_topicos=0)
 

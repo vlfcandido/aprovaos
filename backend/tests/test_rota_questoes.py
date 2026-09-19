@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from aprovaos.api.questoes import _cargo_exibivel, _formatar_banca
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Alternativa,
@@ -251,7 +252,9 @@ def test_apoio_curto_nao_fica_recolhido(logado: TestClient, db: Session) -> None
     _criar_questao(db, topico, documento.id, texto_apoio=TEXTO_APOIO_CURTO)
 
     corpo = logado.get(f"/topico/{topico.slug}/questoes").text
-    assert "<details" not in corpo
+    # o texto de apoio curto não fica recolhido — só o "reportar erro" usa `<details>` agora
+    # (fatia 14: some atrás de um link discreto, não é mais um `<textarea>` sempre aberto).
+    assert "<summary>ver texto de apoio</summary>" not in corpo
     assert TEXTO_APOIO_CURTO in corpo
 
 
@@ -269,7 +272,15 @@ def test_apoio_longo_fica_recolhido(logado: TestClient, db: Session) -> None:
     assert texto_longo in corpo
 
 
-def test_post_resposta_sem_confianca_400(logado: TestClient, db: Session) -> None:
+def test_post_resposta_sem_confianca_reexibe_a_questao_com_aviso(
+    logado: TestClient, db: Session
+) -> None:
+    """Defeito nº 1 do porte visual (fatia 14 §2.1): antes, isto era um 400 — e um 400 aqui é o
+    htmx engolindo o erro em silêncio (não troca o DOM em resposta de erro), exatamente o que fez
+    o dono dizer "não vi como responder": clicar numa alternativa sem marcar certeza/dúvida antes
+    não fazia nada visível. Agora é 200, com a mesma questão de volta e o aviso — nunca silencioso,
+    com ou sem JS.
+    """
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
     documento = _documento(db, "prova-3")
@@ -279,11 +290,36 @@ def test_post_resposta_sem_confianca_400(logado: TestClient, db: Session) -> Non
         f"/topico/{topico.slug}/questoes",
         data={"resposta": "C", "questao_id": str(questao.id)},
     )
-    assert resposta.status_code == 400
-    corpo = resposta.json()
-    assert corpo["codigo"] == "dados_invalidos"
-    assert "certeza ou dúvida" in corpo["mensagem"].lower()
-    assert set(corpo) == {"codigo", "mensagem", "acao"}
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "certeza ou dúvida" in corpo.lower()
+    assert 'role="alert"' in corpo
+    # a mesma questão continua ali, pronta para tentar de novo — nunca some da tela.
+    assert 'name="resposta" value="C"' in corpo
+    assert 'name="questao_id" value="' + str(questao.id) in corpo
+
+    eventos = list(db.scalars(select(EventoEstudo)).all())
+    assert eventos == []
+
+
+def test_post_resposta_sem_confianca_com_htmx_tambem_reexibe(
+    logado: TestClient, db: Session
+) -> None:
+    """Mesmo teste do htmx: com `HX-Request: true`, o htmx só troca o DOM em respostas 2xx — por
+    isso o 200 acima é o que garante que a aluna vê o aviso, não um 4xx que ele descartaria.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-3b")
+    questao = _criar_questao(db, topico, documento.id)
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "questao_id": str(questao.id)},
+        headers={"HX-Request": "true"},
+    )
+    assert resposta.status_code == 200
+    assert "certeza ou dúvida" in resposta.text.lower()
 
     eventos = list(db.scalars(select(EventoEstudo)).all())
     assert eventos == []
@@ -358,7 +394,7 @@ def test_resultado_mostra_origem_completa_e_reportar(logado: TestClient, db: Ses
     )
     assert resposta.status_code == 200
     corpo = resposta.text
-    assert "cebraspe" in corpo
+    assert "Cebraspe" in corpo  # nome próprio, nunca o identificador cru "cebraspe" (fatia 14)
     assert "TJ-PA" in corpo
     assert "Analista Judiciário — Direito" in corpo
     assert "2025" in corpo
@@ -378,8 +414,10 @@ def test_topico_tela_referencia_atalhos_de_teclado(logado: TestClient, db: Sessi
 
     corpo = logado.get(f"/topico/{topico.slug}/questoes").text
     assert '<script src="/static/js/atalhos-estudo.js" defer></script>' in corpo
+    assert '<script src="/static/js/confianca-questao.js" defer></script>' in corpo
     assert 'data-atalho="certo"' in corpo
     assert 'data-atalho="errado"' in corpo
+    assert 'id="questao" aria-live="polite"' in corpo
 
 
 def test_post_resposta_questao_de_outro_topico_erro(logado: TestClient, db: Session) -> None:
@@ -570,6 +608,56 @@ def test_questao_despublicada_pelo_calibrador_some_da_tela(logado: TestClient, d
     assert "Ainda não temos questões deste tópico." in resposta.text
 
 
+# ---- Porte visual (fatia 14 §2.2): origem legível e "questão N de M" ---------------------
+
+
+def test_formatar_banca_conhecida_ganha_nome_proprio() -> None:
+    assert _formatar_banca("cebraspe") == "Cebraspe"
+    assert _formatar_banca("CEBRASPE") == "Cebraspe"
+    assert _formatar_banca("fgv") == "FGV"
+
+
+def test_formatar_banca_desconhecida_nao_e_reformatada() -> None:
+    """Nunca `.title()`/`.capitalize()` cego: uma sigla como "AOCP" viraria "Aocp" — pior que não
+    mexer. Bancas fora do mapa aparecem como vieram."""
+    assert _formatar_banca("AOCP") == "AOCP"
+    assert _formatar_banca("FCC") == "FCC"
+
+
+def test_cargo_placeholder_interno_e_omitido() -> None:
+    assert _cargo_exibivel("CARGO 9") is None
+    assert _cargo_exibivel("cargo 19") is None
+
+
+def test_cargo_de_verdade_nao_e_omitido() -> None:
+    assert _cargo_exibivel("Analista Judiciário — Direito") == "Analista Judiciário — Direito"
+
+
+def test_get_mostra_posicao_na_fila_e_avanca_apos_responder(
+    logado: TestClient, db: Session
+) -> None:
+    """ "Questão N de M" (achado do porte visual, fatia 14 §2.2) — sem isso a aluna não sabia
+    quanto faltava na lista de hoje.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-posicao")
+    primeira = _criar_questao(db, topico, documento.id, numero_item=1)
+    _criar_questao(db, topico, documento.id, numero_item=2)
+
+    corpo_antes = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert 'Questão <b class="mono">1</b> de <b class="mono">2</b>' in corpo_antes
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(primeira.id)},
+    )
+    assert resposta.status_code == 200
+
+    corpo_depois = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert 'Questão <b class="mono">2</b> de <b class="mono">2</b>' in corpo_depois
+
+
 # ---- Passo 3 da V3b: tela de múltipla escolha A–E ----------------------------------------
 
 
@@ -591,6 +679,21 @@ def test_get_mostra_multipla_escolha_com_cinco_alternativas(
     assert "Gabarito" not in corpo
     assert "alternativa--correta" not in corpo
     assert "data-correta" not in corpo
+
+
+def test_alternativas_tem_nome_acessivel_com_letra_e_texto(logado: TestClient, db: Session) -> None:
+    """Defeito nº 1 do porte visual (fatia 14 §2.1): as cinco alternativas são `<button>` sem
+    `aria-label` — um leitor de tela anunciava só "button". Cada uma agora carrega a letra e o
+    texto no `aria-label`, então basta ouvir uma vez para saber o que ela responde.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-aria")
+    _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="A")
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    for letra, texto in _TEXTOS_ALTERNATIVAS.items():
+        assert f'aria-label="Responder {letra}: {texto}"' in corpo
 
 
 def test_multipla_escolha_referencia_atalhos_a_e(logado: TestClient, db: Session) -> None:
@@ -645,8 +748,10 @@ def test_multipla_escolha_resultado_marca_alternativas_sem_inventar_justificativ
     assert "Você errou" in corpo
     assert "alternativa--correta" in corpo
     assert "alternativa--marcada-errada" in corpo
-    assert "em breve" not in corpo.lower()
-    assert "explicação" not in corpo.lower()
+    assert "Explicação do AprovaOS" not in corpo  # não inventa o selo sem justificativa gravada
+    # honestidade é o produto (regra 11, fatia 14 §2.2): diz que ainda não há explicação, nunca
+    # deixa a tela em silêncio depois de um "Você errou." seco.
+    assert "Ainda não temos uma explicação escrita para este item" in corpo
 
 
 def test_post_resposta_multipla_escolha_letra_invalida_400(logado: TestClient, db: Session) -> None:
@@ -723,10 +828,14 @@ def test_resultado_certo_errado_mostra_justificativa_com_fonte_legal(
     assert "[Lei 8.429/1992 art. 1]" not in corpo
 
 
-def test_resultado_certo_errado_sem_justificativa_nao_mostra_nada(
+def test_resultado_certo_errado_sem_justificativa_diz_que_ainda_nao_existe(
     logado: TestClient, db: Session
 ) -> None:
-    """Sem justificativa gravada (a maioria hoje), a tela não mostra rótulo nem tabela nenhuma."""
+    """Sem justificativa gravada (a maioria hoje), a tela não mostra rótulo nem tabela nenhuma —
+    mas também não cai num "Você errou." seco e silencioso: diz que a explicação ainda não existe
+    (honestidade é o produto, regra 11; achado do porte visual, fatia 14 §2.2). Nunca inventa o
+    texto que falta.
+    """
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
     documento = _documento(db, "prova-just-2")
@@ -741,7 +850,7 @@ def test_resultado_certo_errado_sem_justificativa_nao_mostra_nada(
     assert "Explicação do AprovaOS" not in corpo
     assert "Se marcou Certo" not in corpo
     assert "Se marcou Errado" not in corpo
-    assert "em breve" not in corpo.lower()
+    assert "Ainda não temos uma explicação escrita para este item" in corpo
 
 
 def test_resultado_justificativa_com_citacao_de_ordinal_diferente_ainda_casa_com_a_fonte(

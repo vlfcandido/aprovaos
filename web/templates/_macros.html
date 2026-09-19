@@ -1,0 +1,16 @@
+{# O que é: macros Jinja compartilhadas entre telas — hoje só `citacao_legal`, o popover de lei
+   sem JS (`<details>`/`<summary>` com o trecho literal e o link para a fonte). Nasceu em
+   `questoes/_resultado.html` (fundação jurídica, passo 6) e foi extraída na fatia 6 (trilha e
+   aulas em texto) para a tela de aula reaproveitar o mesmo widget, em vez de reimplementá-lo.
+   Quando ler: antes de criar um popover de citação novo — use esta macro. #}
+{% macro citacao_legal(af) %}
+  {% if af.dispositivo_texto %}
+    <details class="citacao-legal">
+      <summary>{{ af.dispositivo_rotulo }}</summary>
+      <p>{{ af.dispositivo_texto }}</p>
+      {% if af.dispositivo_url %}<p><a href="{{ af.dispositivo_url }}" target="_blank" rel="noopener">ver na fonte</a></p>{% endif %}
+    </details>
+  {% elif af.dispositivo_rotulo %}
+    <span class="citacao-legal citacao-legal--sem-texto">{{ af.dispositivo_rotulo }}</span>
+  {% endif %}
+{% endmacro %}

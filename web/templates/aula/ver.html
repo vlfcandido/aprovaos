@@ -1,0 +1,75 @@
+{# O que é: página da aula do tópico (`GET /topico/{slug}/aula`, fatia 6). A aula é gerada
+   offline pelo comando `motor.aula` (dossiê + validador mecânico já aprovando antes de
+   publicar) — esta tela só lê e mostra. `texto_denso`/`texto_leigo` já vêm sem marcador
+   `{{...}}` cru (`api/questoes.py::_contexto_aula` → `dominio.aula.renderizar_com_notas`); cada
+   `[n]` no texto referencia a nota correspondente logo abaixo, com o mesmo popover
+   `<details>`/`<summary>` do resultado de questão (`_macros.html`). Alterna denso/leigo sem JS
+   (dois `<details>`, um aberto por padrão). `relacionados` é o fio da memória (a); `mnemonico`
+   só aparece quando o gerador conseguiu ancorar um em fonte real. Quando ler: ao mudar o que a
+   aluna vê na aula. #}
+{% extends "base.html" %}
+{% block titulo %}{{ topico.nome }} — Aula — AprovaOS{% endblock %}
+{% block conteudo %}
+  <p class="migalha"><a href="/topico/{{ topico.slug }}/questoes">Voltar às questões</a></p>
+  <h1>{{ topico.nome }}</h1>
+
+  {% if aula %}
+    {% if relacionados %}
+      {% for r in relacionados %}
+        <p class="selo selo--fio-da-memoria">Fio da memória — <span>{{ r.frase }}</span></p>
+      {% endfor %}
+    {% endif %}
+
+    <details open class="aula-modo">
+      <summary>Versão completa</summary>
+      <div class="aula-texto">{{ texto_denso | replace("\n\n", "</p><p>") | safe }}</div>
+      {% if notas_denso %}
+        <ol class="aula-notas">
+          {% for nota in notas_denso %}
+            <li id="citacao-{{ nota.numero }}">
+              <details class="citacao-legal">
+                <summary>{{ nota.rotulo }}</summary>
+                <p>{{ nota.texto }}</p>
+              </details>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </details>
+
+    <details class="aula-modo">
+      <summary>Versão leiga</summary>
+      <div class="aula-texto">{{ texto_leigo | replace("\n\n", "</p><p>") | safe }}</div>
+    </details>
+
+    {% if mnemonico %}
+      <div class="mensagem mensagem--porque">
+        <h3>Mnemônico</h3>
+        <p>{{ mnemonico.texto }}</p>
+        <p class="fonte">{{ mnemonico.dispositivo }}: "{{ mnemonico.trecho_que_decide }}"</p>
+      </div>
+    {% endif %}
+
+    {% if como_a_banca_cobra %}
+      <section aria-labelledby="titulo-banca">
+        <h2 id="titulo-banca">Como a banca cobra</h2>
+        <ul class="lista-limpa">
+          {% for nota in como_a_banca_cobra %}
+            <li>{{ nota.o_que_testou }} <small class="fonte">{{ nota.origem }}</small></li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if lacunas_declaradas %}
+      <div class="mensagem mensagem--porque">
+        <h3>Este dossiê ainda não cobre</h3>
+        <ul>
+          {% for lacuna in lacunas_declaradas %}<li>{{ lacuna }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% else %}
+    <p>Ainda não temos aula deste tópico.</p>
+  {% endif %}
+{% endblock %}

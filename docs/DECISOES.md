@@ -388,3 +388,43 @@ vão consumir julgado além de súmula; prematuro com uma fatia de evidência s�
 **Por quê:** as duas decisões seguem a mesma régua — "lacuna declarada vale mais que fonte
 inventada" (skill) e "não extrapole o plano" (CLAUDE.md regra 9): peso medido é o que a base
 prova hoje; súmula fora de `dispositivo_legal` é o que o contrato atual suporta sem distorção.
+
+## ADR-0040 — Fatia 6 (trilha e aulas em texto): validador mecânico da aula, mnemônico na mesma chamada, trilha por peso medido · 2026-09-19 · aceita (fatia 6)
+**Decisão 1 — `aula` ganha `como_a_banca_cobra`, `lacunas_declaradas` e `mnemonico` além do
+mínimo de `docs/04-modelo-de-dados.md` §3.** A skill `gerador-de-aula` pede os dois primeiros
+campos e a linha 6 do PRD pede mnemônico; nenhum dos três está na tabela `aula` documentada na
+Fase 3. Mesmo padrão já aceito para `dna_concurso` (ADR-0032) e `questao` (ADR-0033): coluna JSON
+além do que o modelo de dados previa, decisão registrada aqui em vez de reescrever o documento da
+Fase 3 por uma extensão aditiva (nenhuma coluna do mínimo original muda de sentido).
+**Alternativas:** reescrever `04-modelo-de-dados.md` §3 (rejeitada — falso senso de que a Fase 3
+previu isso; o histórico de decisão se perderia); guardar os três campos dentro de `citacoes`/
+`relacionados` (rejeitada — são conceitos distintos, misturar dificultaria consultar/validar cada
+um).
+
+**Decisão 2 — o mnemônico nasce na mesma chamada do `gerador-de-aula`, não numa chamada própria.**
+A linha 6 do PRD pede mnemônico "gerado e validado", mas o free tier tem poucas requisições/dia
+por modelo (achado do passo 12b/12c da V3) e há 4 dossiês para gerar aula. Pedir o mnemônico como
+campo opcional do mesmo JSON de saída (`MnemonicoAula`, validado pela mesma regra de trecho
+literal das citações) custa zero chamadas extras. **Alternativa rejeitada:** agente
+`gerador-de-mnemonico` dedicado (skill separada) — dobraria o custo de cota desta fatia sem
+ganho de qualidade evidente; se o piloto pedir mnemônico mais rico que o que cabe numa aula, vira
+fatia própria depois.
+
+**Decisão 3 — trilha ordena por peso medido (questões publicáveis) + visto/errado, nunca por
+"dificuldade" estimada.** Mesma régua da ADR-0039 (peso medido, não declarado — o edital só tem
+peso uniforme por matéria, P-39): `dominio/trilha.py::montar_trilha` usa dois números que a base
+já tem — `questoes_publicaveis` (peso) e `acertos/total` do histórico real — nunca um índice de
+dificuldade inventado. Critério escrito e testado (`docs/fatias/6-trilha-e-aulas.md` §7): não
+visto/fraco (acerto < 70 % ou menos de 3 respostas) antes de dominado; dentro do mesmo grupo,
+maior peso primeiro.
+
+**Decisão 4 — grifos (`Anotacao`) ficam fora desta fatia.** O modelo de dados já nomeia a tabela
+(`docs/04-modelo-de-dados.md` §2) mas não existe ORM, migração, nem lógica de reancoragem por
+`texto_ancora` quando o conteúdo muda — trabalho do tamanho de uma fatia própria, não um apêndice
+desta. Registrado em `docs/PENDENCIAS.md` (P-50) em vez de entregar uma versão sem reancoragem
+(que "sobrevive à regeneração do dossiê ou avisa que o trecho mudou" é o próprio critério de
+aceite da F4.6 no PRD — sem isso, não é a feature, é outra coisa com o mesmo nome).
+
+**Por quê:** todas seguem a mesma régua da casa — número real ou lacuna declarada nunca estimativa
+(decisões 1 e 3); custo de cota é recurso do produto, não infra a ignorar (decisão 2); entregar
+menos e honesto é melhor que uma versão capenga com o nome certo (decisão 4).

@@ -18,17 +18,8 @@
    vencido); este fragmento é o mesmo para os dois fluxos. `fio_da_memoria` (V5) repete, no
    resultado, o mesmo selo de `_cartao_questao.html` quando a questão respondida era um item
    intercalado. Quando ler: ao mudar o que aparece depois de responder. -#}
-{% macro citacao(af) %}
-  {% if af.dispositivo_texto %}
-    <details class="citacao-legal">
-      <summary>{{ af.dispositivo_rotulo }}</summary>
-      <p>{{ af.dispositivo_texto }}</p>
-      {% if af.dispositivo_url %}<p><a href="{{ af.dispositivo_url }}" target="_blank" rel="noopener">ver na fonte</a></p>{% endif %}
-    </details>
-  {% elif af.dispositivo_rotulo %}
-    <span class="citacao-legal citacao-legal--sem-texto">{{ af.dispositivo_rotulo }}</span>
-  {% endif %}
-{% endmacro %}
+{% import "_macros.html" as macros %}
+{% macro citacao(af) %}{{ macros.citacao_legal(af) }}{% endmacro %}
 {% if evento %}
   <div class="cartao cartao--elevado questao">
     {% if fio_da_memoria %}

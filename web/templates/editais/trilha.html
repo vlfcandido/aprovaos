@@ -1,0 +1,28 @@
+{# O que é: a trilha de estudo do concurso (`GET /concurso/{id}/trilha`, fatia 6) — os tópicos do
+   edital ordenados por `dominio.trilha.montar_trilha`: não visto/fraco primeiro (por peso
+   medido), dominado ao final. Cada item mostra o `motivo` (números reais, nunca "parece
+   difícil") e um link para a aula (quando publicada) e para as questões. Quando ler: ao mudar o
+   critério de ordenação ou o que a trilha mostra por tópico. #}
+{% extends "base.html" %}
+{% block titulo %}Trilha de estudo — {{ concurso.cargo }} — AprovaOS{% endblock %}
+{% block conteudo %}
+  <p class="migalha"><a href="/concurso/{{ concurso.id }}">Voltar ao concurso</a></p>
+  <h1>Trilha de estudo</h1>
+  <p class="frase">Ordem por peso medido (questões publicáveis na base) e pelo que você já viu ou errou.</p>
+
+  <ol class="topicos">
+    {% for item in trilha %}
+      <li data-slug="{{ item.slug }}">
+        <span class="topico__texto">{{ item.nome }}</span>
+        <span class="status status--{{ 'visto' if item.status == 'dominado' else 'nao-visto' }}">{{ item.status }}</span>
+        <p class="nota">{{ item.motivo }}</p>
+        <p>
+          {% if item.tem_aula %}
+            <a href="/topico/{{ item.slug }}/aula">Ver aula</a> ·
+          {% endif %}
+          <a href="/topico/{{ item.slug }}/questoes">Responder questões</a>
+        </p>
+      </li>
+    {% endfor %}
+  </ol>
+{% endblock %}

@@ -51,6 +51,7 @@ from aprovaos.api.templates import renderizar
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Alternativa,
+    Aula,
     Cartao,
     Concurso,
     DispositivoLegal,
@@ -62,6 +63,7 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
+from aprovaos.dados.repositorio_aula import aula_publicada_do_topico
 from aprovaos.dados.repositorio_cartao import cartoes_vencidos, registrar_erro, revisar_cartao
 from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
 from aprovaos.dados.repositorio_fio_memoria import (
@@ -73,6 +75,7 @@ from aprovaos.dados.repositorio_questao import (
     registrar_reporte,
     registrar_resposta,
 )
+from aprovaos.dominio.aula import CitacaoAula, renderizar_com_notas
 from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
 from aprovaos.dominio.fio_memoria import (
     ItemIntercalado,
@@ -817,3 +820,66 @@ def responder_revisao(
     contexto["proximo_url"] = "/revisar"
     contexto["proximo_rotulo"] = "Próxima revisão"
     return renderizar(request, "questoes/_resultado.html", contexto, usuario)
+
+
+def _contexto_aula(aula: Aula) -> dict[str, object]:
+    """Monta o contexto de `aula/ver.html` a partir da `Aula` já publicada.
+
+    `renderizar_com_notas` troca cada marcador `{{citação}}` do texto por uma nota numerada
+    `[n]`, listada abaixo do texto com o mesmo popover `<details>`/`<summary>` do resultado de
+    questão (`web/templates/_macros.html`) — a citação já traz o trecho literal embutido
+    (`Aula.citacoes`), sem precisar juntar com `dispositivo_legal`.
+
+    Args:
+        aula: a `Aula` publicada a exibir.
+
+    Returns:
+        O dicionário de contexto do template, com `texto_denso`/`texto_leigo` já sem marcador
+        cru e as respectivas listas de notas.
+    """
+    citacoes = [CitacaoAula.model_validate(c) for c in aula.citacoes]
+    denso_html, notas_denso = renderizar_com_notas(aula.texto_denso, citacoes)
+    leigo_html, notas_leigo = renderizar_com_notas(aula.texto_leigo, citacoes)
+    return {
+        "texto_denso": denso_html,
+        "notas_denso": notas_denso,
+        "texto_leigo": leigo_html,
+        "notas_leigo": notas_leigo,
+        "relacionados": aula.relacionados,
+        "como_a_banca_cobra": aula.como_a_banca_cobra,
+        "lacunas_declaradas": aula.lacunas_declaradas,
+        "mnemonico": aula.mnemonico,
+    }
+
+
+@router.get("/topico/{slug}/aula")
+def obter_aula(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+    slug: str,
+) -> Response:
+    """Mostra a aula publicada do tópico (fatia 6), ou o aviso de que ainda não existe.
+
+    A aula é gerada offline pelo comando `motor.aula` (com o validador mecânico já aprovando
+    antes de publicar) — esta rota só lê e renderiza, nunca gera na hora.
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (só leitura).
+        usuario: o usuário logado.
+        slug: slug global do tópico.
+
+    Returns:
+        O HTML de `aula/ver.html`; com `aula=None` no contexto quando o tópico ainda não tem
+        aula publicada (200, sem erro — mesma decisão de "sem questão" da tela de questão).
+
+    Raises:
+        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant.
+    """
+    topico = _exigir_topico_do_tenant(db, slug, usuario)
+    aula = aula_publicada_do_topico(db, topico.id)
+    contexto: dict[str, object] = {"topico": topico, "aula": aula}
+    if aula is not None:
+        contexto.update(_contexto_aula(aula))
+    return renderizar(request, "aula/ver.html", contexto, usuario)

@@ -502,3 +502,43 @@ class DossieTopico(ChaveUuid, Carimbos, Base):
     )
 
     topico: Mapped[Topico] = relationship()
+
+
+class Aula(ChaveUuid, Carimbos, Base):
+    """A aula de um tópico (modelo de dados §3, fatia 6): o dossiê reorganizado para aprender.
+
+    Espelha `dominio.aula.ConteudoAula`: `citacoes` guarda
+    `dominio.aula.CitacaoAula.model_dump()` (canônica, `F-n` do dossiê, trecho literal já
+    embutido — a tela de aula não precisa juntar com `dispositivo_legal`/`citacao` para o
+    popover, o mesmo princípio de `dossie_topico.fontes`); `relacionados`, a lista de
+    `dominio.aula.RelacionadoAula.model_dump()` (fio da memória (a)); `como_a_banca_cobra` e
+    `lacunas_declaradas` são a extensão desta fatia ao mínimo do modelo de dados (mesmo padrão de
+    `dna_concurso`/`questao` — coluna JSON além do que `docs/04-modelo-de-dados.md` já
+    documentava, decisão registrada em `docs/fatias/6-trilha-e-aulas.md` §1); `mnemonico` é
+    `dominio.aula.MnemonicoAula.model_dump()` ou `None` (linha 6 do PRD, §5 do plano — gerado
+    junto com a aula, mesmo rigor de citação). `audio_url` fica sempre `None` nesta fatia (linha
+    6 do PRD exclui áudio até o piloto mostrar uso). `validado_em`/`publicada` só existem depois
+    de `dominio.aula.verificar_aula` aprovar — reprovada não grava linha nenhuma
+    (`dados.repositorio_aula.salvar_aula` só é chamado pelo comando depois do veredito).
+    """
+
+    __tablename__ = "aula"
+    __table_args__ = (UniqueConstraint("topico_id", "versao"),)
+
+    dossie_id: Mapped[UUID] = mapped_column(ForeignKey("dossie_topico.id"), nullable=False)
+    dossie_versao: Mapped[int] = mapped_column(Integer, nullable=False)
+    topico_id: Mapped[UUID] = mapped_column(ForeignKey("topico.id"), index=True, nullable=False)
+    versao: Mapped[int] = mapped_column(Integer, nullable=False)
+    texto_denso: Mapped[str] = mapped_column(Text, nullable=False)
+    texto_leigo: Mapped[str] = mapped_column(Text, nullable=False)
+    audio_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    citacoes: Mapped[list[Any]] = mapped_column(JSON, nullable=False)
+    relacionados: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    como_a_banca_cobra: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    lacunas_declaradas: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    mnemonico: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    validado_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+    publicada: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    dossie: Mapped[DossieTopico] = relationship()
+    topico: Mapped[Topico] = relationship()

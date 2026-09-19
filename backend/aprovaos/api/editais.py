@@ -12,6 +12,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aprovaos.agentes.analista_de_edital import AnalistaDeEdital, criar_analista_adk, gerar_dna
@@ -21,7 +22,7 @@ from aprovaos.api.templates import renderizar, responder_redirecionamento
 from aprovaos.config import Configuracoes
 from aprovaos.dados.arquivos import guardar_pdf
 from aprovaos.dados.base import agora_utc
-from aprovaos.dados.modelos import Usuario
+from aprovaos.dados.modelos import Aula, Usuario
 from aprovaos.dados.repositorio_edital import (
     STATUS_NAO_VISTO,
     DadosDocumento,
@@ -34,12 +35,15 @@ from aprovaos.dados.repositorio_edital import (
     registrar_edital,
     verticalizado,
 )
+from aprovaos.dados.repositorio_fio_memoria import estatisticas_topicos_vistos
 from aprovaos.dados.repositorio_questao import contagem_por_topico, topicos_vistos
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.dna import DnaConcurso
 from aprovaos.dominio.edital import DESCONHECIDO, extrair_conteudo_programatico, slug_materia
 from aprovaos.dominio.erros import ArquivoInvalido, ConteudoProgramaticoNaoEncontrado, PdfSemTexto
 from aprovaos.dominio.pdf import LIMITE_BYTES, contar_paginas, extrair_texto, validar_pdf
+from aprovaos.dominio.trilha import TopicoParaTrilha, montar_trilha
+from aprovaos.motor.dossie import topicos_de_maior_peso
 from aprovaos.roteador.custo import ChamadaLlm
 from aprovaos.roteador.teto import TetoDiario
 
@@ -275,6 +279,78 @@ def concurso(
         "topicos_vistos": len(vistos),
     }
     return renderizar(request, "editais/concurso.html", contexto, usuario)
+
+
+@router.get("/concurso/{concurso_id}/trilha")
+def trilha_do_concurso(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+    concurso_id: UUID,
+) -> Response:
+    """A trilha de estudo do concurso (fatia 6): tópicos ordenados por peso medido e histórico.
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (só leitura).
+        usuario: o usuário logado.
+        concurso_id: chave do concurso.
+
+    Returns:
+        O HTML de `editais/trilha.html`.
+
+    Raises:
+        HTTPException: 404 se não existir (ou não tiver edital); 403 se for de outro tenant.
+    """
+    achado = buscar_concurso(db, concurso_id)
+    if achado is None:
+        raise HTTPException(status_code=404, detail="Concurso não encontrado.")
+    if achado.tenant_id != usuario.tenant_id:
+        raise HTTPException(status_code=403, detail="Este concurso pertence a outra conta.")
+    edital = edital_atual(db, achado.id)
+    if edital is None:
+        raise HTTPException(status_code=404, detail="Este concurso ainda não tem edital.")
+
+    topicos_com_peso = topicos_de_maior_peso(db, edital.id, limite=10_000)
+    vistos = {
+        estatistica.topico_id: estatistica
+        for estatistica in estatisticas_topicos_vistos(db, usuario.id, edital.id)
+    }
+    trilha = montar_trilha(
+        [
+            TopicoParaTrilha(
+                topico_id=t.topico_id,
+                slug=t.slug,
+                nome=t.nome,
+                materia=t.materia,
+                questoes_publicaveis=t.questoes_publicaveis,
+            )
+            for t in topicos_com_peso
+        ],
+        vistos,
+    )
+    topicos_com_aula = {
+        aula.topico_id
+        for aula in db.scalars(
+            select(Aula).where(
+                Aula.topico_id.in_([item.topico_id for item in trilha]), Aula.publicada.is_(True)
+            )
+        ).all()
+    }
+    contexto: dict[str, Any] = {
+        "concurso": {"id": str(achado.id), "cargo": achado.cargo, "orgao": achado.orgao},
+        "trilha": [
+            {
+                "slug": item.slug,
+                "nome": item.nome,
+                "status": item.status,
+                "motivo": item.motivo,
+                "tem_aula": item.topico_id in topicos_com_aula,
+            }
+            for item in trilha
+        ],
+    }
+    return renderizar(request, "editais/trilha.html", contexto, usuario)
 
 
 @router.get("/editais")

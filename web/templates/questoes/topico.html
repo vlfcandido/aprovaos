@@ -12,6 +12,7 @@
 {% block titulo %}{{ topico.nome }} — Questões — AprovaOS{% endblock %}
 {% block conteudo %}
   <h1>{{ topico.nome }}</h1>
+  <p class="migalha"><a href="/topico/{{ topico.slug }}/aula">Ver aula deste tópico</a></p>
   <div id="questao">
     {% if questao %}
       {% include "questoes/_cartao_questao.html" %}

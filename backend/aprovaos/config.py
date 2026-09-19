@@ -44,6 +44,9 @@ class Configuracoes(BaseSettings):
             jurídica, passo 5). `gemini-3.6-flash`, não o Lite: explicar por que um gabarito é o
             que é, ancorado em dispositivo, é raciocínio — o mesmo motivo de `modelo_dna`, não
             "simple data processing" como a classificação de tópico.
+        modelo_aula: modelo Gemini do agente `gerador-de-aula` (fatia 6, trilha e aulas em
+            texto). `gemini-3.6-flash`, mesmo corte de `modelo_justificativa`/`modelo_dna`:
+            escrever uma aula ancorada em dossiê é raciocínio, não classificação.
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -63,6 +66,7 @@ class Configuracoes(BaseSettings):
     modelo_classificacao: str = "gemini-3.5-flash-lite"
     lote_classificacao: int = Field(default=20, gt=0)
     modelo_justificativa: str = "gemini-3.6-flash"
+    modelo_aula: str = "gemini-3.6-flash"
 
 
 @lru_cache

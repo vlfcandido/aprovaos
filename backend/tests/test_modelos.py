@@ -77,6 +77,7 @@ def test_tabelas() -> None:
         "citacao",
         "dossie_topico",
         "cartao",
+        "aula",
     }
 
 

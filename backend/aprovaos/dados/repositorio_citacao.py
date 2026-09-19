@@ -12,7 +12,7 @@ Quando ler: ao ligar o comando `motor/ancorar.py`, ou ao investigar uma linha du
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.modelos import Citacao, DispositivoLegal
@@ -67,6 +67,50 @@ def buscar_ou_criar_dispositivo(
     db.add(dispositivo)
     db.flush()
     return dispositivo
+
+
+def buscar_dispositivo_por_citacao_canonica(
+    db: Session, citacao_canonica: str
+) -> DispositivoLegal | None:
+    """Busca um `DispositivoLegal` já gravado, sem criar.
+
+    Usado por `motor.ligar_por_topico`, que assume que
+    `dados.repositorio_dossie.salvar_dossie` já criou o dispositivo de cada fonte do dossiê
+    antes de ligar as questões a ele.
+
+    Args:
+        db: sessão do comando/rota.
+        citacao_canonica: identificador único do dispositivo.
+
+    Returns:
+        A linha existente, ou `None` se nenhum dispositivo tem essa `citacao_canonica`.
+    """
+    return db.scalars(
+        select(DispositivoLegal).where(DispositivoLegal.citacao_canonica == citacao_canonica)
+    ).first()
+
+
+def maior_posicao(db: Session, *, conteudo_tipo: str, conteudo_id: UUID) -> int:
+    """Devolve a maior `posicao` já gravada em `citacao` para este conteúdo (`0` se nenhuma).
+
+    Usado para continuar a numeração ao acrescentar citações vindas de uma via diferente da
+    que já gravou algumas (ex.: `motor.ancorar` cita por texto; `motor.ligar_por_topico` liga
+    por tópico depois) sem colidir posições.
+
+    Args:
+        db: sessão do comando/rota.
+        conteudo_tipo: `"questao"`, `"aula"` ou `"dossie"`.
+        conteudo_id: chave do conteúdo citante.
+
+    Returns:
+        A maior `posicao` gravada, ou `0` quando o conteúdo ainda não tem nenhuma citação.
+    """
+    maior = db.scalar(
+        select(func.max(Citacao.posicao)).where(
+            Citacao.conteudo_tipo == conteudo_tipo, Citacao.conteudo_id == conteudo_id
+        )
+    )
+    return maior or 0
 
 
 def registrar_citacao(

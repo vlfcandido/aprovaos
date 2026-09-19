@@ -20,6 +20,7 @@ from aprovaos.dados.modelos import (
     DispositivoLegal,
     DnaConcursoRegistro,
     Documento,
+    DossieTopico,
     Edital,
     EventoEstudo,
     Fonte,
@@ -74,6 +75,7 @@ def test_tabelas() -> None:
         "reporte_erro",
         "dispositivo_legal",
         "citacao",
+        "dossie_topico",
     }
 
 
@@ -467,6 +469,91 @@ def test_conteudo_tipo_da_citacao_restrito(db: Session) -> None:
     dispositivo = _dispositivo_37_caput(db)
     db.add(
         Citacao(conteudo_tipo="xx", conteudo_id=uuid.uuid4(), dispositivo=dispositivo, posicao=1)
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def _topico_improbidade(db: Session) -> Topico:
+    topico = Topico(
+        materia="direito-administrativo",
+        nome="Improbidade administrativa",
+        slug="dir-adm-06-improbidade-administrativa",
+    )
+    db.add(topico)
+    db.commit()
+    return topico
+
+
+def test_insere_dossie_topico(db: Session) -> None:
+    """Passo 3 da fundação jurídica: `dossie_topico` grava conteúdo, fontes e log de buscas."""
+    topico = _topico_improbidade(db)
+    dossie = DossieTopico(
+        topico=topico,
+        versao=1,
+        gerado_em=datetime.now(UTC),
+        conteudo="Art. 1º, § 1º da Lei 8.429/1992 exige dolo [F1].",
+        fontes=[
+            {
+                "id": "F1",
+                "norma": "lei-8429-1992",
+                "artigo": "1",
+                "inciso": None,
+                "paragrafo": "1",
+                "citacao_canonica": "Lei 8.429/1992 art. 1 § 1º",
+                "url": "https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+                "trecho": "§ 1º Consideram-se atos de improbidade [...]",
+                "tipo": "norma",
+                "vigente": True,
+                "redacao_de": None,
+            }
+        ],
+        bibliografia=[],
+        log_buscas=[
+            {
+                "n": 1,
+                "consulta": "art. 1 da Lei 8.429/1992",
+                "ferramenta": "extrair_artigo (offline)",
+                "resultado": "aberta: trecho encontrado",
+                "data": "2026-09-19",
+            }
+        ],
+        validado_em=None,
+        substituido_por=None,
+    )
+    db.add(dossie)
+    db.commit()
+
+    assert isinstance(dossie.id, uuid.UUID)
+    assert dossie.topico_id == topico.id
+    assert dossie.fontes[0]["citacao_canonica"] == "Lei 8.429/1992 art. 1 § 1º"
+
+
+def test_versao_do_dossie_topico_e_unica_por_topico(db: Session) -> None:
+    """Duas linhas com o mesmo `(topico_id, versao)` não podem coexistir."""
+    topico = _topico_improbidade(db)
+    db.add(
+        DossieTopico(
+            topico=topico,
+            versao=1,
+            gerado_em=datetime.now(UTC),
+            conteudo="v1",
+            fontes=[],
+            bibliografia=[],
+            log_buscas=[],
+        )
+    )
+    db.commit()
+    db.add(
+        DossieTopico(
+            topico=topico,
+            versao=1,
+            gerado_em=datetime.now(UTC),
+            conteudo="v1 de novo",
+            fontes=[],
+            bibliografia=[],
+            log_buscas=[],
+        )
     )
     with pytest.raises(IntegrityError):
         db.commit()

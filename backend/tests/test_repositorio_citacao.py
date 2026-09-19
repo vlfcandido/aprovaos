@@ -6,7 +6,12 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.modelos import Citacao, DispositivoLegal
-from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo, registrar_citacao
+from aprovaos.dados.repositorio_citacao import (
+    buscar_dispositivo_por_citacao_canonica,
+    buscar_ou_criar_dispositivo,
+    maior_posicao,
+    registrar_citacao,
+)
 
 
 def test_buscar_ou_criar_dispositivo_cria_na_primeira_chamada(db: Session) -> None:
@@ -153,3 +158,59 @@ def test_dez_questoes_citando_o_mesmo_artigo_e_um_dispositivo_e_dez_citacoes(db:
 
     assert db.query(DispositivoLegal).count() == 1
     assert db.query(Citacao).count() == 10
+
+
+def test_buscar_dispositivo_por_citacao_canonica_acha_o_existente(db: Session) -> None:
+    """Usado por `motor.ligar_por_topico` — o dossiê já criou o dispositivo; aqui só se busca."""
+    buscar_ou_criar_dispositivo(
+        db,
+        citacao_canonica="Lei 8.429/1992 art. 1 § 2º",
+        norma="lei-8429-1992",
+        artigo="1",
+        inciso=None,
+        paragrafo="2",
+        texto="§ 2º Considera-se dolo [...]",
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+    )
+    db.flush()
+
+    encontrado = buscar_dispositivo_por_citacao_canonica(db, "Lei 8.429/1992 art. 1 § 2º")
+
+    assert encontrado is not None
+    assert encontrado.paragrafo == "2"
+
+
+def test_buscar_dispositivo_por_citacao_canonica_devolve_none_se_nao_existe(db: Session) -> None:
+    assert buscar_dispositivo_por_citacao_canonica(db, "Lei 8.429/1992 art. 999") is None
+
+
+def test_maior_posicao_e_zero_sem_nenhuma_citacao(db: Session) -> None:
+    assert maior_posicao(db, conteudo_tipo="questao", conteudo_id=uuid4()) == 0
+
+
+def test_maior_posicao_acompanha_citacoes_existentes(db: Session) -> None:
+    dispositivo = buscar_ou_criar_dispositivo(
+        db,
+        citacao_canonica="CF/88 art. 37",
+        norma="cf-1988",
+        artigo="37",
+        inciso=None,
+        paragrafo=None,
+        texto="Art. 37. A administração pública...",
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+    )
+    db.flush()
+    questao_id = uuid4()
+    registrar_citacao(
+        db,
+        conteudo_tipo="questao",
+        conteudo_id=questao_id,
+        dispositivo_id=dispositivo.id,
+        posicao=3,
+    )
+    db.flush()
+
+    assert maior_posicao(db, conteudo_tipo="questao", conteudo_id=questao_id) == 3
+    assert maior_posicao(db, conteudo_tipo="questao", conteudo_id=uuid4()) == 0

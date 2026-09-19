@@ -414,3 +414,37 @@ class Citacao(ChaveUuid, Carimbos, Base):
     posicao: Mapped[int] = mapped_column(Integer, nullable=False)
 
     dispositivo: Mapped[DispositivoLegal] = relationship()
+
+
+class DossieTopico(ChaveUuid, Carimbos, Base):
+    """O dossiê de um tópico (modelo de dados §3).
+
+    Dispositivos com trecho e URL, log de buscas e lacunas declaradas — a fonte única que a
+    aula e as questões inéditas desse tópico usam. Versionado por `topico_id`: uma mudança de
+    lei gera versão nova e marca a antiga em
+    `substituido_por` (o dependente, quando reprocessado, sabe de onde veio). Espelha
+    `dominio.dossie.ConteudoDossie`: `fontes` guarda a lista de
+    `dominio.dossie.FonteDossie.model_dump()` (inclui `norma`/`artigo`/`inciso`/`paragrafo`/
+    `citacao_canonica`, não só URL+trecho — mais rico que a tabela de exibição da skill
+    `deep-research-topico`, porque é o que liga o dossiê a `dispositivo_legal`/`citacao` na
+    fatia "ligar por tópico"); `log_buscas`, a lista de `dominio.dossie.EntradaLogBusca.
+    model_dump()`. `validado_em` fica `None` até um humano/validador revisar (fora do escopo
+    desta rodada, que é 100 % determinística).
+    """
+
+    __tablename__ = "dossie_topico"
+    __table_args__ = (UniqueConstraint("topico_id", "versao"),)
+
+    topico_id: Mapped[UUID] = mapped_column(ForeignKey("topico.id"), index=True, nullable=False)
+    versao: Mapped[int] = mapped_column(Integer, nullable=False)
+    gerado_em: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
+    conteudo: Mapped[str] = mapped_column(Text, nullable=False)
+    fontes: Mapped[list[Any]] = mapped_column(JSON, nullable=False)
+    bibliografia: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    log_buscas: Mapped[list[Any]] = mapped_column(JSON, nullable=False)
+    validado_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+    substituido_por: Mapped[UUID | None] = mapped_column(
+        ForeignKey("dossie_topico.id"), nullable=True
+    )
+
+    topico: Mapped[Topico] = relationship()

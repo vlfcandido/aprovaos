@@ -71,6 +71,15 @@ class DispositivoNaoEncontrado(ErroDominio):
     """
 
 
+class TopicoNaoEncontrado(ErroDominio):
+    """O tópico pedido não existe no vocabulário canônico (`dados.modelos.Topico`).
+
+    Levantada por comandos que montam conteúdo para um tópico específico (ex.:
+    `motor.dossie.construir_dossie_improbidade`) — o comando nunca cria o tópico sozinho; isso é
+    responsabilidade do parser de edital/classificador.
+    """
+
+
 class EstruturaNaoTratada(ErroDominio):
     """O HTML do Planalto tem uma forma que `dominio/legislacao.extrair_artigo` não sabe tratar.
 

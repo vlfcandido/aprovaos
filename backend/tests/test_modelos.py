@@ -87,6 +87,7 @@ def test_tabelas() -> None:
         "bloco",
         "calibracao",
         "veredito_questao",
+        "concurso_radar",
     }
 
 

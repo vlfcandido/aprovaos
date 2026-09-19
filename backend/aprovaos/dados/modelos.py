@@ -78,13 +78,21 @@ class Usuario(ChaveUuid, Carimbos, Base):
     primeiro aceite; um novo aceite (a cada `POST /rotina`, decisão do plano §7) sobrescreve os
     três, nunca acumula histórico à parte — quem quer saber "quando ela aceitou pela primeira
     vez" o fará quando essa necessidade aparecer, não antes.
+
+    `google_sub` (fatia 1b, RF-20, Ruling 42, migração 0018) é o `sub` do perfil OpenID do
+    Google; `None` para conta e-mail+senha. `senha_hash` passa a ser opcional na mesma migração:
+    uma conta nascida por Google não tem senha nenhuma (`criar_ou_ligar_conta_google` grava
+    `None`); `POST /entrar` para essa conta responde a mesma mensagem genérica de credenciais
+    inválidas, sem revelar que o caminho de senha nunca existiu para aquele e-mail (mesma
+    cautela da P-22).
     """
 
     __tablename__ = "usuario"
 
     tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenant.id"), index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)
-    senha_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    senha_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     excluido_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
     consentimento_dados_rotina: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     consentimento_dados_rotina_em: Mapped[datetime | None] = mapped_column(
@@ -313,6 +321,50 @@ class Fonte(ChaveUuid, Carimbos, Base):
     status: Mapped[str] = mapped_column(String(24), nullable=False)
     ultima_varredura: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
     proxima: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+
+
+class ConcursoRadar(ChaveUuid, Base):
+    """Um concurso do catálogo público do radar (fatia 1b, F1.1) — global, nunca por tenant.
+
+    Espelha `dominio.radar.ConcursoDoRadar`, mais o que só a persistência precisa: `fonte_id`
+    (de qual fonte veio), `url_evento` (o endpoint de detalhe, único link honesto que a API
+    garante — não há página humana medida para o evento), `primeiro_visto_em`/`ultimo_visto_em`
+    (o comando `motor.radar.varrer` carimba os dois a cada rodada; um concurso que sai do
+    catálogo **nunca é apagado**, só para de ter `ultimo_visto_em` avançado) e `bruto` (o
+    `ConcursoDoRadar.model_dump()` da última leitura, para auditoria sem precisar reprocessar a
+    API). Não herda `Carimbos`: os dois carimbos de visto substituem `criado_em`/`atualizado_em`
+    (mesmo motivo de `PerfilEstudo`/`EventoEstudo`).
+
+    `UniqueConstraint(fonte_id, evento_url)` é a identidade do catálogo: duas fontes poderiam,
+    em tese, usar o mesmo `eventoURL` sem colidir.
+    """
+
+    __tablename__ = "concurso_radar"
+    __table_args__ = (
+        UniqueConstraint("fonte_id", "evento_url"),
+        CheckConstraint(
+            "fase IN ('novos','inscricoes_abertas','em_andamento','encerrado')", name="fase"
+        ),
+    )
+
+    fonte_id: Mapped[UUID] = mapped_column(ForeignKey("fonte.id"), index=True, nullable=False)
+    evento_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    nome: Mapped[str] = mapped_column(String(255), nullable=False)
+    ano: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fase: Mapped[str] = mapped_column(String(24), nullable=False)
+    uf: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    vagas: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    salario_max_brl: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    periodo_inscricao_texto: Mapped[str | None] = mapped_column(Text, nullable=True)
+    inscricao_inicio: Mapped[date | None] = mapped_column(Date, nullable=True)
+    inscricao_fim: Mapped[date | None] = mapped_column(Date, nullable=True)
+    lacunas: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    url_evento: Mapped[str] = mapped_column(String(500), nullable=False)
+    primeiro_visto_em: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
+    ultimo_visto_em: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
+    bruto: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+    fonte: Mapped[Fonte] = relationship()
 
 
 class Questao(ChaveUuid, Carimbos, Base):

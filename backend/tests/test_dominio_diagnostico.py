@@ -22,6 +22,7 @@ from aprovaos.dominio.diagnostico import (
     ordenar_candidatos,
     sinais_por_topico,
 )
+from aprovaos.dominio.trilha import MINIMO_PARA_DOMINADO
 
 MATERIA_A = "Direito Constitucional"
 MATERIA_B = "Língua Portuguesa"
@@ -252,3 +253,29 @@ def test_candidato_item_e_sinal_topico_sao_modelos_imutaveis_o_bastante_para_tes
         n_itens=0,
     )
     assert sinal.situacao == "sem_dado"
+
+
+def test_sinais_por_topico_nao_declara_dominado_com_menos_de_tres_itens() -> None:
+    """Uma única resposta certa não basta para chamar um tópico de dominado.
+
+    O plano do dia (fatia 8) consome `SinalTopico.situacao`; declarar domínio com um item
+    tiraria o tópico da frente da fila com base em nada. O piso é o mesmo da trilha
+    (`MINIMO_PARA_DOMINADO`), para o produto ter **uma** definição de "dominado".
+    """
+    topico_id = uuid4()
+    topicos = [TopicoDisponivel(topico_id=topico_id, materia=MATERIA_A, nome="T", tem_questao=True)]
+    for quantidade in range(1, MINIMO_PARA_DOMINADO):
+        respostas = [
+            _item(MATERIA_A, acertou=True, confianca="certeza", topico_id=topico_id)
+            for _ in range(quantidade)
+        ]
+        sinais = {s.topico_id: s for s in sinais_por_topico(respostas, topicos)}
+        assert sinais[topico_id].situacao == "a_estudar", quantidade
+        assert sinais[topico_id].n_itens == quantidade
+
+    respostas = [
+        _item(MATERIA_A, acertou=True, confianca="certeza", topico_id=topico_id)
+        for _ in range(MINIMO_PARA_DOMINADO)
+    ]
+    sinais = {s.topico_id: s for s in sinais_por_topico(respostas, topicos)}
+    assert sinais[topico_id].situacao == "dominado"

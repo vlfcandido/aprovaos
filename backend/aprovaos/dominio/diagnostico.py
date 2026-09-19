@@ -26,6 +26,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from aprovaos.dominio.trilha import MINIMO_PARA_DOMINADO
+
 #: Largura inicial da margem (pontos percentuais) sem nenhum item respondido — nunca fecha sem
 #: dado algum.
 MARGEM_INICIAL: Final = 50.0
@@ -48,7 +50,10 @@ Situacao = Literal["dominado", "a_estudar", "sem_dado", "sem_questao"]
 
 #: A partir de qual estimativa (%) um tópico testado vira "dominado" em vez de "a_estudar"
 #: (`sinais_por_topico`) — limiar direcional para o plano do dia (fatia 8), não um corte
-#: estatístico (a amostra por tópico costuma ser pequena demais para isso).
+#: estatístico (a amostra por tópico costuma ser pequena demais para isso). Vale **junto** com
+#: `MINIMO_PARA_DOMINADO`: sem um piso de respostas, um único acerto com certeza daria 100 % e
+#: tiraria o tópico da frente da fila com base em nada. O piso é o mesmo da trilha de propósito —
+#: o produto tem uma definição só de "dominado" (`dominio/trilha.py`).
 LIMIAR_DOMINIO_TOPICO: Final = 80.0
 
 
@@ -344,11 +349,12 @@ def sinais_por_topico(
                 )
             )
             continue
-        situacao: Situacao = (
-            "dominado"
-            if estado.estimativa_pct is not None and estado.estimativa_pct >= LIMIAR_DOMINIO_TOPICO
-            else "a_estudar"
+        dominado = (
+            estado.n_itens >= MINIMO_PARA_DOMINADO
+            and estado.estimativa_pct is not None
+            and estado.estimativa_pct >= LIMIAR_DOMINIO_TOPICO
         )
+        situacao: Situacao = "dominado" if dominado else "a_estudar"
         sinais.append(
             SinalTopico(
                 topico_id=topico.topico_id,

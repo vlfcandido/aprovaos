@@ -52,16 +52,26 @@
   --raio-pequeno: 6px;
   --raio-total: 999px;
 
-  /* Tipografia: fonte do sistema até a Fase 6 (premissa J, Q4); Sora/IBM Plex só se forem locais */
-  --fonte-titulo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fonte-corpo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fonte-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --texto-pequeno: 0.875rem;
-  --texto-base: 1rem;
-  --texto-medio: 1.125rem;
+  /* Tipografia: as três famílias do protótipo validado, servidas localmente (fatia 14 —
+     `web/static/fontes/`, OFL 1.1). A premissa J dizia "Sora/IBM Plex só se forem locais";
+     agora são. O fallback de sistema segue como rede de segurança se o woff2 não carregar. */
+  --fonte-titulo: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fonte-corpo: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fonte-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Escala do protótipo (Elements of Typographic Style): rótulo · dado · corpo · KPI · título */
+  --texto-rotulo: 0.6875rem;
+  --texto-pequeno: 0.8125rem;
+  --texto-base: 0.9375rem;
+  --texto-medio: 1.0625rem;
+  --texto-kpi: 1.625rem;
   --texto-grande: 1.5rem;
-  --texto-titulo: 2rem;
+  --texto-titulo: 2.125rem;
   --altura-linha: 1.55;
+
+  /* Medida de leitura — sem isto o texto atravessa os 1080px do conteúdo */
+  --medida: 72ch;
+  --medida-estreita: 52ch;
 
   /* Movimento (só aplicado sob prefers-reduced-motion: no-preference) */
   --duracao-curta: 120ms;

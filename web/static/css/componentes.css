@@ -1,0 +1,231 @@
+/* O que é: a biblioteca de componentes do AprovaOS, portada literalmente do protótipo validado
+   com a piloto (docs/evidencias/mockups/telas/_estilo-do-prototipo.css). Os nomes são os
+   MESMOS do protótipo de propósito: quem porta uma tela copia o markup do arquivo dela em
+   `docs/evidencias/mockups/telas/` e ele funciona sem tradução. Quando ler: antes de escrever
+   qualquer CSS de tela — se um componente falta, ele nasce AQUI, nunca no template. */
+
+/* ---- primitivas de texto ------------------------------------------------------------- */
+
+.eyebrow {
+  font-size: var(--texto-rotulo);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-texto-3);
+}
+
+.muted { color: var(--cor-texto-2); }
+.small { font-size: var(--texto-pequeno); }
+.mono { font-family: var(--fonte-mono); font-variant-numeric: tabular-nums; }
+
+/* Medida de leitura: sem isto o texto atravessa o conteúdo inteiro e fica ilegível. */
+.prosa { max-width: var(--medida); }
+.prosa-estreita { max-width: var(--medida-estreita); }
+
+/* ---- estrutura ------------------------------------------------------------------------ */
+
+.stack { display: flex; flex-direction: column; gap: var(--espaco-3); }
+.stack-6 { display: flex; flex-direction: column; gap: var(--espaco-6); }
+.row { display: flex; align-items: center; gap: var(--espaco-3); flex-wrap: wrap; }
+.row-topo { align-items: flex-start; }
+.between { justify-content: space-between; }
+.divider { height: 1px; background: var(--cor-linha); border: 0; margin: 0; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espaco-4); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--espaco-4); }
+.grid-sb { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--espaco-4); align-items: start; }
+
+@media (max-width: 760px) {
+  .grid-2, .grid-3, .grid-sb { grid-template-columns: 1fr; }
+}
+
+/* ---- cartão --------------------------------------------------------------------------- */
+
+.card {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio);
+  padding: 18px 20px;
+}
+
+.card.lift { box-shadow: var(--sombra); border-color: transparent; }
+
+.card > h2,
+.card > h3 { margin-top: 0; }
+
+/* ---- botões --------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  border: 1px solid var(--cor-linha);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: var(--texto-pequeno);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover { border-color: var(--cor-texto-3); }
+.btn.primary { background: var(--cor-acao); color: var(--cor-acao-texto); border-color: var(--cor-acao); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 5px 10px; font-size: var(--texto-rotulo); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.btn[disabled]:hover { border-color: var(--cor-linha); filter: none; }
+
+/* ---- chip ----------------------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--raio-pequeno);
+  font-size: var(--texto-rotulo);
+  font-weight: 500;
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+}
+
+.chip.accent { background: var(--cor-acao-suave); color: var(--cor-acao); }
+.chip.good { background: var(--cor-ok-suave); color: var(--cor-ok); }
+.chip.bad { background: var(--cor-erro-suave); color: var(--cor-erro); }
+.chip.warn { background: var(--cor-alerta-suave); color: var(--cor-alerta); }
+.chip.novo { background: var(--cor-porque-suave); color: var(--cor-porque); }
+
+/* ---- "por quê": o componente que carrega o princípio nº 1 do produto ------------------- */
+
+.why {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--espaco-3);
+  align-items: start;
+  background: var(--cor-porque-suave);
+  border-left: 3px solid var(--cor-porque);
+  border-radius: 0 var(--raio) var(--raio) 0;
+  padding: 12px 14px;
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto);
+}
+
+.why .btn { white-space: nowrap; }
+.why b { font-family: var(--fonte-titulo); font-weight: 600; }
+
+/* ---- número em destaque ---------------------------------------------------------------- */
+
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--espaco-4); }
+.kpi { display: flex; flex-direction: column; gap: 4px; }
+
+.kpi .v {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-kpi);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi .v small {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-pequeno);
+  font-weight: 400;
+  color: var(--cor-texto-2);
+}
+
+@media (max-width: 760px) { .kpis { grid-template-columns: 1fr; } }
+
+/* ---- barra e intervalo ------------------------------------------------------------------ */
+
+.bar { height: 8px; background: var(--cor-superficie-2); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--cor-acao); }
+
+/* Intervalo estatístico (ADR-0042): a faixa é a banda, o traço é o ponto estimado. Não pode
+   parecer um controle — por isso sem alça redonda e sem sombra. */
+.intervalo { position: relative; height: 10px; background: var(--cor-superficie-2); border-radius: 5px; }
+.intervalo > .faixa { position: absolute; top: 0; bottom: 0; background: var(--cor-acao-suave); border-radius: 5px; }
+.intervalo > .ponto { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--cor-acao); }
+
+/* ---- citação legal ---------------------------------------------------------------------- */
+
+.cite {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-acao);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+/* ---- controle segmentado ----------------------------------------------------------------- */
+
+/* `align-self: start` porque dentro de um .stack o inline-flex era esticado para a largura
+   toda e o controle virava uma caixa vazia gigante com dois rótulos num canto. */
+.seg {
+  display: inline-flex;
+  align-self: start;
+  border: 1px solid var(--cor-linha);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg > label {
+  padding: 7px 14px;
+  font-size: var(--texto-pequeno);
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--cor-superficie);
+  border-right: 1px solid var(--cor-linha);
+}
+.seg > label:last-child { border-right: 0; }
+.seg > label:hover { background: var(--cor-superficie-2); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg > label:has(input:checked) { background: var(--cor-acao); color: var(--cor-acao-texto); }
+.seg > label:has(input:focus-visible) { outline: 2px solid var(--cor-acao); outline-offset: -2px; }
+
+/* ---- campos ------------------------------------------------------------------------------- */
+
+.campo-rotulo { font-size: var(--texto-pequeno); font-weight: 500; color: var(--cor-texto-2); }
+
+.entrada,
+select.entrada,
+textarea.entrada {
+  width: 100%;
+  max-width: 28rem;
+  font: inherit;
+  font-size: var(--texto-base);
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+/* O <select> nativo não herda o tema: sem isto ele sai branco contra o tema escuro. Tirar a
+   aparência nativa some também com a seta, e aí ele fica idêntico a um campo de texto — o que é
+   pior que o problema original. A seta volta como fundo em SVG, na cor do texto. */
+select.entrada {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%237c86a2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.entrada:focus-visible { outline: 2px solid var(--cor-acao); outline-offset: 1px; }
+
+/* ---- estado vazio --------------------------------------------------------------------------- */
+
+/* Tela vazia é convite para agir, não recado de erro (guia de escrita da skill). */
+.vazio {
+  border: 1px dashed var(--cor-linha);
+  border-radius: var(--raio);
+  padding: var(--espaco-8);
+  text-align: center;
+  color: var(--cor-texto-2);
+}
+
+.vazio > .acoes { margin-top: var(--espaco-4); justify-content: center; }

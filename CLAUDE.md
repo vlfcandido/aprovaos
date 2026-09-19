@@ -28,9 +28,9 @@ Dono: Vinicius — Senior AI Engineer (~13 anos de software, ~5 em IA generativa
 | 2 — Produto (PRD) | `docs/02-produto.md`, skill `.claude/skills/avaliador-de-feature/` (testada com Haiku, ADR-0014) | **entregue em 14/09/2026** |
 | 3 — Arquitetura e dados | `docs/03-arquitetura.md`, `04-modelo-de-dados.md`, `06-custos.md`, `RISCOS.md`, ADR-0013 e 0017…0026 | **entregue em 14/09/2026** |
 | 4 — Skills e subagents | 7 skills do Motor em `.claude/skills/*` (testadas com Haiku, RED→GREEN→REFACTOR; evidências em `docs/evidencias/2026-09-17-fase4-skills/`), 5 subagents em `.claude/agents/*`, ADR-0027…0029 (piloto por PDF, piloto v0, subagents vs teams) | **entregue em 17/09/2026** |
-| 5 — MVP em fatias verticais | `backend/`, `web/`, `adapters/concursos/`, `knowledge/`, `eval/` — **ordem real e estado na tabela "Fatias" do PRD §6** (piloto v0 = V1–V5, ADR-0028); plano e diário de cada fatia em `docs/fatias/` | **em andamento — 19/09/2026**: entregues V1, V2, V3, V3b, V4, V5 (piloto v0 completo) e as fatias 4, 6, 7, 8 e 11; **em execução** a fatia 10 (painel) e a fatia 5 (inéditas); **com plano escrito, não iniciadas**: 1b (radar), 12 (billing) |
-| 6 — Landing, SEO e lançamento | `docs/05-playbook-seo.md`, `docs/07-playbook-lancamento.md` | **playbooks entregues em 19/09/2026**; a fatia 13 (páginas públicas que o playbook de SEO especifica) está em execução |
-| 7 — Handoff | `CLAUDE.md` definitivo, `docs/HANDOFF.md` | não iniciada |
+| 5 — MVP em fatias verticais | `backend/`, `web/`, `adapters/concursos/`, `knowledge/`, `eval/` — **ordem real e estado na tabela "Fatias" do PRD §6** (piloto v0 = V1–V5, ADR-0028); plano e diário de cada fatia em `docs/fatias/` | **todas as 15 fatias entregues — 19/09/2026** (V1, V2, V3, V3b, V4, V5, 4, 5, 6, 7, 8, 10, 11, 1b, 12) |
+| 6 — Landing, SEO e lançamento | `docs/05-playbook-seo.md`, `docs/07-playbook-lancamento.md` | **entregue em 19/09/2026** — os dois playbooks e a fatia 13 (páginas públicas). O que falta é execução que sai da máquina do dono: nome/domínio (P-01), deploy e Search Console |
+| 7 — Handoff | `CLAUDE.md` definitivo, `docs/HANDOFF.md` | **entregue em 19/09/2026** — `docs/HANDOFF.md` é o que se lê primeiro, com as sete minas do repositório |
 
 ## Mapa do repositório (o que existe hoje; o resto nasce na fase indicada — ADR-0010)
 ```

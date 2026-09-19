@@ -21,7 +21,10 @@ body {
   font-family: var(--fonte-corpo);
   font-size: var(--texto-base);
   line-height: var(--altura-linha);
-  overflow-x: hidden;
+  /* `overflow-x: hidden` aqui quebrava o `position: sticky` da barra lateral (o body vira
+     contêiner de rolagem e o sticky deixa de colar): ao rolar, o painel escuro acabava no meio
+     da página e o botão "Sair" flutuava no vazio. O estouro horizontal é contido no lugar
+     certo — `min-width: 0` na coluna de conteúdo, logo abaixo. */
   overflow-wrap: anywhere;
 }
 
@@ -67,6 +70,8 @@ a {
   grid-template-columns: 248px 1fr;
   min-height: 100dvh;
 }
+
+.coluna { min-width: 0; }
 
 .lateral {
   background: var(--cor-lateral-fundo);

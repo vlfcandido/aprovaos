@@ -1,0 +1,126 @@
+{# O que é: a página de amostra da biblioteca de componentes (fatia 14) — cada componente de
+   `web/static/css/componentes.css` mostrado uma vez, para revisar o sistema sem abrir doze
+   telas. Só existe em `AMBIENTE=dev`. Quando ler: ao acrescentar componente à biblioteca —
+   acrescente a amostra dele aqui no mesmo commit. #}
+{% extends "base.html" %}
+{% block titulo %}Biblioteca — AprovaOS{% endblock %}
+{% block conteudo %}
+<h1>Biblioteca de componentes</h1>
+<p class="muted prosa">Portada do protótipo validado com a piloto em 14/09/2026. Os nomes das
+classes são os mesmos do protótipo, de propósito: quem porta uma tela copia o markup de
+<span class="mono">docs/evidencias/mockups/telas/</span> e ele funciona sem tradução.</p>
+
+<div class="stack-6">
+  <section class="stack">
+    <p class="eyebrow">Tipografia</p>
+    <div class="card stack">
+      <h1 style="margin:0">Título de tela em Sora</h1>
+      <h2 style="margin:0">Título de seção</h2>
+      <p class="prosa" style="margin:0">Corpo em IBM Plex Sans, com medida máxima de 72 caracteres
+      para a linha não atravessar a tela inteira. É a diferença entre um texto que se lê e um que
+      se encara.</p>
+      <p class="small muted" style="margin:0">Texto de apoio, menor e mais discreto.</p>
+      <p class="mono small" style="margin:0">cebraspe · TJ-PA · 2025 · item 99</p>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Botões</p>
+    <div class="row">
+      <button class="btn primary">Responder</button>
+      <button class="btn">Pular</button>
+      <button class="btn ghost">Discordar</button>
+      <button class="btn sm">Pequeno</button>
+      <button class="btn" disabled>Desabilitado</button>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Selos</p>
+    <div class="row">
+      <span class="chip">neutro</span>
+      <span class="chip accent">questão original</span>
+      <span class="chip good">acertou</span>
+      <span class="chip bad">errou</span>
+      <span class="chip warn">confiança baixa</span>
+      <span class="chip novo">novo para você</span>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">O porquê do agente</p>
+    <div class="why">
+      <b>Por quê?</b>
+      <span>Improbidade tem 6 questões publicáveis neste edital e você acertou 2 de 4 na semana
+      passada — é o tópico com maior retorno hoje.</span>
+      <button class="btn sm ghost">Discordar</button>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Números</p>
+    <div class="kpis">
+      <div class="kpi"><span class="small muted">Acerto</span>
+        <span class="v">66,7 %<small> entre 43,7 e 83,7</small></span></div>
+      <div class="kpi"><span class="small muted">Tópicos dominados</span>
+        <span class="v">1<small> de 99</small></span></div>
+      <div class="kpi"><span class="small muted">Respostas</span>
+        <span class="v">18</span></div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Intervalo estatístico</p>
+    <div class="card stack">
+      <p class="small muted" style="margin:0">Nota prevista: 61,6 % — entre 26,6 % e 89,5 %</p>
+      <div class="intervalo">
+        <span class="faixa" style="left:26.6%;right:10.5%"></span>
+        <span class="ponto" style="left:61.6%"></span>
+      </div>
+      <p class="small muted" style="margin:0">A faixa é a banda; o traço é a estimativa. Não tem
+      alça, porque não é um controle.</p>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Controle segmentado</p>
+    <div class="seg">
+      <label><input type="radio" name="amostra-confianca" value="certeza"> Tenho certeza</label>
+      <label><input type="radio" name="amostra-confianca" value="duvida"> Estou em dúvida</label>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Campos</p>
+    <div class="stack" style="max-width:28rem">
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">UF de interesse</span>
+        <input class="entrada" placeholder="PR">
+      </label>
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">Fase</span>
+        <select class="entrada"><option>Todas</option><option>Inscrições abertas</option></select>
+      </label>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Cartões e grade</p>
+    <div class="grid-3">
+      <div class="card stack"><b>Cartão</b><span class="small muted">borda de 1px</span></div>
+      <div class="card lift stack"><b>Cartão elevado</b><span class="small muted">com sombra</span></div>
+      <div class="card stack"><b>Terceiro</b><span class="small muted">grid-3</span></div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Estado vazio</p>
+    <div class="vazio">
+      <p style="margin:0">Você ainda não informou a data da prova.</p>
+      <p class="small" style="margin:var(--espaco-2) 0 0">Sem ela não dá para desenhar a curva
+      necessária — e inventar uma seria pior que não ter.</p>
+      <div class="row acoes"><a class="btn primary" href="/rotina">Informar a data</a></div>
+    </div>
+  </section>
+</div>
+{% endblock %}

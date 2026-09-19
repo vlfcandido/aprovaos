@@ -8,7 +8,9 @@ consultar ou estender essas tabelas; nomes de tabela e coluna são os de
 e `regra_prova` são o JSON dos modelos Pydantic homônimos; `topico_id` é nullable (item sem
 tópico casado fica na base, mas nunca publicável); `publicavel` é o veredito do curador,
 `publicada` é o que a consulta da tela decide servir. `evento_estudo` é append-only (sem
-`atualizado_em`, sem `ON UPDATE` — a camada de dados nunca expõe update/delete nela).
+`atualizado_em`, sem `ON UPDATE` — a camada de dados nunca expõe update/delete nela); a V4
+acrescenta a coluna `cartao_id` (nullable) para o tipo `revisao_cartao`. `cartao` (V4, F4.3)
+guarda o estado do `fsrs.Card` — ver o docstring da classe `Cartao` para o adendo à ADR-0022.
 """
 
 from datetime import date, datetime
@@ -311,7 +313,9 @@ class EventoEstudo(ChaveUuid, Base):
     Append-only por contrato (modelo de dados §2): nunca é atualizado nem apagado, por isso não
     herda `Carimbos` (sem `atualizado_em`, sem `ON UPDATE`) — a camada de dados não expõe
     update/delete nesta tabela. O `CheckConstraint` de `tipo` já traz os dez valores do modelo
-    de dados; esta fatia só produz `resposta` e `reporte`, os demais entram sem migração nova.
+    de dados; a V3 produziu `resposta` e `reporte`, a V4 acrescenta `revisao_cartao` (com
+    `cartao_id` preenchido) — os demais tipos continuam reservados, sem migração nova até a
+    fatia que os produzir.
     """
 
     __tablename__ = "evento_estudo"
@@ -335,6 +339,7 @@ class EventoEstudo(ChaveUuid, Base):
     ocorrido_em: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
     tipo: Mapped[str] = mapped_column(String(32), nullable=False)
     questao_id: Mapped[UUID | None] = mapped_column(ForeignKey("questao.id"), nullable=True)
+    cartao_id: Mapped[UUID | None] = mapped_column(ForeignKey("cartao.id"), nullable=True)
     acertou: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     resposta: Mapped[str | None] = mapped_column(String(8), nullable=True)
     tempo_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -414,6 +419,48 @@ class Citacao(ChaveUuid, Carimbos, Base):
     posicao: Mapped[int] = mapped_column(Integer, nullable=False)
 
     dispositivo: Mapped[DispositivoLegal] = relationship()
+
+
+class Cartao(ChaveUuid, Carimbos, Base):
+    """Cartão de revisão espaçada (modelo de dados §2, F4.3): estado do `fsrs.Card` serializado.
+
+    `stability, difficulty, due, reps, lapses, last_review` são os seis campos nomeados no
+    modelo de dados; `estado_fsrs`/`passo_fsrs` são o adendo à ADR-0022 (`docs/DECISOES.md`,
+    detalhado em `docs/fatias/V4-revisao-espacada.md` §2) — sem eles, reconstruir o `fsrs.Card`
+    perde a fase de aprendizado e recalcula um `due` errado. `UniqueConstraint(usuario_id,
+    questao_id)` é o que cumpre "não regenere o que já existe": errar a mesma questão duas vezes
+    nunca cria um segundo cartão (`questao_id IS NULL`, dos cartões manuais da fatia futura, não
+    entra nessa unicidade — SQL trata `NULL` como distinto de `NULL`). `mnemonico_id` não tem FK
+    ainda porque `mnemonico` não existe (F4.5, fatia futura); nenhuma linha o preenche nesta
+    fatia.
+    """
+
+    __tablename__ = "cartao"
+    __table_args__ = (
+        CheckConstraint("origem IN ('auto_erro','manual')", name="origem"),
+        UniqueConstraint("usuario_id", "questao_id"),
+        Index("ix_cartao_usuario_due", "usuario_id", "due"),
+    )
+
+    usuario_id: Mapped[UUID] = mapped_column(ForeignKey("usuario.id"), index=True, nullable=False)
+    questao_id: Mapped[UUID | None] = mapped_column(ForeignKey("questao.id"), nullable=True)
+    topico_id: Mapped[UUID] = mapped_column(ForeignKey("topico.id"), nullable=False)
+    frente: Mapped[str] = mapped_column(Text, nullable=False)
+    verso: Mapped[str] = mapped_column(Text, nullable=False)
+    mnemonico_id: Mapped[UUID | None] = mapped_column(nullable=True)
+    origem: Mapped[str] = mapped_column(String(16), nullable=False)
+    stability: Mapped[float | None] = mapped_column(Float, nullable=True)
+    difficulty: Mapped[float | None] = mapped_column(Float, nullable=True)
+    due: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
+    reps: Mapped[int] = mapped_column(Integer, nullable=False)
+    lapses: Mapped[int] = mapped_column(Integer, nullable=False)
+    last_review: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+    estado_fsrs: Mapped[int] = mapped_column(Integer, nullable=False)
+    passo_fsrs: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    usuario: Mapped[Usuario] = relationship()
+    questao: Mapped[Questao | None] = relationship()
+    topico: Mapped[Topico] = relationship()
 
 
 class DossieTopico(ChaveUuid, Carimbos, Base):

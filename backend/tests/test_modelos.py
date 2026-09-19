@@ -76,6 +76,7 @@ def test_tabelas() -> None:
         "dispositivo_legal",
         "citacao",
         "dossie_topico",
+        "cartao",
     }
 
 

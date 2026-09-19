@@ -115,6 +115,16 @@ Formato: `ADR-NNNN — título · data · status (proposta | aceita | substituí
 **Alternativas:** SM-2 (pior que FSRS, sem parâmetros por aluno); py-irt/2PL já no MVP (sem dados para calibrar).
 **Por quê:** FSRS é aberto, mantido e usado pelo Anki (pesquisa §4); TRI sem dados calibrados é falsa precisão — a previsão v0 já é honesta com intervalo.
 
+**Adendo 19/09/2026 (V4):** instalado `fsrs==6.3.2` (`uv add fsrs`), licença MIT confirmada no
+`dist-info` da distribuição instalada (não de memória) — bate com "py-fsrs 6.3" desta ADR. Achado
+que muda a tabela `cartao`: o `fsrs.Card` desta versão **não tem `reps`/`lapses`** (campos reais:
+`card_id, state, step, stability, difficulty, due, last_review`); `reps`/`lapses` viram contadores
+próprios em `dominio/revisao.py`, e a tabela ganha duas colunas a mais do que o modelo de dados
+listava (`estado_fsrs`, `passo_fsrs`) porque reconstruir o `Card` sem `state`/`step` recalcula o
+`due` errado — provado por um teste de ida e volta com valores reais (duas revisões `Good/Good`
+divergem em quase dois dias com e sem esses dois campos). Detalhe e evidência em
+`docs/fatias/V4-revisao-espacada.md` §2 e `V4-execucao.md`.
+
 ## ADR-0023 — Ingestão de PDF com `pypdfium2` (BSD/Apache) + `pdfplumber` (MIT); PyMuPDF vetado (AGPL) · 2026-09-14 · aceita
 **Adendo 17/09/2026 (V2):** `pypdfium2` 5.13 em produção para texto de edital (`dominio/pdf.py`); `pdfplumber` ainda não entrou (fica para o gabarito em tabela, V3).
 **Decisão:** texto e render por `pypdfium2`; tabelas de gabarito por `pdfplumber`; segmentação em itens por adapter (regex de numeração + regras da banca); OCR só se uma prova vier como imagem (Tesseract, Apache). PyMuPDF não entra: dupla licença AGPL/comercial (PyPI, 14/09/2026) incompatível com SaaS fechado sem licença paga.

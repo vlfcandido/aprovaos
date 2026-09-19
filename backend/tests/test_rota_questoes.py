@@ -4,8 +4,9 @@
 # gabarito nunca no HTML antes da resposta, origem completa no resultado e a premissa H (reporte
 # esconde a questão só para quem reportou). O passo 3 da V3b acrescenta a tela de múltipla
 # escolha A–E (`_criar_questao_multipla_escolha`/`_alternativas_padrao`): mesmas garantias, mais
-# as cinco alternativas visíveis e nenhuma marca de qual é a correta antes de responder. Quando
-# ler: ao mexer em `api/questoes.py` ou nos templates `questoes/*.html`.
+# as cinco alternativas visíveis e nenhuma marca de qual é a correta antes de responder. A V4
+# acrescenta: errar cria `cartao` (`origem="auto_erro"`), acertar não cria nada. Quando ler: ao
+# mexer em `api/questoes.py` ou nos templates `questoes/*.html`.
 from typing import Any
 from uuid import UUID
 
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Alternativa,
+    Cartao,
     Concurso,
     Documento,
     Edital,
@@ -304,6 +306,40 @@ def test_post_resposta_grava_evento_e_devolve_fragmento(logado: TestClient, db: 
     assert eventos[0].questao_id == questao.id
     assert eventos[0].acertou is True
     assert eventos[0].confianca_declarada == "certeza"
+
+
+def test_post_resposta_certa_nao_cria_cartao(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-4-certa")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    assert list(db.scalars(select(Cartao)).all()) == []
+
+
+def test_post_resposta_errada_cria_cartao_auto_erro(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-4-errada")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "E", "confianca": "duvida", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+
+    cartoes = list(db.scalars(select(Cartao)).all())
+    assert len(cartoes) == 1
+    assert cartoes[0].questao_id == questao.id
+    assert cartoes[0].usuario_id == dona.id
+    assert cartoes[0].origem == "auto_erro"
+    assert cartoes[0].topico_id == topico.id
 
 
 def test_resultado_mostra_origem_completa_e_reportar(logado: TestClient, db: Session) -> None:

@@ -1,0 +1,21 @@
+{# O que é: página de revisão espaçada (`GET/POST /revisar`, F4.3 — V4). Mostra o cartão vencido
+   mais antigo (ordem do FSRS) reaproveitando o mesmo parcial `_cartao_questao.html` de
+   `topico.html`: "a revisão de um cartão de questão é, na prática, a questão de novo" (plano V4
+   §5) — mesmo certeza/dúvida, mesma origem, mesmo botão de reportar. Sem cartão vencido, mostra
+   o aviso de que não há nada para revisar agora (200, nunca erro — mesma decisão 7 da tela de
+   questão). Quando ler: ao mexer no fluxo de revisão. -#}
+{% extends "base.html" %}
+{% block titulo %}Revisar hoje — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Revisar hoje</h1>
+  <div id="questao">
+    {% if questao %}
+      {% include "questoes/_cartao_questao.html" %}
+    {% else %}
+      <p>Nenhum cartão vencido por agora — volte mais tarde.</p>
+    {% endif %}
+  </div>
+{% endblock %}
+{% block script %}
+  <script src="/static/js/atalhos-estudo.js" defer></script>
+{% endblock %}

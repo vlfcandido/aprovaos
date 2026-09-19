@@ -1,4 +1,4 @@
-"""Rotas HTML de questão: `/topico/{slug}/questoes` (ver e responder) e reportar erro.
+"""Rotas HTML de questão (`/topico/{slug}/questoes`), reportar erro e revisão espaçada (`/revisar`).
 
 O que é: `GET /topico/{slug}/questoes` mostra a próxima questão publicável do tópico que o
 usuário ainda não respondeu nem reportou (`repositorio_questao.proxima_questao`); `POST` no
@@ -14,10 +14,20 @@ mesmos para os dois, porque `Questao.gabarito` já guarda a letra certa nos dois
 justificativa gravada (fundação jurídica, passo 5), o resultado mostra as duas faces
 (`_afirmacoes_para_exibir`) marcadas como explicação do AprovaOS, cada frase com o dispositivo
 legal que a sustenta — texto original da banca continua vindo só de `questao`/`Alternativa`, sem
-mistura. Quando ler: ao mexer na tela de resolver questão ou no fluxo de reportar erro.
+mistura.
+
+A V4 (F4.3) acrescenta: `responder_questao` grava um `cartao(origem="auto_erro")` sempre que
+`acertou is False` (`repositorio_cartao.registrar_erro`) — acertar nunca cria cartão. `GET/POST
+/revisar` mostram e respondem os cartões vencidos (`repositorio_cartao.cartoes_vencidos`, `due
+<= agora`, ordem do FSRS); como "a revisão de um cartão de questão é, na prática, a questão de
+novo" (plano V4 §5), as duas rotas reaproveitam `_contexto_questao`/`_contexto_evento` e o
+parcial `questoes/_cartao_questao.html` — só o destino do formulário (`acao_post`) e os campos
+ocultos extras (`cartao_id`) mudam. Quando ler: ao mexer na tela de resolver questão, na tela de
+revisão ou no fluxo de reportar erro.
 """
 
-from typing import Annotated
+from collections.abc import Sequence
+from typing import Annotated, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
@@ -27,8 +37,10 @@ from sqlalchemy.orm import Session
 from aprovaos.api.db import obter_db
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
+from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Alternativa,
+    Cartao,
     Concurso,
     DispositivoLegal,
     Edital,
@@ -39,6 +51,7 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
+from aprovaos.dados.repositorio_cartao import cartoes_vencidos, registrar_erro, revisar_cartao
 from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
 from aprovaos.dados.repositorio_questao import (
     proxima_questao,
@@ -47,6 +60,7 @@ from aprovaos.dados.repositorio_questao import (
 )
 from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
 from aprovaos.dominio.justificativa import separar_afirmacoes
+from aprovaos.dominio.revisao import Confianca
 
 router = APIRouter(include_in_schema=False)
 
@@ -212,19 +226,32 @@ def _alternativas_ordenadas(db: Session, questao_id: UUID) -> list[Alternativa]:
     return list(db.scalars(consulta).all())
 
 
-def _contexto_questao(db: Session, topico: Topico, questao: Questao | None) -> dict[str, object]:
-    """Monta o contexto do template `questoes/topico.html`.
+def _contexto_questao(
+    db: Session,
+    topico: Topico,
+    questao: Questao | None,
+    *,
+    acao_post: str = "",
+    campos_ocultos: Sequence[tuple[str, str]] = (),
+) -> dict[str, object]:
+    """Monta o contexto do parcial `questoes/_cartao_questao.html`.
 
     O gabarito nunca entra aqui (decisão 4): só o comando, o texto de apoio, o enunciado e a
     origem completa, todos vindos direto da `questao` — nada de reconstruir a partir de outro
     lugar. Em `"multipla_escolha"`, as cinco `alternativas` entram como `{letra, texto}` — sem
     `correta`, que só aparece depois de responder (`_contexto_evento`): nada no HTML de antes da
-    resposta pode distinguir qual das cinco é a certa.
+    resposta pode distinguir qual das cinco é a certa. `acao_post`/`campos_ocultos` (V4) são o
+    que faz o mesmo parcial servir `/topico/{slug}/questoes` e `/revisar` — só o destino do
+    formulário e um campo oculto a mais (`cartao_id`, na revisão) mudam entre os dois.
 
     Args:
         db: sessão do request (só para buscar as alternativas de múltipla escolha).
         topico: o tópico já resolvido para o tenant.
         questao: a próxima questão publicável, ou `None` sem nenhuma sobrando.
+        acao_post: URL para onde o formulário de resposta posta; `""` quando o contexto é usado
+            só para montar o resultado (`_resultado.html` não inclui o formulário de novo).
+        campos_ocultos: pares `(nome, valor)` de campos ocultos extras do formulário, além de
+            `questao_id` (que já entra sempre).
 
     Returns:
         O contexto para `renderizar`.
@@ -232,6 +259,8 @@ def _contexto_questao(db: Session, topico: Topico, questao: Questao | None) -> d
     contexto: dict[str, object] = {
         "topico": {"slug": topico.slug, "nome": topico.nome},
         "questao": None,
+        "acao_post": acao_post,
+        "campos_ocultos": list(campos_ocultos),
     }
     if questao is not None:
         origem = questao.origem or {}
@@ -396,7 +425,7 @@ def obter_questao(
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     questao = proxima_questao(db, usuario.id, topico.id)
-    contexto = _contexto_questao(db, topico, questao)
+    contexto = _contexto_questao(db, topico, questao, acao_post=f"/topico/{topico.slug}/questoes")
     return renderizar(request, "questoes/topico.html", contexto, usuario)
 
 
@@ -451,6 +480,8 @@ def responder_questao(
         # back/refresh). 200 com fragmento e um link de saída avisa a aluna de verdade.
         contexto = _contexto_questao(db, topico, None)
         contexto["aviso"] = MENSAGEM_QUESTAO_INDISPONIVEL
+        contexto["proximo_url"] = f"/topico/{topico.slug}/questoes"
+        contexto["proximo_rotulo"] = "Próxima questão"
         return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
     # As respostas válidas dependem do tipo da questão de fato mostrada (não de um formato fixo
@@ -460,11 +491,19 @@ def responder_questao(
         mensagem = MENSAGENS_RESPOSTA_INVALIDA_POR_TIPO[questao.tipo_item]
         raise HTTPException(status_code=400, detail=mensagem)
 
+    agora = agora_utc()
     evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms)
+    if not evento.acertou:
+        # F4.3 (V4): o erro faz nascer (ou atualiza, idempotente) o cartão daquela questão.
+        # Acertar nunca cria cartão nenhum. `cast`: `CONFIANCAS_VALIDAS` já garantiu, em tempo
+        # de execução, que `confianca` só chega aqui como um dos dois valores do `Literal`.
+        registrar_erro(db, usuario, questao, cast(Confianca, confianca), agora)
     db.commit()
 
     contexto = _contexto_questao(db, topico, questao)
     contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
+    contexto["proximo_url"] = f"/topico/{topico.slug}/questoes"
+    contexto["proximo_rotulo"] = "Próxima questão"
     return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
 
@@ -505,3 +544,140 @@ def reportar_questao(
     db.commit()
     nome_template = "questoes/_reportado.html" if _eh_htmx(request) else "questoes/reportado.html"
     return renderizar(request, nome_template, {}, usuario)
+
+
+def _cartao_pendente(
+    db: Session, usuario_id: UUID, cartao_id: UUID, questao_id: UUID
+) -> Cartao | None:
+    """O cartão só é aceito se pertence a este usuário e ainda aponta para a mesma questão.
+
+    Mesmo espírito de `_questao_pendente`: um `cartao_id`/`questao_id` de outra conta, ou
+    adulterado no formulário, não pode gravar `revisao_cartao` nenhum.
+
+    Args:
+        db: sessão do request.
+        usuario_id: quem está revisando.
+        cartao_id: `cartao_id` que veio do formulário.
+        questao_id: `questao_id` que veio do formulário — tem de bater com o do cartão.
+
+    Returns:
+        O `Cartao`, ou `None` se não existir, não for deste usuário, ou apontar para outra
+        questão.
+    """
+    cartao = db.get(Cartao, cartao_id)
+    if cartao is None or cartao.usuario_id != usuario_id or cartao.questao_id != questao_id:
+        return None
+    return cartao
+
+
+@router.get("/revisar")
+def obter_revisao(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+) -> Response:
+    """Mostra o cartão vencido mais antigo (ordem do FSRS), reaproveitando a tela de questão.
+
+    "A revisão de um cartão de questão é, na prática, a questão de novo" (plano V4 §5): o
+    parcial e os helpers são os mesmos de `/topico/{slug}/questoes`, só o `acao_post` e o campo
+    oculto `cartao_id` mudam.
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (só leitura).
+        usuario: o usuário logado (sem login, `exigir_usuario` redireciona para `/entrar`).
+
+    Returns:
+        `questoes/revisao.html`; com `questao=None` quando não há nenhum cartão vencido, ou
+        (fora do escopo desta fatia — nenhum cartão manual existe ainda) o cartão vencido não
+        tem `questao` ligada (200 nos dois casos, nunca erro).
+    """
+    vencidos = cartoes_vencidos(db, usuario.id, agora_utc())
+    cartao = vencidos[0] if vencidos else None
+    if cartao is None:
+        return renderizar(request, "questoes/revisao.html", {"questao": None}, usuario)
+
+    questao = cartao.questao
+    topico = cartao.topico
+    if questao is None:
+        # Fora do escopo desta fatia — nenhum cartão manual (sem questão ligada) existe ainda —,
+        # mas a tela não quebra se um aparecer: mesma resposta de "nada para revisar".
+        return renderizar(request, "questoes/revisao.html", {"questao": None}, usuario)
+
+    contexto = _contexto_questao(
+        db, topico, questao, acao_post="/revisar", campos_ocultos=[("cartao_id", str(cartao.id))]
+    )
+    return renderizar(request, "questoes/revisao.html", contexto, usuario)
+
+
+@router.post("/revisar")
+def responder_revisao(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+    resposta: Annotated[str, Form()],
+    questao_id: Annotated[UUID, Form()],
+    cartao_id: Annotated[UUID, Form()],
+    confianca: Annotated[str | None, Form()] = None,
+    tempo_ms: Annotated[int, Form()] = 0,
+) -> Response:
+    """Registra a revisão de um cartão vencido: grava `revisao_cartao` e atualiza o FSRS.
+
+    As duas gravações de `repositorio_cartao.revisar_cartao` acontecem sempre juntas (evento +
+    estado) — esta rota nunca faz só uma.
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (o commit é feito aqui).
+        usuario: o usuário logado.
+        resposta: o que a pessoa respondeu ao cartão.
+        questao_id: `id` da questão do cartão, do campo oculto do formulário.
+        cartao_id: `id` do cartão revisado, do campo oculto do formulário.
+        confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3, igual à
+            tela de questão).
+        tempo_ms: tempo gasto na revisão, em milissegundos; `0` quando o cliente não manda.
+
+    Returns:
+        O fragmento `questoes/_resultado.html`, com o link "Próxima revisão".
+
+    Raises:
+        HTTPException: 400 sem `confianca` válida, ou com `resposta` fora do que
+            `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o `tipo_item` da questão do cartão.
+    """
+    if confianca not in CONFIANCAS_VALIDAS:
+        raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
+
+    cartao = _cartao_pendente(db, usuario.id, cartao_id, questao_id)
+    if cartao is None or cartao.questao is None:
+        # Mesma postura de `_questao_pendente`: 200 com aviso, nunca um 4xx que não faz swap
+        # dentro do htmx.
+        contexto: dict[str, object] = {
+            "aviso": MENSAGEM_QUESTAO_INDISPONIVEL,
+            "proximo_url": "/revisar",
+            "proximo_rotulo": "Próxima revisão",
+        }
+        return renderizar(request, "questoes/_resultado.html", contexto, usuario)
+
+    questao = cartao.questao
+    respostas_validas = RESPOSTAS_VALIDAS_POR_TIPO[questao.tipo_item]
+    if resposta not in respostas_validas:
+        mensagem = MENSAGENS_RESPOSTA_INVALIDA_POR_TIPO[questao.tipo_item]
+        raise HTTPException(status_code=400, detail=mensagem)
+
+    evento = revisar_cartao(
+        db,
+        usuario,
+        cartao,
+        acertou=resposta == questao.gabarito,
+        resposta=resposta,
+        confianca=cast(Confianca, confianca),
+        tempo_ms=tempo_ms,
+        agora=agora_utc(),
+    )
+    db.commit()
+
+    contexto = _contexto_questao(db, cartao.topico, questao)
+    contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
+    contexto["proximo_url"] = "/revisar"
+    contexto["proximo_rotulo"] = "Próxima revisão"
+    return renderizar(request, "questoes/_resultado.html", contexto, usuario)

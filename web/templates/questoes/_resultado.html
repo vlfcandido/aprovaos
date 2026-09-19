@@ -13,8 +13,10 @@
    `<div class="justificativa">` nenhuma, nunca um placeholder tipo "explicação em breve". O selo
    `.selo--porque` marca que a explicação é do AprovaOS, nunca da banca; a citação de cada frase
    vira um `<details>` (popover sem JS) com o trecho literal do dispositivo, quando achado. O
-   link "Próxima questão" recarrega a mesma rota via `GET`, que já traz a próxima pendente. Quando
-   ler: ao mudar o que aparece depois de responder. -#}
+   link final (`proximo_url`/`proximo_rotulo`, V4) recarrega via `GET` a rota que trouxe esta
+   questão — `/topico/{slug}/questoes` (a próxima pendente) ou `/revisar` (o próximo cartão
+   vencido); este fragmento é o mesmo para os dois fluxos. Quando ler: ao mudar o que aparece
+   depois de responder. -#}
 {% macro citacao(af) %}
   {% if af.dispositivo_texto %}
     <details class="citacao-legal">
@@ -100,7 +102,7 @@
       item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
       — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
     </p>
-    <p><a class="botao botao--secundario" href="/topico/{{ topico.slug }}/questoes" data-atalho="proxima">Próxima questão <kbd>→</kbd></a></p>
+    <p><a class="botao botao--secundario" href="{{ proximo_url }}" data-atalho="proxima">{{ proximo_rotulo }} <kbd>→</kbd></a></p>
   </div>
 
   <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
@@ -112,7 +114,7 @@
 {% elif aviso %}
   <div class="cartao cartao--elevado questao">
     <p>{{ aviso }}</p>
-    <p><a class="botao botao--secundario" href="/topico/{{ topico.slug }}/questoes" data-atalho="proxima">Próxima questão <kbd>→</kbd></a></p>
+    <p><a class="botao botao--secundario" href="{{ proximo_url }}" data-atalho="proxima">{{ proximo_rotulo }} <kbd>→</kbd></a></p>
   </div>
 {% else %}
   <p>Ainda não temos questões deste tópico.</p>

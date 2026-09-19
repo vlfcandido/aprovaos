@@ -1,0 +1,87 @@
+{# O que é: parcial do cartão de perguntar uma questão (comando — só quando existe —, texto de
+   apoio recolhido atrás de "ver texto de apoio" quando `questao.apoio_recolhido` vem `true` do
+   backend, enunciado e origem completa) mais o formulário de resposta e o de reportar erro.
+   Compartilhado (V4) por `topico.html` (`GET/POST /topico/{slug}/questoes`) e `revisao.html`
+   (`GET/POST /revisar`) — "a revisão de um cartão de questão é, na prática, a questão de novo"
+   (plano V4 §5): só o destino do formulário (`acao_post`) e os campos ocultos extras
+   (`campos_ocultos`, ex.: `cartao_id` na revisão) mudam entre os dois fluxos. O gabarito nunca
+   aparece aqui — só depois de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no
+   que aparece antes de responder, nos dois fluxos. -#}
+<div class="cartao cartao--elevado questao">
+  {% if questao.comando %}
+    <p class="questao__comando">{{ questao.comando }}</p>
+  {% endif %}
+  {% if questao.texto_apoio %}
+    {% if questao.apoio_recolhido %}
+      <details class="questao__apoio">
+        <summary>ver texto de apoio</summary>
+        <p>{{ questao.texto_apoio }}</p>
+      </details>
+    {% else %}
+      <p class="questao__apoio">{{ questao.texto_apoio }}</p>
+    {% endif %}
+  {% endif %}
+  <p class="questao__enunciado">{{ questao.enunciado }}</p>
+  <p class="questao__origem">
+    {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+    item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
+    — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
+  </p>
+
+  <form id="form-resposta" method="post" action="{{ acao_post }}"
+        hx-post="{{ acao_post }}" hx-target="#questao" hx-swap="innerHTML">
+    <input type="hidden" name="questao_id" value="{{ questao.id }}">
+    {% for nome, valor in campos_ocultos %}
+      <input type="hidden" name="{{ nome }}" value="{{ valor }}">
+    {% endfor %}
+
+    <fieldset class="confianca">
+      <legend>Antes de responder: você tem certeza ou está em dúvida?</legend>
+      <div class="segmentado" role="radiogroup">
+        <label class="segmentado__opcao">
+          <input type="radio" name="confianca" value="certeza" required> Tenho certeza
+        </label>
+        <label class="segmentado__opcao">
+          <input type="radio" name="confianca" value="duvida" required> Estou em dúvida
+        </label>
+      </div>
+    </fieldset>
+
+    {% if questao.tipo_item == "multipla_escolha" %}
+      <fieldset class="julgamento">
+        <legend>Escolha a alternativa correta</legend>
+        <div class="alternativas">
+          {% for alternativa in questao.alternativas %}
+            <button type="submit" name="resposta" value="{{ alternativa.letra }}"
+                    data-atalho="resposta-{{ alternativa.letra|lower }}"
+                    class="alternativa">
+              <span class="alternativa__letra">{{ alternativa.letra }}</span>
+              <span class="alternativa__texto">{{ alternativa.texto }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% else %}
+      <fieldset class="julgamento">
+        <legend>Julgue o item</legend>
+        <div class="respostas">
+          <button type="submit" name="resposta" value="C" data-atalho="certo"
+                  class="botao-resposta">
+            Certo <kbd>C</kbd>
+          </button>
+          <button type="submit" name="resposta" value="E" data-atalho="errado"
+                  class="botao-resposta">
+            Errado <kbd>E</kbd>
+          </button>
+        </div>
+      </fieldset>
+    {% endif %}
+  </form>
+</div>
+
+<form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
+      hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
+  <label for="motivo">Encontrou um erro nesta questão?</label>
+  <textarea id="motivo" name="motivo" required></textarea>
+  <button class="botao botao--secundario" type="submit">Reportar erro</button>
+</form>

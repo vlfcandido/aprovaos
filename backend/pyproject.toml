@@ -20,6 +20,7 @@ dependencies = [
     "pypdfium2>=5.13.0",
     "google-adk>=2.9.1",
     "httpx2>=2.13.0",
+    "fsrs>=6.3.2",
 ]
 
 [dependency-groups]

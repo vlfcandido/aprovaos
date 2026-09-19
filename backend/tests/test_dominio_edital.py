@@ -219,6 +219,81 @@ def test_regra_desconhecida() -> None:
     assert regra.minimo_por_materia == "desconhecido"
 
 
+# ---- Alternativas por extenso e múltipla escolha inferida do mecanismo (V3b, achado da V3) -----
+
+
+def test_alternativas_com_numero_por_extenso_entre_parenteses() -> None:
+    # Forma da AOCP: dígito com o número por extenso entre parênteses logo depois.
+    texto = "11.3 Cada questão terá 5 (cinco) alternativas, sendo uma correta."
+    assert extrair_fatos(texto).regra.alternativas == 5
+
+
+def test_alternativas_por_extenso_sem_digito() -> None:
+    # Forma da FCC: só o número por extenso, sem dígito nenhum na frase.
+    texto = "7.2 As questões constarão de itens com cinco alternativas cada questão."
+    assert extrair_fatos(texto).regra.alternativas == 5
+
+
+def test_alternativas_por_extenso_fora_do_vocabulario_fica_desconhecida() -> None:
+    # "algumas" não é numeral por extenso reconhecido (um a dez) — nunca chutar.
+    texto = "7.2 As questões terão algumas alternativas, a critério da banca."
+    assert extrair_fatos(texto).regra.alternativas is None
+
+
+def test_tipo_item_inferido_do_mecanismo_sem_a_frase_literal() -> None:
+    # Mesmo mecanismo do §11.3 da AOCP, isolado: "N alternativas ... apenas 1 (uma) alternativa
+    # correta" é múltipla escolha ainda que o edital nunca diga "múltipla escolha".
+    texto = (
+        "11.3 Cada questão da Prova Objetiva terá 5 (cinco) alternativas, sendo que cada "
+        "questão terá apenas 1 (uma) alternativa correta, pontuada conforme a Tabela 11.1."
+    )
+    regra = extrair_fatos(texto).regra
+    assert regra.tipo_item == "multipla_escolha"
+    assert regra.alternativas == 5
+    assert regra.fonte == "edital §11.3"
+
+
+def test_alternativas_sozinha_nao_infere_tipo_item() -> None:
+    # Sem "apenas 1 (uma) alternativa correta" (ou a frase literal "múltipla escolha"), o número
+    # de alternativas sozinho não basta para inferir o tipo — fica desconhecido.
+    texto = "7.2 As questões terão 4 alternativas cada uma."
+    regra = extrair_fatos(texto).regra
+    assert regra.alternativas == 4
+    assert regra.tipo_item == "desconhecido"
+
+
+def test_edital_real_aocp_multipla_escolha_inferida_do_paragrafo_113() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    regra = extrair_fatos(texto).regra
+    assert regra.tipo_item == "multipla_escolha"
+    assert regra.alternativas == 5
+    # §5.10.1 é o achado (já reportado, não corrigido nesta tarefa) de `_ANULA` casando com uma
+    # cláusula de fraude na inscrição, não com desconto por questão errada; §11.3 é o mecanismo
+    # de múltipla escolha desta correção.
+    assert regra.fonte == "edital §5.10.1, §11.3"
+
+
+def test_edital_real_fcc_alternativas_por_extenso_no_mesmo_paragrafo_da_frase_literal() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    regra = extrair_fatos(texto).regra
+    assert regra.tipo_item == "multipla_escolha"
+    assert regra.alternativas == 5
+    assert regra.fonte == "edital §6.5.1, §7.2, §10.6"
+
+
+def test_banca_executado_exige_nome_proprio_nao_qualquer_frase_ate_a_virgula() -> None:
+    # Regressão apontada na re-revisão do merge: o terminador por vírgula não pode capturar
+    # qualquer substantivo comum antes da primeira vírgula — só um nome próprio de instituição
+    # (que começa maiúsculo), como nos dois editais reais. "empresa contratada" não é banca.
+    texto = (
+        "1.1 O concurso será executado pela empresa contratada, responsável pela aplicação "
+        "das provas em todo o território nacional."
+    )
+    assert extrair_fatos(texto).cabecalho.banca == "desconhecido"
+
+
 def test_cabecalho(texto_md: str) -> None:
     cabecalho = extrair_fatos(texto_md).cabecalho
     assert cabecalho.orgao == "CÂMARA MUNICIPAL DE CASCAVEL — ESTADO DO PARANÁ"

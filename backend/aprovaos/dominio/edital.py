@@ -330,13 +330,47 @@ _DISTRIBUICAO = re.compile(
 )
 _MULTIPLA_ESCOLHA = re.compile(r"m[úu]ltipla escolha", re.IGNORECASE)
 _CERTO_ERRADO = re.compile(r"\bcerto\b.*\berrado\b", re.IGNORECASE)
-_ALTERNATIVAS = re.compile(r"(\d+)\s+alternativas", re.IGNORECASE)
+# Dígito colado em "alternativas" ou com o número por extenso entre parênteses no meio (a forma
+# da AOCP: "5 (cinco) alternativas") — o dígito é a fonte da verdade; o extenso é só validação
+# textual, não é capturado.
+_ALTERNATIVAS = re.compile(r"(\d+)\s*(?:\([^)]+\)\s*)?alternativas", re.IGNORECASE)
+# Só quando não há dígito nenhum (a forma da FCC: "com cinco alternativas cada questão") —
+# vocabulário fechado de um a dez; uma palavra fora dele ("algumas", "diversas") não casa, e o
+# campo fica `None` — nunca se chuta um número a partir de "algumas".
+_ALTERNATIVAS_POR_EXTENSO = re.compile(
+    r"\b(um|uma|dois|duas|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez)\s+alternativas\b",
+    re.IGNORECASE,
+)
+_NUMERO_POR_EXTENSO: dict[str, int] = {
+    "um": 1,
+    "uma": 1,
+    "dois": 2,
+    "duas": 2,
+    "tres": 3,
+    "quatro": 4,
+    "cinco": 5,
+    "seis": 6,
+    "sete": 7,
+    "oito": 8,
+    "nove": 9,
+    "dez": 10,
+}
+# O mecanismo que faz uma prova ser de múltipla escolha, mesmo que o edital nunca diga a frase
+# "múltipla escolha" (achado real na AOCP, §11.3: "terá 5 (cinco) alternativas, sendo que cada
+# questão terá apenas 1 (uma) alternativa correta"). Exigido no mesmo parágrafo do número de
+# alternativas — nunca em parágrafos diferentes, que poderia juntar fatos sem relação.
+_MECANISMO_UMA_ALTERNATIVA_CORRETA = re.compile(
+    r"apenas\s+1\s*\(?uma\)?\s+alternativa\s+correta", re.IGNORECASE
+)
 _NAO_ANULA = re.compile(r"sem desconto|não haverá desconto", re.IGNORECASE)
 _ANULA = re.compile(r"anula|desconto", re.IGNORECASE)
 _MINIMO_GLOBAL = re.compile(r"(\d+)\s*%\s*do total(?: de pontos)?", re.IGNORECASE)
 _NOTA_ZERO = re.compile(r"nota zero", re.IGNORECASE)
 _CARGO = re.compile(r"Cargo:\s*([^.]+)\.")
-_BANCA_EXECUTADO = re.compile(r"executad[oa] pel[ao]\s+(.+?)(?:\s*\(banca|[.,])", re.IGNORECASE)
+# O nome capturado tem de começar em maiúscula — nome próprio de instituição, não qualquer
+# substantivo comum antes da primeira vírgula (achado na re-revisão do merge: "executado pela
+# empresa contratada, responsável por..." não é banca nenhuma). Por isso sem `re.IGNORECASE`.
+_BANCA_EXECUTADO = re.compile(rf"executad[oa] pel[ao]\s+([{_MAIUSCULAS}].+?)(?:\s*\(banca|[.,])")
 # Só com dois-pontos — igual à convenção de `Cargo:` — porque "banca organizadora" também
 # aparece em cláusulas que não identificam ninguém (ex.: "recurso [...] pela banca organizadora
 # resultar anulação..."); sem o rótulo explícito, casar por proximidade ainda seria chute.
@@ -367,11 +401,13 @@ class DistribuicaoMateria(BaseModel):
 
 
 class RegraExtraida(BaseModel):
-    """Regra de correção da prova objetiva, só do que o edital diz literalmente.
+    """Regra de correção da prova objetiva, do que o edital diz literalmente ou do mecanismo.
 
     Attributes:
-        tipo_item: `multipla_escolha`, `certo_errado` ou `desconhecido`.
-        alternativas: número de alternativas, se o edital informa.
+        tipo_item: `multipla_escolha` (frase literal, ou "N alternativas ... apenas 1 (uma)
+            alternativa correta" no mesmo parágrafo), `certo_errado` ou `desconhecido`.
+        alternativas: número de alternativas — em dígito, com ou sem o extenso entre parênteses
+            ("5 (cinco) alternativas"), ou só o extenso ("cinco alternativas") — ou `None`.
         anula_por_erro: `True` se uma errada anula uma certa, `False` se "sem desconto",
             senão `desconhecido`.
         minimo_por_materia: `nota zero elimina` ou `desconhecido`.
@@ -520,6 +556,28 @@ def _extrair_distribuicao(paragrafos: list[_Paragrafo]) -> list[DistribuicaoMate
     ]
 
 
+def _extrair_alternativas(
+    paragrafos: list[_Paragrafo],
+) -> tuple[int, _Paragrafo] | None:
+    """Número de alternativas: dígito, com ou sem extenso, ou o extenso sozinho.
+
+    Tenta primeiro o dígito (com o extenso opcional entre parênteses); na falta de dígito, o
+    numeral por extenso sozinho (um a dez) — nessa ordem de preferência.
+
+    Args:
+        paragrafos: parágrafos do edital, na ordem do documento.
+
+    Returns:
+        `(número, parágrafo onde casou)` ou `None` se nenhum padrão casar com segurança.
+    """
+    if (digito := _primeiro(paragrafos, _ALTERNATIVAS)) is not None:
+        return int(digito[0].group(1)), digito[1]
+    if (extenso := _primeiro(paragrafos, _ALTERNATIVAS_POR_EXTENSO)) is not None:
+        numero = _NUMERO_POR_EXTENSO[sem_acento(extenso[0].group(1)).casefold()]
+        return numero, extenso[1]
+    return None
+
+
 def _extrair_regra(paragrafos: list[_Paragrafo]) -> RegraExtraida:
     """Tipo de item, alternativas, anulação e mínimos, cada um do primeiro parágrafo que casa."""
     casados: list[_Paragrafo] = []
@@ -532,9 +590,17 @@ def _extrair_regra(paragrafos: list[_Paragrafo]) -> RegraExtraida:
         casados.append(certo_errado[1])
 
     alternativas: int | None = None
-    if (alt := _primeiro(paragrafos, _ALTERNATIVAS)) is not None:
-        alternativas = int(alt[0].group(1))
-        casados.append(alt[1])
+    alternativas_achadas = _extrair_alternativas(paragrafos)
+    if alternativas_achadas is not None:
+        alternativas, paragrafo_alternativas = alternativas_achadas
+        casados.append(paragrafo_alternativas)
+        # Sem a frase literal "múltipla escolha" nem "certo"..."errado", o mecanismo "N
+        # alternativas ... apenas 1 (uma) alternativa correta" no MESMO parágrafo já é múltipla
+        # escolha (achado real na AOCP, §11.3) — juntar parágrafos diferentes seria chute.
+        if tipo_item == DESCONHECIDO and _MECANISMO_UMA_ALTERNATIVA_CORRETA.search(
+            paragrafo_alternativas.texto
+        ):
+            tipo_item = "multipla_escolha"
 
     anula_por_erro: bool | Desconhecido = DESCONHECIDO
     for paragrafo in paragrafos:

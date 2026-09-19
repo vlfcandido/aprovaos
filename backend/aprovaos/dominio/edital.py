@@ -374,7 +374,16 @@ _ANULA = re.compile(
     re.IGNORECASE,
 )
 _MINIMO_GLOBAL = re.compile(r"(\d+)\s*%\s*do total(?: de pontos)?", re.IGNORECASE)
-_NOTA_ZERO = re.compile(r"nota zero", re.IGNORECASE)
+# "nota zero" sozinho casa com qualquer critério de correção que zere uma prova — inclusive o
+# da Discursiva-Redação, sem relação nenhuma com eliminar por zerar uma disciplina da objetiva
+# (achado real na FCC, §10.6: "Será atribuída nota ZERO à Prova Discursiva-Redação que: a)
+# fugir à modalidade de texto [...]"). Mesma classe de bug do `_ANULA`: a cláusula tem de falar
+# de disciplina/matéria/conhecimentos da prova, não só conter o termo "nota zero".
+_NOTA_ZERO = re.compile(
+    r"nota\s+zero\b[^.]{0,60}\b(?:disciplinas?|mat[ée]rias?|conhecimentos?)"
+    r"|\b(?:disciplinas?|mat[ée]rias?|conhecimentos?)\b[^.]{0,60}nota\s+zero",
+    re.IGNORECASE,
+)
 _CARGO = re.compile(r"Cargo:\s*([^.]+)\.")
 # O nome capturado tem de começar em maiúscula — nome próprio de instituição, não qualquer
 # substantivo comum antes da primeira vírgula (achado na re-revisão do merge: "executado pela
@@ -420,7 +429,9 @@ class RegraExtraida(BaseModel):
         anula_por_erro: `True` só se uma cláusula liga o erro NA QUESTÃO ("errada"/"errado") a
             desconto/anulação de ponto na mesma frase; `False` se "sem desconto" (explícito);
             senão `desconhecido` — nunca `False` por suposição de mercado sem o edital dizer.
-        minimo_por_materia: `nota zero elimina` ou `desconhecido`.
+        minimo_por_materia: `nota zero elimina` só se "nota zero" aparecer perto de
+            disciplina/matéria/conhecimentos da prova (nunca por zerar a Discursiva-Redação);
+            senão `desconhecido`.
         minimo_global: `N % do total de pontos` ou `desconhecido`.
         fonte: parágrafos casados (`edital §6.1, §6.3`).
     """

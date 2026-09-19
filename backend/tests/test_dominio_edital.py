@@ -270,6 +270,37 @@ def test_anula_por_erro_false_sem_desconto_por_questao_errada_isolado() -> None:
     assert regra.anula_por_erro is False
 
 
+# ---- minimo_por_materia: mesma classe de bug do anula_por_erro (achado real na FCC, §10.6) -----
+
+
+def test_minimo_por_materia_ignora_nota_zero_da_prova_discursiva() -> None:
+    # Texto literal do §10.6 real da FCC: "nota ZERO" aqui é critério de correção da
+    # Discursiva-Redação (fugir do tema, texto ilegível, etc.), não eliminação por zerar uma
+    # disciplina da prova objetiva — que é o que `minimo_por_materia` promete.
+    texto = (
+        "10.6 Será atribuída nota ZERO à Prova Discursiva-Redação que: a) fugir à modalidade "
+        "de texto solicitada e/ou ao tema proposto; b) não atender aos critérios dispostos no "
+        "item 11.4 deste Capítulo."
+    )
+    assert extrair_fatos(texto).regra.minimo_por_materia == "desconhecido"
+
+
+def test_minimo_por_materia_reconhece_nota_zero_em_disciplina_da_objetiva() -> None:
+    texto = "6.3 Será eliminado o candidato que obtiver nota zero em qualquer disciplina."
+    assert extrair_fatos(texto).regra.minimo_por_materia == "nota zero elimina"
+
+
+def test_minimo_por_materia_reconhece_nota_zero_em_materia() -> None:
+    texto = "6.3 Será eliminado o candidato que obtiver nota zero em qualquer uma das matérias."
+    assert extrair_fatos(texto).regra.minimo_por_materia == "nota zero elimina"
+
+
+def test_edital_real_fcc_minimo_por_materia_fica_desconhecido() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    assert extrair_fatos(texto).regra.minimo_por_materia == "desconhecido"
+
+
 # ---- Alternativas por extenso e múltipla escolha inferida do mecanismo (V3b, achado da V3) -----
 
 
@@ -332,9 +363,11 @@ def test_edital_real_fcc_alternativas_por_extenso_no_mesmo_paragrafo_da_frase_li
     regra = extrair_fatos(texto).regra
     assert regra.tipo_item == "multipla_escolha"
     assert regra.alternativas == 5
-    # §6.5.1 (declaração falsa, anulação de nomeação) não conta mais pelo mesmo motivo do AOCP.
+    # §6.5.1 (declaração falsa, anulação de nomeação) não conta mais pelo mesmo motivo do AOCP;
+    # §10.6 (nota zero da Discursiva-Redação) também não conta mais — mesma classe de bug.
     assert regra.anula_por_erro == "desconhecido"
-    assert regra.fonte == "edital §7.2, §10.6"
+    assert regra.minimo_por_materia == "desconhecido"
+    assert regra.fonte == "edital §7.2"
 
 
 def test_banca_executado_exige_nome_proprio_nao_qualquer_frase_ate_a_virgula() -> None:

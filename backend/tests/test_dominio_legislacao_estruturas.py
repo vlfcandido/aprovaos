@@ -6,6 +6,9 @@
 # `_PADRAO_VIGENCIA_SEM_PARENTESES`.
 from pathlib import Path
 
+import pytest
+
+from aprovaos.dominio.erros import EstruturaNaoTratada
 from aprovaos.dominio.legislacao import extrair_artigo
 from aprovaos.motor.fontes.planalto import decodificar_html
 
@@ -86,18 +89,20 @@ def test_artigo_24_da_lei_11340_atravessa_secao_iv_e_rubrica_sem_palavra_chave()
 # --- (b) parágrafo com sufixo de letra ("§ 4º-A") ---------------------------------------------
 
 
-def test_artigo_17_da_lei_8429_le_o_paragrafo_4_a() -> None:
-    """`"§ 4º-A"` (sufixo de letra) é um parágrafo de verdade, incluído pela Lei 14.230/2021 —
-    não pode derrubar a extração do art. 17 inteiro."""
-    artigo = extrair_artigo(HTML_LEI_8429, "17")
-
-    identificadores = [p.identificador for p in artigo.paragrafos]
-    assert "§ 4º-A" in identificadores
-    paragrafo_4a = next(p for p in artigo.paragrafos if p.identificador == "§ 4º-A")
-    assert paragrafo_4a.texto == (
-        "§ 4º-A A ação a que se refere o caput deste artigo deverá ser proposta perante o foro "
-        "do local onde ocorrer o dano ou da pessoa jurídica prejudicada."
-    )
+def test_artigo_17_da_lei_8429_levanta_por_anomalia_real_no_6a_nao_pela_rede_de_seguranca() -> None:
+    """Regressão consciente (revisão de 19/09/2026, não forçada): `extrair_artigo` volta a
+    acusar `EstruturaNaoTratada` para o art. 17 inteiro — o "§ 4º-A" que a P-40 destravou
+    continua sintaticamente correto (mesmo padrão provado pelo art. 6º da Lei 11.101/2005,
+    teste seguinte), mas o **§ 6º-A real do Planalto tem um parêntese não fechado**: "...de 16
+    de março de 2015 (Código de Processo Civil" — falta o `)` antes da anotação "(Incluído pela
+    Lei nº 14.230, de 2021)" que vem logo depois (comparar com o § 6º-B, duas linhas abaixo no
+    mesmo HTML, que fecha certinho: "...(Código de Processo Civil), bem como..."). Como a rede
+    de segurança agora recusa qualquer §/inciso/alínea sem pontuação de fechamento (em vez de
+    aceitar um trecho truncado como se fosse completo), esta anomalia real do documento oficial
+    passa a impedir a extração do artigo inteiro — o comportamento aceito nesta revisão é
+    declarar a lacuna, não servir o § 6º-A cortado no meio da frase."""
+    with pytest.raises(EstruturaNaoTratada, match="Código de Processo Civil"):
+        extrair_artigo(HTML_LEI_8429, "17")
 
 
 def test_artigo_6_da_lei_11101_le_o_paragrafo_4_a_com_ponto() -> None:
@@ -157,3 +162,36 @@ def test_artigo_477_da_clt_engole_a_anotacao_vigencia_encerrada_orfa() -> None:
     assert artigo.caput.texto.startswith("Art. 477.")
     textos = [artigo.caput.texto, *(p.texto for p in artigo.paragrafos)]
     assert not any(t.strip() in {"encerrada", "Vigência encerrada", "Vigência"} for t in textos)
+
+
+# --- (e) inciso truncado não pode ser descartado como se fosse título (achado da revisão de
+# 19/09/2026: `_eh_titulo_estrutural` passou a devolver `True` para *qualquer* bloco vigente sem
+# pontuação final, não só para rótulo de divisão — um inciso cortado no meio da frase (linha
+# continuada, célula de tabela virando `<p>`, pontuação que sobrou dentro do `<strike>` removido)
+# desaparecia em silêncio em vez de acusar a lacuna) -------------------------------------------
+
+
+def _html_artigo_com_inciso_truncado() -> str:
+    """HTML mínimo, no formato "texto compilado" do Planalto, só para isolar este caso: um
+    inciso (`IV`) sem pontuação de fechamento entre o caput do art. 99 e o caput do art. 100.
+
+    Não é fixture de fonte externa (`ingestao-de-provas`/`monitor-de-fontes` proíbem isso) — é
+    HTML sintético para testar a lógica pura do parser, o mesmo papel dos `<p>` avulsos que
+    `test_dominio_legislacao.py::test_capitulo_e_secao_entre_artigos_nao_viram_dispositivo` já
+    usa para o caso irmão (título de verdade, não dispositivo)."""
+    return (
+        "<p>Art. 99. É vedado ao servidor público, sob pena de demissão:</p>"
+        "<p>IV - o servidor que, sem justa causa, deixar de</p>"
+        "<p>Art. 100. Outro artigo qualquer.</p>"
+    )
+
+
+def test_inciso_truncado_sem_pontuacao_final_levanta_em_vez_de_sumir() -> None:
+    """Um inciso cortado no meio da frase (sem `.`/`:`/`;` no fim) não é um título de divisão —
+    tem corpo demais e não começa com rubrica nenhuma — e por isso não pode ser engolido pelo
+    `continue` de `_eh_titulo_estrutural`; a lacuna tem de aparecer como `EstruturaNaoTratada`,
+    nunca como um inciso silenciosamente incompleto nem como um sumiço."""
+    html = _html_artigo_com_inciso_truncado()
+
+    with pytest.raises(EstruturaNaoTratada):
+        extrair_artigo(html, "99")

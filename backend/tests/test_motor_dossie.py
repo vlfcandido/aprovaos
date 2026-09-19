@@ -61,27 +61,50 @@ class TestConstruirDossieImprobidade:
             {c for c in citacoes if c.startswith("Lei")}
         )
 
-    def test_resolve_artigos_9_10_11_e_17_depois_da_p40_tratar_as_estruturas(
+    def test_resolve_artigos_9_10_e_11_depois_da_p40_tratar_as_estruturas(
         self, db: Session
     ) -> None:
-        """Arts. 9º, 10, 11 (título de Seção em Title Case entre eles) e 17 (§ com sufixo de
-        letra) eram lacuna antes desta rodada (`EstruturaNaoTratada` em
-        `dominio.legislacao.extrair_artigo`) — tratados pela P-40, agora resolvem como fonte,
-        com o texto literal do artigo que define o ato de improbidade correspondente."""
+        """Arts. 9º, 10 e 11 (título de Seção em Title Case entre eles) eram lacuna antes da
+        P-40 (`EstruturaNaoTratada` em `dominio.legislacao.extrair_artigo`) — tratados por ela,
+        continuam resolvendo como fonte, com o texto literal do artigo que define o ato de
+        improbidade correspondente. O art. 17 **não** entra nesta lista (ver o teste seguinte:
+        volta a ser lacuna, por um motivo real e não relacionado ao heurístico de título)."""
         _topico(db, "dir-adm-06-improbidade-administrativa")
 
         _dossie, conteudo = construir_dossie(db, "dir-adm-06-improbidade-administrativa", hoje=HOJE)
 
-        assert conteudo.lacunas == []
         fontes_por_citacao = {fonte.citacao_canonica: fonte for fonte in conteudo.fontes}
         assert "Lei 8.429/1992 art. 9" in fontes_por_citacao
         assert "Lei 8.429/1992 art. 10" in fontes_por_citacao
         assert "Lei 8.429/1992 art. 11" in fontes_por_citacao
-        assert "Lei 8.429/1992 art. 17" in fontes_por_citacao
         assert fontes_por_citacao["Lei 8.429/1992 art. 9"].trecho.startswith(
             "Art. 9º Constitui ato de improbidade administrativa importando em enriquecimento "
             "ilícito"
         )
+
+    def test_artigo_17_volta_a_ser_lacuna_por_anomalia_real_no_6a_nao_pelo_titulo(
+        self, db: Session
+    ) -> None:
+        """Revisão de 19/09/2026 (não forçada): `_eh_titulo_estrutural` foi apertada de volta
+        (I6 — só título quando parece rubrica/frase curta; o resto que casa com §/inciso/alínea
+        mas não termina em pontuação de fechamento levanta `EstruturaNaoTratada`, em vez de ser
+        aceito como dispositivo truncado). Isso reabre uma lacuna genuína no art. 17: o § 6º-A
+        real do Planalto tem um parêntese não fechado ("...(Código de Processo Civil", sem o `)`
+        antes da anotação "(Incluído pela Lei nº 14.230, de 2021)" — comparar com o § 6º-B, duas
+        linhas abaixo no mesmo HTML, que fecha certinho). O dossiê declara a lacuna em vez de
+        servir o § 6º-A cortado no meio da frase; os demais 11 dispositivos + 2 súmulas
+        continuam resolvendo (13 fontes/1 lacuna, não mais 14/0 — P-61)."""
+        _topico(db, "dir-adm-06-improbidade-administrativa")
+
+        _dossie, conteudo = construir_dossie(db, "dir-adm-06-improbidade-administrativa", hoje=HOJE)
+
+        fontes_por_citacao = {fonte.citacao_canonica: fonte for fonte in conteudo.fontes}
+        assert "Lei 8.429/1992 art. 17" not in fontes_por_citacao
+        assert len(conteudo.fontes) == 13
+        assert len(conteudo.lacunas) == 1
+        lacuna = conteudo.lacunas[0]
+        assert lacuna.dispositivo == "Lei 8.429/1992 art. 17"
+        assert "Código de Processo Civil" in lacuna.motivo
 
 
 class TestConstruirDossieDireitosGarantias:

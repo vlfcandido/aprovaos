@@ -68,12 +68,19 @@ RECEITAS: dict[str, ReceitaDossie] = {
             PedidoDispositivo(norma=_LEI_8429, artigo="1", paragrafo="8"),  # divergência não é
             PedidoDispositivo(norma=_LEI_8429, artigo="2"),  # quem é agente público
             PedidoDispositivo(norma=_LEI_8429, artigo="3"),  # particular que induz dolosamente
-            # arts. 9, 10, 11 e 17 eram lacuna (título de Seção/Capítulo em Title Case entre os
-            # três primeiros; "§ 4º-A" no 17) até a P-40 tratar as quatro estruturas em
-            # `dominio.legislacao` — resolvem como fonte desde então.
+            # arts. 9, 10 e 11 eram lacuna (título de Seção/Capítulo em Title Case entre eles)
+            # até a P-40 tratar as quatro estruturas em `dominio.legislacao` — resolvem como
+            # fonte desde então.
             PedidoDispositivo(norma=_LEI_8429, artigo="9"),  # enriquecimento ilícito
             PedidoDispositivo(norma=_LEI_8429, artigo="10"),  # prejuízo ao erário
             PedidoDispositivo(norma=_LEI_8429, artigo="11"),  # atentado aos princípios
+            # art. 17 continua sendo pedido (rito único + § 4º-A, sufixo de letra tratado pela
+            # P-40) mas hoje é lacuna de novo, por um motivo real e não relacionado a nenhum
+            # heurístico deste código: o § 6º-A do Planalto tem um parêntese não fechado antes
+            # da anotação "(Incluído pela Lei nº 14.230, de 2021)" — a rede de segurança apertada
+            # na revisão de 19/09/2026 (I6, P-61) recusa aceitar esse dispositivo truncado como
+            # se fosse completo. Ver `test_motor_dossie.py
+            # ::test_artigo_17_volta_a_ser_lacuna_por_anomalia_real_no_6a_nao_pelo_titulo`.
             PedidoDispositivo(norma=_LEI_8429, artigo="17"),  # rito único + § 4º-A (foro)
             PedidoDispositivo(norma=_LEI_8429, artigo="23"),  # prescrição
         ],

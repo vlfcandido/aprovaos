@@ -145,38 +145,63 @@ técnica legislativa de terminar a frase com pontuação (LC 95/1998, art. 11, I
 divisão nunca termina assim — é um rótulo, não uma frase."""
 
 
+_PADRAO_RUBRICA_ESTRUTURAL = re.compile(
+    r"^\s*(?:LIVRO|T[IÍ]TULO|CAP[IÍ]TULO|SUBSE[ÇC][AÃ]O|SE[ÇC][AÃ]O|PARTE|Dos?|Das?)\b",
+    re.IGNORECASE,
+)
+"""Reconhece o começo de uma rubrica de divisão do diploma pelo vocabulário fixo que a técnica
+legislativa usa para elas (LIVRO/TÍTULO/CAPÍTULO/SEÇÃO/SUBSEÇÃO/PARTE, e a rubrica sem a palavra-
+chave que o Planalto às vezes intercala sozinha, sempre começando por "Do(s)"/"Da(s)" — ex.:
+`"Dos Atos de Improbidade Administrativa Decorrentes..."`, `lei8429_planalto_compilada.htm`,
+entre os arts. 10 e 11). Case-insensitive porque a mesma rubrica aparece ora em CAIXA ALTA
+("CAPÍTULO III"), ora em Title Case ("Seção IV") no mesmo diploma."""
+
+_LIMITE_PALAVRAS_TITULO_CURTO = 6
+"""Acima deste número de palavras, um texto sem pontuação de fechamento não pode mais ser
+descartado só por "parecer" título — tem corpo de frase demais para ser um rótulo de divisão, e
+vira `EstruturaNaoTratada` em vez de sumir (achado da revisão de 19/09/2026, ver
+`_eh_titulo_estrutural`): a versão anterior deste heurístico tratava *qualquer* bloco sem `.`/
+`:`/`;` no fim como título, o que também engolia dispositivo truncado de verdade (linha
+continuada, célula de tabela virando `<p>`, pontuação que sobrou dentro do `<strike>` removido)."""
+
+
 def _eh_titulo_estrutural(texto: str) -> bool:
     r"""Reconhece um título de divisão do diploma (capítulo, seção...), não um dispositivo.
 
     O Planalto intercala, entre o fim de um artigo e o caput do próximo, parágrafos como
     "CAPÍTULO IV" / "DOS AGENTES PÚBLICOS" (medido em `lei14133_planalto_compilada.htm`, entre
-    os arts. 6º e 7º) — não fazem parte do texto de nenhum dos dois artigos. Dois heurísticos,
-    nenhum por lista fixa de palavras:
+    os arts. 6º e 7º) — não fazem parte do texto de nenhum dos dois artigos. Três heurísticos,
+    cada um mais estrito que "sem pontuação final" sozinho (revisão de 19/09/2026: esse critério
+    isolado também descartava dispositivo truncado em silêncio, onde antes `extrair_artigo`
+    acusava `EstruturaNaoTratada` — a rede de segurança que este módulo existe para manter):
 
     1. **Caixa alta**: todo dispositivo de verdade tem letra minúscula em algum lugar; um
        título 100% CAIXA ALTA, não (achado original, `lei14133_planalto_compilada.htm`).
-    2. **Sem pontuação de fechamento**: títulos em *Title Case* (mistura de maiúscula/minúscula)
-       escapam do heurístico 1 — ex.: `"Seção II\nDos Atos de Improbidade Administrativa que
-       Causam Prejuízo ao Erário"` e `"CAPÍTULO III\nDas Penas"` (`lei8429_planalto_compilada
-       .htm`, entre os arts. 9º/10 e 10/11); `"Seção IV"` e a rubrica sem a palavra "Seção" que
-       vem na sequência (`lei11340_planalto_compilada.htm`, entre os arts. 24 e 24-A). Nenhum
-       título é uma frase — não termina em `.`/`:`/`;` como todo dispositivo termina (ver
-       `_PADRAO_FIM_DE_DISPOSITIVO`). Medido como seguro contra falso positivo: as únicas
-       ocorrências de dispositivo vigente sem essa pontuação nos HTMLs desta coleta são casos
-       de anotação não reconhecida sobrando no fim (ex.: `"(Regulamento)"`, CF art. 37
-       X/XXI/§ 8º), cobertos pela cauda opcional do próprio padrão.
+    2. **Rubrica reconhecida** (`_PADRAO_RUBRICA_ESTRUTURAL`): começa por LIVRO/TÍTULO/CAPÍTULO/
+       SEÇÃO/SUBSEÇÃO/PARTE ou por "Do(s)"/"Da(s)" — cobre os títulos em Title Case que escapam
+       do heurístico 1, ex.: `"Seção II\nDos Atos de Improbidade Administrativa que Causam
+       Prejuízo ao Erário"` e `"CAPÍTULO III\nDas Penas"` (`lei8429_planalto_compilada.htm`,
+       entre os arts. 9º/10 e 10/11); `"Seção IV"` e a rubrica sem a palavra "Seção" que vem na
+       sequência (`lei11340_planalto_compilada.htm`, entre os arts. 24 e 24-A).
+    3. **Frase curta sem pontuação de fechamento** (`_LIMITE_PALAVRAS_TITULO_CURTO`): só para o
+       raro título que não bate com nenhuma rubrica do heurístico 2 — continua exigindo que não
+       termine em `.`/`:`/`;` (ver `_PADRAO_FIM_DE_DISPOSITIVO`) **e** que tenha poucas palavras.
+       Um bloco longo sem essa pontuação não é mais título por default — é dispositivo até prova
+       em contrário, e sem forma reconhecida vira `EstruturaNaoTratada`.
 
     Args:
         texto: o texto já limpo (sem tags, sem anotação reconhecida) de um parágrafo.
 
     Returns:
-        `True` quando o texto é 100% caixa alta, ou quando não termina em pontuação de
-        fechamento de dispositivo (P-40, achado 3 do `LEIA-ME.md` de
-        `knowledge/fixtures/juridico/`).
+        `True` quando o texto é 100% caixa alta, começa por uma rubrica reconhecida, ou é uma
+        frase curta sem pontuação de fechamento de dispositivo.
     """
     if any(c.isalpha() for c in texto) and texto == texto.upper():
         return True
-    return _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None
+    if _PADRAO_RUBRICA_ESTRUTURAL.match(texto):
+        return True
+    sem_pontuacao_final = _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None
+    return sem_pontuacao_final and len(texto.split()) <= _LIMITE_PALAVRAS_TITULO_CURTO
 
 
 def _com_pontuacao_de_milhar(numero: str) -> str:
@@ -265,7 +290,10 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
         EstruturaNaoTratada: um parágrafo vigente do corpo do artigo não é título estrutural
             (`_eh_titulo_estrutural`) nem casa com parágrafo, inciso ou alínea reconhecidos — a
             função para em vez de inventar a hierarquia (alínea direto sob o caput, sem
-            inciso/parágrafo antes dela, já resolve para o caput; não é mais este caso).
+            inciso/parágrafo antes dela, já resolve para o caput; não é mais este caso); ou casa
+            com parágrafo/inciso/alínea mas não termina em pontuação de fechamento de
+            dispositivo — sinal de que o bloco está truncado (revisão de 19/09/2026: aceitar um
+            dispositivo cortado como se fosse completo é pior do que declarar a lacuna).
     """
     paragrafos = _paragrafos_vigentes(html)
     padrao_caput = _padrao_caput(numero)
@@ -304,6 +332,18 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
         m_paragrafo = _PADRAO_PARAGRAFO.match(texto)
         m_inciso = _PADRAO_INCISO.match(texto)
         m_alinea = _PADRAO_ALINEA.match(texto)
+
+        # Bater com o começo de §/inciso/alínea não basta: o corpo tem de terminar como todo
+        # dispositivo termina (LC 95/1998, art. 11, III). Sem isso, um inciso truncado (linha
+        # continuada, célula de tabela virando `<p>`, pontuação que sobrou dentro do `<strike>`
+        # removido) seria aceito como se fosse completo — pior do que declarar a lacuna (revisão
+        # de 19/09/2026).
+        if (
+            m_paragrafo is not None or m_inciso is not None or m_alinea is not None
+        ) and _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None:
+            raise EstruturaNaoTratada(
+                f"Dispositivo sem pontuação de fechamento — pode estar truncado: {texto!r}"
+            )
 
         if m_paragrafo is not None:
             item = TrechoDispositivo(

@@ -6,7 +6,8 @@ V3b), `atualizar_classificacao` (passo 12b — reclassifica uma questão já gra
 nem tocar texto/gabarito/origem/alternativas), `contagem_por_topico` (quantas publicáveis por
 tópico de um edital, para o "0 de 36" da V2 virar contagem real), `proxima_questao` (a próxima
 publicável de um tópico que o usuário nunca respondeu nem reportou — premissa H do plano da V3),
-`registrar_resposta`/`registrar_reporte` (gravam `evento_estudo`, nunca alteram `questao`) e
+`registrar_resposta`/`registrar_reporte` (gravam `evento_estudo`, nunca alteram `questao`;
+`registrar_resposta` aceita `dados` opcional — V5, o JSON livre que o fio da memória usa) e
 `topicos_vistos` (premissa N: tópicos com pelo menos uma resposta do usuário naquele edital).
 Quando ler: ao ligar o comando de curadoria (passo 12) ou as rotas de questão (passo 13). Como o
 repositório da V2 (`repositorio_edital.py`): funções soltas recebendo `Session` como primeiro
@@ -235,6 +236,7 @@ def registrar_resposta(
     resposta: str,
     confianca: str,
     tempo_ms: int,
+    dados: dict[str, object] | None = None,
 ) -> EventoEstudo:
     """Grava a resposta como um `evento_estudo`; nunca altera a `questao` respondida.
 
@@ -249,6 +251,9 @@ def registrar_resposta(
         resposta: o que o aluno marcou (`"C"`/`"E"` nesta fatia).
         confianca: `"certeza"`/`"duvida"`, como o aluno declarou.
         tempo_ms: tempo gasto na questão, em milissegundos.
+        dados: o JSON livre de `evento_estudo.dados` (V5); hoje só o fio da memória grava aqui
+            (`bloco_topico_id` e, quando o item é intercalado, `fio_motivo`/
+            `fio_origem_topico_id`) — `None` quando a rota não passa nada.
 
     Returns:
         O `EventoEstudo` gravado.
@@ -262,6 +267,7 @@ def registrar_resposta(
         resposta=resposta,
         tempo_ms=tempo_ms,
         confianca_declarada=confianca,
+        dados=dados,
     )
     db.add(evento)
     db.flush()

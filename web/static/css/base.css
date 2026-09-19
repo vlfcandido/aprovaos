@@ -784,6 +784,14 @@ kbd {
   color: var(--cor-porque);
 }
 
+/* Fio da memória (V5): item de outro tópico já visto, intercalado no bloco de questões — cor de
+   ação (não âmbar do "por quê" nem verde/vermelho de acerto), para não se confundir com nenhum
+   dos outros selos desta tela; `<span>` carrega o motivo (ver `_cartao_questao.html`). */
+.selo--fio-da-memoria {
+  background: var(--cor-acao-suave);
+  color: var(--cor-acao);
+}
+
 .justificativa {
   margin-top: var(--espaco-2);
   margin-bottom: var(--espaco-4);

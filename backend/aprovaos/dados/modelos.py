@@ -10,7 +10,11 @@ tópico casado fica na base, mas nunca publicável); `publicavel` é o veredito 
 `publicada` é o que a consulta da tela decide servir. `evento_estudo` é append-only (sem
 `atualizado_em`, sem `ON UPDATE` — a camada de dados nunca expõe update/delete nela); a V4
 acrescenta a coluna `cartao_id` (nullable) para o tipo `revisao_cartao`. `cartao` (V4, F4.3)
-guarda o estado do `fsrs.Card` — ver o docstring da classe `Cartao` para o adendo à ADR-0022.
+guarda o estado do `fsrs.Card` — ver o docstring da classe `Cartao` para o adendo à ADR-0022. A V5
+acrescenta `evento_estudo.dados` (JSON, nullable) — o campo que `docs/04-modelo-de-dados.md` §2
+já previa desde a Fase 3 e nenhuma fatia anterior tinha precisado criar; o fio da memória o usa
+para marcar `bloco_topico_id` (e, quando o item é intercalado, `fio_motivo`/
+`fio_origem_topico_id`) sem inventar coluna nova.
 """
 
 from datetime import date, datetime
@@ -315,7 +319,9 @@ class EventoEstudo(ChaveUuid, Base):
     update/delete nesta tabela. O `CheckConstraint` de `tipo` já traz os dez valores do modelo
     de dados; a V3 produziu `resposta` e `reporte`, a V4 acrescenta `revisao_cartao` (com
     `cartao_id` preenchido) — os demais tipos continuam reservados, sem migração nova até a
-    fatia que os produzir.
+    fatia que os produzir. `dados` (V5) é o JSON livre que o modelo de dados já nomeava: hoje só
+    o fio da memória grava nele (`bloco_topico_id`, e quando o item é intercalado
+    `fio_motivo`/`fio_origem_topico_id`); qualquer chave futura entra sem migração nova.
     """
 
     __tablename__ = "evento_estudo"
@@ -344,6 +350,7 @@ class EventoEstudo(ChaveUuid, Base):
     resposta: Mapped[str | None] = mapped_column(String(8), nullable=True)
     tempo_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     confianca_declarada: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    dados: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     usuario: Mapped[Usuario] = relationship()
     questao: Mapped[Questao | None] = relationship()

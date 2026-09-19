@@ -15,8 +15,9 @@
    vira um `<details>` (popover sem JS) com o trecho literal do dispositivo, quando achado. O
    link final (`proximo_url`/`proximo_rotulo`, V4) recarrega via `GET` a rota que trouxe esta
    questão — `/topico/{slug}/questoes` (a próxima pendente) ou `/revisar` (o próximo cartão
-   vencido); este fragmento é o mesmo para os dois fluxos. Quando ler: ao mudar o que aparece
-   depois de responder. -#}
+   vencido); este fragmento é o mesmo para os dois fluxos. `fio_da_memoria` (V5) repete, no
+   resultado, o mesmo selo de `_cartao_questao.html` quando a questão respondida era um item
+   intercalado. Quando ler: ao mudar o que aparece depois de responder. -#}
 {% macro citacao(af) %}
   {% if af.dispositivo_texto %}
     <details class="citacao-legal">
@@ -30,6 +31,11 @@
 {% endmacro %}
 {% if evento %}
   <div class="cartao cartao--elevado questao">
+    {% if fio_da_memoria %}
+      <p class="selo selo--fio-da-memoria">
+        Fio da memória — <span>{{ fio_da_memoria.motivo }}</span>
+      </p>
+    {% endif %}
     {% if questao.comando %}
       <p class="questao__comando">{{ questao.comando }}</p>
     {% endif %}

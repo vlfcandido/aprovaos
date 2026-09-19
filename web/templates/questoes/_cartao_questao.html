@@ -4,10 +4,17 @@
    Compartilhado (V4) por `topico.html` (`GET/POST /topico/{slug}/questoes`) e `revisao.html`
    (`GET/POST /revisar`) — "a revisão de um cartão de questão é, na prática, a questão de novo"
    (plano V4 §5): só o destino do formulário (`acao_post`) e os campos ocultos extras
-   (`campos_ocultos`, ex.: `cartao_id` na revisão) mudam entre os dois fluxos. O gabarito nunca
+   (`campos_ocultos`, ex.: `cartao_id` na revisão) mudam entre os dois fluxos. `fio_da_memoria`
+   (V5) é o selo "de onde veio" quando a questão mostrada é um item intercalado de outro tópico
+   já visto (nunca aparece em `revisao.html`, que não intercala — plano V5 §5). O gabarito nunca
    aparece aqui — só depois de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no
-   que aparece antes de responder, nos dois fluxos. -#}
+   que aparece antes de responder, nos dois fluxos, ou no selo do fio da memória. -#}
 <div class="cartao cartao--elevado questao">
+  {% if fio_da_memoria %}
+    <p class="selo selo--fio-da-memoria">
+      Fio da memória — <span>{{ fio_da_memoria.motivo }}</span>
+    </p>
+  {% endif %}
   {% if questao.comando %}
     <p class="questao__comando">{{ questao.comando }}</p>
   {% endif %}

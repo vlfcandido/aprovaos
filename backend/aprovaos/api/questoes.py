@@ -22,8 +22,19 @@ A V4 (F4.3) acrescenta: `responder_questao` grava um `cartao(origem="auto_erro")
 <= agora`, ordem do FSRS); como "a revisão de um cartão de questão é, na prática, a questão de
 novo" (plano V4 §5), as duas rotas reaproveitam `_contexto_questao`/`_contexto_evento` e o
 parcial `questoes/_cartao_questao.html` — só o destino do formulário (`acao_post`) e os campos
-ocultos extras (`cartao_id`) mudam. Quando ler: ao mexer na tela de resolver questão, na tela de
-revisão ou no fluxo de reportar erro.
+ocultos extras (`cartao_id`) mudam.
+
+A V5 (fio da memória) acrescenta a intercalação: `GET /topico/{slug}/questoes` decide, antes de
+buscar a próxima questão nativa, se a posição do bloco (`repositorio_fio_memoria
+.quantidade_no_bloco`) pede um item de outro tópico já visto (`dominio.fio_memoria
+.decidir_proximo_intercalado`/`ordem_para_tentar`); quando pede, a tela mostra a questão desse
+outro tópico com o selo "Fio da memória" e o motivo, reaproveitando o mesmo `_cartao_questao.html`
+(`fio_da_memoria` no contexto). `POST` grava `bloco_topico_id` (e, quando intercalado,
+`fio_motivo`/`fio_origem_topico_id`) em `evento_estudo.dados`, via campos ocultos do formulário —
+é o que faz `quantidade_no_bloco` avançar independente de a resposta ser nativa ou intercalada
+(`docs/fatias/V5-fio-da-memoria.md` §3/§4). A tela de revisão (`/revisar`) nunca intercala — só os
+cartões vencidos (§5 do plano V5). Quando ler: ao mexer na tela de resolver questão, na tela de
+revisão, no fluxo de reportar erro ou na intercalação do fio da memória.
 """
 
 from collections.abc import Sequence
@@ -53,12 +64,21 @@ from aprovaos.dados.modelos import (
 )
 from aprovaos.dados.repositorio_cartao import cartoes_vencidos, registrar_erro, revisar_cartao
 from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
+from aprovaos.dados.repositorio_fio_memoria import (
+    estatisticas_topicos_vistos,
+    quantidade_no_bloco,
+)
 from aprovaos.dados.repositorio_questao import (
     proxima_questao,
     registrar_reporte,
     registrar_resposta,
 )
 from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
+from aprovaos.dominio.fio_memoria import (
+    ItemIntercalado,
+    escolher_para_intercalar,
+    ordem_para_tentar,
+)
 from aprovaos.dominio.justificativa import separar_afirmacoes
 from aprovaos.dominio.revisao import Confianca
 
@@ -139,6 +159,33 @@ def _exigir_topico_do_tenant(db: Session, slug: str, usuario: Usuario) -> Topico
     return topico
 
 
+def _edital_do_topico_para_tenant(db: Session, topico_id: UUID, tenant_id: UUID) -> UUID | None:
+    """O `edital_id` de algum edital do tenant que contém este tópico (V5, fio da memória).
+
+    Mesma junção de `_topico_do_tenant`, partindo do tópico em vez do slug. Um tópico pode, em
+    tese, pertencer a mais de um edital do mesmo tenant (vocabulário global); esta função devolve
+    o primeiro — suficiente para escopar `estatisticas_topicos_vistos` (mesma simplificação de
+    "concurso principal" já aceita em outras telas, P-23) e não crítico: só decide quais tópicos
+    entram no ranking de intercalação, nunca o que é publicável.
+
+    Args:
+        db: sessão do request.
+        topico_id: o tópico já resolvido para o tenant.
+        tenant_id: tenant do usuário logado.
+
+    Returns:
+        O `edital_id`, ou `None` (defensivo — não deveria acontecer para um tópico que já passou
+        por `_exigir_topico_do_tenant`).
+    """
+    consulta = (
+        select(Edital.id)
+        .join(TopicoEdital, TopicoEdital.edital_id == Edital.id)
+        .join(Concurso, Concurso.id == Edital.concurso_id)
+        .where(TopicoEdital.topico_id == topico_id, Concurso.tenant_id == tenant_id)
+    )
+    return db.scalars(consulta).first()
+
+
 def _questao_do_tenant(db: Session, questao_id: UUID, tenant_id: UUID) -> Questao | None:
     """Localiza a questão só se o tópico dela pertencer a um edital do tenant.
 
@@ -180,13 +227,17 @@ def _questao_pendente(
     Existe para a rota nunca gravar `registrar_resposta` contra uma questão que não é a que a
     tela mostrou — um `questao_id` de outro tópico, de uma questão já respondida (corrida entre
     abas, back/refresh) ou já reportada é rejeitado aqui, antes de qualquer gravação.
-    `evento_estudo` é append-only e alimenta o FSRS da V5: um evento gravado contra a questão
-    errada não tem conserto depois.
+    `evento_estudo` é append-only e alimenta o FSRS: um evento gravado contra a questão errada
+    não tem conserto depois. `responder_questao` (V5) chama esta função duas vezes conforme o
+    caso: com `topico.id` da URL para a questão nativa, ou com `fio_origem_topico_id` (já
+    validado como de um edital deste tenant) para um item intercalado — a garantia é a mesma nos
+    dois casos, só o tópico de referência muda.
 
     Args:
         db: sessão do request.
         usuario_id: quem está respondendo.
-        topico_id: tópico já resolvido para o tenant (da URL).
+        topico_id: o tópico ao qual a `questao_id` deve pertencer — o da URL para uma questão
+            nativa, ou o tópico de origem já validado de um item intercalado (V5).
         questao_id: `questao_id` que veio do formulário.
 
     Returns:
@@ -233,6 +284,7 @@ def _contexto_questao(
     *,
     acao_post: str = "",
     campos_ocultos: Sequence[tuple[str, str]] = (),
+    fio_da_memoria: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Monta o contexto do parcial `questoes/_cartao_questao.html`.
 
@@ -243,15 +295,20 @@ def _contexto_questao(
     resposta pode distinguir qual das cinco é a certa. `acao_post`/`campos_ocultos` (V4) são o
     que faz o mesmo parcial servir `/topico/{slug}/questoes` e `/revisar` — só o destino do
     formulário e um campo oculto a mais (`cartao_id`, na revisão) mudam entre os dois.
+    `fio_da_memoria` (V5) é o selo "de onde veio" quando `questao` é um item intercalado — `None`
+    (o padrão) para uma questão nativa do tópico da URL.
 
     Args:
         db: sessão do request (só para buscar as alternativas de múltipla escolha).
-        topico: o tópico já resolvido para o tenant.
+        topico: o tópico já resolvido para o tenant (o tópico **da URL**, não necessariamente o
+            de `questao` — um item intercalado tem `questao.topico_id` diferente deste).
         questao: a próxima questão publicável, ou `None` sem nenhuma sobrando.
         acao_post: URL para onde o formulário de resposta posta; `""` quando o contexto é usado
             só para montar o resultado (`_resultado.html` não inclui o formulário de novo).
         campos_ocultos: pares `(nome, valor)` de campos ocultos extras do formulário, além de
             `questao_id` (que já entra sempre).
+        fio_da_memoria: `{"motivo": str}` quando `questao` é um item intercalado (V5); `None`
+            para uma questão nativa.
 
     Returns:
         O contexto para `renderizar`.
@@ -261,6 +318,7 @@ def _contexto_questao(
         "questao": None,
         "acao_post": acao_post,
         "campos_ocultos": list(campos_ocultos),
+        "fio_da_memoria": fio_da_memoria,
     }
     if questao is not None:
         origem = questao.origem or {}
@@ -401,6 +459,40 @@ def _contexto_evento(
     }
 
 
+def _proximo_item_intercalado(
+    db: Session, usuario: Usuario, topico: Topico
+) -> tuple[ItemIntercalado, Questao] | tuple[None, None]:
+    """Decide se a posição atual do bloco pede um item intercalado e acha a questão dele (V5).
+
+    O candidato indicado pela cadência (`dominio.fio_memoria.decidir_proximo_intercalado`) pode
+    não ter mais questão disponível (todas já respondidas/reportadas) — por isso tenta, na ordem
+    de `dominio.fio_memoria.ordem_para_tentar`, cada candidato do ranking até achar um com
+    questão pendente (`repositorio_questao.proxima_questao`), antes de desistir e a rota cair de
+    volta para a questão nativa do tópico (§3 do plano V5).
+
+    Args:
+        db: sessão do request.
+        usuario: o usuário logado.
+        topico: o tópico da URL — a âncora do bloco, não necessariamente o tópico do item
+            devolvido (que é sempre de outro tópico já visto).
+
+    Returns:
+        `(item, questao)` do primeiro candidato com questão disponível; `(None, None)` quando não
+        é a vez de intercalar, não há histórico, ou nenhum candidato tem questão sobrando.
+    """
+    edital_id = _edital_do_topico_para_tenant(db, topico.id, usuario.tenant_id)
+    if edital_id is None:
+        return None, None
+    estatisticas = estatisticas_topicos_vistos(db, usuario.id, edital_id)
+    itens = escolher_para_intercalar(topico.id, estatisticas, agora_utc())
+    posicao = quantidade_no_bloco(db, usuario.id, topico.id)
+    for candidato in ordem_para_tentar(posicao, itens):
+        questao = proxima_questao(db, usuario.id, candidato.topico_id)
+        if questao is not None:
+            return candidato, questao
+    return None, None
+
+
 @router.get("/topico/{slug}/questoes")
 def obter_questao(
     request: Request,
@@ -408,7 +500,9 @@ def obter_questao(
     usuario: Annotated[Usuario, Depends(exigir_usuario)],
     slug: str,
 ) -> Response:
-    """Mostra a próxima questão publicável do tópico, sem revelar o gabarito.
+    """Mostra a próxima questão do tópico, sem revelar o gabarito.
+
+    Nativa ou, a cada 4ª posição do bloco, um item de outro tópico já visto (fio da memória, V5).
 
     Args:
         request: a requisição atual.
@@ -418,12 +512,28 @@ def obter_questao(
 
     Returns:
         O HTML de `questoes/topico.html`; com `questao=None` no contexto quando não sobra
-        nenhuma para este usuário (200, sem erro — decisão 7).
+        nenhuma para este usuário (200, sem erro — decisão 7). Quando a questão é um item
+        intercalado, o contexto ganha `fio_da_memoria={"motivo": ...}`.
 
     Raises:
         HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant (decisão 2).
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
+    item, questao_intercalada = _proximo_item_intercalado(db, usuario, topico)
+    if item is not None and questao_intercalada is not None:
+        contexto = _contexto_questao(
+            db,
+            topico,
+            questao_intercalada,
+            acao_post=f"/topico/{topico.slug}/questoes",
+            campos_ocultos=[
+                ("fio_origem_topico_id", str(item.topico_id)),
+                ("fio_motivo", item.motivo),
+            ],
+            fio_da_memoria={"motivo": item.motivo},
+        )
+        return renderizar(request, "questoes/topico.html", contexto, usuario)
+
     questao = proxima_questao(db, usuario.id, topico.id)
     contexto = _contexto_questao(db, topico, questao, acao_post=f"/topico/{topico.slug}/questoes")
     return renderizar(request, "questoes/topico.html", contexto, usuario)
@@ -439,6 +549,8 @@ def responder_questao(
     questao_id: Annotated[UUID, Form()],
     confianca: Annotated[str | None, Form()] = None,
     tempo_ms: Annotated[int, Form()] = 0,
+    fio_origem_topico_id: Annotated[UUID | None, Form()] = None,
+    fio_motivo: Annotated[str | None, Form()] = None,
 ) -> Response:
     """Registra a resposta à questão indicada e devolve o fragmento do resultado.
 
@@ -447,18 +559,26 @@ def responder_questao(
     questão ainda está pendente para este usuário (`_questao_pendente`) antes de gravar
     qualquer coisa: sem essa checagem, duas abas abertas, um back/refresh ou qualquer corrida
     gravariam a resposta contra outra questão, e `evento_estudo` é append-only — não tem
-    conserto depois.
+    conserto depois. `fio_origem_topico_id`/`fio_motivo` (V5) só vêm preenchidos quando a
+    questão mostrada era um item intercalado (`GET` os preenche via `campos_ocultos`) — nesse
+    caso a checagem de pendência usa o tópico de origem do item, não o tópico da URL, e só
+    aceita um `fio_origem_topico_id` que de fato pertença a um edital deste tenant
+    (`_edital_do_topico_para_tenant`) — nunca um tópico de outro tenant.
 
     Args:
         request: a requisição atual.
         db: sessão de banco do request (o commit é feito aqui).
         usuario: o usuário logado.
-        slug: slug global do tópico.
+        slug: slug global do tópico (a âncora do bloco, gravada em
+            `evento_estudo.dados["bloco_topico_id"]`).
         resposta: `"C"`/`"E"` em `"certo_errado"`, `"A"`–`"E"` em `"multipla_escolha"` — o que
             o aluno marcou.
         questao_id: `id` da questão respondida, do campo oculto do formulário.
         confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3).
         tempo_ms: tempo gasto na questão, em milissegundos; `0` quando o cliente não manda.
+        fio_origem_topico_id: tópico de origem do item intercalado, quando é o caso.
+        fio_motivo: o motivo já formatado (`dominio.fio_memoria.ItemIntercalado.motivo`), para o
+            resultado ecoar sem recalcular.
 
     Returns:
         O fragmento `questoes/_resultado.html` com o gabarito, o acerto e a origem (200).
@@ -472,7 +592,16 @@ def responder_questao(
     if confianca not in CONFIANCAS_VALIDAS:
         raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
 
-    questao = _questao_pendente(db, usuario.id, topico.id, questao_id)
+    intercalado = False
+    if fio_origem_topico_id is not None:
+        if _edital_do_topico_para_tenant(db, fio_origem_topico_id, usuario.tenant_id) is None:
+            questao = None
+        else:
+            questao = _questao_pendente(db, usuario.id, fio_origem_topico_id, questao_id)
+            intercalado = questao is not None
+    else:
+        questao = _questao_pendente(db, usuario.id, topico.id, questao_id)
+
     if questao is None:
         # A validação é idêntica a antes (404 lógico) — só a entrega muda: um 4xx aqui vira
         # JSON cru fora do htmx e não faz swap nenhum dentro dele (htmx 2 não troca em erro),
@@ -492,7 +621,14 @@ def responder_questao(
         raise HTTPException(status_code=400, detail=mensagem)
 
     agora = agora_utc()
-    evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms)
+    dados_evento: dict[str, object] = {"bloco_topico_id": str(topico.id)}
+    fio_da_memoria: dict[str, object] | None = None
+    if intercalado:
+        dados_evento["fio_origem_topico_id"] = str(fio_origem_topico_id)
+        if fio_motivo is not None:
+            dados_evento["fio_motivo"] = fio_motivo
+            fio_da_memoria = {"motivo": fio_motivo}
+    evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms, dados_evento)
     if not evento.acertou:
         # F4.3 (V4): o erro faz nascer (ou atualiza, idempotente) o cartão daquela questão.
         # Acertar nunca cria cartão nenhum. `cast`: `CONFIANCAS_VALIDAS` já garantiu, em tempo
@@ -500,7 +636,7 @@ def responder_questao(
         registrar_erro(db, usuario, questao, cast(Confianca, confianca), agora)
     db.commit()
 
-    contexto = _contexto_questao(db, topico, questao)
+    contexto = _contexto_questao(db, topico, questao, fio_da_memoria=fio_da_memoria)
     contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
     contexto["proximo_url"] = f"/topico/{topico.slug}/questoes"
     contexto["proximo_rotulo"] = "Próxima questão"

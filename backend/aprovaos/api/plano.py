@@ -16,6 +16,7 @@ acima do plano, quando existir — mesmo alerta de `GET /painel`, recomputado a 
 Quando ler: ao mexer na tela "Hoje" ou no fluxo de check-in/discordar.
 """
 
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
@@ -48,6 +49,41 @@ MENSAGEM_MOTIVO_INVALIDO = "Escolha um dos motivos para discordar."
 MENSAGEM_BLOCO_NAO_ENCONTRADO = "Bloco não encontrado."
 
 _CHAVES_MOTIVOS_VALIDAS = {chave for chave, _ in MOTIVOS_DISCORDAR}
+
+#: Nomes fixos em pt-BR (sem depender de locale do sistema — regra 3, nenhum efeito colateral
+#: nem comportamento variável entre máquinas) para o cabeçalho "Terça, 15 de setembro" da tela
+#: "Hoje" (porte da fatia 14, `docs/evidencias/mockups/telas/s-plano.html`).
+_DIAS_DA_SEMANA: tuple[str, ...] = (
+    "segunda",
+    "terça",
+    "quarta",
+    "quinta",
+    "sexta",
+    "sábado",
+    "domingo",
+)
+_MESES: tuple[str, ...] = (
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+)
+
+
+def _data_por_extenso(dia: date) -> str:
+    """Formata `dia` como "Terça, 15 de setembro" — só para exibição, nunca gravado."""
+    dia_semana = _DIAS_DA_SEMANA[dia.weekday()].capitalize()
+    mes = _MESES[dia.month - 1]
+    return f"{dia_semana}, {dia.day} de {mes}"
+
 
 #: Rota de conteúdo real de cada tipo de bloco — "Iniciar" marca o estado; abrir o conteúdo é
 #: navegar para a tela que já existe (aula, questões, revisão), nunca uma tela nova por bloco.
@@ -98,6 +134,7 @@ def _contexto_pagina(db: Session, plano: PlanoDia) -> dict[str, object]:
         "sem_rotina": False,
         "plano": {
             "data": plano.data.isoformat(),
+            "data_extenso": _data_por_extenso(plano.data),
             "versao": plano.versao,
             "modo": plano.modo,
             "tempo_min": plano.tempo_min,

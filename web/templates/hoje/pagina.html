@@ -1,147 +1,202 @@
-{# O que é: a tela "Hoje" (`/hoje`, fatia 8, F3.x) — o plano do dia, com o porquê de cada bloco
-   sempre visível, o check-in (energia/sono/tempo real, ou "hoje quero descansar") e as ações de
-   cada bloco (iniciar/concluir/pular/discordar). Mesmo padrão de `rotina/formulario.html`: todo
-   formulário usa `hx-select="#conteudo"` para o htmx trocar só o miolo da página — sem rota de
-   fragmento separada. `sem_rotina=True` quando `SemConcursoPrincipal` impede montar o plano.
-   `plano.modo == "semana_prova"` (RF-19, fatia 10 §7) mostra o selo "Semana da prova" e, com
-   `plano.dias_para_prova`, os dias restantes. `alerta_curva` (RF-10, fatia 10 §8) aparece acima
-   do plano quando a curva de domínio está atrasada — mesmo alerta de `/painel`. Quando ler: ao
-   mudar o que aparece na tela "Hoje" ou o texto do check-in/discordar. -#}
+{# O que é: a tela "Hoje" (`/hoje`, fatia 8, F3.x), vestida com a biblioteca de componentes do
+   protótipo validado (fatia 14 — `docs/evidencias/mockups/telas/s-plano.html`, `s-checkin.html`
+   e `s-semana.html`, que se fundem nesta mesma página: check-in, plano do dia e o modo "semana
+   da prova" são estados desta tela, não telas separadas). Cada bloco carrega o seu `.why` — o
+   componente âmbar que é a tese do produto ("o agente decide, explica, mede e reajusta; você
+   discorda em um toque") — com o formulário de discordar embutido no lugar do botão. Mesmo
+   padrão de `rotina/formulario.html`: todo formulário usa `hx-select="#conteudo"` para o htmx
+   trocar só o miolo — sem rota de fragmento separada. `sem_rotina=True` quando
+   `SemConcursoPrincipal` impede montar o plano — `.vazio` diz o que falta e oferece a ação, sem
+   caminho cru na frase. `plano.modo == "semana_prova"` (RF-19, fatia 10 §7) mostra o selo âmbar
+   "Semana da prova" e, com `plano.dias_para_prova`, os dias restantes; o bloco de descanso que a
+   regra dura garante por último (fatia 10) aparece como qualquer outro bloco do dia, sem
+   tratamento à parte — é parte do plano, não uma exceção. `alerta_curva` (RF-10, fatia 10 §8)
+   aparece acima do plano quando a curva de domínio está atrasada — mesmo alerta de `/painel`.
+   Regra dura de precedência de modo e de corte de blocos é toda da fatia 8/10
+   (`dominio/plano.py`) — esta tela só mostra o que a regra decidiu. Quando ler: ao mudar o que
+   aparece na tela "Hoje" ou o texto do check-in/discordar. #}
 {% extends "base.html" %}
 {% block titulo %}Hoje — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Hoje</h1>
   {% if sem_rotina %}
-    <p class="frase">{{ motivo }}</p>
-    <p class="acoes">
-      <a class="botao" href="/rotina">Configurar rotina</a>
-      <a href="/editais/subir">Subir edital</a>
-    </p>
+    <div class="stack">
+      <span class="eyebrow">Plano de hoje</span>
+      <h1>Hoje</h1>
+    </div>
+    <div class="vazio">
+      <p>{{ motivo | replace(" em /rotina", "") }}</p>
+      <div class="row acoes" style="justify-content:center">
+        <a class="btn primary" href="/rotina">Configurar rotina</a>
+        <a class="btn" href="/editais/subir">Subir edital</a>
+      </div>
+    </div>
   {% else %}
-    <p class="acoes">
-      <span class="selo">{{ plano.data }}</span>
-      <span class="selo">{{ plano.tempo_min }} min disponíveis</span>
-      <span class="selo {{ 'selo--regras' if plano.modo == 'descanso' else 'selo--ia' }}">
-        {% if plano.modo == "descanso" %}Descanso
-        {% elif plano.modo == "semana_prova" %}Semana da prova
-        {% else %}Normal
-        {% endif %}
-      </span>
+    {% set total_min = blocos | sum(attribute="duracao_min") %}
+    <div class="stack">
+      <span class="eyebrow">Plano de hoje</span>
+      <h1>
+        {{ plano.data_extenso }}.
+        {% if blocos %}{{ "%dh%02d" | format(total_min // 60, total_min % 60) }} em {{ blocos | length }} bloco{{ "s" if blocos | length != 1 else "" }}.{% endif %}
+      </h1>
+      <p class="muted prosa">Cada bloco diz o que fazer, quanto tempo leva e por que está aí. Pule
+      ou troque o que quiser — o agente registra, recalcula e mostra o impacto.</p>
+    </div>
+
+    <div class="row">
       {% if plano.modo == "semana_prova" and plano.dias_para_prova is not none %}
-        <span class="selo selo--regras">
+        <span class="chip accent">
           {% if plano.dias_para_prova == 1 %}Falta 1 dia para a prova
           {% else %}Faltam {{ plano.dias_para_prova }} dias para a prova
           {% endif %}
         </span>
       {% endif %}
-      {% if plano.energia %}<span class="selo">Energia {{ plano.energia }}/5</span>{% endif %}
-    </p>
+      <span class="chip">{{ plano.tempo_min }} min disponíveis</span>
+      <span class="chip {{ 'novo' if plano.modo == 'semana_prova' else ('warn' if plano.modo == 'descanso' else '') }}">
+        {% if plano.modo == "descanso" %}Descanso
+        {% elif plano.modo == "semana_prova" %}Semana da prova
+        {% else %}Normal
+        {% endif %}
+      </span>
+      {% if plano.energia %}<span class="chip">Energia {{ plano.energia }}/5</span>{% endif %}
+    </div>
 
     {% if alerta_curva %}
-      <div class="mensagem mensagem--porque" role="status">
-        <h3>{{ alerta_curva.titulo }}</h3>
-        <p>{{ alerta_curva.porque }}</p>
-        <p><strong>{{ alerta_curva.ajuste }}</strong></p>
+      <div class="why">
+        <b>{{ alerta_curva.titulo }}</b>
+        <p>{{ alerta_curva.porque }} <b>{{ alerta_curva.ajuste }}</b></p>
       </div>
     {% endif %}
 
     {% if impacto %}
-      <div class="mensagem mensagem--porque" role="status">
-        <p>{{ impacto }}</p>
-      </div>
+      <div class="card"><p>{{ impacto }}</p></div>
     {% endif %}
 
-    <div class="mensagem mensagem--porque">
-      <h3>Por quê</h3>
+    <div class="why">
+      <b>Por quê?</b>
       <p>{{ plano.porque_geral }}</p>
     </div>
 
-    <details class="campo" {% if plano.versao == 1 %}open{% endif %}>
-      <summary>Como você está agora? (check-in)</summary>
-      <form class="formulario" method="post" action="/hoje/checkin"
+    <details class="card" {% if plano.versao == 1 %}open{% endif %}>
+      <summary class="eyebrow" style="cursor:pointer">Como você está agora? (check-in)</summary>
+      <form class="stack" style="margin-top:var(--espaco-4)" method="post" action="/hoje/checkin"
             hx-post="/hoje/checkin" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-        <div class="grid-3">
-          <div class="campo">
-            <label for="energia">Energia agora</label>
-            <select id="energia" name="energia">
-              {% for valor in (1, 2, 3, 4, 5) %}
-                <option value="{{ valor }}" {% if valor == plano.energia %}selected{% endif %}>{{ valor }}</option>
+        <div class="grid-2">
+          <div class="stack">
+            <span class="campo-rotulo">Energia agora</span>
+            <div class="seg" role="radiogroup" aria-label="Energia agora">
+              {% for valor, rotulo in ((1, "Exausta"), (2, "Baixa"), (3, "Normal"), (4, "Boa"), (5, "Ótima")) %}
+                <label>
+                  <input type="radio" name="energia" value="{{ valor }}"
+                         {% if (plano.energia or 3) == valor %}checked{% endif %}>
+                  {{ rotulo }}
+                </label>
               {% endfor %}
-            </select>
+            </div>
           </div>
-          <div class="campo">
-            <label for="sono_h">Horas de sono</label>
-            <input id="sono_h" name="sono_h" type="number" min="0" max="16" step="0.5"
-                   value="{{ plano.sono_h or 7 }}" required>
-          </div>
-          <div class="campo">
-            <label for="tempo_min">Tempo real disponível hoje (min)</label>
-            <input id="tempo_min" name="tempo_min" type="number" min="0" max="600" step="5"
-                   value="{{ plano.tempo_min }}" required>
+          <div class="stack">
+            <label class="campo-rotulo" for="sono_h">Horas de sono ({{ plano.sono_h or 7 }}h)</label>
+            <input id="sono_h" name="sono_h" type="range" min="0" max="12" step="0.5"
+                   value="{{ plano.sono_h or 7 }}" list="sono-marcas">
+            <datalist id="sono-marcas">
+              <option value="4"></option><option value="6"></option><option value="8"></option><option value="10"></option>
+            </datalist>
           </div>
         </div>
-        <label class="campo">
-          <input type="checkbox" name="quero_descansar" value="on">
-          Hoje quero descansar — não me sugira nada novo
-        </label>
-        <button class="botao" type="submit">Reajustar o plano</button>
+        <label class="campo-rotulo" for="tempo_min">Tempo real disponível hoje (min)</label>
+        <input id="tempo_min" class="entrada" name="tempo_min" type="number" min="0" max="600" step="5"
+               value="{{ plano.tempo_min }}" required>
+        <div class="card stack" style="gap:4px">
+          <label class="row" style="gap:var(--espaco-2)">
+            <input type="checkbox" name="quero_descansar" value="on">
+            <b>Hoje quero descansar</b>
+          </label>
+          <p class="small muted" style="margin:0">Está tudo bem — o agente registra o descanso
+          como parte do plano, não como uma falha, e não sugere nada novo hoje.</p>
+        </div>
+        <button class="btn primary" type="submit" style="align-self:start">Reajustar o plano</button>
       </form>
     </details>
 
     {% if not blocos %}
-      <p class="frase">Nenhum bloco hoje — o porquê está explicado acima.</p>
+      <div class="vazio">
+        <p>Nenhum bloco hoje.</p>
+        <p class="small">O porquê está explicado acima — não é um erro, é a decisão do agente para hoje.</p>
+      </div>
     {% endif %}
     {% for bloco in blocos %}
-      <div class="cartao cartao--elevado" data-bloco-id="{{ bloco.id }}"
+      <div class="card stack" data-bloco-id="{{ bloco.id }}"
            {% if bloco.iniciado_em %}data-bloco-iniciado="{{ bloco.iniciado_em }}"{% endif %}>
-        <p class="acoes">
-          <span class="selo">{{ bloco.hora_sugerida or "—" }} · {{ bloco.duracao_min }} min</span>
-          <span class="status status--{{ 'visto' if bloco.status == 'concluido' else 'nao-visto' }}">{{ bloco.status }}</span>
-        </p>
-        <h3>
-          {% if bloco.tipo == "revisao" %}Revisão espaçada
-          {% elif bloco.tipo == "aula" %}Aula{% if bloco.topico_nome %} — {{ bloco.topico_nome }}{% endif %}
-          {% elif bloco.tipo == "questoes" %}Questões{% if bloco.topico_nome %} — {{ bloco.topico_nome }}{% endif %}
-          {% else %}{{ bloco.tipo|capitalize }}
-          {% endif %}
-        </h3>
-        <div class="mensagem mensagem--porque">
+        <div class="row between row-topo">
+          <div class="row row-topo">
+            <span class="mono small muted">{{ bloco.hora_sugerida or "—" }}</span>
+            <div class="stack" style="gap:2px">
+              <span class="small muted">
+                {% if bloco.tipo == "revisao" %}Revisão espaçada
+                {% elif bloco.tipo == "aula" %}Aula
+                {% elif bloco.tipo == "questoes" %}Questões
+                {% else %}{{ bloco.tipo | capitalize }}
+                {% endif %}
+                · {{ bloco.duracao_min }} min
+              </span>
+              <h3>
+                {% if bloco.topico_nome and bloco.tipo in ("aula", "questoes") %}{{ bloco.topico_nome }}
+                {% elif bloco.tipo == "revisao" %}Cartões vencidos
+                {% elif bloco.tipo == "descanso" %}Descanso — recomendação do agente
+                {% else %}{{ bloco.tipo | capitalize }}
+                {% endif %}
+              </h3>
+            </div>
+          </div>
+          <span class="chip {{ 'good' if bloco.status == 'concluido' else ('accent' if bloco.status == 'iniciado' else '') }}">
+            {% if bloco.status == "pendente" %}Pendente
+            {% elif bloco.status == "iniciado" %}Em andamento
+            {% elif bloco.status == "concluido" %}Concluído
+            {% elif bloco.status == "pulado" %}Pulado
+            {% else %}{{ bloco.status }}
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="why">
+          <b>Por quê?</b>
           <p>{{ bloco.porque }}</p>
+          {% if bloco.status in ("pendente", "iniciado") %}
+            <form class="row" style="gap:6px" method="post" action="/hoje/bloco/{{ bloco.id }}/discordar"
+                  hx-post="/hoje/bloco/{{ bloco.id }}/discordar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+              <select name="motivo" class="entrada" required aria-label="Por que você quer trocar este bloco">
+                <option value="">Por quê?</option>
+                {% for chave, rotulo in motivos_discordar %}
+                  <option value="{{ chave }}">{{ rotulo }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn sm" type="submit">Discordar</button>
+            </form>
+          {% endif %}
         </div>
 
         {% if bloco.link %}
-          <p class="acoes"><a class="botao" href="{{ bloco.link }}">Abrir</a></p>
+          <p><a class="btn" href="{{ bloco.link }}">Abrir</a></p>
         {% endif %}
 
-        <p class="nota" data-distracao-aviso hidden>
+        <p class="small muted" data-distracao-aviso hidden>
           Você está há alguns minutos neste bloco — quer pular?
         </p>
 
-        <div class="acoes">
+        <div class="row">
           {% if bloco.status == "pendente" %}
             <form method="post" action="/hoje/bloco/{{ bloco.id }}/iniciar"
                   hx-post="/hoje/bloco/{{ bloco.id }}/iniciar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-              <button class="botao" type="submit">Iniciar</button>
+              <button class="btn primary sm" type="submit">Iniciar</button>
             </form>
           {% endif %}
           {% if bloco.status in ("pendente", "iniciado") %}
             <form method="post" action="/hoje/bloco/{{ bloco.id }}/concluir"
                   hx-post="/hoje/bloco/{{ bloco.id }}/concluir" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-              <button class="botao botao--secundario" type="submit">Concluí</button>
+              <button class="btn sm" type="submit">Concluí</button>
             </form>
             <form method="post" action="/hoje/bloco/{{ bloco.id }}/pular"
                   hx-post="/hoje/bloco/{{ bloco.id }}/pular" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-              <button class="botao botao--secundario" type="submit">Pular</button>
-            </form>
-            <form method="post" action="/hoje/bloco/{{ bloco.id }}/discordar"
-                  hx-post="/hoje/bloco/{{ bloco.id }}/discordar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-              <select name="motivo" required>
-                <option value="">Discordar — por quê?</option>
-                {% for chave, rotulo in motivos_discordar %}
-                  <option value="{{ chave }}">{{ rotulo }}</option>
-                {% endfor %}
-              </select>
-              <button class="botao botao--secundario" type="submit">Trocar este bloco</button>
+              <button class="btn ghost sm" type="submit">Pular</button>
             </form>
           {% endif %}
         </div>

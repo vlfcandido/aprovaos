@@ -1,40 +1,49 @@
-{# O que é: página da aula do tópico (`GET /topico/{slug}/aula`, fatia 6). A aula é gerada
-   offline pelo comando `motor.aula` (dossiê + validador mecânico já aprovando antes de
-   publicar) — esta tela só lê e mostra. `texto_denso`/`texto_leigo` já vêm sem marcador
-   `{{...}}` cru (`api/questoes.py::_contexto_aula` → `dominio.aula.renderizar_com_notas`); cada
-   `[n]` no texto referencia a nota correspondente logo abaixo, com o mesmo popover
-   `<details>`/`<summary>` do resultado de questão (`_macros.html`). Alterna denso/leigo sem JS
-   (dois `<details>`, um aberto por padrão). `relacionados` é o fio da memória (a); `mnemonico`
-   só aparece quando o gerador conseguiu ancorar um em fonte real.
+{# O que é: página da aula do tópico (`GET /topico/{slug}/aula`, fatia 6), vestida com a
+   biblioteca de componentes do protótipo validado (fatia 14 —
+   `docs/evidencias/mockups/telas/s-aula.html`). A aula é gerada offline pelo comando `motor.aula`
+   (dossiê + validador mecânico já aprovando antes de publicar) — esta tela só lê e mostra.
+   `texto_denso`/`texto_leigo` já vêm sem marcador `{{...}}` cru (`api/questoes.py::
+   _contexto_aula` → `dominio.aula.renderizar_com_notas`); cada `[n]` no texto referencia a nota
+   correspondente logo abaixo. Denso e leigo ficam em `<details>` (um aberto por padrão) — não em
+   `.tabs` do protótipo, que exigem JS para trocar de painel: ADR-0019 pede que a página funcione
+   sem JS, e o disclosure nativo já resolve isso. A citação legal usa `.cite` (biblioteca) para o
+   rótulo clicável e o `<details>`/`<summary>` de `.citacao-legal` (ainda em `base.css` — a
+   biblioteca não tem popover de citação ainda, ver relatório da fatia 14) para o texto —
+   "referência legal é popover resolvível" continua valendo sem depender de JS.
    Correção crítica de 19/09/2026 (C3): texto_denso/texto_leigo vêm de LLM — nunca `| safe`
    (desligava o escape do Jinja; um `<script>` do modelo executaria no navegador da aluna). Cada
-   parágrafo (`\n\n`) vira um `<p>` escapado. `notas_leigo` (I9) agora aparece no `<details>` da
-   versão leiga, com `id` próprio (`citacao-leigo-N`) para não colidir com os da versão densa
+   parágrafo (`\n\n`) vira um `<p>` escapado. `notas_leigo` (I9) aparece no `<details>` da versão
+   leiga, com `id` próprio (`citacao-leigo-N`) para não colidir com os da versão densa
    (`citacao-N`). Quando ler: ao mudar o que a aluna vê na aula. #}
 {% extends "base.html" %}
 {% block titulo %}{{ topico.nome }} — Aula — AprovaOS{% endblock %}
 {% block conteudo %}
-  <p class="migalha"><a href="/topico/{{ topico.slug }}/questoes">Voltar às questões</a></p>
-  <h1>{{ topico.nome }}</h1>
+  <div class="stack">
+    <p class="small"><a href="/topico/{{ topico.slug }}/questoes">Voltar às questões</a></p>
+    <span class="eyebrow">Aula do dia</span>
+    <h1>{{ topico.nome }}</h1>
+  </div>
 
   {% if aula %}
     {% if relacionados %}
-      {% for r in relacionados %}
-        <p class="selo selo--fio-da-memoria">Fio da memória — <span>{{ r.frase }}</span></p>
-      {% endfor %}
+      <div class="stack">
+        {% for r in relacionados %}
+          <p class="chip novo" style="white-space:normal;height:auto">Fio da memória — {{ r.frase }}</p>
+        {% endfor %}
+      </div>
     {% endif %}
 
-    <details open class="aula-modo">
-      <summary>Versão completa</summary>
-      <div class="aula-texto">
+    <details open class="card stack">
+      <summary class="eyebrow" style="cursor:pointer">Versão completa</summary>
+      <div class="prosa stack" style="margin-top:var(--espaco-4)">
         {% for paragrafo in texto_denso.split("\n\n") %}<p>{{ paragrafo }}</p>{% endfor %}
       </div>
       {% if notas_denso %}
-        <ol class="aula-notas">
+        <ol class="lista-limpa stack" style="margin-top:var(--espaco-3)">
           {% for nota in notas_denso %}
             <li id="citacao-{{ nota.numero }}">
               <details class="citacao-legal">
-                <summary>{{ nota.rotulo }}</summary>
+                <summary class="cite">{{ nota.rotulo }}</summary>
                 <p>{{ nota.texto }}</p>
               </details>
             </li>
@@ -43,17 +52,17 @@
       {% endif %}
     </details>
 
-    <details class="aula-modo">
-      <summary>Versão leiga</summary>
-      <div class="aula-texto">
+    <details class="card stack">
+      <summary class="eyebrow" style="cursor:pointer">Versão leiga</summary>
+      <div class="prosa stack" style="margin-top:var(--espaco-4)">
         {% for paragrafo in texto_leigo.split("\n\n") %}<p>{{ paragrafo }}</p>{% endfor %}
       </div>
       {% if notas_leigo %}
-        <ol class="aula-notas">
+        <ol class="lista-limpa stack" style="margin-top:var(--espaco-3)">
           {% for nota in notas_leigo %}
             <li id="citacao-leigo-{{ nota.numero }}">
               <details class="citacao-legal">
-                <summary>{{ nota.rotulo }}</summary>
+                <summary class="cite">{{ nota.rotulo }}</summary>
                 <p>{{ nota.texto }}</p>
               </details>
             </li>
@@ -63,33 +72,38 @@
     </details>
 
     {% if mnemonico %}
-      <div class="mensagem mensagem--porque">
-        <h3>Mnemônico</h3>
-        <p>{{ mnemonico.texto }}</p>
-        <p class="fonte">{{ mnemonico.dispositivo }}: "{{ mnemonico.trecho_que_decide }}"</p>
+      <div class="card stack">
+        <span class="eyebrow">Mnemônico</span>
+        <p><b>{{ mnemonico.texto }}</b></p>
+        <p class="small muted">
+          <span class="cite">{{ mnemonico.dispositivo }}</span>: "{{ mnemonico.trecho_que_decide }}"
+        </p>
       </div>
     {% endif %}
 
     {% if como_a_banca_cobra %}
-      <section aria-labelledby="titulo-banca">
+      <section aria-labelledby="titulo-banca" class="card stack">
         <h2 id="titulo-banca">Como a banca cobra</h2>
-        <ul class="lista-limpa">
+        <ul class="lista-limpa stack">
           {% for nota in como_a_banca_cobra %}
-            <li>{{ nota.o_que_testou }} <small class="fonte">{{ nota.origem }}</small></li>
+            <li>{{ nota.o_que_testou }} <span class="fonte small">{{ nota.origem }}</span></li>
           {% endfor %}
         </ul>
       </section>
     {% endif %}
 
     {% if lacunas_declaradas %}
-      <div class="mensagem mensagem--porque">
-        <h3>Este dossiê ainda não cobre</h3>
-        <ul>
+      <div class="why">
+        <b>Este dossiê ainda não cobre</b>
+        <ul class="lista-limpa">
           {% for lacuna in lacunas_declaradas %}<li>{{ lacuna }}</li>{% endfor %}
         </ul>
       </div>
     {% endif %}
   {% else %}
-    <p>Ainda não temos aula deste tópico.</p>
+    <div class="vazio">
+      <p>Ainda não temos aula deste tópico.</p>
+      <p class="small">Ela nasce do dossiê validado — assim que estiver pronta, aparece aqui.</p>
+    </div>
   {% endif %}
 {% endblock %}

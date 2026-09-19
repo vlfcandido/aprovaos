@@ -5,8 +5,13 @@ usuário ainda não respondeu nem reportou (`repositorio_questao.proxima_questao
 mesmo endereço registra a resposta e devolve só o fragmento HTMX com o resultado (decisão 1 do
 passo 13); `POST /questoes/{id}/reportar` grava o reporte. O isolamento por tenant é feito aqui:
 o `slug` é vocabulário global (compartilhado entre editais), então toda rota amarra o tópico ao
-edital de algum concurso do tenant do usuário logado — tópico fora disso é 404 (decisão 2).
-Quando ler: ao mexer na tela de resolver questão ou no fluxo de reportar erro.
+edital de algum concurso do tenant do usuário logado — tópico fora disso é 404 (decisão 2). A
+tela decide pelo `Questao.tipo_item` (passo 3 da V3b): `"certo_errado"` julga C/E;
+`"multipla_escolha"` escolhe entre as cinco `Alternativa` A–E gravadas pelo curador — as
+respostas válidas e a mensagem de erro mudam conforme o tipo (`RESPOSTAS_VALIDAS_POR_TIPO`), mas
+a gravação (`registrar_resposta`) e o critério de acerto (`resposta == questao.gabarito`) são os
+mesmos para os dois, porque `Questao.gabarito` já guarda a letra certa nos dois casos. Quando
+ler: ao mexer na tela de resolver questão ou no fluxo de reportar erro.
 """
 
 from typing import Annotated
@@ -20,6 +25,7 @@ from aprovaos.api.db import obter_db
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
 from aprovaos.dados.modelos import (
+    Alternativa,
     Concurso,
     Edital,
     EventoEstudo,
@@ -40,9 +46,23 @@ router = APIRouter(include_in_schema=False)
 #: Valores aceitos para `confianca` (decisão 3: obrigatório antes de responder).
 CONFIANCAS_VALIDAS = ("certeza", "duvida")
 
-#: Valores aceitos para `resposta` — item certo/errado, as duas únicas leituras possíveis
-#: (`dominio.questao.QuestaoCurada.tipo_item` só produz `"certo_errado"` nesta fatia).
-RESPOSTAS_VALIDAS = ("C", "E")
+MENSAGEM_RESPOSTA_INVALIDA_CERTO_ERRADO = "Resposta inválida — julgue o item como Certo ou Errado."
+MENSAGEM_RESPOSTA_INVALIDA_MULTIPLA_ESCOLHA = (
+    "Resposta inválida — escolha uma das alternativas de A a E."
+)
+
+#: Respostas aceitas e mensagem de erro por `Questao.tipo_item` (passo 3 da V3b). Só estes dois
+#: valores existem em `dominio.questao.QuestaoCurada.tipo_item`; um `tipo_item` fora daqui é bug
+#: de dado, não de formulário — a indexação em `responder_questao` levanta `KeyError` (500) se
+#: acontecer, em vez de aceitar silenciosamente qualquer `resposta`.
+RESPOSTAS_VALIDAS_POR_TIPO: dict[str, tuple[str, ...]] = {
+    "certo_errado": ("C", "E"),
+    "multipla_escolha": ("A", "B", "C", "D", "E"),
+}
+MENSAGENS_RESPOSTA_INVALIDA_POR_TIPO: dict[str, str] = {
+    "certo_errado": MENSAGEM_RESPOSTA_INVALIDA_CERTO_ERRADO,
+    "multipla_escolha": MENSAGEM_RESPOSTA_INVALIDA_MULTIPLA_ESCOLHA,
+}
 
 #: Acima de quantos caracteres o texto de apoio nasce recolhido atrás de "ver texto de apoio"
 #: (passo 14 da V3, decisão 3). Regra de negócio: fica aqui, não como número solto no Jinja — o
@@ -51,7 +71,6 @@ LIMITE_TEXTO_APOIO_RECOLHIDO = 600
 
 MENSAGEM_TOPICO_NAO_ENCONTRADO = "Tópico não encontrado nesta conta."
 MENSAGEM_CONFIANCA_OBRIGATORIA = "Diga se você tem certeza ou dúvida antes de responder."
-MENSAGEM_RESPOSTA_INVALIDA = "Resposta inválida — julgue o item como Certo ou Errado."
 MENSAGEM_QUESTAO_NAO_ENCONTRADA = "Questão não encontrada."
 MENSAGEM_QUESTAO_INDISPONIVEL = (
     "Esta questão não está mais disponível para responder — atualize a página e tente de novo."
@@ -169,14 +188,34 @@ def _questao_pendente(
     return db.scalars(consulta).first()
 
 
-def _contexto_questao(topico: Topico, questao: Questao | None) -> dict[str, object]:
+def _alternativas_ordenadas(db: Session, questao_id: UUID) -> list[Alternativa]:
+    """As `Alternativa` (A–E) desta questão, na ordem impressa pela banca.
+
+    Args:
+        db: sessão do request.
+        questao_id: chave da questão de múltipla escolha.
+
+    Returns:
+        As `Alternativa` ordenadas por `letra` (A, B, C, D, E); vazio se a questão não é de
+        múltipla escolha ou (anomalia de dado) não tem nenhuma gravada.
+    """
+    consulta = (
+        select(Alternativa).where(Alternativa.questao_id == questao_id).order_by(Alternativa.letra)
+    )
+    return list(db.scalars(consulta).all())
+
+
+def _contexto_questao(db: Session, topico: Topico, questao: Questao | None) -> dict[str, object]:
     """Monta o contexto do template `questoes/topico.html`.
 
     O gabarito nunca entra aqui (decisão 4): só o comando, o texto de apoio, o enunciado e a
     origem completa, todos vindos direto da `questao` — nada de reconstruir a partir de outro
-    lugar.
+    lugar. Em `"multipla_escolha"`, as cinco `alternativas` entram como `{letra, texto}` — sem
+    `correta`, que só aparece depois de responder (`_contexto_evento`): nada no HTML de antes da
+    resposta pode distinguir qual das cinco é a certa.
 
     Args:
+        db: sessão do request (só para buscar as alternativas de múltipla escolha).
         topico: o tópico já resolvido para o tenant.
         questao: a próxima questão publicável, ou `None` sem nenhuma sobrando.
 
@@ -189,8 +228,9 @@ def _contexto_questao(topico: Topico, questao: Questao | None) -> dict[str, obje
     }
     if questao is not None:
         origem = questao.origem or {}
-        contexto["questao"] = {
+        questao_contexto: dict[str, object] = {
             "id": str(questao.id),
+            "tipo_item": questao.tipo_item,
             "comando": questao.comando,
             "texto_apoio": questao.texto_apoio,
             "apoio_recolhido": bool(
@@ -198,8 +238,56 @@ def _contexto_questao(topico: Topico, questao: Questao | None) -> dict[str, obje
             ),
             "enunciado": questao.enunciado,
         }
+        if questao.tipo_item == "multipla_escolha":
+            questao_contexto["alternativas"] = [
+                {"letra": alternativa.letra, "texto": alternativa.texto}
+                for alternativa in _alternativas_ordenadas(db, questao.id)
+            ]
+        contexto["questao"] = questao_contexto
         contexto["origem"] = origem
     return contexto
+
+
+def _contexto_evento(
+    db: Session, questao: Questao, resposta: str, acertou: bool | None
+) -> dict[str, object]:
+    """Monta o `evento` do template `questoes/_resultado.html` — só depois de já ter gravado.
+
+    Em `"certo_errado"`, é a mesma dupla de textos e a `justificativa` única de sempre
+    (`Questao.justificativa_certo`/`justificativa_errado`). Em `"multipla_escolha"`, é a lista
+    das cinco alternativas com `correta`/`marcada` e a `justificativa` de cada uma — que nasce
+    sempre `None` nesta fatia (o validador da fatia 5 é quem a preenche); ausente é mostrado como
+    ausente, nunca com um texto inventado no lugar.
+
+    Args:
+        db: sessão do request (só para buscar as alternativas de múltipla escolha).
+        questao: a questão respondida.
+        resposta: a letra que o aluno marcou.
+        acertou: se `resposta == questao.gabarito`.
+
+    Returns:
+        O dicionário `evento` do contexto de `_resultado.html`.
+    """
+    if questao.tipo_item == "multipla_escolha":
+        return {
+            "acertou": acertou,
+            "alternativas": [
+                {
+                    "letra": alternativa.letra,
+                    "texto": alternativa.texto,
+                    "correta": alternativa.correta,
+                    "marcada": alternativa.letra == resposta,
+                    "justificativa": alternativa.justificativa,
+                }
+                for alternativa in _alternativas_ordenadas(db, questao.id)
+            ],
+        }
+    return {
+        "acertou": acertou,
+        "resposta_texto": RESPOSTA_TEXTO.get(resposta, resposta),
+        "gabarito_texto": RESPOSTA_TEXTO.get(questao.gabarito or "", questao.gabarito),
+        "justificativa": (questao.justificativa_certo if acertou else questao.justificativa_errado),
+    }
 
 
 @router.get("/topico/{slug}/questoes")
@@ -226,7 +314,7 @@ def obter_questao(
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     questao = proxima_questao(db, usuario.id, topico.id)
-    contexto = _contexto_questao(topico, questao)
+    contexto = _contexto_questao(db, topico, questao)
     return renderizar(request, "questoes/topico.html", contexto, usuario)
 
 
@@ -255,7 +343,8 @@ def responder_questao(
         db: sessão de banco do request (o commit é feito aqui).
         usuario: o usuário logado.
         slug: slug global do tópico.
-        resposta: `"C"`/`"E"`, o que o aluno julgou.
+        resposta: `"C"`/`"E"` em `"certo_errado"`, `"A"`–`"E"` em `"multipla_escolha"` — o que
+            o aluno marcou.
         questao_id: `id` da questão respondida, do campo oculto do formulário.
         confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3).
         tempo_ms: tempo gasto na questão, em milissegundos; `0` quando o cliente não manda.
@@ -265,14 +354,12 @@ def responder_questao(
 
     Raises:
         HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant; 400 sem
-            `confianca`/fora de `CONFIANCAS_VALIDAS`, ou com `resposta` fora de
-            `RESPOSTAS_VALIDAS`.
+            `confianca`/fora de `CONFIANCAS_VALIDAS`, ou com `resposta` fora do que
+            `RESPOSTAS_VALIDAS_POR_TIPO` aceita para o `tipo_item` desta questão.
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     if confianca not in CONFIANCAS_VALIDAS:
         raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
-    if resposta not in RESPOSTAS_VALIDAS:
-        raise HTTPException(status_code=400, detail=MENSAGEM_RESPOSTA_INVALIDA)
 
     questao = _questao_pendente(db, usuario.id, topico.id, questao_id)
     if questao is None:
@@ -280,22 +367,22 @@ def responder_questao(
         # JSON cru fora do htmx e não faz swap nenhum dentro dele (htmx 2 não troca em erro),
         # exatamente o cenário que o `questao_id` obrigatório existe para proteger (duas abas,
         # back/refresh). 200 com fragmento e um link de saída avisa a aluna de verdade.
-        contexto = _contexto_questao(topico, None)
+        contexto = _contexto_questao(db, topico, None)
         contexto["aviso"] = MENSAGEM_QUESTAO_INDISPONIVEL
         return renderizar(request, "questoes/_resultado.html", contexto, usuario)
+
+    # As respostas válidas dependem do tipo da questão de fato mostrada (não de um formato fixo
+    # no formulário) — só se sabe depois de `_questao_pendente` confirmar qual questão é esta.
+    respostas_validas = RESPOSTAS_VALIDAS_POR_TIPO[questao.tipo_item]
+    if resposta not in respostas_validas:
+        mensagem = MENSAGENS_RESPOSTA_INVALIDA_POR_TIPO[questao.tipo_item]
+        raise HTTPException(status_code=400, detail=mensagem)
 
     evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms)
     db.commit()
 
-    contexto = _contexto_questao(topico, questao)
-    contexto["evento"] = {
-        "acertou": evento.acertou,
-        "resposta_texto": RESPOSTA_TEXTO.get(resposta, resposta),
-        "gabarito_texto": RESPOSTA_TEXTO.get(questao.gabarito or "", questao.gabarito),
-        "justificativa": (
-            questao.justificativa_certo if evento.acertou else questao.justificativa_errado
-        ),
-    }
+    contexto = _contexto_questao(db, topico, questao)
+    contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
     return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
 

@@ -1,15 +1,19 @@
 {# O que é: página de resolver questão (`GET/POST /topico/{slug}/questoes`). Cartão da questão
-   (comando, texto de apoio — recolhido atrás de "ver texto de apoio" quando
-   `questao.apoio_recolhido` vem `true` do backend, `LIMITE_TEXTO_APOIO_RECOLHIDO` em
+   (comando — só quando existe: `"multipla_escolha"` nesta fatia nunca traz comando separado,
+   ele já está embutido no enunciado —, texto de apoio recolhido atrás de "ver texto de apoio"
+   quando `questao.apoio_recolhido` vem `true` do backend, `LIMITE_TEXTO_APOIO_RECOLHIDO` em
    `api/questoes.py`; nunca um número solto aqui —, enunciado e origem completa: banca, órgão,
-   cargo, ano, item e o PDF da prova). O gabarito nunca aparece aqui — só depois de responder, no
-   fragmento `_resultado.html` que o HTMX troca dentro de `#questao` (sem JS, o navegador
-   recarrega a página inteira, que é o mesmo HTML válido). Certeza/dúvida é obrigatória antes: o
-   controle segmentado é feito com rádios de verdade (`required`), só estilizados — o navegador
-   barra o envio pelos dois botões grandes Certo/Errado até a pessoa escolher, regra do servidor,
-   não do JavaScript. Os atalhos de teclado (C/E/→) são a ilha `atalhos-estudo.js` (ADR-0019),
-   que só clica em botões/links que já existem — a tela funciona igual sem ela. Quando ler: ao
-   mexer no fluxo de resolver questão. -#}
+   cargo, ano, item e o PDF da prova). A tela decide pelo `questao.tipo_item`: `"certo_errado"`
+   julga com os dois botões grandes; `"multipla_escolha"` lista as cinco `questao.alternativas`
+   (só `letra`/`texto` — sem `correta`, que só existe depois de responder) como botões clicáveis.
+   O gabarito nunca aparece aqui, nos dois casos — só depois de responder, no fragmento
+   `_resultado.html` que o HTMX troca dentro de `#questao` (sem JS, o navegador recarrega a
+   página inteira, que é o mesmo HTML válido). Certeza/dúvida é obrigatória antes: o controle
+   segmentado é feito com rádios de verdade (`required`), só estilizados — o navegador barra o
+   envio pelos botões de resposta até a pessoa escolher, regra do servidor, não do JavaScript. Os
+   atalhos de teclado (C/E/→ em certo/errado; A–E/→ em múltipla escolha) são a ilha
+   `atalhos-estudo.js` (ADR-0019), que só clica em botões/links que já existem — a tela funciona
+   igual sem ela. Quando ler: ao mexer no fluxo de resolver questão. -#}
 {% extends "base.html" %}
 {% block titulo %}{{ topico.nome }} — Questões — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -17,7 +21,9 @@
   <div id="questao">
     {% if questao %}
       <div class="cartao cartao--elevado questao">
-        <p class="questao__comando">{{ questao.comando }}</p>
+        {% if questao.comando %}
+          <p class="questao__comando">{{ questao.comando }}</p>
+        {% endif %}
         {% if questao.texto_apoio %}
           {% if questao.apoio_recolhido %}
             <details class="questao__apoio">
@@ -51,19 +57,35 @@
             </div>
           </fieldset>
 
-          <fieldset class="julgamento">
-            <legend>Julgue o item</legend>
-            <div class="respostas">
-              <button type="submit" name="resposta" value="C" data-atalho="certo"
-                      class="botao-resposta">
-                Certo <kbd>C</kbd>
-              </button>
-              <button type="submit" name="resposta" value="E" data-atalho="errado"
-                      class="botao-resposta">
-                Errado <kbd>E</kbd>
-              </button>
-            </div>
-          </fieldset>
+          {% if questao.tipo_item == "multipla_escolha" %}
+            <fieldset class="julgamento">
+              <legend>Escolha a alternativa correta</legend>
+              <div class="alternativas">
+                {% for alternativa in questao.alternativas %}
+                  <button type="submit" name="resposta" value="{{ alternativa.letra }}"
+                          data-atalho="resposta-{{ alternativa.letra|lower }}"
+                          class="alternativa">
+                    <span class="alternativa__letra">{{ alternativa.letra }}</span>
+                    <span class="alternativa__texto">{{ alternativa.texto }}</span>
+                  </button>
+                {% endfor %}
+              </div>
+            </fieldset>
+          {% else %}
+            <fieldset class="julgamento">
+              <legend>Julgue o item</legend>
+              <div class="respostas">
+                <button type="submit" name="resposta" value="C" data-atalho="certo"
+                        class="botao-resposta">
+                  Certo <kbd>C</kbd>
+                </button>
+                <button type="submit" name="resposta" value="E" data-atalho="errado"
+                        class="botao-resposta">
+                  Errado <kbd>E</kbd>
+                </button>
+              </div>
+            </fieldset>
+          {% endif %}
         </form>
       </div>
 

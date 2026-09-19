@@ -2,18 +2,21 @@
 # /topico/{slug}/questoes`) e de reportar erro (`POST /questoes/{id}/reportar`): isolamento por
 # tenant no slug (o tópico é vocabulário global), certeza/dúvida obrigatória antes de responder,
 # gabarito nunca no HTML antes da resposta, origem completa no resultado e a premissa H (reporte
-# esconde a questão só para quem reportou). Quando ler: ao mexer em `api/questoes.py` ou nos
-# templates `questoes/*.html`.
+# esconde a questão só para quem reportou). O passo 3 da V3b acrescenta a tela de múltipla
+# escolha A–E (`_criar_questao_multipla_escolha`/`_alternativas_padrao`): mesmas garantias, mais
+# as cinco alternativas visíveis e nenhuma marca de qual é a correta antes de responder. Quando
+# ler: ao mexer em `api/questoes.py` ou nos templates `questoes/*.html`.
 from typing import Any
 from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
+    Alternativa,
     Concurso,
     Documento,
     Edital,
@@ -25,7 +28,13 @@ from aprovaos.dados.modelos import (
     Usuario,
 )
 from aprovaos.dados.repositorio_questao import salvar_questoes
-from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
+from aprovaos.dominio.questao import (
+    AlternativaCurada,
+    Origem,
+    QuestaoCurada,
+    RegraProva,
+    hash_dedup,
+)
 
 CADASTRO = {"email": "linda@exemplo.com", "senha": "12345678"}
 OUTRA_CONTA = {"email": "outra@exemplo.com", "senha": "12345678"}
@@ -74,7 +83,10 @@ def _questao_curada(
     numero_item: int = 58,
     gabarito: str = "C",
     publicavel: bool = True,
-    texto_apoio: str = TEXTO_APOIO_CURTO,
+    texto_apoio: str | None = TEXTO_APOIO_CURTO,
+    tipo_item: str = "certo_errado",
+    comando: str | None = "Julgue o item a seguir.",
+    alternativas: list[AlternativaCurada] | None = None,
 ) -> QuestaoCurada:
     origem = Origem(
         banca="cebraspe",
@@ -88,11 +100,13 @@ def _questao_curada(
     )
     return QuestaoCurada(
         banca="cebraspe",
+        tipo_item=tipo_item,
         numero_item=numero_item,
-        comando="Julgue o item a seguir.",
+        comando=comando,
         texto_apoio=texto_apoio,
-        texto_apoio_itens=[numero_item],
+        texto_apoio_itens=[numero_item] if texto_apoio else [],
         enunciado="O pregão eletrônico dispensa a fase de habilitação prévia.",
+        alternativas=alternativas,
         gabarito_preliminar=None,
         gabarito=gabarito,
         gabarito_status="definitivo",
@@ -103,8 +117,27 @@ def _questao_curada(
         topico_confianca="alta",
         topico_evidencia="menciona pregão e licitação",
         origem=origem,
-        hash_dedup=hash_dedup(f"{numero_item}-{gabarito}-{topico_slug}"),
+        hash_dedup=hash_dedup(f"{numero_item}-{gabarito}-{topico_slug}-{tipo_item}"),
     )
+
+
+#: Os textos das cinco alternativas de fixture — nunca iguais entre si, para nenhum teste
+#: confundir "apareceu o texto certo" com "apareceu algum texto".
+_TEXTOS_ALTERNATIVAS = {
+    "A": "Texto da alternativa A.",
+    "B": "Texto da alternativa B.",
+    "C": "Texto da alternativa C.",
+    "D": "Texto da alternativa D.",
+    "E": "Texto da alternativa E.",
+}
+
+
+def _alternativas_padrao(gabarito: str) -> list[AlternativaCurada]:
+    """As cinco `AlternativaCurada` A–E, com `correta=True` só na letra do `gabarito`."""
+    return [
+        AlternativaCurada(letra=letra, texto=texto, correta=(letra == gabarito))
+        for letra, texto in _TEXTOS_ALTERNATIVAS.items()
+    ]
 
 
 def _criar_questao(db: Session, topico: Topico, documento_id: UUID, **kwargs: Any) -> Questao:
@@ -112,6 +145,30 @@ def _criar_questao(db: Session, topico: Topico, documento_id: UUID, **kwargs: An
     salvar_questoes(db, [curada])
     db.commit()
     return db.scalars(select(Questao).where(Questao.hash_dedup == curada.hash_dedup)).one()
+
+
+def _criar_questao_multipla_escolha(
+    db: Session,
+    topico: Topico,
+    documento_id: UUID,
+    *,
+    gabarito: str = "B",
+    numero_item: int = 21,
+    publicavel: bool = True,
+) -> Questao:
+    """Cria uma `Questao` `tipo_item="multipla_escolha"` com as cinco alternativas gravadas."""
+    return _criar_questao(
+        db,
+        topico,
+        documento_id,
+        numero_item=numero_item,
+        gabarito=gabarito,
+        publicavel=publicavel,
+        tipo_item="multipla_escolha",
+        comando=None,
+        texto_apoio=None,
+        alternativas=_alternativas_padrao(gabarito),
+    )
 
 
 def test_get_topico_exige_login(cliente: TestClient) -> None:
@@ -431,3 +488,145 @@ def test_topico_sem_questao(logado: TestClient, db: Session) -> None:
     resposta = logado.get(f"/topico/{SLUG}/questoes")
     assert resposta.status_code == 200
     assert "Ainda não temos questões deste tópico." in resposta.text
+
+
+# ---- Passo 3 da V3b: tela de múltipla escolha A–E ----------------------------------------
+
+
+def test_get_mostra_multipla_escolha_com_cinco_alternativas(
+    logado: TestClient, db: Session
+) -> None:
+    """As cinco letras e os cinco textos aparecem; nada denuncia qual é a correta."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-1")
+    _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="D")
+
+    resposta = logado.get(f"/topico/{topico.slug}/questoes")
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    for letra, texto in _TEXTOS_ALTERNATIVAS.items():
+        assert f'value="{letra}"' in corpo
+        assert texto in corpo
+    assert "Gabarito" not in corpo
+    assert "alternativa--correta" not in corpo
+    assert "data-correta" not in corpo
+
+
+def test_multipla_escolha_referencia_atalhos_a_e(logado: TestClient, db: Session) -> None:
+    """Cada alternativa carrega o `data-atalho` correspondente à sua letra (A–E)."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-2")
+    _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="A")
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    for letra in "abcde":
+        assert f'data-atalho="resposta-{letra}"' in corpo
+
+
+def test_post_resposta_multipla_escolha_grava_evento_com_letra(
+    logado: TestClient, db: Session
+) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-3")
+    questao = _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="D")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "D", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    assert "Você acertou" in resposta.text
+
+    eventos = list(db.scalars(select(EventoEstudo).where(EventoEstudo.tipo == "resposta")).all())
+    assert len(eventos) == 1
+    assert eventos[0].resposta == "D"
+    assert eventos[0].acertou is True
+    assert eventos[0].confianca_declarada == "certeza"
+
+
+def test_multipla_escolha_resultado_marca_alternativas_sem_inventar_justificativa(
+    logado: TestClient, db: Session
+) -> None:
+    """O resultado mostra a marcada e a correta; sem `justificativa` gravada, não inventa nada."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-4")
+    questao = _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="C")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "A", "confianca": "duvida", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "Você errou" in corpo
+    assert "alternativa--correta" in corpo
+    assert "alternativa--marcada-errada" in corpo
+    assert "em breve" not in corpo.lower()
+    assert "explicação" not in corpo.lower()
+
+
+def test_post_resposta_multipla_escolha_letra_invalida_400(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-5")
+    questao = _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="B")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "F", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 400
+    corpo = resposta.json()
+    assert corpo["codigo"] == "dados_invalidos"
+    assert "alternativa" in corpo["mensagem"].lower()
+
+    eventos = list(db.scalars(select(EventoEstudo)).all())
+    assert eventos == []
+
+
+def test_certo_errado_continua_sem_alternativas_de_multipla_escolha(
+    logado: TestClient, db: Session
+) -> None:
+    """A tela de certo/errado não regride: continua com os dois botões grandes, sem a lista de
+    alternativas — regressão do passo 3 da V3b.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-6")
+    _criar_questao(db, topico, documento.id)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert 'class="alternativas"' not in corpo
+    assert 'data-atalho="certo"' in corpo
+    assert 'data-atalho="errado"' in corpo
+
+
+def test_multipla_escolha_sem_alternativa_correta_nao_quebra_tela(
+    logado: TestClient, db: Session
+) -> None:
+    """Anomalia de dado (nenhuma `Alternativa.correta=True`, apesar de `Questao.gabarito`
+    definido) não pode quebrar a tela — a correção usa sempre `Questao.gabarito`, nunca
+    `Alternativa.correta`, para decidir o acerto.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-7")
+    questao = _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="B")
+    db.execute(
+        update(Alternativa).where(Alternativa.questao_id == questao.id).values(correta=False)
+    )
+    db.commit()
+
+    resposta_get = logado.get(f"/topico/{topico.slug}/questoes")
+    assert resposta_get.status_code == 200
+
+    resposta_post = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "B", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta_post.status_code == 200
+    assert "Você acertou" in resposta_post.text

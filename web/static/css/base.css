@@ -660,6 +660,87 @@ fieldset legend {
   outline-offset: 2px;
 }
 
+/* As cinco alternativas (A–E) de uma questão de múltipla escolha (passo 3 da V3b) — mesmo
+   fieldset "julgamento" dos dois botões Certo/Errado, mas empilhadas: cada botão é a própria
+   resposta, sem nenhuma marca que distinga a correta antes do envio. No resultado
+   (`.alternativas--resultado`), os mesmos elementos viram `<div>` e ganham a cor semântica de
+   `.alternativa--correta`/`.alternativa--marcada-errada`. */
+.alternativas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.alternativa {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  width: 100%;
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-family: inherit;
+  font-size: var(--texto-medio);
+  text-align: left;
+  cursor: pointer;
+}
+
+button.alternativa:hover {
+  border-color: var(--cor-acao);
+}
+
+button.alternativa:focus-visible {
+  outline: 3px solid var(--cor-acao-suave);
+  outline-offset: 2px;
+}
+
+.alternativa__letra {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  font-weight: 600;
+  font-size: var(--texto-pequeno);
+}
+
+.alternativa__texto {
+  flex: 1;
+}
+
+.alternativa--correta {
+  border-color: var(--cor-ok);
+  background: var(--cor-ok-suave);
+}
+
+.alternativa--correta .alternativa__letra {
+  background: var(--cor-ok);
+  color: var(--cor-acao-texto);
+}
+
+.alternativa--marcada-errada {
+  border-color: var(--cor-erro);
+  background: var(--cor-erro-suave);
+}
+
+.alternativa--marcada-errada .alternativa__letra {
+  background: var(--cor-erro);
+  color: var(--cor-acao-texto);
+}
+
+.alternativa__justificativa {
+  margin: var(--espaco-1) 0 var(--espaco-2);
+  padding: 0 var(--espaco-4);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+}
+
 kbd {
   display: inline-block;
   padding: 0 var(--espaco-1);

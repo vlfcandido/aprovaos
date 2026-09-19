@@ -3,21 +3,49 @@
    `questao_id` não bate mais — outra aba, back/refresh: ver `api/questoes.py::_questao_pendente`).
    Sem `{% extends %}`: substitui o `innerHTML` de `#questao` de `topico.html`, por isso repete a
    origem completa e o formulário de reportar erro — o que estava antes em `#questao` foi embora
-   com a troca. O bloco do gabarito usa as cores semânticas (`--cor-ok-suave`/`--cor-erro-suave`).
-   O link "Próxima questão" recarrega a mesma rota via `GET`, que já traz a próxima pendente.
-   Quando ler: ao mudar o que aparece depois de responder. -#}
+   com a troca. Em `"certo_errado"`, o bloco do gabarito usa as cores semânticas
+   (`--cor-ok-suave`/`--cor-erro-suave`) numa única faixa. Em `"multipla_escolha"`
+   (`questao.tipo_item`), cada uma das cinco `evento.alternativas` aparece com a marca de
+   `correta`/`marcada` (mesmas cores semânticas, por alternativa) e a `justificativa` dela, só
+   quando existe — vazia nesta fatia (o validador da fatia 5 é quem a preenche), por isso nunca
+   um placeholder tipo "explicação em breve" no lugar. O link "Próxima questão" recarrega a mesma
+   rota via `GET`, que já traz a próxima pendente. Quando ler: ao mudar o que aparece depois de
+   responder. -#}
 {% if evento %}
   <div class="cartao cartao--elevado questao">
-    <p class="questao__comando">{{ questao.comando }}</p>
+    {% if questao.comando %}
+      <p class="questao__comando">{{ questao.comando }}</p>
+    {% endif %}
     <p class="questao__enunciado">{{ questao.enunciado }}</p>
-    <p class="resultado__resposta">Você respondeu: <strong>{{ evento.resposta_texto }}</strong></p>
-    <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
-      <p>Gabarito: <strong>{{ evento.gabarito_texto }}</strong> —
-        {% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}</p>
-      {% if evento.justificativa %}
-        <p class="resultado__justificativa">{{ evento.justificativa }}</p>
-      {% endif %}
-    </div>
+    {% if questao.tipo_item == "multipla_escolha" %}
+      <div class="alternativas alternativas--resultado">
+        {% for alternativa in evento.alternativas %}
+          <div class="alternativa{% if alternativa.correta %} alternativa--correta{% elif alternativa.marcada %} alternativa--marcada-errada{% endif %}">
+            <span class="alternativa__letra">{{ alternativa.letra }}</span>
+            <span class="alternativa__texto">
+              {{ alternativa.texto }}
+              {% if alternativa.marcada and not alternativa.correta %}<strong> — você marcou esta</strong>{% endif %}
+              {% if alternativa.correta %}<strong> — gabarito</strong>{% endif %}
+            </span>
+          </div>
+          {% if alternativa.justificativa %}
+            <p class="alternativa__justificativa">{{ alternativa.justificativa }}</p>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
+        <p>{% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}</p>
+      </div>
+    {% else %}
+      <p class="resultado__resposta">Você respondeu: <strong>{{ evento.resposta_texto }}</strong></p>
+      <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
+        <p>Gabarito: <strong>{{ evento.gabarito_texto }}</strong> —
+          {% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}</p>
+        {% if evento.justificativa %}
+          <p class="resultado__justificativa">{{ evento.justificativa }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
     <p class="questao__origem">
       {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
       item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}

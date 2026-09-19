@@ -22,6 +22,7 @@ def _ler(nome: str) -> str:
 
 HTML_LEI_8429 = _ler("lei8429_planalto_compilada.htm")
 HTML_LEI_11340 = _ler("lei11340_planalto_compilada.htm")
+HTML_LEI_6404 = _ler("lei6404_planalto_compilada.htm")
 HTML_LEI_11101 = _ler("lei11101_planalto_compilada.htm")
 
 
@@ -110,5 +111,22 @@ def test_artigo_6_da_lei_11101_le_o_paragrafo_4_a_com_ponto() -> None:
         "§ 4º-A. O decurso do prazo previsto no § 4º deste artigo sem a deliberação a respeito "
         "do plano de recuperação judicial"
     )
+
+
+# --- (c) alínea listada direto sob o caput, sem inciso/parágrafo antecedente -------------------
+
+
+def test_artigo_116_da_lei_6404_tem_alineas_direto_no_caput() -> None:
+    """O art. 116 da Lei das S/A define "acionista controlador" com duas alíneas coladas no
+    caput, sem nenhum inciso ou parágrafo entre elas — a alínea pertence ao caput."""
+    artigo = extrair_artigo(HTML_LEI_6404, "116")
+
+    assert artigo.caput.texto.startswith("Art. 116. Entende-se por acionista controlador")
+    assert artigo.incisos == []
+    alineas = {a.identificador: a for a in artigo.caput.alineas}
+    assert set(alineas) == {"a", "b"}
+    assert alineas["a"].texto.startswith("a) é titular de direitos de sócio")
+    assert alineas["b"].texto.startswith("b) usa efetivamente seu poder")
+    assert [p.identificador for p in artigo.paragrafos] == ["Parágrafo único."]
 
 

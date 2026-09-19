@@ -251,8 +251,10 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
 
     Raises:
         DispositivoNaoEncontrado: nenhum parágrafo do HTML começa com `"Art. {numero}"` vigente.
-        EstruturaNaoTratada: uma alínea aparece sem inciso/parágrafo/caput anterior a que
-            pertencer — a função para em vez de inventar a hierarquia.
+        EstruturaNaoTratada: um parágrafo vigente do corpo do artigo não é título estrutural
+            (`_eh_titulo_estrutural`) nem casa com parágrafo, inciso ou alínea reconhecidos — a
+            função para em vez de inventar a hierarquia (alínea direto sob o caput, sem
+            inciso/parágrafo antes dela, já resolve para o caput; não é mais este caso).
     """
     paragrafos = _paragrafos_vigentes(html)
     padrao_caput = _padrao_caput(numero)
@@ -279,7 +281,10 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
     incisos: list[TrechoDispositivo] = []
     paragrafos_do_artigo: list[TrechoDispositivo] = []
     contexto_incisos: list[TrechoDispositivo] = incisos
-    alvo_alinea: TrechoDispositivo | None = None
+    # Uma alínea pode vir direto sob o caput, sem inciso/parágrafo antes dela (ex.: Lei
+    # 6.404/1976 art. 116 — "a) é titular..." logo após o caput) — o caput é sempre um alvo
+    # válido, então `alvo_alinea` nunca fica sem pai (o caput já foi montado acima).
+    alvo_alinea: TrechoDispositivo = caput
 
     for texto, redacao in paragrafos[inicio + 1 : fim]:
         if _eh_titulo_estrutural(texto):
@@ -306,10 +311,6 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
             contexto_incisos.append(item)
             alvo_alinea = item
         elif m_alinea is not None:
-            if alvo_alinea is None:
-                raise EstruturaNaoTratada(
-                    f"Alínea sem inciso/parágrafo anterior a que pertencer: {texto!r}"
-                )
             alvo_alinea.alineas.append(
                 TrechoDispositivo(
                     tipo="alinea",

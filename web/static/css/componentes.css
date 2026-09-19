@@ -229,3 +229,38 @@ select.entrada {
 }
 
 .vazio > .acoes { margin-top: var(--espaco-4); justify-content: center; }
+
+/* ---- tabela ------------------------------------------------------------------------------- */
+
+/* O protótipo estiliza `table` sem classe; aqui a regra é escopada em `.tabela` de propósito —
+   um seletor de elemento global colidiria com `.tabela-pesos`/`.tabela-justificativa`, que já
+   existem em `base.css` e têm regras próprias. Os dois grupos que portaram telas relataram a
+   falta deste componente e caíram nas classes antigas; esta é a versão da biblioteca. */
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-pequeno);
+}
+
+.tabela th {
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--texto-rotulo);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto-3);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--cor-linha);
+}
+
+.tabela td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--cor-linha);
+  vertical-align: top;
+}
+
+.tabela tr:last-child td { border-bottom: 0; }
+.tabela tbody tr:hover { background: var(--cor-superficie-2); }
+
+/* Tabela larga não pode empurrar a página: rola dentro do próprio contêiner. */
+.tabela-rolagem { overflow-x: auto; }

@@ -40,6 +40,11 @@ router = APIRouter(include_in_schema=False)
 #: Valores aceitos para `confianca` (decisão 3: obrigatório antes de responder).
 CONFIANCAS_VALIDAS = ("certeza", "duvida")
 
+#: Acima de quantos caracteres o texto de apoio nasce recolhido atrás de "ver texto de apoio"
+#: (passo 14 da V3, decisão 3). Regra de negócio: fica aqui, não como número solto no Jinja — o
+#: template só lê a flag `apoio_recolhido` já calculada.
+LIMITE_TEXTO_APOIO_RECOLHIDO = 600
+
 MENSAGEM_TOPICO_NAO_ENCONTRADO = "Tópico não encontrado nesta conta."
 MENSAGEM_CONFIANCA_OBRIGATORIA = "Diga se você tem certeza ou dúvida antes de responder."
 MENSAGEM_QUESTAO_NAO_ENCONTRADA = "Questão não encontrada."
@@ -145,6 +150,9 @@ def _contexto_questao(topico: Topico, questao: Questao | None) -> dict[str, obje
             "id": str(questao.id),
             "comando": questao.comando,
             "texto_apoio": questao.texto_apoio,
+            "apoio_recolhido": bool(
+                questao.texto_apoio and len(questao.texto_apoio) > LIMITE_TEXTO_APOIO_RECOLHIDO
+            ),
             "enunciado": questao.enunciado,
         }
         contexto["origem"] = origem

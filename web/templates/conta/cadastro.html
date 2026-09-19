@@ -5,7 +5,7 @@
 {% block titulo %}Criar conta — AprovaOS{% endblock %}
 {% block conteudo %}
   <h1>Criar conta</h1>
-  <form id="form-cadastro" method="post" action="/cadastro"
+  <form id="form-cadastro" class="formulario" method="post" action="/cadastro"
         hx-post="/cadastro" hx-select="#form-cadastro" hx-target="#form-cadastro" hx-swap="outerHTML">
     {% if erros %}
       <div class="mensagem mensagem--erro" role="alert">

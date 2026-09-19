@@ -1,65 +1,71 @@
-{# O que é: página de resolver questão (`GET/POST /topico/{slug}/questoes`). Mostra o comando, o
-   texto de apoio (recolhido atrás de "ver texto de apoio" quando passa de 600 caracteres — só
-   `<details>`/`<summary>`, sem JS), o enunciado e a origem completa (banca, órgão, cargo, ano,
-   item e o PDF da prova). O gabarito nunca aparece aqui — só depois de responder, no fragmento
-   `_resultado.html` que o HTMX troca dentro de `#questao` (sem JS, o navegador recarrega a
-   página inteira, que é o mesmo HTML válido). Certeza/dúvida é obrigatória antes: os dois
-   rádios têm `required`, então o navegador barra o envio pelos dois botões grandes Certo/Errado
-   até a pessoa escolher — regra do servidor, não do JavaScript. Os atalhos de teclado (C/E/→)
-   são a ilha `atalhos-estudo.js` (ADR-0019), que só clica em botões/links que já existem — a
-   tela funciona igual sem ela. Quando ler: ao mexer no fluxo de resolver questão. -#}
+{# O que é: página de resolver questão (`GET/POST /topico/{slug}/questoes`). Cartão da questão
+   (comando, texto de apoio — recolhido atrás de "ver texto de apoio" quando
+   `questao.apoio_recolhido` vem `true` do backend, `LIMITE_TEXTO_APOIO_RECOLHIDO` em
+   `api/questoes.py`; nunca um número solto aqui —, enunciado e origem completa: banca, órgão,
+   cargo, ano, item e o PDF da prova). O gabarito nunca aparece aqui — só depois de responder, no
+   fragmento `_resultado.html` que o HTMX troca dentro de `#questao` (sem JS, o navegador
+   recarrega a página inteira, que é o mesmo HTML válido). Certeza/dúvida é obrigatória antes: o
+   controle segmentado é feito com rádios de verdade (`required`), só estilizados — o navegador
+   barra o envio pelos dois botões grandes Certo/Errado até a pessoa escolher, regra do servidor,
+   não do JavaScript. Os atalhos de teclado (C/E/→) são a ilha `atalhos-estudo.js` (ADR-0019),
+   que só clica em botões/links que já existem — a tela funciona igual sem ela. Quando ler: ao
+   mexer no fluxo de resolver questão. -#}
 {% extends "base.html" %}
 {% block titulo %}{{ topico.nome }} — Questões — AprovaOS{% endblock %}
 {% block conteudo %}
   <h1>{{ topico.nome }}</h1>
   <div id="questao">
     {% if questao %}
-      <p class="questao__comando">{{ questao.comando }}</p>
-      {% if questao.texto_apoio %}
-        {% if questao.texto_apoio | length > 600 %}
-          <details class="questao__apoio">
-            <summary>ver texto de apoio</summary>
-            <p>{{ questao.texto_apoio }}</p>
-          </details>
-        {% else %}
-          <p class="questao__apoio">{{ questao.texto_apoio }}</p>
+      <div class="cartao cartao--elevado questao">
+        <p class="questao__comando">{{ questao.comando }}</p>
+        {% if questao.texto_apoio %}
+          {% if questao.apoio_recolhido %}
+            <details class="questao__apoio">
+              <summary>ver texto de apoio</summary>
+              <p>{{ questao.texto_apoio }}</p>
+            </details>
+          {% else %}
+            <p class="questao__apoio">{{ questao.texto_apoio }}</p>
+          {% endif %}
         {% endif %}
-      {% endif %}
-      <p class="questao__enunciado">{{ questao.enunciado }}</p>
-      <p class="questao__origem">
-        {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
-        item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
-        — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
-      </p>
+        <p class="questao__enunciado">{{ questao.enunciado }}</p>
+        <p class="questao__origem">
+          {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+          item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
+          — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
+        </p>
 
-      <form id="form-resposta" method="post" action="/topico/{{ topico.slug }}/questoes"
-            hx-post="/topico/{{ topico.slug }}/questoes" hx-target="#questao" hx-swap="innerHTML">
-        <input type="hidden" name="questao_id" value="{{ questao.id }}">
+        <form id="form-resposta" method="post" action="/topico/{{ topico.slug }}/questoes"
+              hx-post="/topico/{{ topico.slug }}/questoes" hx-target="#questao" hx-swap="innerHTML">
+          <input type="hidden" name="questao_id" value="{{ questao.id }}">
 
-        <fieldset class="confianca">
-          <legend>Antes de responder: você tem certeza ou está em dúvida?</legend>
-          <label class="opcao-confianca">
-            <input type="radio" name="confianca" value="certeza" required> Tenho certeza
-          </label>
-          <label class="opcao-confianca">
-            <input type="radio" name="confianca" value="duvida" required> Estou em dúvida
-          </label>
-        </fieldset>
+          <fieldset class="confianca">
+            <legend>Antes de responder: você tem certeza ou está em dúvida?</legend>
+            <div class="segmentado" role="radiogroup">
+              <label class="segmentado__opcao">
+                <input type="radio" name="confianca" value="certeza" required> Tenho certeza
+              </label>
+              <label class="segmentado__opcao">
+                <input type="radio" name="confianca" value="duvida" required> Estou em dúvida
+              </label>
+            </div>
+          </fieldset>
 
-        <fieldset class="julgamento">
-          <legend>Julgue o item</legend>
-          <div class="respostas">
-            <button type="submit" name="resposta" value="C" data-atalho="certo"
-                    class="botao botao-resposta">
-              Certo <kbd>C</kbd>
-            </button>
-            <button type="submit" name="resposta" value="E" data-atalho="errado"
-                    class="botao botao-resposta">
-              Errado <kbd>E</kbd>
-            </button>
-          </div>
-        </fieldset>
-      </form>
+          <fieldset class="julgamento">
+            <legend>Julgue o item</legend>
+            <div class="respostas">
+              <button type="submit" name="resposta" value="C" data-atalho="certo"
+                      class="botao-resposta">
+                Certo <kbd>C</kbd>
+              </button>
+              <button type="submit" name="resposta" value="E" data-atalho="errado"
+                      class="botao-resposta">
+                Errado <kbd>E</kbd>
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
 
       <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar">
         <label for="motivo">Encontrou um erro nesta questão?</label>

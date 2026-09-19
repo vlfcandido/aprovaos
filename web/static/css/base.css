@@ -674,13 +674,21 @@ fieldset legend {
   cursor: pointer;
 }
 
-.botao-resposta:hover {
+.botao-resposta:hover:not([disabled]) {
   border-color: var(--cor-acao);
+  background: var(--cor-acao-suave);
 }
 
 .botao-resposta:focus-visible {
   outline: 3px solid var(--cor-acao-suave);
   outline-offset: 2px;
+}
+
+/* Mesma regra das alternativas A–E: bloqueado tem de parecer bloqueado. */
+.botao-resposta[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-style: dashed;
 }
 
 /* As cinco alternativas (A–E) de uma questão de múltipla escolha (passo 3 da V3b) — mesmo
@@ -710,13 +718,30 @@ fieldset legend {
   cursor: pointer;
 }
 
-button.alternativa:hover {
+button.alternativa:hover:not([disabled]) {
   border-color: var(--cor-acao);
+  background: var(--cor-acao-suave);
 }
 
 button.alternativa:focus-visible {
   outline: 3px solid var(--cor-acao-suave);
   outline-offset: 2px;
+}
+
+/* O estado bloqueado precisa **parecer** bloqueado. Antes da fatia 14, clicar numa alternativa
+   sem marcar a confiança não fazia nada e nada dizia por quê (o htmx 2 descarta resposta de
+   erro). O servidor agora responde com aviso, e a ilha desabilita os botões — mas se eles
+   continuarem com a mesma aparência de clicáveis, a aluna clica, não acontece nada visível, e o
+   defeito volta numa versão mais suave. Porta trancada tem de parecer trancada. */
+button.alternativa[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+button.alternativa[disabled] .alternativa__letra {
+  background: transparent;
+  border: 1px dashed var(--cor-linha);
 }
 
 .alternativa__letra {

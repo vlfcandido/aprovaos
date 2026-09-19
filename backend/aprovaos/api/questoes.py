@@ -307,7 +307,9 @@ def contexto_questao(
     que faz o mesmo parcial servir `/topico/{slug}/questoes` e `/revisar` — só o destino do
     formulário e um campo oculto a mais (`cartao_id`, na revisão) mudam entre os dois.
     `fio_da_memoria` (V5) é o selo "de onde veio" quando `questao` é um item intercalado — `None`
-    (o padrão) para uma questão nativa do tópico da URL.
+    (o padrão) para uma questão nativa do tópico da URL. `questao_contexto["inedita"]` (fatia 5)
+    é o que os parciais usam para trocar o bloco de origem de prova (`origem` vem `{}` para uma
+    inédita, que não tem procedência) pelo selo "Questão inédita do AprovaOS".
 
     Args:
         db: sessão do request (só para buscar as alternativas de múltipla escolha).
@@ -342,6 +344,7 @@ def contexto_questao(
                 questao.texto_apoio and len(questao.texto_apoio) > LIMITE_TEXTO_APOIO_RECOLHIDO
             ),
             "enunciado": questao.enunciado,
+            "inedita": questao.inedita,
         }
         if questao.tipo_item == "multipla_escolha":
             questao_contexto["alternativas"] = [

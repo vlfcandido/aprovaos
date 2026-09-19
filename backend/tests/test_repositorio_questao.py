@@ -33,6 +33,7 @@ from aprovaos.dados.repositorio_questao import (
     questoes_publicaveis_do_topico,
     registrar_reporte,
     registrar_resposta,
+    salvar_questao_inedita,
     salvar_questoes,
     topicos_vistos,
 )
@@ -44,6 +45,7 @@ from aprovaos.dominio.questao import (
     RegraProva,
     hash_dedup,
 )
+from aprovaos.dominio.questao_inedita import AlternativaGerada, QuestaoGerada
 
 
 def _usuario(db: Session, email: str) -> Usuario:
@@ -590,3 +592,106 @@ def test_gravar_justificativa_alternativas(db: Session) -> None:
     assert alternativas["A"] == "não é [...]"
     assert alternativas["B"] == "é a correta [...]"
     assert alternativas["C"] is None
+
+
+def _item_gerado(
+    *,
+    tipo_item: str = "certo_errado",
+    gabarito: str = "E",
+    topico_slug: str,
+    alternativas: list[AlternativaGerada] | None = None,
+) -> QuestaoGerada:
+    return QuestaoGerada(
+        tipo_item=tipo_item,
+        banca_alvo="cebraspe",
+        comando="Julgue o item.",
+        enunciado="Os atos de improbidade administrativa serão perdoados na forma desta lei.",
+        alternativas=alternativas,
+        gabarito=gabarito,
+        fontes=["F1"],
+        trecho_que_decide="serão punidos na forma desta lei",
+        justificativa_certo="Se dissesse 'punidos', estaria certo.",
+        justificativa_errado="A lei diz 'punidos', não 'perdoados'.",
+        mecanismo="troca_de_verbo",
+        original_de_referencia="cebraspe 2024 tce-xx item 1",
+        topico_slug=topico_slug,
+        aderencia_medida=False,
+    )
+
+
+class TestSalvarQuestaoInedita:
+    def test_grava_inedita_aprovada(self, db: Session) -> None:
+        topico = _topico(db, "dir-adm-06-improbidade-inedita")
+        item = _item_gerado(topico_slug=topico.slug)
+        regra_prova = RegraProva(anula_por_erro=False, fonte="inédita — sem regra do DNA")
+
+        questao = salvar_questao_inedita(
+            db,
+            topico_id=topico.id,
+            item=item,
+            publicavel=True,
+            motivo_nao_publicavel=None,
+            validador_versao="v1-lexico",
+            regra_prova=regra_prova,
+        )
+        db.commit()
+
+        gravada = db.get(Questao, questao.id)
+        assert gravada is not None
+        assert gravada.inedita is True
+        assert gravada.origem is None
+        assert gravada.publicavel is True
+        assert gravada.motivo_nao_publicavel is None
+        assert gravada.justificativa_certo == item.justificativa_certo
+        assert gravada.justificativa_errado == item.justificativa_errado
+        assert gravada.validador_versao == "v1-lexico"
+        assert gravada.validada_em is not None
+
+    def test_grava_inedita_reprovada_com_motivo(self, db: Session) -> None:
+        topico = _topico(db, "dir-adm-07-improbidade-reprovada")
+        item = _item_gerado(topico_slug=topico.slug)
+        regra_prova = RegraProva(anula_por_erro=False, fonte="inédita — sem regra do DNA")
+
+        questao = salvar_questao_inedita(
+            db,
+            topico_id=topico.id,
+            item=item,
+            publicavel=False,
+            motivo_nao_publicavel="gabarito: resolução independente diverge",
+            validador_versao="v1-lexico",
+            regra_prova=regra_prova,
+        )
+        db.commit()
+
+        gravada = db.get(Questao, questao.id)
+        assert gravada is not None
+        assert gravada.publicavel is False
+        assert gravada.motivo_nao_publicavel == "gabarito: resolução independente diverge"
+
+    def test_grava_alternativas_de_multipla_escolha(self, db: Session) -> None:
+        topico = _topico(db, "dir-adm-08-multipla-escolha-inedita")
+        alternativas = [AlternativaGerada(letra=letra, texto=f"Texto {letra}") for letra in "ABCDE"]
+        item = _item_gerado(
+            tipo_item="multipla_escolha",
+            gabarito="B",
+            topico_slug=topico.slug,
+            alternativas=alternativas,
+        )
+        regra_prova = RegraProva(anula_por_erro=False, fonte="inédita — sem regra do DNA")
+
+        questao = salvar_questao_inedita(
+            db,
+            topico_id=topico.id,
+            item=item,
+            publicavel=True,
+            motivo_nao_publicavel=None,
+            validador_versao="v1-lexico",
+            regra_prova=regra_prova,
+        )
+        db.commit()
+
+        gravadas = list(db.scalars(select(Alternativa).where(Alternativa.questao_id == questao.id)))
+        assert len(gravadas) == 5
+        corretas = [a for a in gravadas if a.correta]
+        assert len(corretas) == 1
+        assert corretas[0].letra == "B"

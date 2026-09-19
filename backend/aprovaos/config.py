@@ -47,6 +47,14 @@ class Configuracoes(BaseSettings):
         modelo_aula: modelo Gemini do agente `gerador-de-aula` (fatia 6, trilha e aulas em
             texto). `gemini-3.6-flash`, mesmo corte de `modelo_justificativa`/`modelo_dna`:
             escrever uma aula ancorada em dossiê é raciocínio, não classificação.
+        modelo_questao: modelo Gemini do agente `gerador-de-questao` (fatia 5, inéditas
+            validadas). `gemini-3.6-flash`, mesmo corte de `modelo_aula`/`modelo_justificativa`:
+            escrever um item novo no padrão da banca, ancorado no dossiê, é raciocínio.
+        modelo_validador_questao: modelo Gemini do agente `validador-de-questao` (fatia 5) — uma
+            família de prompt **diferente** de `modelo_questao`, que resolve o item de novo sem
+            ver o gabarito do gerador (regra 1 do produto: nada gerado chega ao aluno sem
+            validação por outro agente). `gemini-3.6-flash` pelo mesmo motivo de `modelo_questao`
+            — resolver a questão é raciocínio, não classificação.
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -67,6 +75,8 @@ class Configuracoes(BaseSettings):
     lote_classificacao: int = Field(default=20, gt=0)
     modelo_justificativa: str = "gemini-3.6-flash"
     modelo_aula: str = "gemini-3.6-flash"
+    modelo_questao: str = "gemini-3.6-flash"
+    modelo_validador_questao: str = "gemini-3.6-flash"
 
 
 @lru_cache

@@ -27,7 +27,10 @@ da classe) e fecha a P-34 (`docs/PENDENCIAS.md`): `Questao.publicada` continua s
 direto (bookkeeping do calibrador), mas `Questao.despublicada_em` passa a ser o que toda consulta
 de servir conteúdo filtra além de `publicavel` — uma questão despublicada some da tela na hora,
 sem precisar reescrever `publicavel` (o veredito estrutural do curador, que o calibrador nunca
-toca).
+toca). A fatia 5 acrescenta `veredito_questao` (histórico append-only das tentativas de validação
+de uma inédita — ver o docstring da classe `VereditoQuestao`); nenhuma coluna de `Questao` muda,
+já que `origem`/`inedita`/`validada_em`/`validador_versao`/`justificativa_certo`/
+`justificativa_errado` já existiam desde a V3/fundação jurídica para este caso.
 """
 
 from datetime import date, datetime, time
@@ -801,5 +804,37 @@ class Calibracao(ChaveUuid, Base):
     discriminacao: Mapped[float | None] = mapped_column(Float, nullable=True)
     n: Mapped[int] = mapped_column(Integer, nullable=False)
     acao: Mapped[str] = mapped_column(String(16), nullable=False)
+
+    questao: Mapped[Questao] = relationship()
+
+
+class VereditoQuestao(ChaveUuid, Base):
+    """O histórico de tentativas de validação de uma inédita (fatia 5, RF-28).
+
+    Append-only, como `EventoEstudo`: uma linha por chamada a `dominio.validacao_questao.julgar`
+    para uma dada `Questao` — nunca atualizada nem apagada (por isso não herda `Carimbos`, sem
+    `atualizado_em`). Existe porque `questao.validada_em`/`questao.validador_versao` sozinhos só
+    guardam o **último** veredito; a fatia 5 precisa do histórico completo, inclusive das
+    tentativas reprovadas, para RF-28 ("rejeição registrada com motivo", nunca descartada em
+    silêncio) — uma inédita reprovada continua na tabela `questao` com `publicavel=False`, e
+    cada tentativa de validação dela (aprovada ou não) fica aqui, com o motivo.
+
+    Attributes:
+        questao_id: a questão avaliada (FK — a `Questao` já existe antes do primeiro veredito,
+            gravada pelo comando assim que o gerador devolve o item).
+        aprovado: o `Veredito.aprovado` desta tentativa.
+        motivos: `Veredito.motivos` desta tentativa (JSON — lista de strings; vazia quando
+            aprovado).
+        validador_versao: `Veredito.validador_versao` desta tentativa.
+        criado_em: quando esta tentativa de validação rodou.
+    """
+
+    __tablename__ = "veredito_questao"
+
+    questao_id: Mapped[UUID] = mapped_column(ForeignKey("questao.id"), index=True, nullable=False)
+    aprovado: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    motivos: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    validador_versao: Mapped[str] = mapped_column(String(64), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(DataHoraUtc, default=agora_utc, nullable=False)
 
     questao: Mapped[Questao] = relationship()

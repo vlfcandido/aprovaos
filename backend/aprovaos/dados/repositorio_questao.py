@@ -18,6 +18,13 @@ parâmetro, fazem `add`/`flush`; o `commit` é sempre da rota/comando.
 `Questao.despublicada_em.is_(None)` — é o carimbo que `dados.repositorio_calibracao.
 gravar_calibracao` grava quando o calibrador decide despublicar; sem este filtro, a decisão do
 calibrador nunca refletiria na fila da aluna.
+
+**Fatia 5 (questões inéditas validadas):** `salvar_questao_inedita` grava o item que o
+`gerador-de-questao` escreveu, **sempre** — aprovado ou reprovado (RF-28: "rejeição registrada
+com motivo", nunca descartada em silêncio). Ao contrário de `salvar_questoes` (que já nasce
+`publicavel` pelo gate da V3), aqui `publicavel`/`motivo_nao_publicavel` vêm de fora
+(`dominio.validacao_questao.julgar`, rodado por `motor.gerar_questao`) porque a validação de uma
+inédita depende de uma segunda chamada de IA que este módulo não faz.
 """
 
 from uuid import UUID
@@ -35,7 +42,8 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
-from aprovaos.dominio.questao import QuestaoCurada
+from aprovaos.dominio.questao import QuestaoCurada, RegraProva, hash_dedup
+from aprovaos.dominio.questao_inedita import QuestaoGerada
 
 
 def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, int]:
@@ -411,3 +419,78 @@ def topicos_vistos(db: Session, usuario_id: UUID, edital_id: UUID) -> set[UUID]:
         .distinct()
     )
     return set(db.scalars(consulta).all())
+
+
+def salvar_questao_inedita(
+    db: Session,
+    *,
+    topico_id: UUID,
+    item: QuestaoGerada,
+    publicavel: bool,
+    motivo_nao_publicavel: str | None,
+    validador_versao: str,
+    regra_prova: RegraProva,
+) -> Questao:
+    """Grava uma inédita do `gerador-de-questao` — aprovada ou reprovada, sempre (RF-28).
+
+    `origem`/`documento_id` ficam `None` (inédita não tem procedência de prova, ao contrário de
+    `salvar_questoes`); `inedita=True`; `justificativa_certo`/`justificativa_errado` já vêm
+    preenchidos pelo gerador (ao contrário de `salvar_questoes`, cuja questão nasce sem
+    justificativa — quem preenche depois é `motor.justificar`). Não deduplica por `hash_dedup`:
+    cada chamada ao gerador já corresponde a um item novo do plano do lote; deduplicar aqui
+    esconderia uma divergência que `dominio.questao_inedita.conferir_lote` precisa enxergar.
+
+    Args:
+        db: sessão do comando (faz `add`/`flush`; o `commit` é de quem chama).
+        topico_id: o tópico desta inédita.
+        item: a `QuestaoGerada` do agente `gerador-de-questao`.
+        publicavel: o veredito de `dominio.validacao_questao.julgar` (`Veredito.aprovado`).
+        motivo_nao_publicavel: `"; ".join(Veredito.motivos)` quando `publicavel` é `False`;
+            `None` quando `True`.
+        validador_versao: `Veredito.validador_versao` desta tentativa.
+        regra_prova: a regra de correção a registrar (do DNA do concurso, quando conhecida, ou
+            um placeholder declarado — este módulo não decide qual; só grava o que recebe).
+
+    Returns:
+        A `Questao` recém-criada (e as `Alternativa`, se `item.alternativas` não for `None`).
+    """
+    questao = Questao(
+        adapter="concursos",
+        banca=item.banca_alvo,
+        tipo_item=item.tipo_item,
+        comando=item.comando,
+        texto_apoio=None,
+        texto_apoio_itens=[],
+        enunciado=item.enunciado,
+        gabarito_preliminar=None,
+        gabarito=item.gabarito,
+        gabarito_status="definitivo",
+        publicavel=publicavel,
+        motivo_nao_publicavel=motivo_nao_publicavel,
+        regra_prova=regra_prova.model_dump(mode="json"),
+        topico_id=topico_id,
+        topico_confianca="alta",
+        topico_evidencia=f"gerada pelo gerador-de-questao para {item.topico_slug}",
+        origem=None,
+        inedita=True,
+        documento_id=None,
+        hash_dedup=hash_dedup(f"{item.topico_slug}:{item.mecanismo}:{item.enunciado}"),
+        validada_em=agora_utc(),
+        validador_versao=validador_versao,
+        justificativa_certo=item.justificativa_certo,
+        justificativa_errado=item.justificativa_errado,
+    )
+    db.add(questao)
+    if item.alternativas is not None:
+        for alternativa in item.alternativas:
+            db.add(
+                Alternativa(
+                    questao=questao,
+                    letra=alternativa.letra,
+                    texto=alternativa.texto,
+                    correta=alternativa.letra == item.gabarito,
+                    justificativa=None,
+                )
+            )
+    db.flush()
+    return questao

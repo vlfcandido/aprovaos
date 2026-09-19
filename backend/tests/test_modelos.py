@@ -86,6 +86,7 @@ def test_tabelas() -> None:
         "plano_dia",
         "bloco",
         "calibracao",
+        "veredito_questao",
     }
 
 

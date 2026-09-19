@@ -17,7 +17,9 @@
    questão — `/topico/{slug}/questoes` (a próxima pendente) ou `/revisar` (o próximo cartão
    vencido); este fragmento é o mesmo para os dois fluxos. `fio_da_memoria` (V5) repete, no
    resultado, o mesmo selo de `_cartao_questao.html` quando a questão respondida era um item
-   intercalado. Quando ler: ao mudar o que aparece depois de responder. -#}
+   intercalado. `questao.inedita` (fatia 5) troca o bloco de origem de prova pelo mesmo selo
+   "Questão inédita do AprovaOS" de `_cartao_questao.html` — sem procedência de prova, mas
+   distinguível sem esforço. Quando ler: ao mudar o que aparece depois de responder. -#}
 {% import "_macros.html" as macros %}
 {% macro citacao(af) %}{{ macros.citacao_legal(af) }}{% endmacro %}
 {% if evento %}
@@ -94,11 +96,15 @@
         </div>
       {% endif %}
     {% endif %}
-    <p class="questao__origem">
-      {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
-      item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
-      — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
-    </p>
+    {% if questao.inedita %}
+      <p class="selo selo--inedita">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
+    {% else %}
+      <p class="questao__origem">
+        {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+        item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
+        — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
+      </p>
+    {% endif %}
     <p><a class="botao botao--secundario" href="{{ proximo_url }}" data-atalho="proxima">{{ proximo_rotulo }} <kbd>→</kbd></a></p>
   </div>
 

@@ -6,9 +6,12 @@
    (plano V4 §5): só o destino do formulário (`acao_post`) e os campos ocultos extras
    (`campos_ocultos`, ex.: `cartao_id` na revisão) mudam entre os dois fluxos. `fio_da_memoria`
    (V5) é o selo "de onde veio" quando a questão mostrada é um item intercalado de outro tópico
-   já visto (nunca aparece em `revisao.html`, que não intercala — plano V5 §5). O gabarito nunca
-   aparece aqui — só depois de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no
-   que aparece antes de responder, nos dois fluxos, ou no selo do fio da memória. -#}
+   já visto (nunca aparece em `revisao.html`, que não intercala — plano V5 §5). `questao.inedita`
+   (fatia 5) troca o bloco de origem de prova pelo selo "Questão inédita do AprovaOS" — uma
+   inédita não tem procedência de prova para mostrar, mas precisa ser distinguível sem esforço
+   (regra 1 do produto: nada gerado chega ao aluno sem essa marcação). O gabarito nunca aparece
+   aqui — só depois de responder, no fragmento `_resultado.html`. Quando ler: ao mexer no que
+   aparece antes de responder, nos dois fluxos, no selo do fio da memória ou no selo da inédita. -#}
 <div class="cartao cartao--elevado questao">
   {% if fio_da_memoria %}
     <p class="selo selo--fio-da-memoria">
@@ -29,11 +32,15 @@
     {% endif %}
   {% endif %}
   <p class="questao__enunciado">{{ questao.enunciado }}</p>
-  <p class="questao__origem">
-    {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
-    item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
-    — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
-  </p>
+  {% if questao.inedita %}
+    <p class="selo selo--inedita">Questão inédita do AprovaOS — validada contra o dossiê deste tópico, nunca extraída de uma prova real.</p>
+  {% else %}
+    <p class="questao__origem">
+      {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —
+      item {{ origem.numero_item }}{% if origem.tipo_caderno %} — {{ origem.tipo_caderno }}{% endif %}
+      — <a href="{{ origem.url_prova }}" target="_blank" rel="noopener">prova original (PDF)</a>
+    </p>
+  {% endif %}
 
   <form id="form-resposta" method="post" action="{{ acao_post }}"
         hx-post="{{ acao_post }}" hx-target="#questao" hx-swap="innerHTML">

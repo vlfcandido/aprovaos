@@ -30,7 +30,7 @@ from aprovaos.dados.modelos import (
     Usuario,
 )
 from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo, registrar_citacao
-from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dados.repositorio_questao import salvar_questao_inedita, salvar_questoes
 from aprovaos.dominio.questao import (
     AlternativaCurada,
     Origem,
@@ -38,6 +38,7 @@ from aprovaos.dominio.questao import (
     RegraProva,
     hash_dedup,
 )
+from aprovaos.dominio.questao_inedita import QuestaoGerada
 
 CADASTRO = {"email": "linda@exemplo.com", "senha": "12345678"}
 OUTRA_CONTA = {"email": "outra@exemplo.com", "senha": "12345678"}
@@ -834,3 +835,68 @@ def test_multipla_escolha_sem_alternativa_correta_nao_quebra_tela(
     )
     assert resposta_post.status_code == 200
     assert "Você acertou" in resposta_post.text
+
+
+def _criar_questao_inedita(db: Session, topico: Topico) -> Questao:
+    item = QuestaoGerada(
+        tipo_item="certo_errado",
+        banca_alvo="cebraspe",
+        comando="Julgue o item a seguir.",
+        enunciado="O TCU aprecia as contas do Presidente da República mediante parecer prévio.",
+        alternativas=None,
+        gabarito="C",
+        fontes=["F1"],
+        trecho_que_decide="apreciar as contas prestadas anualmente",
+        justificativa_certo="Se dissesse 'aprecia', estaria certo.",
+        justificativa_errado="O TCU aprecia; quem julga é o Congresso.",
+        mecanismo="literal",
+        original_de_referencia="cebraspe 2024 tce-xx item 57",
+        topico_slug=topico.slug,
+        aderencia_medida=False,
+    )
+    questao = salvar_questao_inedita(
+        db,
+        topico_id=topico.id,
+        item=item,
+        publicavel=True,
+        motivo_nao_publicavel=None,
+        validador_versao="v1-lexico",
+        regra_prova=RegraProva(anula_por_erro=False, fonte="inédita — sem regra do DNA"),
+    )
+    db.commit()
+    return questao
+
+
+def test_get_mostra_selo_de_inedita_sem_bloco_de_origem(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    _criar_questao_inedita(db, topico)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert "Questão inédita do AprovaOS" in corpo
+    assert "prova original (PDF)" not in corpo
+
+
+def test_resultado_de_inedita_tambem_mostra_o_selo(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    questao = _criar_questao_inedita(db, topico)
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    assert "Questão inédita do AprovaOS" in resposta.text
+    assert "prova original (PDF)" not in resposta.text
+
+
+def test_get_questao_original_nao_mostra_selo_de_inedita(logado: TestClient, db: Session) -> None:
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-inedita-original")
+    _criar_questao(db, topico, documento.id)
+
+    corpo = logado.get(f"/topico/{topico.slug}/questoes").text
+    assert "Questão inédita do AprovaOS" not in corpo
+    assert "prova original (PDF)" in corpo

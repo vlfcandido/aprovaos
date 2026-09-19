@@ -20,7 +20,6 @@ from aprovaos.dados.modelos import (
 )
 from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
 from aprovaos.dominio.dna import (
-    DESCONHECIDO,
     ConcursoDna,
     Corte,
     DnaConcurso,
@@ -29,6 +28,7 @@ from aprovaos.dominio.dna import (
     Pesos,
     RegraCorrecao,
 )
+from aprovaos.dominio.edital import DESCONHECIDO
 from tests.test_rota_questoes import _criar_questao, _documento
 
 MATERIA = "DIREITO ADMINISTRATIVO"

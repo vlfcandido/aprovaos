@@ -366,3 +366,51 @@ class ReporteErro(ChaveUuid, Carimbos, Base):
     resolvido_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
 
     usuario: Mapped[Usuario] = relationship()
+
+
+class DispositivoLegal(ChaveUuid, Carimbos, Base):
+    """Um dispositivo de norma (caput, inciso ou parágrafo) com o texto literal vigente.
+
+    Espelha `dominio.legislacao.TrechoDispositivo`: uma linha por trecho citável — hoje só o
+    nível que a coluna `citacao_canonica` (`docs/04-modelo-de-dados.md` §3) prevê (`artigo`,
+    `inciso`, `paragrafo`); alínea ainda não tem coluna própria (nota de escopo em
+    `dominio/legislacao.py`). `atualizado_em` (mixin `Carimbos`) é a data da coleta/atualização
+    do texto, como o modelo de dados documenta para esta tabela; `fonte_url` é sempre a URL de
+    onde o texto foi coletado (Planalto, hoje). `citacao_canonica` é única — recoletar o mesmo
+    dispositivo atualiza a linha existente, nunca duplica.
+    """
+
+    __tablename__ = "dispositivo_legal"
+    __table_args__ = (UniqueConstraint("citacao_canonica"),)
+
+    citacao_canonica: Mapped[str] = mapped_column(String(120), nullable=False)
+    norma: Mapped[str] = mapped_column(String(120), nullable=False)
+    artigo: Mapped[str] = mapped_column(String(16), nullable=False)
+    inciso: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    paragrafo: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    texto: Mapped[str] = mapped_column(Text, nullable=False)
+    vigente: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    fonte_url: Mapped[str] = mapped_column(String(500), nullable=False)
+
+
+class Citacao(ChaveUuid, Carimbos, Base):
+    """Liga um `DispositivoLegal` a um conteúdo (`questao` nesta rodada; `aula`/`dossie` depois).
+
+    `conteudo_id` não é FK — mesma convenção polimórfica de `ReporteErro` (`conteudo_tipo` decide
+    a tabela). `posicao` é a ordem da citação dentro do conteúdo (ex.: 1ª, 2ª citação de uma
+    aula), para reconstruir a ordem de exibição sem depender de `criado_em`.
+    """
+
+    __tablename__ = "citacao"
+    __table_args__ = (
+        CheckConstraint("conteudo_tipo IN ('questao','aula','dossie')", name="conteudo_tipo"),
+    )
+
+    conteudo_tipo: Mapped[str] = mapped_column(String(16), nullable=False)
+    conteudo_id: Mapped[UUID] = mapped_column(nullable=False)
+    dispositivo_id: Mapped[UUID] = mapped_column(
+        ForeignKey("dispositivo_legal.id"), index=True, nullable=False
+    )
+    posicao: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    dispositivo: Mapped[DispositivoLegal] = relationship()

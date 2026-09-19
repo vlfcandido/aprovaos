@@ -13,7 +13,14 @@ from typing import Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, field_validator
 
-TipoNovidade = Literal["prova", "gabarito", "edital", "desconhecido"]
+TipoNovidade = Literal["prova", "gabarito", "edital", "lei", "desconhecido"]
+"""Os cinco tipos de item que uma `Novidade` pode ser.
+
+`"lei"` foi acrescentado para a fonte jurídica (`motor/fontes/planalto.py`, fundação da
+justificativa ancorada) — já era um dos valores de `documento.tipo` no modelo de dados
+(`docs/04-modelo-de-dados.md` §3, junto com `"informativo"`, ainda sem consumidor), só não
+existia aqui porque nenhuma fonte concreta produzia esse tipo até agora.
+"""
 
 
 class Novidade(BaseModel):

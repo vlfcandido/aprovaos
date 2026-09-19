@@ -1,6 +1,6 @@
-# O que é: testes do passo 3 da V1, do passo 2 da V2 e do passo 10 da V3 — mapeamento ORM das
-# tabelas base, de edital/DNA e de questões/eventos. Quando ler: ao alterar coluna/constraint
-# delas ou o `DataHoraUtc`.
+# O que é: testes do passo 3 da V1, do passo 2 da V2, do passo 10 da V3 e do passo 1 da fundação
+# jurídica — mapeamento ORM das tabelas base, de edital/DNA, de questões/eventos e de
+# dispositivo_legal/citacao. Quando ler: ao alterar coluna/constraint delas ou o `DataHoraUtc`.
 import uuid
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
@@ -15,7 +15,9 @@ from sqlalchemy.pool import StaticPool
 from aprovaos.dados.base import Base
 from aprovaos.dados.modelos import (
     Alternativa,
+    Citacao,
     Concurso,
+    DispositivoLegal,
     DnaConcursoRegistro,
     Documento,
     Edital,
@@ -70,6 +72,8 @@ def test_tabelas() -> None:
         "alternativa",
         "evento_estudo",
         "reporte_erro",
+        "dispositivo_legal",
+        "citacao",
     }
 
 
@@ -409,3 +413,60 @@ def test_alternativa_ligada_a_questao(db: Session) -> None:
     db.add_all([questao, alternativa])
     db.commit()
     assert alternativa.questao_id == questao.id
+
+
+def _dispositivo_37_caput(db: Session) -> DispositivoLegal:
+    dispositivo = DispositivoLegal(
+        citacao_canonica="CF/88 art. 37",
+        norma="CF/1988",
+        artigo="37",
+        inciso=None,
+        paragrafo=None,
+        texto="Art. 37. A administração pública direta e indireta [...]",
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+    )
+    db.add(dispositivo)
+    db.commit()
+    return dispositivo
+
+
+def test_insere_dispositivo_legal_e_citacao(db: Session) -> None:
+    dispositivo = _dispositivo_37_caput(db)
+    citacao = Citacao(
+        conteudo_tipo="questao",
+        conteudo_id=uuid.uuid4(),
+        dispositivo=dispositivo,
+        posicao=1,
+    )
+    db.add(citacao)
+    db.commit()
+
+    assert isinstance(dispositivo.id, uuid.UUID)
+    assert dispositivo.atualizado_em.tzinfo is not None
+    assert citacao.dispositivo_id == dispositivo.id
+
+
+def test_citacao_canonica_e_unica(db: Session) -> None:
+    _dispositivo_37_caput(db)
+    db.add(
+        DispositivoLegal(
+            citacao_canonica="CF/88 art. 37",
+            norma="CF/1988",
+            artigo="37",
+            texto="outra redação, mesma citação — não pode duplicar",
+            vigente=True,
+            fonte_url="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_conteudo_tipo_da_citacao_restrito(db: Session) -> None:
+    dispositivo = _dispositivo_37_caput(db)
+    db.add(
+        Citacao(conteudo_tipo="xx", conteudo_id=uuid.uuid4(), dispositivo=dispositivo, posicao=1)
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()

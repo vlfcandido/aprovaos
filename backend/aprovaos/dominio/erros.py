@@ -1,9 +1,10 @@
 """Exceções de domínio (regras de negócio, independentes de HTTP e de banco).
 
 O que é: `ErroDominio` e as subclasses de conta (`EmailJaCadastrado`, `CredenciaisInvalidas`), de
-edital (`ArquivoInvalido`, `PdfSemTexto`, `ConteudoProgramaticoNaoEncontrado`) e de prova
-(`SegmentacaoAmbigua`). Quando ler: ao tratar falhas esperadas numa rota ou ao criar regra de
-domínio nova; `str(erro)` é o texto pt-BR mostrado ao aluno.
+edital (`ArquivoInvalido`, `PdfSemTexto`, `ConteudoProgramaticoNaoEncontrado`), de prova
+(`SegmentacaoAmbigua`) e de legislação (`DispositivoNaoEncontrado`, `EstruturaNaoTratada`).
+Quando ler: ao tratar falhas esperadas numa rota ou ao criar regra de domínio nova; `str(erro)` é
+o texto pt-BR mostrado ao aluno.
 """
 
 
@@ -60,4 +61,20 @@ class GabaritoNaoReconhecido(ErroDominio):
     mapa vazio esconderia falha de leitura pelo mesmo motivo que `FonteIndisponivel` existe para
     o coletor: "sem entradas" não pode significar "não consegui ler". Cobre tanto um PDF
     qualquer quanto um gabarito de banca em formato diferente (ex.: múltipla escolha A–E).
+    """
+
+
+class DispositivoNaoEncontrado(ErroDominio):
+    """O artigo pedido não apareceu no HTML do Planalto (`dominio/legislacao.extrair_artigo`).
+
+    Número inexistente na norma, HTML vazio ou de outra norma.
+    """
+
+
+class EstruturaNaoTratada(ErroDominio):
+    """O HTML do Planalto tem uma forma que `dominio/legislacao.extrair_artigo` não sabe tratar.
+
+    Levantada em vez de adivinhar — por exemplo, uma alínea (`a)`, `b)`...) aparecendo antes de
+    qualquer inciso ou parágrafo a que ela possa pertencer. Melhor parar e mostrar o trecho cru
+    do que gerar uma hierarquia inventada (o mesmo princípio de `SegmentacaoAmbigua`).
     """

@@ -26,3 +26,20 @@
   verificado_em: 2026-09-18
   evidencia: knowledge/fixtures/fontes/cebraspe/lista-encerrado-v1.json
   status: ativa
+
+- id: planalto
+  nome: Presidência da República — Casa Civil (planalto.gov.br), textos compilados de normas
+  url_lista: "não há listagem — catálogo fixo de normas mapeadas no código (`motor/fontes/planalto.py::CATALOGO`); cada norma nova entra como uma linha nova, decidida por quem lê o edital, não descoberta por varredura"
+  formato: html
+  o_que_publica: [lei]
+  identidade_do_item: "id interno do catálogo (ex.: `cf-1988`, `lei-14133-2021`) — a URL da norma no Planalto não muda entre coletas, então não há 'novidade' no sentido de item novo aparecendo numa lista; a 'novidade' aqui é uma norma do catálogo ainda não baixada nesta rodada"
+  robots_txt: "inexistente (checado em 19/09/2026: GET https://www.planalto.gov.br/robots.txt devolve 404)"
+  termos_de_uso: "não verificado nesta tarefa — só a Cebraspe e a FGV (P-11/P-13) tiveram termos checados até agora"
+  politica_coleta:
+    frequencia: sob demanda (normas mudam raramente; sem varredura periódica nesta rodada)
+    user_agent: "Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato: vlfcandido@gmail.com) (ADR-0037 — o Planalto recusa, com TLS ok e corpo vazio, qualquer User-Agent sem o token 'Mozilla/5.0'; medido em `.superpowers/sdd/V3b-multipla-escolha/fontes-juridicas-report.md` §1.1)"
+    sem_login: true
+    cache: nenhum
+  verificado_em: 2026-09-19
+  evidencia: knowledge/fixtures/juridico/constituicao_planalto_compilada.htm
+  status: ativa

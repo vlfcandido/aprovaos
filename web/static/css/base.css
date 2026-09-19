@@ -545,6 +545,24 @@ small.fonte {
   border-color: transparent;
 }
 
+.cartao + .cartao {
+  margin-top: var(--espaco-4);
+}
+
+/* Três colunas lado a lado (rotina, fatia 7; check-in do plano do dia, fatia 8) — empilha numa
+   coluna só em telas estreitas. */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-4);
+}
+
+@media (max-width: 640px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Resolver questão (V3): comando, apoio recolhível, origem, confiança e os dois botões ---- */
 .questao {
   margin-bottom: var(--espaco-4);

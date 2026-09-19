@@ -3,7 +3,7 @@
 # dispositivo_legal/citacao. Quando ler: ao alterar coluna/constraint delas ou o `DataHoraUtc`.
 import uuid
 from collections.abc import Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -15,6 +15,7 @@ from sqlalchemy.pool import StaticPool
 from aprovaos.dados.base import Base
 from aprovaos.dados.modelos import (
     Alternativa,
+    Bloco,
     Citacao,
     Concurso,
     DispositivoLegal,
@@ -25,6 +26,7 @@ from aprovaos.dados.modelos import (
     EventoEstudo,
     Fonte,
     PerfilEstudo,
+    PlanoDia,
     Questao,
     ReporteErro,
     Sessao,
@@ -81,6 +83,8 @@ def test_tabelas() -> None:
         "aula",
         "topico_relacao",
         "perfil_estudo",
+        "plano_dia",
+        "bloco",
     }
 
 
@@ -627,5 +631,85 @@ def test_versao_do_perfil_estudo_e_unica_por_usuario(db: Session) -> None:
             energia_tipica="baixa",
         )
     )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_insere_plano_dia_com_bloco(db: Session) -> None:
+    """`PlanoDia` grava um `Bloco` filho, com `porque` obrigatório."""
+    _, usuario, _ = _conta(db)
+    plano = PlanoDia(
+        usuario=usuario,
+        data=date(2026, 9, 20),
+        versao=1,
+        tempo_min=60,
+        modo="normal",
+        porque_geral="Hoje: 1 bloco, 20 min no total.",
+    )
+    plano.blocos.append(Bloco(ordem=1, tipo="questoes", duracao_min=20, porque="peso medido alto"))
+    db.add(plano)
+    db.commit()
+    assert plano.blocos[0].status == "pendente"
+
+
+def test_modo_do_plano_dia_restrito(db: Session) -> None:
+    """`modo` fora de `normal`/`descanso`/`semana_prova` viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    db.add(
+        PlanoDia(
+            usuario=usuario,
+            data=date(2026, 9, 20),
+            versao=1,
+            tempo_min=60,
+            modo="feriado",
+            porque_geral="x",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_versao_do_plano_dia_e_unica_por_usuario_e_data(db: Session) -> None:
+    """Duas linhas com o mesmo `(usuario_id, data, versao)` não podem coexistir."""
+    _, usuario, _ = _conta(db)
+    db.add(
+        PlanoDia(
+            usuario=usuario,
+            data=date(2026, 9, 20),
+            versao=1,
+            tempo_min=60,
+            modo="normal",
+            porque_geral="x",
+        )
+    )
+    db.commit()
+    db.add(
+        PlanoDia(
+            usuario=usuario,
+            data=date(2026, 9, 20),
+            versao=1,
+            tempo_min=30,
+            modo="descanso",
+            porque_geral="y",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_tipo_do_bloco_restrito(db: Session) -> None:
+    """`tipo` de `Bloco` fora dos cinco valores do modelo de dados viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    plano = PlanoDia(
+        usuario=usuario,
+        data=date(2026, 9, 20),
+        versao=1,
+        tempo_min=60,
+        modo="normal",
+        porque_geral="x",
+    )
+    db.add(plano)
+    db.flush()
+    db.add(Bloco(plano_dia_id=plano.id, ordem=1, tipo="simulado", duracao_min=10, porque="x"))
     with pytest.raises(IntegrityError):
         db.commit()

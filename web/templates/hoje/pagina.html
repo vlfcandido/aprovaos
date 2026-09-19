@@ -1,0 +1,133 @@
+{# O que é: a tela "Hoje" (`/hoje`, fatia 8, F3.x) — o plano do dia, com o porquê de cada bloco
+   sempre visível, o check-in (energia/sono/tempo real, ou "hoje quero descansar") e as ações de
+   cada bloco (iniciar/concluir/pular/discordar). Mesmo padrão de `rotina/formulario.html`: todo
+   formulário usa `hx-select="#conteudo"` para o htmx trocar só o miolo da página — sem rota de
+   fragmento separada. `sem_rotina=True` quando `SemConcursoPrincipal` impede montar o plano.
+   Quando ler: ao mudar o que aparece na tela "Hoje" ou o texto do check-in/discordar. -#}
+{% extends "base.html" %}
+{% block titulo %}Hoje — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Hoje</h1>
+  {% if sem_rotina %}
+    <p class="frase">{{ motivo }}</p>
+    <p class="acoes">
+      <a class="botao" href="/rotina">Configurar rotina</a>
+      <a href="/editais/subir">Subir edital</a>
+    </p>
+  {% else %}
+    <p class="acoes">
+      <span class="selo">{{ plano.data }}</span>
+      <span class="selo">{{ plano.tempo_min }} min disponíveis</span>
+      <span class="selo {{ 'selo--regras' if plano.modo == 'descanso' else 'selo--ia' }}">
+        {{ "Descanso" if plano.modo == "descanso" else "Normal" }}
+      </span>
+      {% if plano.energia %}<span class="selo">Energia {{ plano.energia }}/5</span>{% endif %}
+    </p>
+
+    {% if impacto %}
+      <div class="mensagem mensagem--porque" role="status">
+        <p>{{ impacto }}</p>
+      </div>
+    {% endif %}
+
+    <div class="mensagem mensagem--porque">
+      <h3>Por quê</h3>
+      <p>{{ plano.porque_geral }}</p>
+    </div>
+
+    <details class="campo" {% if plano.versao == 1 %}open{% endif %}>
+      <summary>Como você está agora? (check-in)</summary>
+      <form class="formulario" method="post" action="/hoje/checkin"
+            hx-post="/hoje/checkin" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+        <div class="grid-3">
+          <div class="campo">
+            <label for="energia">Energia agora</label>
+            <select id="energia" name="energia">
+              {% for valor in (1, 2, 3, 4, 5) %}
+                <option value="{{ valor }}" {% if valor == plano.energia %}selected{% endif %}>{{ valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="campo">
+            <label for="sono_h">Horas de sono</label>
+            <input id="sono_h" name="sono_h" type="number" min="0" max="16" step="0.5"
+                   value="{{ plano.sono_h or 7 }}" required>
+          </div>
+          <div class="campo">
+            <label for="tempo_min">Tempo real disponível hoje (min)</label>
+            <input id="tempo_min" name="tempo_min" type="number" min="0" max="600" step="5"
+                   value="{{ plano.tempo_min }}" required>
+          </div>
+        </div>
+        <label class="campo">
+          <input type="checkbox" name="quero_descansar" value="on">
+          Hoje quero descansar — não me sugira nada novo
+        </label>
+        <button class="botao" type="submit">Reajustar o plano</button>
+      </form>
+    </details>
+
+    {% if not blocos %}
+      <p class="frase">Nenhum bloco hoje — o porquê está explicado acima.</p>
+    {% endif %}
+    {% for bloco in blocos %}
+      <div class="cartao cartao--elevado" data-bloco-id="{{ bloco.id }}"
+           {% if bloco.iniciado_em %}data-bloco-iniciado="{{ bloco.iniciado_em }}"{% endif %}>
+        <p class="acoes">
+          <span class="selo">{{ bloco.hora_sugerida or "—" }} · {{ bloco.duracao_min }} min</span>
+          <span class="status status--{{ 'visto' if bloco.status == 'concluido' else 'nao-visto' }}">{{ bloco.status }}</span>
+        </p>
+        <h3>
+          {% if bloco.tipo == "revisao" %}Revisão espaçada
+          {% elif bloco.tipo == "aula" %}Aula{% if bloco.topico_nome %} — {{ bloco.topico_nome }}{% endif %}
+          {% elif bloco.tipo == "questoes" %}Questões{% if bloco.topico_nome %} — {{ bloco.topico_nome }}{% endif %}
+          {% else %}{{ bloco.tipo|capitalize }}
+          {% endif %}
+        </h3>
+        <div class="mensagem mensagem--porque">
+          <p>{{ bloco.porque }}</p>
+        </div>
+
+        {% if bloco.link %}
+          <p class="acoes"><a class="botao" href="{{ bloco.link }}">Abrir</a></p>
+        {% endif %}
+
+        <p class="nota" data-distracao-aviso hidden>
+          Você está há alguns minutos neste bloco — quer pular?
+        </p>
+
+        <div class="acoes">
+          {% if bloco.status == "pendente" %}
+            <form method="post" action="/hoje/bloco/{{ bloco.id }}/iniciar"
+                  hx-post="/hoje/bloco/{{ bloco.id }}/iniciar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+              <button class="botao" type="submit">Iniciar</button>
+            </form>
+          {% endif %}
+          {% if bloco.status in ("pendente", "iniciado") %}
+            <form method="post" action="/hoje/bloco/{{ bloco.id }}/concluir"
+                  hx-post="/hoje/bloco/{{ bloco.id }}/concluir" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+              <button class="botao botao--secundario" type="submit">Concluí</button>
+            </form>
+            <form method="post" action="/hoje/bloco/{{ bloco.id }}/pular"
+                  hx-post="/hoje/bloco/{{ bloco.id }}/pular" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+              <button class="botao botao--secundario" type="submit">Pular</button>
+            </form>
+            <form method="post" action="/hoje/bloco/{{ bloco.id }}/discordar"
+                  hx-post="/hoje/bloco/{{ bloco.id }}/discordar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
+              <select name="motivo" required>
+                <option value="">Discordar — por quê?</option>
+                {% for chave, rotulo in motivos_discordar %}
+                  <option value="{{ chave }}">{{ rotulo }}</option>
+                {% endfor %}
+              </select>
+              <button class="botao botao--secundario" type="submit">Trocar este bloco</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+{% block script %}
+  <script src="/static/js/distracao.js" defer></script>
+{% endblock %}

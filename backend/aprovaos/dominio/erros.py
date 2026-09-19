@@ -89,6 +89,16 @@ class EstruturaNaoTratada(ErroDominio):
     """
 
 
+class SemConcursoPrincipal(ErroDominio):
+    """Não há rotina (`perfil_estudo`) ou concurso principal/edital para planejar (fatia 8).
+
+    Levantada por `dados.repositorio_plano` quando o job noturno ou o check-in tentam montar um
+    plano sem esses dois pré-requisitos — nunca inventa um plano vazio "de qualquer jeito"; a
+    rota mostra a mensagem e o link para `/rotina`, o job noturno registra a falha no relatório e
+    segue para o próximo usuário (CA explícito do PRD F3.1).
+    """
+
+
 class SumulaNaoEncontrada(ErroDominio):
     """A súmula pedida não resolveu (`dominio/sumula.py`).
 

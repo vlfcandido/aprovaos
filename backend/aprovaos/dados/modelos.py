@@ -18,10 +18,14 @@ para marcar `bloco_topico_id` (e, quando o item é intercalado, `fio_motivo`/
 consentimento_dados_rotina*` (três colunas para o campo lógico único do modelo de dados — ver o
 docstring de `Usuario`) e a tabela `perfil_estudo` (rotina + concurso principal, P-23); o
 diagnóstico adaptativo da mesma fatia não ganha tabela nova — ele lê `evento_estudo` marcado com
-`dados={"diagnostico": True}`, o mesmo padrão de `bloco_topico_id`.
+`dados={"diagnostico": True}`, o mesmo padrão de `bloco_topico_id`. A fatia 8 acrescenta
+`plano_dia`/`bloco` (plano do dia, job noturno, check-in — ver os docstrings das duas classes) e
+os cinco tipos de `evento_estudo` que ainda não tinham produtor (`checkin`, `bloco_iniciado`,
+`bloco_concluido`, `bloco_pulado`, `discordou`, `distracao` — seis, na verdade; o `CheckConstraint`
+de `tipo` já os continha desde a V3).
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -38,6 +42,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    Time,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -383,10 +388,15 @@ class EventoEstudo(ChaveUuid, Base):
     herda `Carimbos` (sem `atualizado_em`, sem `ON UPDATE`) — a camada de dados não expõe
     update/delete nesta tabela. O `CheckConstraint` de `tipo` já traz os dez valores do modelo
     de dados; a V3 produziu `resposta` e `reporte`, a V4 acrescenta `revisao_cartao` (com
-    `cartao_id` preenchido) — os demais tipos continuam reservados, sem migração nova até a
-    fatia que os produzir. `dados` (V5) é o JSON livre que o modelo de dados já nomeava: hoje só
-    o fio da memória grava nele (`bloco_topico_id`, e quando o item é intercalado
-    `fio_motivo`/`fio_origem_topico_id`); qualquer chave futura entra sem migração nova.
+    `cartao_id` preenchido) — a fatia 8 produz os seis tipos que faltavam
+    (`checkin`/`bloco_iniciado`/`bloco_concluido`/`bloco_pulado`/`discordou`/`distracao`).
+    `dados` (V5) é o JSON livre que o modelo de dados já nomeava: o fio da memória grava
+    `bloco_topico_id` nele (e, quando o item é intercalado, `fio_motivo`/`fio_origem_topico_id`);
+    qualquer chave futura entra sem migração nova. `bloco_id`/`energia` (fatia 8) passam a ser
+    colunas reais — o modelo de dados §2 já as nomeava desde a Fase 3 ("questao_id?, bloco_id?,
+    cartao_id?, ..., energia?, hora_local"), mas nenhuma fatia anterior tinha `bloco` para
+    apontar; `hora_local` continua sem coluna própria (exigiria o fuso do usuário, P-44, ainda
+    não resolvido).
     """
 
     __tablename__ = "evento_estudo"
@@ -410,11 +420,13 @@ class EventoEstudo(ChaveUuid, Base):
     ocorrido_em: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
     tipo: Mapped[str] = mapped_column(String(32), nullable=False)
     questao_id: Mapped[UUID | None] = mapped_column(ForeignKey("questao.id"), nullable=True)
+    bloco_id: Mapped[UUID | None] = mapped_column(ForeignKey("bloco.id"), nullable=True)
     cartao_id: Mapped[UUID | None] = mapped_column(ForeignKey("cartao.id"), nullable=True)
     acertou: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     resposta: Mapped[str | None] = mapped_column(String(8), nullable=True)
     tempo_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     confianca_declarada: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    energia: Mapped[int | None] = mapped_column(Integer, nullable=True)
     dados: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     usuario: Mapped[Usuario] = relationship()
@@ -642,3 +654,104 @@ class PerfilEstudo(ChaveUuid, Base):
 
     usuario: Mapped[Usuario] = relationship()
     concurso_principal: Mapped[Concurso | None] = relationship()
+
+
+class PlanoDia(ChaveUuid, Base):
+    """O plano de um dia de uma usuária — nasce à noite (`versao=1`), reescrito pelo check-in.
+
+    Não herda `Carimbos`: `gerado_em` já é o carimbo de criação e não há `atualizado_em` — uma
+    reescrita (check-in, F3.2) nunca faz `UPDATE` nesta linha, cria uma nova com `versao` maior
+    para o mesmo `(usuario_id, data)` (a versão é o histórico, mesmo espírito de `PerfilEstudo`
+    e `EventoEstudo` não terem o mixin). `energia`/`sono_h` são `None` na `versao=1` (a geração
+    noturna não tem check-in ainda); o check-in os preenche com os valores reais.
+
+    Attributes:
+        usuario_id: dona do plano.
+        data: o dia planejado (data local da aluna — sem fuso próprio nesta fatia, P-44 já
+            registrada na V4 para `Cartao.due`).
+        versao: `1` = gerada pelo job noturno; `2+` = reescrita por check-in.
+        gerado_em: instante em que esta versão foi montada.
+        energia: `1`–`5` declarada no check-in; `None` na `versao=1`.
+        sono_h: horas de sono declaradas no check-in; `None` na `versao=1`.
+        tempo_min: minutos disponíveis usados para montar este plano.
+        modo: `"normal"`/`"descanso"`/`"semana_prova"` (só os dois primeiros têm comportamento
+            nesta fatia — `dominio.plano.montar_plano` nunca produz `"semana_prova"`).
+        porque_geral: a explicação final do dia inteiro (`dominio.plano.motivo_geral_do_plano`)
+            — nunca vazia, mesmo sem bloco nenhum.
+    """
+
+    __tablename__ = "plano_dia"
+    __table_args__ = (
+        UniqueConstraint("usuario_id", "data", "versao"),
+        CheckConstraint("modo IN ('normal','descanso','semana_prova')", name="modo"),
+    )
+
+    usuario_id: Mapped[UUID] = mapped_column(ForeignKey("usuario.id"), index=True, nullable=False)
+    data: Mapped[date] = mapped_column(Date, nullable=False)
+    versao: Mapped[int] = mapped_column(Integer, nullable=False)
+    gerado_em: Mapped[datetime] = mapped_column(DataHoraUtc, default=agora_utc, nullable=False)
+    energia: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sono_h: Mapped[float | None] = mapped_column(Float, nullable=True)
+    tempo_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    modo: Mapped[str] = mapped_column(String(16), nullable=False)
+    porque_geral: Mapped[str] = mapped_column(Text, nullable=False)
+
+    usuario: Mapped[Usuario] = relationship()
+    blocos: Mapped[list["Bloco"]] = relationship(
+        order_by="Bloco.ordem", cascade="all, delete-orphan"
+    )
+
+
+class Bloco(ChaveUuid, Base):
+    """Um bloco do dia — aula, questões, revisão ou descanso — sempre com o porquê visível.
+
+    Não herda `Carimbos`: `status`/`iniciado_em`/`concluido_em` mudam por ação da aluna (iniciar,
+    concluir, pular, discordar), cada mudança já vira um `EventoEstudo` próprio (o registro
+    append-only); o `Bloco` guarda só o estado atual, não o histórico de mudanças dele. Quando a
+    aluna discorda (F3.3/F3.4), o bloco antigo vira `status="trocado"` e um `Bloco` novo nasce na
+    mesma `ordem` — nunca um `UPDATE` no lugar do tipo/tópico antigo, para o porquê original
+    continuar auditável junto do evento `discordou`.
+
+    Attributes:
+        plano_dia_id: o `PlanoDia` (uma versão específica) dono deste bloco.
+        ordem: posição no dia, a partir de 1.
+        tipo: `"aula"`/`"questoes"`/`"revisao"`/`"resumo"`/`"descanso"` — só os três primeiros têm
+            produtor nesta fatia (`"resumo"` é F4.7, `"descanso"` como bloco explícito não nasce
+            aqui — ver `dominio.plano.montar_plano`).
+        topico_id: tópico do bloco; `None` em `"revisao"` (abrange vários tópicos).
+        aula_id: `None` nesta fatia — a tela de bloco de aula resolve a aula pelo `topico_id` via
+            `aula_publicada_do_topico`, mesmo caminho de `/topico/{slug}/aula`; a coluna existe
+            porque o modelo de dados a nomeia, para quando fixar a aula exata valer a pena.
+        duracao_min: duração estimada.
+        hora_sugerida: relógio sugerido (`dominio.plano._atribuir_ordem_e_hora`).
+        porque: a explicação deste bloco — `NOT NULL` por contrato (F3.3 CA).
+        status: `"pendente"`/`"iniciado"`/`"concluido"`/`"pulado"`/`"trocado"`.
+        iniciado_em: quando a aluna apertou "Iniciar"; `None` até lá.
+        concluido_em: quando marcou "Concluí"; `None` até lá (inclusive quando `status="pulado"`
+            ou `"trocado"`).
+    """
+
+    __tablename__ = "bloco"
+    __table_args__ = (
+        CheckConstraint("tipo IN ('aula','questoes','revisao','resumo','descanso')", name="tipo"),
+        CheckConstraint(
+            "status IN ('pendente','iniciado','concluido','pulado','trocado')", name="status"
+        ),
+    )
+
+    plano_dia_id: Mapped[UUID] = mapped_column(
+        ForeignKey("plano_dia.id"), index=True, nullable=False
+    )
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False)
+    tipo: Mapped[str] = mapped_column(String(16), nullable=False)
+    topico_id: Mapped[UUID | None] = mapped_column(ForeignKey("topico.id"), nullable=True)
+    aula_id: Mapped[UUID | None] = mapped_column(ForeignKey("aula.id"), nullable=True)
+    duracao_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    hora_sugerida: Mapped[time | None] = mapped_column(Time, nullable=True)
+    porque: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="pendente", nullable=False)
+    iniciado_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+    concluido_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+
+    topico: Mapped[Topico | None] = relationship()
+    aula: Mapped[Aula | None] = relationship()

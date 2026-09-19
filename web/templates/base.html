@@ -16,6 +16,9 @@
   <link rel="stylesheet" href="/static/css/componentes.css">
   <link rel="stylesheet" href="/static/css/base.css">
   <script src="/static/js/htmx.min.js" defer></script>
+  {# Sem `defer`: o tema precisa valer antes da primeira pintura, senão a página pisca na
+     cor errada antes de corrigir. É o único script síncrono do shell. #}
+  <script src="/static/js/tema.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -37,11 +40,16 @@
           <a href="/cadastro" {% if request.url.path == "/cadastro" %}aria-current="page"{% endif %}>Criar conta</a>
         {% endif %}
       </div>
-      {% if usuario_email %}
-        <form method="post" action="/sair" class="lateral__rodape">
-          <button class="botao-link" type="submit">Sair</button>
-        </form>
-      {% endif %}
+      <div class="lateral__rodape">
+        {# `hidden` por padrão: sem JS o botão não faria nada, e botão que não faz nada é pior
+           que botão ausente. A ilha `tema.js` o revela. #}
+        <button class="botao-link" type="button" data-alternar-tema hidden>Tema</button>
+        {% if usuario_email %}
+          <form method="post" action="/sair">
+            <button class="botao-link" type="submit">Sair</button>
+          </form>
+        {% endif %}
+      </div>
     </nav>
     <div class="coluna">
       <main id="conteudo" class="conteudo">

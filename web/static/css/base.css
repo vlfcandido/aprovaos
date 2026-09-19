@@ -124,6 +124,10 @@ a {
 .lateral__rodape {
   margin-top: auto;
   padding-inline: var(--espaco-2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-2);
 }
 
 /* Botão com cara de link: para ações POST na navegação (ex.: sair) */

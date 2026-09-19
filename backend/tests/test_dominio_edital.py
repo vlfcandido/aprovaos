@@ -11,6 +11,7 @@ from aprovaos.dominio.edital import (
     extrair_conteudo_programatico,
     extrair_fatos,
     fonte_conteudo_programatico,
+    normalizar_materia,
     prefixo_materia,
     slug_materia,
     slug_topico,
@@ -119,6 +120,16 @@ def test_materia_sem_dois_pontos() -> None:
         "1. Tributos.",
         "2. Competência tributária.",
     ]
+
+
+def test_normalizar_materia_converge_grafias_diferentes() -> None:
+    """Dado velho do bug de fusão (corrigido no parser em `73f69a0`, não retroagido ao banco):
+    o mesmo edital pode ter a matéria em duas caixas — sem normalizar na leitura, ela vira duas
+    matérias na tela (fatia 14, defeito reproduzido no navegador)."""
+    assert normalizar_materia("LÍNGUA PORTUGUESA") == normalizar_materia("Língua Portuguesa")
+    assert normalizar_materia("LÍNGUA PORTUGUESA") == "Língua Portuguesa"
+    assert normalizar_materia("NOÇÕES DE INFORMÁTICA") == "Noções de Informática"
+    assert normalizar_materia("direito administrativo") == "Direito Administrativo"
 
 
 def test_sem_conteudo_programatico() -> None:
@@ -634,3 +645,17 @@ def test_bloco_sem_numeracao_com_uma_frase_so_vira_grupo_nao_materia() -> None:
     materias = extrair_conteudo_programatico(texto)
     assert len(materias) == 1
     assert materias[0].grupo == "AVISO"
+
+
+def test_normalizar_materia_respeita_barra_e_hifen() -> None:
+    """A letra depois de `/` ou `-` continua maiúscula — ela abre uma palavra nova.
+
+    Achado aplicando a normalização ao banco real: `"Matemática/Raciocínio Lógico"` virava
+    `"Matemática/raciocínio Lógico"`, porque a regra quebrava só em espaço e o token
+    `"Matemática/Raciocínio"` era tratado como uma palavra só.
+    """
+    assert normalizar_materia("MATEMÁTICA/RACIOCÍNIO LÓGICO") == "Matemática/Raciocínio Lógico"
+    assert normalizar_materia("Matemática/Raciocínio Lógico") == "Matemática/Raciocínio Lógico"
+    assert normalizar_materia("DIREITO CIVIL-PROCESSUAL") == "Direito Civil-Processual"
+    # O conectivo depois da barra continua conectivo, e continua em minúscula.
+    assert normalizar_materia("NOÇÕES DE INFORMÁTICA") == "Noções de Informática"

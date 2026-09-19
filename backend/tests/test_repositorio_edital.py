@@ -131,7 +131,9 @@ def test_registrar_edital_cria_tudo(
     assert linhas[0].texto_original == "1. Compreensão e interpretação de textos."
     assert linhas[0].peso_edital == Decimal("1.786")  # 12,5 % / 7 tópicos
     assert linhas[0].topico.slug == "lin-por-01-compreensao-interpretacao"
-    assert linhas[0].topico.materia == "LÍNGUA PORTUGUESA"
+    # O parser preserva a grafia do edital (`MateriaExtraida.nome` segue em CAIXA ALTA); o
+    # banco guarda a forma normalizada, para a mesma matéria não virar duas por causa da caixa.
+    assert linhas[0].topico.materia == "Língua Portuguesa"
     assert linhas[0].topico.nome == "Compreensão e interpretação de textos."
     licitacoes = next(t for t in linhas if t.topico.slug.endswith("licitacoes-contratos"))
     assert licitacoes.peso_edital == Decimal("3.409")  # 75 % / 22 tópicos
@@ -158,13 +160,13 @@ def test_registrar_edital_guarda_grupo(
         select(TopicoEdital).where(TopicoEdital.edital_id == edital.id).order_by(TopicoEdital.ordem)
     ).all()
     grupos_por_materia = {linha.topico.materia: linha.grupo for linha in linhas}
-    assert grupos_por_materia["LÍNGUA PORTUGUESA"] is None
-    assert grupos_por_materia["RACIOCÍNIO LÓGICO"] is None
-    assert grupos_por_materia["LEGISLAÇÃO MUNICIPAL"] is None
-    assert grupos_por_materia["DIREITO CONSTITUCIONAL"] == "CONHECIMENTOS ESPECÍFICOS"
-    assert grupos_por_materia["DIREITO ADMINISTRATIVO"] == "CONHECIMENTOS ESPECÍFICOS"
-    assert grupos_por_materia["DIREITO CIVIL"] == "CONHECIMENTOS ESPECÍFICOS"
-    assert grupos_por_materia["DIREITO PROCESSUAL CIVIL"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["Língua Portuguesa"] is None
+    assert grupos_por_materia["Raciocínio Lógico"] is None
+    assert grupos_por_materia["Legislação Municipal"] is None
+    assert grupos_por_materia["Direito Constitucional"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["Direito Administrativo"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["Direito Civil"] == "CONHECIMENTOS ESPECÍFICOS"
+    assert grupos_por_materia["Direito Processual Civil"] == "CONHECIMENTOS ESPECÍFICOS"
 
 
 def test_registrar_edital_por_ia_guarda_modelo_e_data_desconhecida(
@@ -242,13 +244,13 @@ def test_buscar_concurso_e_verticalizado(
 
     lista = verticalizado(db, edital.id)
     assert [m.nome for m in lista] == [
-        "LÍNGUA PORTUGUESA",
-        "RACIOCÍNIO LÓGICO",
-        "LEGISLAÇÃO MUNICIPAL",
-        "DIREITO CONSTITUCIONAL",
-        "DIREITO ADMINISTRATIVO",
-        "DIREITO CIVIL",
-        "DIREITO PROCESSUAL CIVIL",
+        "Língua Portuguesa",
+        "Raciocínio Lógico",
+        "Legislação Municipal",
+        "Direito Constitucional",
+        "Direito Administrativo",
+        "Direito Civil",
+        "Direito Processual Civil",
     ]
     assert [m.slug for m in lista][:2] == ["lingua-portuguesa", "raciocinio-logico"]
     assert [len(m.topicos) for m in lista] == [7, 4, 3, 6, 7, 4, 5]
@@ -275,7 +277,7 @@ def test_slug_igual_com_conteudo_diferente_nao_funde_dois_editais(
     tenant_id = _tenant(db, "linda@exemplo.com")
     caixa_alta = [
         MateriaExtraida(
-            nome="LÍNGUA PORTUGUESA",
+            nome="Língua Portuguesa",
             slug="lingua-portuguesa",
             grupo=None,
             topicos=[
@@ -307,11 +309,12 @@ def test_slug_igual_com_conteudo_diferente_nao_funde_dois_editais(
 
     topicos = list(db.scalars(select(Topico).order_by(Topico.criado_em)))
     assert len(topicos) == 2, [(t.slug, t.materia, t.nome) for t in topicos]
+    # As duas matérias convergem para a mesma grafia ao serem gravadas; o que separa os tópicos
+    # é o **nome do item** ("textos." × "texto."), que é o sinal certo — não a caixa da matéria.
+    assert [t.materia for t in topicos] == ["Língua Portuguesa", "Língua Portuguesa"]
     assert topicos[0].slug == "lin-por-01-compreensao-interpretacao"
-    assert topicos[0].materia == "LÍNGUA PORTUGUESA"
     assert topicos[0].nome == "Compreensão e interpretação de textos."
     assert topicos[1].slug == "lin-por-01-compreensao-interpretacao-2"
-    assert topicos[1].materia == "Língua Portuguesa"
     assert topicos[1].nome == "Compreensão e interpretação de texto."
 
 
@@ -374,3 +377,38 @@ def test_contagem_editais_com_dna(
     db.commit()
     assert contagem_editais_com_dna(db, tenant_id) == 2
     assert contagem_editais_com_dna(db, outro_tenant_id) == 0
+
+
+def test_materia_e_gravada_normalizada_e_a_caixa_nao_duplica_topico(
+    db: Session, resultado: ResultadoDna, documento: DadosDocumento
+) -> None:
+    """Dois editais com a mesma matéria em caixas diferentes compartilham o tópico.
+
+    A leitura já normalizava (painel e diagnóstico), mas a **escrita** continuava gravando a
+    grafia crua — então um edital novo em CAIXA ALTA recriaria a duplicata que a normalização de
+    leitura acabara de esconder, e desta vez como duas linhas de verdade, porque o
+    get-or-create compara `materia`. Normalizar na escrita fecha o ciclo: uma grafia só no banco.
+    """
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    item = TopicoExtraido(
+        numero=1,
+        texto_original="1. Compreensão e interpretação de texto.",
+        slug="lin-por-01-compreensao-interpretacao",
+    )
+    caixa_alta = [
+        MateriaExtraida(
+            nome="LÍNGUA PORTUGUESA", slug="lingua-portuguesa", grupo=None, topicos=[item]
+        )
+    ]
+    titulo_caso = [
+        MateriaExtraida(
+            nome="Língua Portuguesa", slug="lingua-portuguesa", grupo=None, topicos=[item]
+        )
+    ]
+    registrar_edital(db, tenant_id, resultado, caixa_alta, documento)
+    registrar_edital(db, tenant_id, resultado, titulo_caso, documento)
+    db.commit()
+
+    topicos = list(db.scalars(select(Topico)))
+    assert len(topicos) == 1, [(t.slug, t.materia) for t in topicos]
+    assert topicos[0].materia == "Língua Portuguesa"

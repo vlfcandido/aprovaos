@@ -150,6 +150,52 @@ def slug_materia(nome: str) -> str:
     return "-".join(_palavras(nome))
 
 
+#: Conectivos que ficam em minúscula em `normalizar_materia`, fora da primeira palavra (ex.:
+#: "Noções de Informática", "Língua Portuguesa e Redação").
+_CONECTIVOS_MATERIA = {"de", "da", "do", "das", "dos", "e"}
+
+
+def _capitalizar_composta(palavra: str) -> str:
+    """Capitaliza a palavra e também o que vem depois de `/` ou `-`.
+
+    `"MATEMÁTICA/RACIOCÍNIO"` virava `"Matemática/raciocínio"` quando a regra quebrava só em
+    espaço: o token inteiro era tratado como uma palavra só. Barra e hífen abrem palavra nova.
+    """
+    resultado = palavra.lower()
+    for indice, caractere in enumerate(resultado):
+        if indice == 0 or resultado[indice - 1] in "/-":
+            resultado = resultado[:indice] + caractere.upper() + resultado[indice + 1 :]
+    return resultado
+
+
+def normalizar_materia(nome: str) -> str:
+    """Grafia de exibição de uma matéria, a mesma não importa a caixa de entrada.
+
+    Existe por causa de um dado velho: o bug de fusão de matérias do parser (corrigido no
+    parser em `73f69a0`, mas não retroagido ao banco) gravou a mesma matéria em caixas
+    diferentes em `Topico.materia` de edital antigos — ex. `"LÍNGUA PORTUGUESA"` numa linha e
+    `"Língua Portuguesa"` noutra, do mesmo edital. Sem normalizar na leitura, as duas viram duas
+    matérias na tela. Determinística e independente da caixa de entrada: duas grafias da mesma
+    matéria sempre convergem para o mesmo rótulo, então quem agrupa por matéria (painel,
+    diagnóstico) nunca duplica.
+
+    Args:
+        nome: o valor bruto de `Topico.materia` (qualquer caixa).
+
+    Returns:
+        `nome` com a primeira letra de cada palavra em maiúscula, exceto os conectivos de
+        `_CONECTIVOS_MATERIA` fora da primeira posição.
+    """
+    palavras = nome.strip().split()
+    capitalizadas = [
+        palavra.lower()
+        if indice > 0 and palavra.lower() in _CONECTIVOS_MATERIA
+        else _capitalizar_composta(palavra)
+        for indice, palavra in enumerate(palavras)
+    ]
+    return " ".join(capitalizadas)
+
+
 def prefixo_materia(nome: str) -> str:
     """Prefixo do slug de tópico: 3 primeiras letras de cada palavra significativa do nome.
 

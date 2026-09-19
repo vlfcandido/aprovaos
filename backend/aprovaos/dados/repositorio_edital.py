@@ -29,7 +29,12 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
-from aprovaos.dominio.edital import DESCONHECIDO, MateriaExtraida, slug_materia
+from aprovaos.dominio.edital import (
+    DESCONHECIDO,
+    MateriaExtraida,
+    normalizar_materia,
+    slug_materia,
+)
 
 _NUMERO_DO_ITEM = re.compile(r"^\d+\.\s*")
 _TRES_CASAS = Decimal("0.001")
@@ -134,16 +139,21 @@ def _obter_ou_criar_topico(db: Session, materia: MateriaExtraida, slug: str, tex
         slug é endereço de URL (`/topico/{slug}/questoes`).
     """
     nome = _nome_do_topico(texto)
+    # A matéria é gravada **normalizada** (`normalizar_materia`): o mesmo edital escrito em
+    # CAIXA ALTA e em Título Caso tem de convergir para uma grafia só no banco. Sem isto, a
+    # normalização que o painel e o diagnóstico fazem na leitura esconderia a duplicata na tela
+    # enquanto o banco continuaria criando uma linha nova a cada grafia diferente.
+    materia_normalizada = normalizar_materia(materia.nome)
     candidato = slug
     sufixo = 1
     while True:
         topico = db.scalars(select(Topico).where(Topico.slug == candidato)).first()
         if topico is None:
-            topico = Topico(materia=materia.nome, nome=nome, slug=candidato)
+            topico = Topico(materia=materia_normalizada, nome=nome, slug=candidato)
             db.add(topico)
             db.flush()
             return topico
-        if topico.materia == materia.nome and topico.nome == nome:
+        if topico.materia == materia_normalizada and topico.nome == nome:
             return topico
         sufixo += 1
         candidato = f"{slug}-{sufixo}"

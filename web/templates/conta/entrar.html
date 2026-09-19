@@ -26,4 +26,9 @@
       <a href="/cadastro">Ainda não tenho conta — criar</a>
     </div>
   </form>
+  {% if google_oauth_disponivel %}
+    <div class="acoes">
+      <a class="botao botao--secundario" href="/entrar/google">Entrar com o Google</a>
+    </div>
+  {% endif %}
 {% endblock %}

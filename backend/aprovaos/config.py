@@ -55,6 +55,12 @@ class Configuracoes(BaseSettings):
             ver o gabarito do gerador (regra 1 do produto: nada gerado chega ao aluno sem
             validação por outro agente). `gemini-3.6-flash` pelo mesmo motivo de `modelo_questao`
             — resolver a questão é raciocínio, não classificação.
+        google_oauth_client_id: `Client ID` OAuth 2.0 do Google Cloud (fatia 1b, RF-20, Ruling
+            42, ADR-0026); `None` = login por Google inativo (a rota `/entrar/google` devolve
+            404 e o botão não aparece). Fonte: doc oficial do Google Identity, OAuth 2.0 para
+            aplicações web — https://developers.google.com/identity/protocols/oauth2/web-server.
+        google_oauth_client_secret: `Client Secret` do mesmo par de credenciais; `None` no mesmo
+            critério de `google_oauth_client_id` (as duas nascem e morrem juntas).
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -77,6 +83,8 @@ class Configuracoes(BaseSettings):
     modelo_aula: str = "gemini-3.6-flash"
     modelo_questao: str = "gemini-3.6-flash"
     modelo_validador_questao: str = "gemini-3.6-flash"
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: SecretStr | None = None
 
 
 @lru_cache

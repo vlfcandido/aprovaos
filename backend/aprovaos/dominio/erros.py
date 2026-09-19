@@ -99,6 +99,22 @@ class SemConcursoPrincipal(ErroDominio):
     """
 
 
+class GoogleOAuthIndisponivel(ErroDominio):
+    """A troca de código por token, ou a consulta do perfil, falhou no provedor do Google.
+
+    Levantada por `api.conta.trocar_codigo_por_perfil` (fatia 1b, RF-20, Ruling 42) — a página
+    de login mostra a mesma mensagem genérica de "tente de novo", nunca o detalhe do provedor.
+    """
+
+
+class EmailGoogleNaoVerificado(ErroDominio):
+    """O perfil do Google devolveu `email_verified=false` (Ruling 42: e-mail sempre verificado).
+
+    Um e-mail não verificado pelo próprio Google não é prova suficiente de identidade — a conta
+    não é criada nem ligada.
+    """
+
+
 class SumulaNaoEncontrada(ErroDominio):
     """A súmula pedida não resolveu (`dominio/sumula.py`).
 

@@ -7,6 +7,7 @@ precise nascer com a app. Subir: `uvicorn aprovaos.main:criar_app --factory`.
 
 from pathlib import Path
 
+import httpx2
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Engine
@@ -43,9 +44,11 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     Returns:
         A app com `app.state.config`, `app.state.fabrica_sessao`, `app.state.templates`,
         `app.state.uploads_dir` (padrão: `data/uploads` na raiz; a pasta só nasce no primeiro
-        upload) e `app.state.fonte_cebraspe` (fatia 1b — cliente HTTP real da Cebraspe, para o
-        detalhe ao vivo do radar; testes substituem por um dublê) preenchidos e `/static`
-        montado a partir de `config.web_dir` (padrão: `web/`).
+        upload), `app.state.fonte_cebraspe` (fatia 1b — cliente HTTP real da Cebraspe, para o
+        detalhe ao vivo do radar) e `app.state.cliente_google_oauth` (fatia 1b — cliente HTTP
+        genérico para o login por Google, RF-20; inerte enquanto `GOOGLE_OAUTH_CLIENT_ID`/
+        `_SECRET` forem `None`) preenchidos — testes substituem os dois por dublês. `/static`
+        é montado a partir de `config.web_dir` (padrão: `web/`).
     """
     config = config or obter_configuracoes()
     engine = engine or criar_engine(config.database_url)
@@ -58,6 +61,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.state.templates = criar_templates(web_dir)
     app.state.uploads_dir = config.uploads_dir or raiz / "data" / "uploads"
     app.state.fonte_cebraspe = criar_fonte_cebraspe(config)
+    app.state.cliente_google_oauth = httpx2.Client(timeout=10)
 
     app.mount("/static", StaticFiles(directory=web_dir / "static"), name="static")
     app.include_router(inicio.router)

@@ -112,7 +112,13 @@ _NUMERO_ARTIGO_COM_MILHAR = r"\d{1,3}(?:\.\d{3})*"
 1009."`; sem isso, `_PADRAO_INICIO_ARTIGO_QUALQUER` não reconhece o início de um artigo de 4
 dígitos como fronteira, e `_padrao_caput` não o acha de jeito nenhum)."""
 _PADRAO_INICIO_ARTIGO_QUALQUER = re.compile(rf"^Art\.\s*{_NUMERO_ARTIGO_COM_MILHAR}[ºo]?\.?(?!\d)")
-_PADRAO_PARAGRAFO = re.compile(r"^(§\s*\d+[ºo]?\.?|Par[aá]grafo único\.?)\s")
+_PADRAO_PARAGRAFO = re.compile(r"^(§\s*\d+[ºo]?(?:-[A-Z])?\.?|Par[aá]grafo único\.?)\s")
+"""Reconhece `"§ 3º"`, `"§ 10."` e, com sufixo de letra (parágrafo incluído entre dois já
+numerados, ex.: `"§ 4º-A"` — Lei 8.429/1992 art. 17, incluído pela Lei 14.230/2021; Lei
+11.101/2005 art. 6º), `"§ 4º-A"`/`"§ 4º-A."`. `_numero_do_identificador` compara só os dígitos
+do identificador — hoje `"§ 4º-A"` e `"§ 4º"` resolveriam para o mesmo número em
+`localizar_trecho`; sem citação real a um `"§ Nº-<letra>"` na base ainda, fica registrado aqui
+como limitação conhecida, não resolvida nesta rodada (P-40)."""
 _PADRAO_INCISO = re.compile(r"^([IVXLCDM]+)\s*[-–]\s")
 _PADRAO_ALINEA = re.compile(r"^([a-z])\)\s")
 

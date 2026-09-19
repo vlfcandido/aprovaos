@@ -22,6 +22,7 @@ def _ler(nome: str) -> str:
 
 HTML_LEI_8429 = _ler("lei8429_planalto_compilada.htm")
 HTML_LEI_11340 = _ler("lei11340_planalto_compilada.htm")
+HTML_LEI_11101 = _ler("lei11101_planalto_compilada.htm")
 
 
 # --- (a) título de Seção/Capítulo em Title Case entre artigos --------------------------------
@@ -78,5 +79,36 @@ def test_artigo_24_da_lei_11340_atravessa_secao_iv_e_rubrica_sem_palavra_chave()
     assert artigo.paragrafos[0].identificador == "Parágrafo único."
     textos = [artigo.caput.texto, artigo.paragrafos[0].texto]
     assert not any("Seção IV" in t or "Descumprimento de Medidas Protetivas" in t for t in textos)
+
+
+# --- (b) parágrafo com sufixo de letra ("§ 4º-A") ---------------------------------------------
+
+
+def test_artigo_17_da_lei_8429_le_o_paragrafo_4_a() -> None:
+    """`"§ 4º-A"` (sufixo de letra) é um parágrafo de verdade, incluído pela Lei 14.230/2021 —
+    não pode derrubar a extração do art. 17 inteiro."""
+    artigo = extrair_artigo(HTML_LEI_8429, "17")
+
+    identificadores = [p.identificador for p in artigo.paragrafos]
+    assert "§ 4º-A" in identificadores
+    paragrafo_4a = next(p for p in artigo.paragrafos if p.identificador == "§ 4º-A")
+    assert paragrafo_4a.texto == (
+        "§ 4º-A A ação a que se refere o caput deste artigo deverá ser proposta perante o foro "
+        "do local onde ocorrer o dano ou da pessoa jurídica prejudicada."
+    )
+
+
+def test_artigo_6_da_lei_11101_le_o_paragrafo_4_a_com_ponto() -> None:
+    """Mesma estrutura, grafada com ponto final no identificador (`"§ 4º-A."`), na Lei
+    11.101/2005 (recuperação judicial/falência)."""
+    artigo = extrair_artigo(HTML_LEI_11101, "6")
+
+    identificadores = [p.identificador for p in artigo.paragrafos]
+    assert "§ 4º-A." in identificadores
+    paragrafo_4a = next(p for p in artigo.paragrafos if p.identificador == "§ 4º-A.")
+    assert paragrafo_4a.texto.startswith(
+        "§ 4º-A. O decurso do prazo previsto no § 4º deste artigo sem a deliberação a respeito "
+        "do plano de recuperação judicial"
+    )
 
 

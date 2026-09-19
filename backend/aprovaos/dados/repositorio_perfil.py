@@ -1,10 +1,13 @@
-"""Repositório de `perfil_estudo` (fatia 7, F2.2): salvar a rotina e ler a versão atual.
+"""Repositório de `perfil_estudo` (fatia 7, F2.2; fatia 1b, F1.3): rotina e "meus concursos".
 
 O que é: `salvar_perfil` (grava uma nova versão e o consentimento de dados de rotina no
-`usuario`, na mesma chamada — R-01) e `perfil_atual` (a versão mais recente de um usuário).
-Quando ler: ao ligar o formulário `POST /rotina`, ou ao decidir o concurso principal de um
-usuário (`repositorio_edital.concurso_principal` lê `perfil_atual`). Funções soltas recebendo
-`Session` como primeiro parâmetro, fazem `add`/`flush`; o `commit` é sempre da rota.
+`usuario`, na mesma chamada — R-01), `perfil_atual` (a versão mais recente de um usuário),
+`marcar_principal` e `alternar_acompanhamento` (fatia 1b: trocam só `concurso_principal_id`/
+`concursos_acompanhados`, preservando o resto da rotina da versão anterior). Quando ler: ao
+ligar o formulário `POST /rotina`, as rotas `/perfil/principal`/`/radar/{evento_url}/acompanhar`,
+ou ao decidir o concurso principal de um usuário (`repositorio_edital.concurso_principal` lê
+`perfil_atual`). Funções soltas recebendo `Session` como primeiro parâmetro, fazem `add`/
+`flush`; o `commit` é sempre da rota.
 """
 
 from datetime import datetime
@@ -15,7 +18,10 @@ from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import PerfilEstudo, Usuario
+from aprovaos.dominio.erros import SemConcursoPrincipal
 from aprovaos.dominio.rotina import VERSAO_CONSENTIMENTO_ROTINA, DadosRotina
+
+MENSAGEM_SEM_ROTINA = "Configure sua rotina antes de escolher ou acompanhar concursos."
 
 
 def perfil_atual(db: Session, usuario_id: UUID) -> PerfilEstudo | None:
@@ -76,3 +82,78 @@ def salvar_perfil(
     db.add(perfil)
     db.flush()
     return perfil
+
+
+def _proxima_versao_a_partir_de(
+    atual: PerfilEstudo, usuario: Usuario, **sobrescritas: object
+) -> PerfilEstudo:
+    """Cria a versão seguinte de `perfil_estudo`, copiando a rotina de `atual`.
+
+    Só troca o que vier em `sobrescritas` — nunca reseta `horas_por_dia_semana`/
+    `concursos_acompanhados` por omissão (`PerfilEstudo` tem `default=list`/campos obrigatórios;
+    sem copiar, a próxima versão nasceria sem o que a versão anterior já sabia).
+    """
+    campos: dict[str, object] = {
+        "usuario": usuario,
+        "versao": atual.versao + 1,
+        "horas_por_dia_semana": dict(atual.horas_por_dia_semana),
+        "horario_preferido": atual.horario_preferido,
+        "energia_tipica": atual.energia_tipica,
+        "data_alvo": atual.data_alvo,
+        "concurso_principal_id": atual.concurso_principal_id,
+        "concursos_acompanhados": list(atual.concursos_acompanhados),
+    }
+    campos.update(sobrescritas)
+    return PerfilEstudo(**campos)
+
+
+def marcar_principal(db: Session, usuario: Usuario, concurso_id: UUID) -> PerfilEstudo:
+    """Grava uma nova versão do perfil com outro `concurso_principal_id` (F1.3, "só um principal").
+
+    Args:
+        db: sessão do request.
+        usuario: dono do perfil.
+        concurso_id: o `Concurso` que passa a ser o principal (a rota confere que é do tenant).
+
+    Returns:
+        O `PerfilEstudo` novo.
+
+    Raises:
+        SemConcursoPrincipal: o usuário ainda não tem rotina (`perfil_estudo`) — a rota deve
+            mandar para `/rotina` primeiro (mesmo critério de `motor/plano.py`).
+    """
+    atual = perfil_atual(db, usuario.id)
+    if atual is None:
+        raise SemConcursoPrincipal(MENSAGEM_SEM_ROTINA)
+    novo = _proxima_versao_a_partir_de(atual, usuario, concurso_principal_id=concurso_id)
+    db.add(novo)
+    db.flush()
+    return novo
+
+
+def alternar_acompanhamento(db: Session, usuario: Usuario, evento_url: str) -> PerfilEstudo:
+    """Adiciona ou remove um `evento_url` do radar em `concursos_acompanhados` (toggle, F1.3).
+
+    Args:
+        db: sessão do request.
+        usuario: dono do perfil.
+        evento_url: identidade do concurso do radar (`ConcursoRadar.evento_url`).
+
+    Returns:
+        O `PerfilEstudo` novo, com o `evento_url` presente ou ausente conforme o toggle.
+
+    Raises:
+        SemConcursoPrincipal: o usuário ainda não tem rotina (`perfil_estudo`).
+    """
+    atual = perfil_atual(db, usuario.id)
+    if atual is None:
+        raise SemConcursoPrincipal(MENSAGEM_SEM_ROTINA)
+    acompanhados = list(atual.concursos_acompanhados)
+    if evento_url in acompanhados:
+        acompanhados.remove(evento_url)
+    else:
+        acompanhados.append(evento_url)
+    novo = _proxima_versao_a_partir_de(atual, usuario, concursos_acompanhados=acompanhados)
+    db.add(novo)
+    db.flush()
+    return novo

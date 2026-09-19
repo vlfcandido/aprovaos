@@ -11,10 +11,16 @@ from aprovaos.agentes.analista_de_edital import ResultadoDna
 from aprovaos.dados.modelos import Usuario
 from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_edital import DadosDocumento, concurso_principal, registrar_edital
-from aprovaos.dados.repositorio_perfil import perfil_atual, salvar_perfil
+from aprovaos.dados.repositorio_perfil import (
+    alternar_acompanhamento,
+    marcar_principal,
+    perfil_atual,
+    salvar_perfil,
+)
 from aprovaos.dominio.conta import DadosCadastro
 from aprovaos.dominio.dna import montar_dna_por_regras
 from aprovaos.dominio.edital import MateriaExtraida, extrair_conteudo_programatico
+from aprovaos.dominio.erros import SemConcursoPrincipal
 from aprovaos.dominio.rotina import DIAS_SEMANA, DadosRotina
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -129,3 +135,63 @@ def test_concurso_principal_ignora_perfil_apontando_para_outro_tenant(
     salvar_perfil(db, intruso, _rotina(concurso_principal_id=concurso_do_dono.id))
     db.commit()
     assert concurso_principal(db, intruso.tenant_id) is None
+
+
+def test_marcar_principal_sem_perfil_ainda_levanta_sem_concurso_principal(db: Session) -> None:
+    usuario = _usuario(db, "h@exemplo.com")
+    with pytest.raises(SemConcursoPrincipal):
+        marcar_principal(db, usuario, UUID(int=0))
+
+
+def test_marcar_principal_grava_nova_versao_preservando_a_rotina(db: Session) -> None:
+    usuario = _usuario(db, "i@exemplo.com")
+    salvar_perfil(db, usuario, _rotina())
+    db.commit()
+
+    novo_principal = UUID(int=42)
+    perfil = marcar_principal(db, usuario, novo_principal)
+    db.commit()
+
+    assert perfil.versao == 2
+    assert perfil.concurso_principal_id == novo_principal
+    assert perfil.horario_preferido == "manha"
+    assert perfil.energia_tipica == "media"
+
+
+def test_alternar_acompanhamento_sem_perfil_ainda_levanta_sem_concurso_principal(
+    db: Session,
+) -> None:
+    usuario = _usuario(db, "j@exemplo.com")
+    with pytest.raises(SemConcursoPrincipal):
+        alternar_acompanhamento(db, usuario, "AGEPAR_PR_26")
+
+
+def test_alternar_acompanhamento_adiciona_e_depois_remove(db: Session) -> None:
+    usuario = _usuario(db, "k@exemplo.com")
+    salvar_perfil(db, usuario, _rotina())
+    db.commit()
+
+    adicionado = alternar_acompanhamento(db, usuario, "AGEPAR_PR_26")
+    db.commit()
+    assert adicionado.concursos_acompanhados == ["AGEPAR_PR_26"]
+    assert adicionado.versao == 2
+
+    removido = alternar_acompanhamento(db, usuario, "AGEPAR_PR_26")
+    db.commit()
+    assert removido.concursos_acompanhados == []
+    assert removido.versao == 3
+
+
+def test_alternar_acompanhamento_preserva_o_principal_ja_escolhido(db: Session) -> None:
+    usuario = _usuario(db, "l@exemplo.com")
+    salvar_perfil(db, usuario, _rotina())
+    db.commit()
+    principal = UUID(int=7)
+    marcar_principal(db, usuario, principal)
+    db.commit()
+
+    perfil = alternar_acompanhamento(db, usuario, "AGEPAR_PR_26")
+    db.commit()
+
+    assert perfil.concurso_principal_id == principal
+    assert perfil.concursos_acompanhados == ["AGEPAR_PR_26"]

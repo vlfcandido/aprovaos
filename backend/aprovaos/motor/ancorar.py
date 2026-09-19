@@ -38,7 +38,7 @@ from aprovaos.config import Configuracoes, obter_configuracoes
 from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
 from aprovaos.dados.modelos import DispositivoLegal, Questao
 from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo, registrar_citacao
-from aprovaos.dominio.citacao import ReferenciaLegal, extrair_citacoes
+from aprovaos.dominio.citacao import ReferenciaLegal, citacao_canonica, extrair_citacoes
 from aprovaos.dominio.erros import DispositivoNaoEncontrado, EstruturaNaoTratada
 from aprovaos.dominio.legislacao import (
     ArtigoExtraido,
@@ -50,18 +50,29 @@ from aprovaos.motor.fontes.planalto import CATALOGO, decodificar_html
 
 _RAIZ_DO_REPOSITORIO = Path(__file__).resolve().parents[3]
 
-_FIXTURES_OFFLINE: dict[str, str] = {
+FIXTURES_OFFLINE: dict[str, str] = {
     "cf-1988": "constituicao_planalto_compilada.htm",
     "lei-14133-2021": "lei14133_planalto_compilada.htm",
+    "clt": "clt_planalto_compilada.htm",
+    "lei-8429-1992": "lei8429_planalto_compilada.htm",
+    "lei-6404-1976": "lei6404_planalto_compilada.htm",
+    "lei-11101-2005": "lei11101_planalto_compilada.htm",
+    "lei-11340-2006": "lei11340_planalto_compilada.htm",
+    "lei-6830-1980": "lei6830_planalto_compilada.htm",
 }
 """As normas do catálogo que esta rodada resolve — offline, do HTML medido em
 `knowledge/fixtures/juridico/` (ver `LEIA-ME.md` de lá). Uma norma nova no `CATALOGO` só entra
 aqui depois de a fixture correspondente existir; até lá, cai em `lacuna_norma` ou
-`catalogada_nao_resolvida`, nunca trava o comando."""
-
-_LABEL_NORMA: dict[str, str] = {"cf-1988": "CF/88", "lei-14133-2021": "Lei 14.133/2021"}
-"""Rótulo legível de `citacao_canonica` para as normas do catálogo; para as demais (lacuna), o
-próprio id (`ReferenciaLegal.norma`) já é um rótulo estável o bastante para o relatório."""
+`catalogada_nao_resolvida`, nunca trava o comando. Estar aqui **não garante** que todo artigo
+citado resolva: `_resolver_trecho` engole `EstruturaNaoTratada`/`DispositivoNaoEncontrado` e
+devolve `None` — o artigo específico fica `catalogada_nao_resolvida` em vez de travar o comando.
+Achados desta rodada de ampliação (19/09/2026, ver `LEIA-ME.md` de `knowledge/fixtures/juridico/`
+para o trecho literal de cada um): CLT tem uma anotação "Vigência\\nencerrada" (sem parênteses,
+2 palavras) que o extrator não reconhece entre os parágrafos do art. 477; Lei 8.429/1992 e Lei
+11.340/2006 intercalam títulos de Seção/Capítulo em *Title Case* (não em CAIXA ALTA) entre
+artigos, que `dominio.legislacao._eh_titulo_estrutural` não reconhece como estrutural. Nenhum
+desses casos foi remendado nesta rodada — ficam como estrutura não tratada, resolvida como
+`None` pelo comando."""
 
 
 class RelatorioAncoragem(BaseModel):
@@ -92,8 +103,12 @@ class RelatorioAncoragem(BaseModel):
     normas_fora_do_catalogo: dict[str, int]
 
 
-def _html_da_norma(norma_id: str, cache: dict[str, str]) -> str | None:
+def html_offline_da_norma(norma_id: str, cache: dict[str, str]) -> str | None:
     """Devolve o HTML decodificado da `norma_id`, lendo a fixture offline uma vez só (cache).
+
+    Pública (não só deste comando): `motor.dossie` reaproveita para carregar o HTML das normas
+    que um dossiê pede, sem duplicar o caminho `knowledge/fixtures/juridico/` nem a tabela
+    `FIXTURES_OFFLINE`.
 
     Args:
         norma_id: id da norma (`ReferenciaLegal.norma`).
@@ -103,7 +118,7 @@ def _html_da_norma(norma_id: str, cache: dict[str, str]) -> str | None:
         O HTML decodificado, ou `None` quando não há fixture offline para esta norma ainda
         (norma do catálogo sem fixture baixada nesta rodada).
     """
-    if norma_id not in _FIXTURES_OFFLINE:
+    if norma_id not in FIXTURES_OFFLINE:
         return None
     if norma_id not in cache:
         caminho = (
@@ -111,7 +126,7 @@ def _html_da_norma(norma_id: str, cache: dict[str, str]) -> str | None:
             / "knowledge"
             / "fixtures"
             / "juridico"
-            / _FIXTURES_OFFLINE[norma_id]
+            / FIXTURES_OFFLINE[norma_id]
         )
         cache[norma_id] = decodificar_html(caminho.read_bytes())
     return cache[norma_id]
@@ -126,7 +141,7 @@ def _resolver_trecho(
 
     Args:
         referencia: a referência a resolver (`referencia.artigo` não pode ser `None`).
-        cache_html: cache de HTML por norma (`_html_da_norma`).
+        cache_html: cache de HTML por norma (`html_offline_da_norma`).
         cache_artigo: cache de `ArtigoExtraido` por `(norma, artigo)` — evita reprocessar o
             mesmo artigo a cada questão que o cita.
 
@@ -137,7 +152,7 @@ def _resolver_trecho(
         resolve é resultado de medição, não uma falha do comando.
     """
     assert referencia.artigo is not None
-    html = _html_da_norma(referencia.norma, cache_html)
+    html = html_offline_da_norma(referencia.norma, cache_html)
     if html is None:
         return None
 
@@ -155,28 +170,19 @@ def _resolver_trecho(
         return None
 
 
-def _citacao_canonica(referencia: ReferenciaLegal) -> str:
-    """Monta o identificador único de `dispositivo_legal.citacao_canonica` para uma referência.
+def _citacao_canonica_da_referencia(referencia: ReferenciaLegal) -> str:
+    """Monta a `citacao_canonica` de uma `ReferenciaLegal` já resolvida (`artigo` não é `None`).
 
-    Convenção desta rodada (primeiro corte — a skill `gerador-de-aula` pode ajustar o formato
-    de exibição quando precisar dele de verdade; `citacao_canonica` continua estável porque é
-    derivada só de norma/artigo/inciso/parágrafo, nunca do texto de exibição):
-    `"<rótulo da norma> art. <nº>"`, com `"§ <nº>º"` e/ou `"<inciso>"` anexados quando existem.
-
-    Args:
-        referencia: a referência já resolvida (`artigo` não pode ser `None`).
-
-    Returns:
-        A string canônica (ex.: `"CF/88 art. 37"`, `"CF/88 art. 37 § 3º II"`).
+    Fina camada sobre `dominio.citacao.citacao_canonica` — só desempacota os campos da
+    referência.
     """
     assert referencia.artigo is not None
-    rotulo = _LABEL_NORMA.get(referencia.norma, referencia.norma)
-    partes = [f"{rotulo} art. {referencia.artigo}"]
-    if referencia.paragrafo is not None:
-        partes.append(f"§ {referencia.paragrafo}º")
-    if referencia.inciso is not None:
-        partes.append(referencia.inciso)
-    return " ".join(partes)
+    return citacao_canonica(
+        referencia.norma,
+        referencia.artigo,
+        inciso=referencia.inciso,
+        paragrafo=referencia.paragrafo,
+    )
 
 
 def ancorar_citacoes(db: Session) -> RelatorioAncoragem:
@@ -232,7 +238,7 @@ def ancorar_citacoes(db: Session) -> RelatorioAncoragem:
             posicao += 1
             dispositivo = buscar_ou_criar_dispositivo(
                 db,
-                citacao_canonica=_citacao_canonica(referencia),
+                citacao_canonica=_citacao_canonica_da_referencia(referencia),
                 norma=referencia.norma,
                 artigo=referencia.artigo,
                 inciso=referencia.inciso,

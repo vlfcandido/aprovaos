@@ -38,8 +38,17 @@ usam (`Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)`
 """
 
 _ENCODING_PLANALTO = "cp1252"
-"""Codificação dos HTMLs compilados do Planalto — medido: o byte `0x92` (aspa curva) só decodifica
-como caractere de verdade em Windows-1252; em ISO-8859-1 ele é um controle C1 indefinido."""
+"""Codificação padrão dos HTMLs compilados do Planalto — medido: o byte `0x92` (aspa curva) só
+decodifica como caractere de verdade em Windows-1252; em ISO-8859-1 ele é um controle C1
+indefinido."""
+
+_BOM_UTF16_LE = b"\xff\xfe"
+_BOM_UTF16_BE = b"\xfe\xff"
+"""Achado desta rodada (catálogo ampliado, 19/09/2026): ao contrário da CF, da Lei 14.133 e das
+demais normas do catálogo (todas `cp1252`), a página compilada da Lei 11.340/2006 (Maria da
+Penha) vem em **UTF-16** com BOM. Decodificar esses bytes como `cp1252` sem checar o BOM produz
+um caractere por byte (`"< h t m l >"`) e zero ocorrências de `"Art."` — não é uma falha de
+estrutura do artigo, é a codificação errada aplicada aos bytes certos."""
 
 
 class NormaCatalogada(BaseModel):
@@ -63,8 +72,37 @@ CATALOGO: dict[str, NormaCatalogada] = {
         titulo="Lei nº 14.133, de 1º de abril de 2021 (texto compilado)",
         url="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm",
     ),
+    "clt": NormaCatalogada(
+        titulo="CLT — Decreto-Lei nº 5.452, de 1º de maio de 1943 (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm",
+    ),
+    "lei-8429-1992": NormaCatalogada(
+        titulo="Lei nº 8.429, de 2 de junho de 1992 — Improbidade Administrativa (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+    ),
+    "lei-6404-1976": NormaCatalogada(
+        titulo="Lei nº 6.404, de 15 de dezembro de 1976 — Sociedade por Ações (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/leis/l6404compilada.htm",
+    ),
+    "lei-11101-2005": NormaCatalogada(
+        titulo="Lei nº 11.101, de 9 de fevereiro de 2005 — Recuperação Judicial e Falência "
+        "(texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101.htm",
+    ),
+    "lei-11340-2006": NormaCatalogada(
+        titulo="Lei nº 11.340, de 7 de agosto de 2006 — Lei Maria da Penha (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11340.htm",
+    ),
+    "lei-6830-1980": NormaCatalogada(
+        titulo="Lei nº 6.830, de 22 de setembro de 1980 — Execução Fiscal (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/leis/l6830.htm",
+    ),
 }
-"""As normas que esta fonte sabe baixar hoje — cresce por norma (ver docstring do módulo)."""
+"""As normas que esta fonte sabe baixar hoje — cresce por norma (ver docstring do módulo). As
+seis últimas entraram na rodada de ampliação do catálogo (19/09/2026), na ordem de nº de
+questões da base real que citam cada uma (medição em `motor/ancorar.py`): CLT (11), Lei
+8.429/1992 (5), Lei 6.404/1976 (3), Lei 11.101/2005 (3), Lei 11.340/2006 (3), Lei 6.830/1980
+(2)."""
 
 
 class _RespostaHttp(Protocol):
@@ -92,13 +130,21 @@ class _ClienteHttp(Protocol):
 def decodificar_html(conteudo: bytes) -> str:
     """Decodifica o HTML compilado do Planalto para `str`, pronto para `dominio.legislacao`.
 
+    A maioria das normas do catálogo vem em Windows-1252 (`cp1252`); a Lei 11.340/2006 é a
+    exceção medida até agora — vem em UTF-16 com BOM (ver `_BOM_UTF16_LE`/`_BOM_UTF16_BE`). O
+    BOM nos bytes crus decide a codificação; sem BOM, o padrão continua `cp1252`.
+
     Args:
         conteudo: bytes crus baixados de uma norma do catálogo.
 
     Returns:
-        O texto decodificado como Windows-1252 (`cp1252`), com `errors="replace"` — um byte
-        inválido vira `�` em vez de interromper a extração inteira.
+        O texto decodificado, com `errors="replace"` — um byte/par inválido vira `�` em vez de
+        interromper a extração inteira.
     """
+    if conteudo.startswith(_BOM_UTF16_LE):
+        return conteudo.decode("utf-16-le", errors="replace")
+    if conteudo.startswith(_BOM_UTF16_BE):
+        return conteudo.decode("utf-16-be", errors="replace")
     return conteudo.decode(_ENCODING_PLANALTO, errors="replace")
 
 

@@ -78,6 +78,21 @@ _NORMA = re.compile(
 )
 
 
+LABEL_NORMA: dict[str, str] = {
+    "cf-1988": "CF/88",
+    "lei-14133-2021": "Lei 14.133/2021",
+    "clt": "CLT",
+    "lei-8429-1992": "Lei 8.429/1992",
+    "lei-6404-1976": "Lei 6.404/1976",
+    "lei-11101-2005": "Lei 11.101/2005",
+    "lei-11340-2006": "Lei 11.340/2006",
+    "lei-6830-1980": "Lei 6.830/1980",
+}
+"""Rótulo legível de `citacao_canonica` para as normas do catálogo (`motor.fontes.planalto.
+CATALOGO`); para as demais (lacuna), o próprio id (`ReferenciaLegal.norma`) já é um rótulo
+estável o bastante para relatório/dossiê."""
+
+
 class ReferenciaLegal(BaseModel):
     """Uma referência normativa reconhecida no texto de uma questão, já normalizada.
 
@@ -226,3 +241,34 @@ def extrair_citacoes(texto: str) -> list[ReferenciaLegal]:
         )
 
     return referencias
+
+
+def citacao_canonica(
+    norma: str, artigo: str, *, inciso: str | None = None, paragrafo: str | None = None
+) -> str:
+    """Monta o identificador único de `dispositivo_legal.citacao_canonica` para um dispositivo.
+
+    Convenção (primeiro corte — a skill `gerador-de-aula` pode ajustar o formato de exibição
+    quando precisar dele de verdade; `citacao_canonica` continua estável porque é derivada só de
+    norma/artigo/inciso/parágrafo, nunca do texto de exibição): `"<rótulo da norma> art. <nº>"`,
+    com `"§ <nº>º"` e/ou `"<inciso>"` anexados quando existem. Usada tanto por
+    `motor.ancorar` (citação encontrada no texto de uma questão) quanto por `dominio.dossie`
+    (dispositivo pedido para um dossiê) — é o elo estável entre os dois caminhos que levam ao
+    mesmo `DispositivoLegal`.
+
+    Args:
+        norma: id estável da norma (`ReferenciaLegal.norma`).
+        artigo: número do artigo, sem ordinal.
+        inciso: identificador do inciso (algarismo romano), quando a citação desce a esse nível.
+        paragrafo: número do parágrafo, sem ordinal, quando a citação desce a esse nível.
+
+    Returns:
+        A string canônica (ex.: `"CF/88 art. 37"`, `"CF/88 art. 37 § 3º II"`).
+    """
+    rotulo = LABEL_NORMA.get(norma, norma)
+    partes = [f"{rotulo} art. {artigo}"]
+    if paragrafo is not None:
+        partes.append(f"§ {paragrafo}º")
+    if inciso is not None:
+        partes.append(inciso)
+    return " ".join(partes)

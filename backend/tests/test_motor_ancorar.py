@@ -97,7 +97,31 @@ def test_questao_com_inciso_da_lei_14133_resolve_o_inciso_exato(db: Session) -> 
 
 
 def test_norma_fora_do_catalogo_e_lacuna_e_entra_no_ranking(db: Session) -> None:
-    """CLT não está no catálogo — a questão cai em `lacuna_norma`, sem gravar nada."""
+    """Uma norma que nenhum catálogo cobre ainda (ex.: Lei 8.038/1990) cai em `lacuna_norma`."""
+    salvar_questoes(
+        db,
+        [_questao(1, "O art. 12 da Lei n.º 8.038/1990 dispõe sobre o agravo regimental.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 0
+    assert relatorio.lacuna_norma == 1
+    assert relatorio.normas_fora_do_catalogo == {"lei-8038-1990": 1}
+    assert db.query(DispositivoLegal).count() == 0
+
+
+def test_clt_esta_no_catalogo_mas_art_477_nao_resolve_por_estrutura_nao_tratada(
+    db: Session,
+) -> None:
+    """CLT entrou no catálogo (ampliação 19/09/2026), mas o art. 477 tem uma anotação
+
+    ("Vigência\\nencerrada", sem parênteses) que `dominio.legislacao.extrair_artigo` não trata
+    (ver `knowledge/fixtures/juridico/LEIA-ME.md`, achado 2) — a questão cai em
+    `catalogada_nao_resolvida`, não em `lacuna_norma` (a norma já está no catálogo), e nenhum
+    dispositivo é gravado (a falha é engolida por `_resolver_trecho`, nunca trava o comando).
+    """
     salvar_questoes(
         db,
         [_questao(1, "A multa prevista no art. 477 da CLT não é aplicável a ente público.")],
@@ -107,9 +131,125 @@ def test_norma_fora_do_catalogo_e_lacuna_e_entra_no_ranking(db: Session) -> None
     relatorio = ancorar_citacoes(db)
 
     assert relatorio.resolvidas == 0
-    assert relatorio.lacuna_norma == 1
-    assert relatorio.normas_fora_do_catalogo == {"clt": 1}
+    assert relatorio.lacuna_norma == 0
+    assert relatorio.catalogada_nao_resolvida == 1
+    assert relatorio.normas_fora_do_catalogo == {}
     assert db.query(DispositivoLegal).count() == 0
+
+
+def test_clt_resolve_um_artigo_sem_a_anotacao_problematica(db: Session) -> None:
+    """O art. 3º da CLT (definição de empregado) não tem a anotação "Vigência\\nencerrada" do
+    art. 477 — resolve normalmente, provando que a norma em si está bem catalogada.
+    """
+    salvar_questoes(
+        db,
+        [_questao(1, "O art. 3º da CLT define quem é empregado.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "clt"
+    assert dispositivo.artigo == "3"
+    assert dispositivo.texto.startswith("Art. 3º - Considera-se empregado")
+
+
+def test_lei_8429_resolve_o_paragrafo_1_do_art_1_com_a_definicao_de_dolo(db: Session) -> None:
+    """§ 1º do art. 1º da Lei 8.429/1992 (redação da Lei 14.230/2021) resolve — é o dispositivo
+
+    que o dossiê de improbidade usa (passo 3 desta rodada).
+    """
+    salvar_questoes(
+        db,
+        [_questao(1, "O § 1º do art. 1º da Lei n.º 8.429/1992 exige dolo para configurar ato.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "lei-8429-1992"
+    assert dispositivo.artigo == "1"
+    assert dispositivo.paragrafo == "1"
+    assert "condutas dolosas" in dispositivo.texto
+
+
+def test_lei_6404_resolve_o_art_4_sem_rubrica_marginal_no_meio(db: Session) -> None:
+    """A maioria dos artigos da Lei 6.404/1976 tem uma rubrica marginal em Title Case (ex.:
+
+    "Objeto Social", "Denominação") entre o artigo anterior e o seu próprio caput — estrutura
+    que o extrator não trata (`LEIA-ME.md`, achado 3). O art. 4º é um dos poucos sem essa
+    rubrica logo antes, e resolve normalmente.
+    """
+    salvar_questoes(
+        db,
+        [_questao(1, "O art. 4º da Lei n.º 6.404/1976 distingue companhia aberta de fechada.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "lei-6404-1976"
+    assert dispositivo.artigo == "4"
+    assert "companhia é aberta ou fechada" in dispositivo.texto
+
+
+def test_lei_11101_resolve_o_art_1(db: Session) -> None:
+    """Art. 1º da Lei 11.101/2005 (objeto da lei) resolve sem nenhuma estrutura problemática."""
+    salvar_questoes(
+        db,
+        [_questao(1, "O art. 1º da Lei n.º 11.101/2005 disciplina a recuperação judicial.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "lei-11101-2005"
+    assert dispositivo.artigo == "1"
+
+
+def test_lei_11340_resolve_o_inciso_i_do_art_5(db: Session) -> None:
+    """Art. 5º, inciso I, da Lei 11.340/2006 (Maria da Penha) resolve — a fixture vinha em
+
+    UTF-16 com BOM (achado 1 do `LEIA-ME.md`); sem a detecção de BOM em `decodificar_html`,
+    nenhum artigo desta norma seria encontrado.
+    """
+    salvar_questoes(
+        db,
+        [_questao(1, "O inciso I do art. 5º da Lei n.º 11.340/2006 trata do âmbito doméstico.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "lei-11340-2006"
+    assert dispositivo.artigo == "5"
+    assert dispositivo.inciso == "I"
+
+
+def test_lei_6830_resolve_o_art_1(db: Session) -> None:
+    """Art. 1º da Lei 6.830/1980 (execução fiscal) resolve sem nenhuma estrutura problemática."""
+    salvar_questoes(
+        db,
+        [_questao(1, "O art. 1º da Lei n.º 6.830/1980 rege a execução da Dívida Ativa.")],
+    )
+    db.flush()
+
+    relatorio = ancorar_citacoes(db)
+
+    assert relatorio.resolvidas == 1
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "lei-6830-1980"
+    assert dispositivo.artigo == "1"
 
 
 def test_norma_do_catalogo_sem_artigo_nao_resolve_e_nao_e_lacuna(db: Session) -> None:

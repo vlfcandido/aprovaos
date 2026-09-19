@@ -45,3 +45,74 @@ Coleta em **2026-09-19**, desta máquina, via `curl`/WebFetch (sem navegador). N
 
 ## Disciplina
 Toda evidência acima foi baixada nesta tarefa, com URL registrada. Nenhum trecho citado no relatório-mãe (`.superpowers/sdd/V3b-multipla-escolha/fontes-juridicas-report.md`) vem de fonte que não esteja num destes arquivos.
+
+## Ampliação do catálogo (2026-09-19, rodada 2) — as 6 normas mais citadas pela base real
+
+Medidas em `motor/ancorar.py` sobre as 250 questões reais do `dev.db` (`normas_fora_do_catalogo`
+antes desta rodada). Baixadas com o mesmo UA híbrido da ADR-0037
+(`Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato: vlfcandido@gmail.com)`), via `curl -A`.
+
+| arquivo | origem (URL) | norma | nº questões que citam | tamanho | sha1 (12) | status HTTP |
+|---|---|---|---|---|---|---|
+| `clt_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm` | CLT (Decreto-Lei 5.452/1943) | 11 | 3 531 201 bytes | `7330528e2d1a` | 200 |
+| `lei8429_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/leis/l8429.htm` | Lei 8.429/1992 (Improbidade) | 5 | 210 250 bytes | `5f858a024f78` | 200 |
+| `lei6404_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/leis/l6404compilada.htm` | Lei 6.404/1976 (S/A) | 3 | 554 245 bytes | `9eccbbdd671b` | 200 |
+| `lei11101_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101.htm` | Lei 11.101/2005 (Recuperação/Falência) | 3 | 633 110 bytes | `32154fb7072c` | 200 |
+| `lei11340_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11340.htm` | Lei 11.340/2006 (Maria da Penha) | 3 | 264 515 bytes | `b510057d7ace` | 200 |
+| `lei6830_planalto_compilada.htm` | `https://www.planalto.gov.br/ccivil_03/leis/l6830.htm` | Lei 6.830/1980 (Execução Fiscal) | 2 | 50 924 bytes | `455756e7c989` | 200 |
+
+Cada arquivo entrou em `motor.fontes.planalto.CATALOGO` (id estável, mesmo produzido por
+`dominio.citacao._norma_id`) e em `motor.ancorar._FIXTURES_OFFLINE`.
+
+### Achado 1 (corrigido nesta rodada): Lei 11.340/2006 vem em UTF-16LE, não `cp1252`
+Único arquivo desta leva com BOM `b"\xff\xfe"` (UTF-16LE) — as outras cinco normas, como a CF e
+a Lei 14.133 antes delas, são `cp1252`. Decodificar com `cp1252` sem checar o BOM produz um
+caractere por byte (`"< h t m l >"`) e **zero** ocorrências de `"Art."` — não era estrutura não
+tratada, era a codificação errada aplicada a bytes corretos. `decodificar_html`
+(`motor/fontes/planalto.py`) passou a detectar o BOM (UTF-16LE/BE) antes de cair no padrão
+`cp1252`; teste `test_decodificar_html_reconhece_bom_utf16_le_da_lei_11340`
+(`tests/test_fonte_planalto.py`), contra este arquivo real.
+
+### Achado 2 (registrado, não remendado): CLT art. 477 — anotação "Vigência\nencerrada"
+`extrair_artigo(html, "477")` levanta `EstruturaNaoTratada` no trecho:
+```
+Vigência 
+encerrada
+```
+(duas palavras, sem parênteses, dentro de um `<a href="…/adc-113-mpv955.htm">`, depois de um
+inciso incluído pela MPV 905/2019 e revogado pela MPV 955/2020). O extrator já remove a
+anotação `"Vigência"` sozinha sem parênteses (achado da rodada anterior, Lei 14.133 art. 6º
+XXII) — aqui o texto tem uma segunda palavra ("encerrada") que sobra depois da remoção e não
+casa com nenhum padrão de caput/inciso/parágrafo/alínea. **Efeito na ancoragem**: as 3 questões
+que citam "art. 477 da CLT" ficam em `catalogada_nao_resolvida` (a norma está no catálogo, mas
+o trecho específico não resolve) — não travam o comando (`_resolver_trecho` engole a exceção).
+
+### Achado 3 (registrado, não remendado): títulos de Seção/Capítulo em Title Case
+`dominio.legislacao._eh_titulo_estrutural` só reconhece título estrutural em **CAIXA ALTA sem
+nenhuma letra minúscula** (medido nos HTMLs da CF/Lei 14.133, ex.: `"CAPÍTULO IV"`). Duas normas
+desta leva intercalam títulos em Title Case (mistura maiúscula/minúscula) entre artigos:
+- Lei 8.429/1992, entre os arts. 9º e 10 (`extrair_artigo(html, "9")` até `extrair_artigo(html,
+  "12")` levantam `EstruturaNaoTratada`):
+  ```
+  Seção II
+  Dos Atos de Improbidade Administrativa que Causam Prejuízo ao Erário
+  ```
+  e, mais adiante, `"CAPÍTULO III Das Penas"`, `"CAPÍTULO IV Da Declaração de Bens"` (este
+  título é 100 % CAIXA ALTA no rótulo do capítulo, mas o subtítulo que o acompanha na mesma
+  linha não é — o `<p>` inteiro falha o teste de "sem nenhuma letra minúscula").
+- Lei 11.340/2006, entre os arts. 23 e 24 (`extrair_artigo(html, "24")` levanta
+  `EstruturaNaoTratada`): `"Seção IV"` sozinho (sem subtítulo na mesma linha, mas ainda assim
+  com letras minúsculas em "Seção").
+- Lei 6.404/1976: rubricas marginais de uma palavra/frase entre artigos, mesmo padrão —
+  `"Objeto Social"` entre os arts. 1º e 2º (`extrair_artigo(html, "1")` funciona porque a
+  rubrica vem **depois** do fim do art. 1º, mas `extrair_artigo(html, "116")` falha por um
+  motivo relacionado: alíneas listadas direto sob o caput, sem inciso/parágrafo antecedente —
+  `EstruturaNaoTratada: "Alínea sem inciso/parágrafo anterior a que pertencer: 'a) é titular…'"`.
+- Lei 11.101/2005, art. 6º: parágrafo com sufixo de letra (`"§ 4º-A."`) não casa com
+  `_PADRAO_PARAGRAFO` (que só reconhece `§ N[ºo]?\.?`, sem o `-A`).
+
+**Nenhum desses quatro achados foi corrigido nesta rodada** (instrução explícita: registrar o
+trecho literal e não remendar). Ficam como estrutura não tratada — o comando de ancoragem já
+trata isso sem travar (`_resolver_trecho` devolve `None`); o `dossie_topico` da Lei 8.429/1992
+(ver relatório da tarefa) só usa os artigos que o extrator lê de fato (1º e 2º) e declara os
+demais como lacuna, nunca preenchidos de memória.

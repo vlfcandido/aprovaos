@@ -23,6 +23,7 @@ from aprovaos.motor.fontes.planalto import (
 CONTATO_TESTE = "vlfcandido@gmail.com"
 RAIZ = Path(__file__).resolve().parents[2]
 FIXTURE_CF = RAIZ / "knowledge/fixtures/juridico/constituicao_planalto_compilada.htm"
+FIXTURE_LEI_11340 = RAIZ / "knowledge/fixtures/juridico/lei11340_planalto_compilada.htm"
 
 
 class _RespostaFalsa:
@@ -183,6 +184,23 @@ def test_decodificar_html_bate_com_a_fixture_real_e_extrai_o_artigo() -> None:
     artigo = extrair_artigo(html, "37")
 
     assert artigo.caput.texto.startswith("Art. 37. A administração pública direta e indireta")
+
+
+def test_decodificar_html_reconhece_bom_utf16_le_da_lei_11340() -> None:
+    """A página compilada da Lei 11.340/2006 (achado desta rodada) vem em UTF-16LE com BOM
+    (`b"\\xff\\xfe"`), não em `cp1252` como as demais normas do catálogo — decodificar com
+    `cp1252` sem checar o BOM produz um caractere por byte (`"< h t m l >"`) e nenhum `"Art."`
+    reconhecível. `decodificar_html` precisa detectar o BOM e usar UTF-16LE só neste caso.
+    """
+    conteudo_bruto = FIXTURE_LEI_11340.read_bytes()
+    assert conteudo_bruto.startswith(b"\xff\xfe")  # confirma o achado antes de testar a correção
+
+    html = decodificar_html(conteudo_bruto)
+    artigo = extrair_artigo(html, "1")
+
+    assert artigo.caput.texto.startswith(
+        "Art. 1º Esta Lei cria mecanismos para coibir e prevenir a violência doméstica"
+    )
 
 
 @pytest.mark.rede

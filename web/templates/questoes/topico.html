@@ -67,7 +67,8 @@
         </form>
       </div>
 
-      <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar">
+      <form method="post" action="/questoes/{{ questao.id }}/reportar" class="form-reportar"
+            hx-post="/questoes/{{ questao.id }}/reportar" hx-target="#questao" hx-swap="innerHTML">
         <label for="motivo">Encontrou um erro nesta questão?</label>
         <textarea id="motivo" name="motivo" required></textarea>
         <button class="botao botao--secundario" type="submit">Reportar erro</button>

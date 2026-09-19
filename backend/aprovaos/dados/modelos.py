@@ -224,10 +224,17 @@ class Questao(ChaveUuid, Carimbos, Base):
     `topico_id` (FK, nullable — item sem correspondência fica na base, mas nunca publicável);
     `topico_confianca`/`topico_evidencia` registram por que o classificador decidiu o que
     decidiu. `origem` é nullable porque uma questão inédita (`inedita=True`, fatia 5) não tem
-    procedência de prova. `publicavel` é o veredito determinístico do gate
-    (`dominio.questao.decidir_publicacao`); `publicada` é a coluna que a consulta da tela lê
-    para decidir o que servir — nesta fatia, só o curador liga `publicavel`; ninguém ainda liga
-    `publicada`. `dificuldade_est`/`discriminacao_est` ficam para a calibração (fatia futura).
+    procedência de prova; `documento_id` (FK) é a fonte de verdade da relação com `documento` —
+    `origem["documento_id"]` é só um espelho histórico do mesmo valor, gravado junto por
+    comodidade de quem lê o JSON inteiro sem dar join; nunca o inverso. `publicavel` é o veredito
+    determinístico do gate (`dominio.questao.decidir_publicacao`) e é o que toda consulta da
+    tela hoje filtra (`repositorio_questao.proxima_questao`/`contagem_por_topico`,
+    `api/questoes.py`). `publicada`/`despublicada_em` **não são lidas nem escritas por ninguém
+    nesta fatia** — estão reservadas para o calibrador (fatia 8, despublicação por reporte
+    confirmado); quando ele existir, a consulta da tela **terá de passar a filtrar também**
+    `publicada`, ou uma questão despublicada continuaria aparecendo para o aluno (P-34,
+    `docs/PENDENCIAS.md`). `dificuldade_est`/`discriminacao_est` ficam para a calibração (fatia
+    futura).
     """
 
     __tablename__ = "questao"

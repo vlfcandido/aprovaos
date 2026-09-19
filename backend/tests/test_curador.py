@@ -122,7 +122,7 @@ def anyio_backend() -> str:
 
 @pytest.fixture(scope="module")
 def vocabulario() -> list[TopicoVocabulario]:
-    """O vocabulário real do edital da Linda (36 tópicos, 22 de Direito)."""
+    """O vocabulário do fixture de edital (fictício, Fase 4; 36 tópicos, 22 de Direito)."""
     texto = FIXTURE_MD.read_text(encoding="utf-8")
     materias = extrair_conteudo_programatico(texto)
     return [

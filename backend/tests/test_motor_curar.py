@@ -88,7 +88,9 @@ def _documento_gabarito(db: Session, *, caminho: str, evento: str, descricao: st
 
 
 def _edital_com_vocabulario_real(db: Session) -> Edital:
-    """Edital com o vocabulário real da Linda (mesmo fixture de `test_curador.py`)."""
+    """Edital com o vocabulário do fixture de edital (fictício, Fase 4; mesmo fixture de
+    `test_curador.py`).
+    """
     texto = FIXTURE_MD.read_text(encoding="utf-8")
     materias = extrair_conteudo_programatico(texto)
     documento_edital = Documento(

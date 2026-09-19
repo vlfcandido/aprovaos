@@ -1,6 +1,6 @@
 # O que é: teste `llm` do passo 8 da V3 — chama o Gemini de verdade com 5 itens reais do caderno
-# de Direito da TJ-PA e o vocabulário real do edital da Linda; mede se todo slug devolvido está
-# no vocabulário e imprime tokens/custo para o diário. Quando ler: ao rodar
+# de Direito da TJ-PA e o vocabulário do fixture de edital (fictício, Fase 4); mede se todo slug
+# devolvido está no vocabulário e imprime tokens/custo para o diário. Quando ler: ao rodar
 # `GOOGLE_API_KEY=… uv run pytest -q -m llm -s -k classificador` uma vez por fatia (P-27).
 import os
 from pathlib import Path

@@ -265,6 +265,8 @@ def test_topico_tela_referencia_atalhos_de_teclado(logado: TestClient, db: Sessi
 def test_post_resposta_questao_de_outro_topico_erro(logado: TestClient, db: Session) -> None:
     """`questao_id` de uma questão de outro tópico não pode ser aceito — sem isso, um `id`
     adulterado no formulário gravaria a resposta contra uma questão que a tela nunca mostrou.
+    A validação é a mesma de sempre; a entrega é 200 + fragmento (não 404), porque um 4xx aqui
+    vira JSON cru fora do htmx e não faz swap nenhum dentro dele.
     """
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
@@ -281,9 +283,10 @@ def test_post_resposta_questao_de_outro_topico_erro(logado: TestClient, db: Sess
             "questao_id": str(questao_de_outro_topico.id),
         },
     )
-    assert resposta.status_code == 404
-    corpo = resposta.json()
-    assert set(corpo) == {"codigo", "mensagem", "acao"}
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "não está mais disponível" in corpo
+    assert f'href="/topico/{topico.slug}/questoes"' in corpo
 
     eventos = list(db.scalars(select(EventoEstudo)).all())
     assert eventos == []
@@ -308,13 +311,35 @@ def test_post_resposta_questao_ja_respondida_erro(logado: TestClient, db: Sessio
         f"/topico/{topico.slug}/questoes",
         data={"resposta": "E", "confianca": "duvida", "questao_id": str(questao.id)},
     )
-    assert segunda.status_code == 404
-    corpo = segunda.json()
-    assert set(corpo) == {"codigo", "mensagem", "acao"}
+    assert segunda.status_code == 200
+    assert "não está mais disponível" in segunda.text
 
     eventos = list(db.scalars(select(EventoEstudo).where(EventoEstudo.tipo == "resposta")).all())
     assert len(eventos) == 1
     assert eventos[0].resposta == "C"
+
+
+def test_post_resposta_invalida_400(logado: TestClient, db: Session) -> None:
+    """`resposta` fora de `C`/`E` não pode gravar `EventoEstudo` nenhum — mesma postura da
+    validação de `confianca`.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-8")
+    questao = _criar_questao(db, topico, documento.id)
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "X", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 400
+    corpo = resposta.json()
+    assert corpo["codigo"] == "dados_invalidos"
+    assert "certo ou errado" in corpo["mensagem"].lower()
+    assert set(corpo) == {"codigo", "mensagem", "acao"}
+
+    eventos = list(db.scalars(select(EventoEstudo)).all())
+    assert eventos == []
 
 
 def test_post_reporte(logado: TestClient, db: Session) -> None:
@@ -335,6 +360,68 @@ def test_post_reporte(logado: TestClient, db: Session) -> None:
 
     seguinte = logado.get(f"/topico/{topico.slug}/questoes")
     assert "Ainda não temos questões deste tópico." in seguinte.text
+
+
+def test_post_reporte_sem_htmx_devolve_pagina_completa(logado: TestClient, db: Session) -> None:
+    """Sem `HX-Request` (POST direto do formulário, sem JS), a confirmação do reporte é a página
+    inteira — com a app-shell (barra lateral) — nunca um `<p>` solto sem navegação.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-5b")
+    questao = _criar_questao(db, topico, documento.id)
+
+    resposta = logado.post(
+        f"/questoes/{questao.id}/reportar", data={"motivo": "gabarito parece errado"}
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "<!doctype html>" in corpo.lower()
+    assert 'class="lateral"' in corpo
+    assert "Obrigado" in corpo
+
+
+def test_post_reporte_com_htmx_devolve_fragmento(logado: TestClient, db: Session) -> None:
+    """Com `HX-Request: true`, a confirmação é só o fragmento — o que o htmx troca em `#questao`,
+    sem repetir a app-shell inteira.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-5c")
+    questao = _criar_questao(db, topico, documento.id)
+
+    resposta = logado.post(
+        f"/questoes/{questao.id}/reportar",
+        data={"motivo": "gabarito parece errado"},
+        headers={"HX-Request": "true"},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "<!doctype html>" not in corpo.lower()
+    assert "Obrigado" in corpo
+
+
+def test_post_reporte_de_outro_tenant_404(logado: TestClient, db: Session) -> None:
+    """A rota de reportar é a única sem checagem de tenant antes desta correção — sem ela,
+    qualquer logado reportaria qualquer questão do pool global só sabendo o `id`.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-5d")
+    questao = _criar_questao(db, topico, documento.id)
+
+    logado.cookies.clear()
+    resposta_cadastro = logado.post("/cadastro", data=OUTRA_CONTA, follow_redirects=False)
+    assert resposta_cadastro.status_code == 303
+
+    resposta = logado.post(
+        f"/questoes/{questao.id}/reportar", data={"motivo": "gabarito parece errado"}
+    )
+    assert resposta.status_code == 404
+    corpo = resposta.json()
+    assert set(corpo) == {"codigo", "mensagem", "acao"}
+
+    assert list(db.scalars(select(ReporteErro)).all()) == []
 
 
 def test_topico_sem_questao(logado: TestClient, db: Session) -> None:

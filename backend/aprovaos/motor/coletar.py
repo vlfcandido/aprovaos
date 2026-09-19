@@ -10,8 +10,10 @@ quando omitido) e `--listar` (só mostra, não baixa). Passo 5 do plano
 `docs/fatias/V3-questoes-cebraspe.md`.
 
 Nenhuma execução acontece em import: `main()` só roda sob `if __name__ == "__main__"`, e é quem
-abre a fonte (`criar_fonte_cebraspe`, com `with` — fecha o cliente HTTP ao sair) e o engine do
-banco — o dono desse ciclo de vida é este módulo.
+abre a fonte (`criar_fonte_cebraspe`, com `with` — fecha o cliente HTTP ao sair) e cria o engine
+do banco; o engine em si não é fechado (`criar_engine` não devolve um `with`, e nada chama
+`.dispose()`) — aceitável num processo de vida curta como este, mas não copie o padrão para algo
+de vida longa.
 
 Quando ler: antes de rodar a coleta de um concurso novo, ou ao investigar por que um cargo de
 Direito não foi encontrado.
@@ -385,9 +387,13 @@ def main(
     """Ponto de entrada do comando de coleta.
 
     Abre a fonte (`criar_fonte_cebraspe(config)`, dentro de um `with` — fecha o cliente HTTP ao
-    sair) e o engine do banco com `with`/bloco explícito, fechando-o ao sair — nenhum dos dois
-    fica sem dono. Sem cargo de Direito no evento (`eventoCargos`), ou sem par prova+gabarito
-    completo desse cargo, o evento é pulado com uma mensagem — nunca adivinhado.
+    sair). O engine do banco (`_coletar`) **não** é fechado por este comando: `criar_engine` só
+    devolve o `Engine`, sem `with`/`.dispose()` em volta — a sessão (`with fabrica_sessao() as
+    db:`) fecha a conexão em uso, mas o `Engine` e o pool continuam vivos até o processo
+    terminar (aceitável aqui, processo de vida curta que sai logo depois; documentado para não
+    ser copiado como padrão num processo de vida longa). Sem cargo de Direito no evento
+    (`eventoCargos`), ou sem par prova+gabarito completo desse cargo, o evento é pulado com uma
+    mensagem — nunca adivinhado.
 
     Args:
         argv: argumentos da linha de comando; `None` usa `sys.argv` (padrão do `argparse`).

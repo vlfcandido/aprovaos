@@ -40,6 +40,10 @@ router = APIRouter(include_in_schema=False)
 #: Valores aceitos para `confianca` (decisão 3: obrigatório antes de responder).
 CONFIANCAS_VALIDAS = ("certeza", "duvida")
 
+#: Valores aceitos para `resposta` — item certo/errado, as duas únicas leituras possíveis
+#: (`dominio.questao.QuestaoCurada.tipo_item` só produz `"certo_errado"` nesta fatia).
+RESPOSTAS_VALIDAS = ("C", "E")
+
 #: Acima de quantos caracteres o texto de apoio nasce recolhido atrás de "ver texto de apoio"
 #: (passo 14 da V3, decisão 3). Regra de negócio: fica aqui, não como número solto no Jinja — o
 #: template só lê a flag `apoio_recolhido` já calculada.
@@ -47,12 +51,18 @@ LIMITE_TEXTO_APOIO_RECOLHIDO = 600
 
 MENSAGEM_TOPICO_NAO_ENCONTRADO = "Tópico não encontrado nesta conta."
 MENSAGEM_CONFIANCA_OBRIGATORIA = "Diga se você tem certeza ou dúvida antes de responder."
+MENSAGEM_RESPOSTA_INVALIDA = "Resposta inválida — julgue o item como Certo ou Errado."
 MENSAGEM_QUESTAO_NAO_ENCONTRADA = "Questão não encontrada."
 MENSAGEM_QUESTAO_INDISPONIVEL = (
     "Esta questão não está mais disponível para responder — atualize a página e tente de novo."
 )
 
 RESPOSTA_TEXTO = {"C": "Certo", "E": "Errado"}
+
+
+def _eh_htmx(request: Request) -> bool:
+    """`True` se o request veio de um `hx-post`/`hx-get` do htmx (cabeçalho `HX-Request`)."""
+    return request.headers.get("HX-Request") == "true"
 
 
 def _topico_do_tenant(db: Session, slug: str, tenant_id: UUID) -> Topico | None:
@@ -87,6 +97,39 @@ def _exigir_topico_do_tenant(db: Session, slug: str, usuario: Usuario) -> Topico
     if topico is None:
         raise HTTPException(status_code=404, detail=MENSAGEM_TOPICO_NAO_ENCONTRADO)
     return topico
+
+
+def _questao_do_tenant(db: Session, questao_id: UUID, tenant_id: UUID) -> Questao | None:
+    """Localiza a questão só se o tópico dela pertencer a um edital do tenant.
+
+    Mesma checagem de `_topico_do_tenant` (junção `topico_edital` → `edital` → `concurso`),
+    partindo da questão em vez do slug — `POST /questoes/{id}/reportar` não tem slug na URL, mas
+    é a única rota da fatia que faltava essa amarração: sem ela, qualquer logado reportaria
+    qualquer questão do pool global só sabendo o `id`. Uma questão sem tópico (`topico_id is
+    None`, nunca publicável) não pertence a tenant nenhum por essa via.
+
+    Args:
+        db: sessão do request.
+        questao_id: chave da questão, vinda da URL.
+        tenant_id: tenant do usuário logado.
+
+    Returns:
+        A `Questao`, ou `None` se ela não existir ou o tópico dela não pertencer a nenhum
+        edital do tenant.
+    """
+    questao = db.get(Questao, questao_id)
+    if questao is None or questao.topico_id is None:
+        return None
+    consulta = (
+        select(Topico.id)
+        .join(TopicoEdital, TopicoEdital.topico_id == Topico.id)
+        .join(Edital, Edital.id == TopicoEdital.edital_id)
+        .join(Concurso, Concurso.id == Edital.concurso_id)
+        .where(Topico.id == questao.topico_id, Concurso.tenant_id == tenant_id)
+    )
+    if db.scalars(consulta).first() is None:
+        return None
+    return questao
 
 
 def _questao_pendente(
@@ -221,17 +264,25 @@ def responder_questao(
         O fragmento `questoes/_resultado.html` com o gabarito, o acerto e a origem (200).
 
     Raises:
-        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant, ou se
-            `questao_id` não for uma questão pendente deste tópico para este usuário; 400 sem
-            `confianca` ou com um valor fora de `CONFIANCAS_VALIDAS`.
+        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant; 400 sem
+            `confianca`/fora de `CONFIANCAS_VALIDAS`, ou com `resposta` fora de
+            `RESPOSTAS_VALIDAS`.
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     if confianca not in CONFIANCAS_VALIDAS:
         raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
+    if resposta not in RESPOSTAS_VALIDAS:
+        raise HTTPException(status_code=400, detail=MENSAGEM_RESPOSTA_INVALIDA)
 
     questao = _questao_pendente(db, usuario.id, topico.id, questao_id)
     if questao is None:
-        raise HTTPException(status_code=404, detail=MENSAGEM_QUESTAO_INDISPONIVEL)
+        # A validação é idêntica a antes (404 lógico) — só a entrega muda: um 4xx aqui vira
+        # JSON cru fora do htmx e não faz swap nenhum dentro dele (htmx 2 não troca em erro),
+        # exatamente o cenário que o `questao_id` obrigatório existe para proteger (duas abas,
+        # back/refresh). 200 com fragmento e um link de saída avisa a aluna de verdade.
+        contexto = _contexto_questao(topico, None)
+        contexto["aviso"] = MENSAGEM_QUESTAO_INDISPONIVEL
+        return renderizar(request, "questoes/_resultado.html", contexto, usuario)
 
     evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms)
     db.commit()
@@ -258,22 +309,30 @@ def reportar_questao(
 ) -> Response:
     """Registra o reporte de erro de uma questão (some da fila só de quem reportou — premissa H).
 
+    Mesmo isolamento por tenant das outras duas rotas (`_questao_do_tenant`): sem ele, qualquer
+    logado reportaria qualquer questão do pool global só sabendo o `id` — o dano de reportar é
+    nulo (só esconde para quem reportou), mas a fila do calibrador (fatia 8) vai ler
+    `reporte_erro`, então o registro tem de ser de uma questão que este tenant de fato usa.
+
     Args:
-        request: a requisição atual.
+        request: a requisição atual — decide se a resposta é o fragmento HTMX (`HX-Request:
+            true`) ou a página inteira (POST direto do formulário, sem JS).
         db: sessão de banco do request (o commit é feito aqui).
         usuario: o usuário logado.
         questao_id: chave da questão reportada.
         motivo: o texto livre do reporte.
 
     Returns:
-        O fragmento `questoes/_reportado.html` confirmando o registro (200).
+        `questoes/_reportado.html` (fragmento, 200) sob htmx; `questoes/reportado.html` (página
+        inteira, 200) fora dele — nunca um `<p>` solto sem navegação.
 
     Raises:
-        HTTPException: 404 se a questão não existir.
+        HTTPException: 404 se a questão não existir ou não pertencer a um edital do tenant.
     """
-    questao = db.get(Questao, questao_id)
+    questao = _questao_do_tenant(db, questao_id, usuario.tenant_id)
     if questao is None:
         raise HTTPException(status_code=404, detail=MENSAGEM_QUESTAO_NAO_ENCONTRADA)
     registrar_reporte(db, usuario, questao, motivo)
     db.commit()
-    return renderizar(request, "questoes/_reportado.html", {}, usuario)
+    nome_template = "questoes/_reportado.html" if _eh_htmx(request) else "questoes/reportado.html"
+    return renderizar(request, nome_template, {}, usuario)

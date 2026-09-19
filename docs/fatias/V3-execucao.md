@@ -18,7 +18,8 @@ Três testes, todos verdes de primeira (nenhuma iteração RED→GREEN precisou 
 código de produção — só formatação/import por `ruff --fix`):
 
 1. `test_curar_grava_questoes` — RED do brief. Sobe o caderno **real** da TJ-PA (o mesmo fixture
-   de `test_curador.py`, 70 itens, 5 anulados) com o vocabulário real da Linda; confere
+   de `test_curador.py`, 70 itens, 5 anulados) com o vocabulário do fixture de edital (fictício,
+   Fase 4); confere
    `RelatorioCuradoria` (total 70, anuladas 5, publicáveis > 0, novas 70, repetidas 0), as 70
    linhas em `questao` e **zero linhas em `traco`** (sem chave).
 2. `test_pendente_revisao_nao_grava_nada` — RED do brief. Gabarito sintético com 1 entrada a
@@ -353,7 +354,7 @@ classificá-los:
 - **Item 99** — **revelia e confissão ficta**; casou "petição inicial" — **falso positivo**.
 - **Itens 113, 114, 115, 116 e 117** — todos sobre **previdência complementar e seguridade
   social**; casaram "servidores públicos" — **falso positivo** (é Direito Previdenciário, matéria
-  que nem está no edital da Linda).
+  que nem está no edital de teste).
 - **Item 96** — indeferimento de **petição inicial** por falta de documento indispensável: aqui
   o termo "petição inicial" era mesmo o assunto do item — **as regras estavam certas e a IA
   errou**, deixando sem tópico (registrado como pendência, P-29 em `docs/PENDENCIAS.md`).

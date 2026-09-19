@@ -332,3 +332,47 @@ def test_robots_libera_familias_publicas(cliente: TestClient) -> None:
     assert "Allow: /duvidas/" in corpo
     assert "Allow: /verticalizado/" in corpo
     assert "Sitemap: http://testserver/sitemap.xml" in corpo
+
+
+# ---- P-62: concurso de fixture nunca chega ao público ------------------------------------------
+
+
+def test_concurso_de_fixture_nao_gera_pagina_publica(cliente: TestClient, db: Session) -> None:
+    """Edital de teste não vira página pública — nem verticalizado, nem dúvida de formato.
+
+    P-62, achada na execução real da fatia 13: o banco tem o edital **fictício** de Cascavel ao
+    lado do edital **real** do TJ-PR e nada distinguia os dois. As famílias C e D leem o
+    `Concurso` direto, então publicariam, para o mundo, número saído de um edital que um modelo
+    inventou — apresentado como medido. É a armadilha da ADR-0036 com plateia.
+    """
+    fixture = _concurso_com_dna(
+        db,
+        banca="Fundação de Apoio à Unioeste",
+        orgao="Câmara de Cascavel",
+        anula_por_erro=False,
+        data_prova=date(2026, 3, 1),
+    )
+    fixture.origem = "fixture"
+    topico = _topico(db, "dir-adm-01-fixture", nome="Ato administrativo (fixture)")
+    _edital_com_topico_publico(db, fixture, topico)
+    db.commit()
+
+    assert cliente.get("/verticalizado/camara-de-cascavel-2026").status_code == 404
+    mapa = cliente.get("/sitemap.xml").text
+    assert "camara-de-cascavel" not in mapa
+    assert "Fundação de Apoio à Unioeste" not in cliente.get("/sitemap.xml").text
+
+
+def test_concurso_real_continua_gerando_pagina_publica(cliente: TestClient, db: Session) -> None:
+    """A guarda da P-62 não pode apagar o concurso real junto — `origem` nasce `"real"`."""
+    concurso = _concurso_com_dna(
+        db,
+        banca="Instituto AOCP",
+        orgao="TJ-PR",
+        anula_por_erro=DESCONHECIDO,
+        data_prova=date(2025, 6, 1),
+    )
+    assert concurso.origem == "real"
+    topico = _topico(db, "noc-dir-adm-02-vertical", nome="Poderes administrativos")
+    _edital_com_topico_publico(db, concurso, topico)
+    assert cliente.get("/verticalizado/tj-pr-2025").status_code == 200

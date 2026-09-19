@@ -343,3 +343,15 @@ def test_slug_igual_com_conteudo_identico_continua_reaproveitando(
 
     assert _contar(db, Topico) == 1
     assert _contar(db, TopicoEdital) == 2
+
+
+def test_registrar_edital_nasce_real_e_aceita_fixture(
+    db: Session, resultado: ResultadoDna, materias: list[MateriaExtraida], documento: DadosDocumento
+) -> None:
+    """`origem` nasce `"real"`; PDF de teste é marcado explicitamente (P-62)."""
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    real = registrar_edital(db, tenant_id, resultado, materias, documento)
+    teste = registrar_edital(db, tenant_id, resultado, materias, documento, origem="fixture")
+    db.commit()
+    assert real.origem == "real"
+    assert teste.origem == "fixture"

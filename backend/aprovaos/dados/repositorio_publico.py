@@ -24,6 +24,7 @@ Quando ler: ao mudar o corte de qualquer família, ao investigar por que uma pá
 sitemap, ou ao entender por que duas páginas equivalentes viraram uma canônica.
 """
 
+from typing import Final
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -50,6 +51,11 @@ from aprovaos.dominio.pagina_publica import (
     cabe_em_pagina,
     montar_titulo_de_topico,
 )
+
+#: Valor de `concurso.origem` que pode chegar ao público (P-62, migração 0017). Concurso de
+#: fixture de teste **nunca** vira página: publicá-lo seria apresentar como medido um número
+#: que um modelo inventou — a ADR-0036 com plateia.
+ORIGEM_REAL: Final = "real"
 
 #: Quantas perguntas de formato (família C) o catálogo cobre nesta fatia — só a mais medida e
 #: mais buscada (playbook §8, "cebraspe desconta erro"); o catálogo cresce conforme o uso real
@@ -366,7 +372,11 @@ def candidatas_familia_c(db: Session) -> list[PaginaDuvida]:
     # A versão mais recente por concurso é decidida em Python (não por subconsulta correlacionada
     # — o volume aqui é "quantos concursos existem", nunca alto o bastante para justificar o
     # SQL mais complicado): busca todo registro e fica só com o de maior `versao` por concurso.
-    registros = db.execute(select(Concurso, DnaConcursoRegistro).join(DnaConcursoRegistro)).all()
+    registros = db.execute(
+        select(Concurso, DnaConcursoRegistro)
+        .join(DnaConcursoRegistro)
+        .where(Concurso.origem == ORIGEM_REAL)
+    ).all()
     mais_recente_por_concurso: dict[UUID, tuple[Concurso, DnaConcursoRegistro]] = {}
     for concurso, registro in registros:
         atual = mais_recente_por_concurso.get(concurso.id)
@@ -441,7 +451,11 @@ def candidatas_familia_d(db: Session) -> list[PaginaVerticalizado]:
         é o caso de metade da base hoje) fica de fora, porque o endereço
         `/verticalizado/{orgao}-{ano}` exige o ano e a regra 2 do playbook proíbe inventá-lo.
     """
-    concursos = list(db.scalars(select(Concurso).where(Concurso.data_prova.is_not(None))).all())
+    concursos = list(
+        db.scalars(
+            select(Concurso).where(Concurso.data_prova.is_not(None), Concurso.origem == ORIGEM_REAL)
+        ).all()
+    )
     paginas: list[PaginaVerticalizado] = []
     for concurso in concursos:
         edital = edital_atual(db, concurso.id)

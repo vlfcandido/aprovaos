@@ -133,9 +133,17 @@ class Concurso(ChaveUuid, Carimbos, Base):
 
     `banca` recebe `"desconhecido"` quando o edital não a declara — nunca `NULL`, para o DNA
     e a página terem um único jeito de dizer "não sei".
+
+    `origem` (P-62, migração 0017) separa concurso **real** de concurso de **fixture de teste**.
+    Antes dela nada no banco fazia essa distinção, e o edital fictício da Fase 4 convivia com o
+    edital real do TJ-PR como iguais — o que fazia as páginas públicas das famílias C e D
+    (`dados/repositorio_publico.py`) gerarem conteúdo a partir de número que um modelo inventou,
+    apresentado como medido. Regra: **`"fixture"` nunca é publicável**. O valor nasce `"real"`;
+    quem processa um PDF de `knowledge/fixtures/` passa `origem="fixture"` a `registrar_edital`.
     """
 
     __tablename__ = "concurso"
+    __table_args__ = (CheckConstraint("origem IN ('real','fixture')", name="origem"),)
 
     tenant_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("tenant.id"), index=True, nullable=True
@@ -144,6 +152,7 @@ class Concurso(ChaveUuid, Carimbos, Base):
     cargo: Mapped[str] = mapped_column(String(200), nullable=False)
     banca: Mapped[str] = mapped_column(String(200), nullable=False)
     data_prova: Mapped[date | None] = mapped_column(Date, nullable=True)
+    origem: Mapped[str] = mapped_column(String(16), default="real", nullable=False)
 
     tenant: Mapped[Tenant | None] = relationship()
 

@@ -156,6 +156,7 @@ def registrar_edital(
     materias: list[MateriaExtraida],
     documento: DadosDocumento,
     modelo: str | None = None,
+    origem: Literal["real", "fixture"] = "real",
 ) -> Concurso:
     """Persiste concurso, edital (versão 1), documento, tópicos, `topico_edital` e o DNA.
 
@@ -168,7 +169,12 @@ def registrar_edital(
         resultado: DNA e origem (`ia`/`regras`) vindos de `gerar_dna`.
         materias: conteúdo programático extraído pelo parser (mesma lista dada ao DNA).
         documento: dados do PDF subido.
-        modelo: modelo de LLM usado quando `origem == "ia"`; `None` por regras.
+        modelo: modelo de LLM usado quando `resultado.origem == "ia"`; `None` por regras.
+        origem: `"real"` (padrão — é o que a aluna sobe) ou `"fixture"` para PDF de teste de
+            `knowledge/fixtures/`. Concurso de fixture **nunca** vira página pública (P-62,
+            migração 0017): antes dessa separação, o edital fictício da Fase 4 e o edital real
+            do TJ-PR eram indistinguíveis no banco, e as páginas públicas publicariam número
+            inventado por um modelo como se fosse medido.
 
     Returns:
         O `Concurso` novo, já com `id`.
@@ -181,6 +187,7 @@ def registrar_edital(
         cargo=dna.concurso.cargo,
         banca=dna.concurso.banca,
         data_prova=None if dna.concurso.data_prova == DESCONHECIDO else dna.concurso.data_prova,
+        origem=origem,
     )
     linha_documento = Documento(
         tipo="edital",

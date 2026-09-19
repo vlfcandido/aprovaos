@@ -12,11 +12,15 @@ para cada `FonteDossie` de `tipo="norma"`, reaproveita
 .md` §1.3). Quem chama decide o `commit`; aqui só há `add`/`flush`, como o resto dos
 repositórios.
 
-`dossie_mais_recente_do_topico` (ADR-0041, fecha a P-52) generaliza a leitura: quando `topico_id`
-não tem `DossieTopico` nenhum, tenta os tópicos equivalentes a ele
-(`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`) antes de
-devolver `None` — é o que faz o dossiê gerado sob o vocabulário de um edital aparecer também para
-o tópico equivalente de outro edital, sem duplicar o dossiê nem migrar `topico_id`.
+`dossie_mais_recente_do_topico` (ADR-0041, fecha a P-52; I1 em 19/09/2026) generaliza a leitura:
+quando `topico_id` não tem `DossieTopico` nenhum, tenta os tópicos equivalentes a ele
+(`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`, cobertura
+plena) e, sem achar, os tópicos de cobertura parcial (`topicos_subconjunto`, origem
+`subconjunto_curado`) antes de devolver `None` — é o que faz o dossiê gerado sob o vocabulário de
+um edital aparecer também para o tópico ligado de outro edital, plena ou parcialmente, sem
+duplicar o dossiê nem migrar `topico_id`. Nenhuma tela lê este repositório diretamente hoje (só
+`motor/aula.py`, offline); a tela que precisar avisar "cobre só parte do item" usa
+`repositorio_aula.aula_publicada_do_topico_com_origem`, que sabe de qual origem a aula veio.
 
 Quando ler: ao ligar o comando `motor/dossie.py`, ou ao investigar uma versão de dossiê que não
 incrementou.
@@ -30,7 +34,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import DossieTopico
 from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo
-from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes
+from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes, topicos_subconjunto
 from aprovaos.dominio.dossie import ConteudoDossie
 
 
@@ -106,13 +110,17 @@ def _dossie_direto_mais_recente(db: Session, topico_id: UUID) -> DossieTopico | 
 
 
 def dossie_mais_recente_do_topico(db: Session, topico_id: UUID) -> DossieTopico | None:
-    """A versão mais recente do dossiê de `topico_id`, direto ou por equivalência (ADR-0041).
+    """A versão mais recente do dossiê de `topico_id`, direto, por equivalência ou por subconjunto.
 
-    Primeiro tenta `topico_id` diretamente; sem nenhum dossiê ali, tenta cada tópico equivalente
-    (`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`), na ordem
-    em que a relação foi criada, e devolve o primeiro que tiver dossiê. Fecha a P-52: o dossiê
-    gerado sob o vocabulário de um edital passa a ser encontrado também pelo tópico equivalente
-    de outro edital, sem duplicar conteúdo nem migrar `topico_id`.
+    ADR-0041, fecha a P-52; I1 de uma revisão independente em 19/09/2026. Primeiro tenta
+    `topico_id` diretamente; sem nenhum dossiê ali, tenta cada tópico de equivalência plena
+    (`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`) e, ainda
+    sem achar, cada tópico de cobertura parcial (`topicos_subconjunto`, origem
+    `subconjunto_curado`), sempre na ordem em que a relação foi criada, devolvendo o primeiro que
+    tiver dossiê — o dossiê gerado sob o vocabulário de um edital passa a ser encontrado também
+    pelo tópico ligado de outro edital (inteiro ou em parte), sem duplicar conteúdo nem migrar
+    `topico_id`. Esta função não sabe dizer se o resultado veio de uma cobertura parcial — quem
+    precisa avisar a aluna disso usa `repositorio_aula.aula_publicada_do_topico_com_origem`.
 
     Args:
         db: sessão de banco (só leitura).
@@ -120,13 +128,13 @@ def dossie_mais_recente_do_topico(db: Session, topico_id: UUID) -> DossieTopico 
 
     Returns:
         A `DossieTopico` de maior `versao` encontrada; `None` se nem `topico_id` nem nenhum
-        equivalente tiver dossiê.
+        tópico ligado (pleno ou parcial) tiver dossiê.
     """
     direto = _dossie_direto_mais_recente(db, topico_id)
     if direto is not None:
         return direto
-    for equivalente_id in topicos_equivalentes(db, topico_id):
-        encontrado = _dossie_direto_mais_recente(db, equivalente_id)
+    for ligado_id in (*topicos_equivalentes(db, topico_id), *topicos_subconjunto(db, topico_id)):
+        encontrado = _dossie_direto_mais_recente(db, ligado_id)
         if encontrado is not None:
             return encontrado
     return None

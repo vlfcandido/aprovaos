@@ -12,7 +12,6 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aprovaos.agentes.analista_de_edital import AnalistaDeEdital, criar_analista_adk, gerar_dna
@@ -22,7 +21,8 @@ from aprovaos.api.templates import renderizar, responder_redirecionamento
 from aprovaos.config import Configuracoes
 from aprovaos.dados.arquivos import guardar_pdf
 from aprovaos.dados.base import agora_utc
-from aprovaos.dados.modelos import Aula, Usuario
+from aprovaos.dados.modelos import Usuario
+from aprovaos.dados.repositorio_aula import aula_publicada_do_topico_com_origem
 from aprovaos.dados.repositorio_edital import (
     STATUS_NAO_VISTO,
     DadosDocumento,
@@ -290,6 +290,12 @@ def trilha_do_concurso(
 ) -> Response:
     """A trilha de estudo do concurso (fatia 6): tópicos ordenados por peso medido e histórico.
 
+    A aula de cada item usa `repositorio_aula.aula_publicada_do_topico_com_origem` (corrigido em
+    19/09/2026, I2) — a mesma leitura de `GET /topico/{slug}/aula`, que atravessa
+    `topico_relacao` (equivalência plena e cobertura parcial) antes de dizer "sem aula". Quando a
+    origem é `subconjunto_curado`, o item mostra "cobre parte" (I1: a página não pode servir uma
+    aula de outro edital calada sobre ser cobertura parcial).
+
     Args:
         request: a requisição atual.
         db: sessão de banco do request (só leitura).
@@ -329,13 +335,17 @@ def trilha_do_concurso(
         ],
         vistos,
     )
-    topicos_com_aula = {
-        aula.topico_id
-        for aula in db.scalars(
-            select(Aula).where(
-                Aula.topico_id.in_([item.topico_id for item in trilha]), Aula.publicada.is_(True)
-            )
-        ).all()
+    # Corrigido em 19/09/2026 (I2): antes, esta busca consultava `Aula` só pelo `topico_id`
+    # direto — um tópico sem aula própria, mas ligado por `topico_relacao` (equivalência plena
+    # ou cobertura parcial, ADR-0041/I1) a outro que tem, nunca mostrava "Ver aula" aqui, mesmo
+    # com `GET /topico/{slug}/aula` servindo a aula normalmente (a mesma leitura que essa rota
+    # usa). Agora as duas passam pela mesma função — e, quando a origem é `subconjunto_curado`,
+    # a trilha avisa que a aula cobre só parte do item, em vez de servi-la calada.
+    origem_por_topico = {
+        item.topico_id: origem
+        for item in trilha
+        if (encontrada := aula_publicada_do_topico_com_origem(db, item.topico_id)) is not None
+        for origem in (encontrada[1],)
     }
     contexto: dict[str, Any] = {
         "concurso": {"id": str(achado.id), "cargo": achado.cargo, "orgao": achado.orgao},
@@ -345,7 +355,8 @@ def trilha_do_concurso(
                 "nome": item.nome,
                 "status": item.status,
                 "motivo": item.motivo,
-                "tem_aula": item.topico_id in topicos_com_aula,
+                "tem_aula": item.topico_id in origem_por_topico,
+                "cobertura_parcial": origem_por_topico.get(item.topico_id) == "subconjunto_curado",
             }
             for item in trilha
         ],

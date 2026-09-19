@@ -5,8 +5,16 @@ from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Aula, DossieTopico, Topico
-from aprovaos.dados.repositorio_aula import aula_publicada_do_topico, proxima_versao, salvar_aula
-from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
+from aprovaos.dados.repositorio_aula import (
+    aula_publicada_do_topico,
+    aula_publicada_do_topico_com_origem,
+    proxima_versao,
+    salvar_aula,
+)
+from aprovaos.dados.repositorio_topico_relacao import (
+    criar_relacao_equivalente,
+    criar_relacao_subconjunto,
+)
 from aprovaos.dominio.aula import CitacaoAula, ComoABancaCobra, ConteudoAula, RelacionadoAula
 
 
@@ -141,3 +149,83 @@ def test_aula_publicada_do_topico_prefere_a_propria_a_equivalente(db: Session) -
     encontrada = aula_publicada_do_topico(db, real.id)
     assert encontrada is not None
     assert encontrada.id == aula_propria.id
+
+
+# --- aula_publicada_do_topico_com_origem (I1: cobertura parcial avisada) -----------------------
+
+
+def test_com_origem_devolve_direta_quando_a_propria_tem_aula(db: Session) -> None:
+    topico = _topico(db)
+    dossie = _dossie(db, topico)
+    aula = salvar_aula(db, topico_id=topico.id, dossie=dossie, conteudo=_conteudo())
+
+    resultado = aula_publicada_do_topico_com_origem(db, topico.id)
+
+    assert resultado is not None
+    encontrada, origem = resultado
+    assert encontrada.id == aula.id
+    assert origem == "direta"
+
+
+def test_com_origem_devolve_equivalencia_curada_para_par_pleno(db: Session) -> None:
+    ficticio = _topico(db, "dir-adm-06-improbidade-administrativa")
+    real = _topico(db, "noc-dir-adm-06-6-improbidade")
+    dossie = _dossie(db, ficticio)
+    aula = salvar_aula(db, topico_id=ficticio.id, dossie=dossie, conteudo=_conteudo())
+    criar_relacao_equivalente(db, de_id=ficticio.id, para_id=real.id, evidencia="mesma lei")
+    db.flush()
+
+    resultado = aula_publicada_do_topico_com_origem(db, real.id)
+
+    assert resultado is not None
+    encontrada, origem = resultado
+    assert encontrada.id == aula.id
+    assert origem == "equivalencia_curada"
+
+
+def test_com_origem_devolve_subconjunto_curado_para_par_parcial(db: Session) -> None:
+    """A aluna que abre `noc-dir-pro-civ-07-recursos` ("Dos recursos") encontra a aula do
+    dossiê parcial de Cascavel — mas a origem devolvida avisa que é cobertura parcial (I1),
+    diferente do caso pleno acima."""
+    cascavel = _topico(db, "dir-pro-civ-05-recursos-apelacao")
+    tjpr = _topico(db, "noc-dir-pro-civ-07-recursos")
+    dossie = _dossie(db, cascavel)
+    aula = salvar_aula(db, topico_id=cascavel.id, dossie=dossie, conteudo=_conteudo())
+    criar_relacao_subconjunto(
+        db, de_id=cascavel.id, para_id=tjpr.id, evidencia="cobre só parte do item"
+    )
+    db.flush()
+
+    resultado = aula_publicada_do_topico_com_origem(db, tjpr.id)
+
+    assert resultado is not None
+    encontrada, origem = resultado
+    assert encontrada.id == aula.id
+    assert origem == "subconjunto_curado"
+
+
+def test_com_origem_prefere_equivalencia_plena_a_subconjunto(db: Session) -> None:
+    """Se um tópico tem os dois tipos de relação (não deveria, mas a leitura tem de ser
+    determinística), a equivalência plena vence — é a informação mais forte."""
+    plena = _topico(db, "a-plena")
+    parcial = _topico(db, "b-parcial")
+    alvo = _topico(db, "c-alvo")
+    dossie_plena = _dossie(db, plena)
+    dossie_parcial = _dossie(db, parcial)
+    aula_plena = salvar_aula(db, topico_id=plena.id, dossie=dossie_plena, conteudo=_conteudo())
+    salvar_aula(db, topico_id=parcial.id, dossie=dossie_parcial, conteudo=_conteudo())
+    criar_relacao_equivalente(db, de_id=alvo.id, para_id=plena.id, evidencia="mesma lei")
+    criar_relacao_subconjunto(db, de_id=alvo.id, para_id=parcial.id, evidencia="parte do item")
+    db.flush()
+
+    resultado = aula_publicada_do_topico_com_origem(db, alvo.id)
+
+    assert resultado is not None
+    encontrada, origem = resultado
+    assert encontrada.id == aula_plena.id
+    assert origem == "equivalencia_curada"
+
+
+def test_com_origem_sem_aula_nenhuma_devolve_none(db: Session) -> None:
+    topico = _topico(db)
+    assert aula_publicada_do_topico_com_origem(db, topico.id) is None

@@ -11,7 +11,10 @@ from aprovaos.dados.repositorio_dossie import (
     proxima_versao,
     salvar_dossie,
 )
-from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
+from aprovaos.dados.repositorio_topico_relacao import (
+    criar_relacao_equivalente,
+    criar_relacao_subconjunto,
+)
 from aprovaos.dominio.dossie import ConteudoDossie, EntradaLogBusca, FonteDossie
 
 
@@ -150,6 +153,41 @@ def test_dossie_mais_recente_do_topico_prefere_o_direto_ao_equivalente(db: Sessi
     encontrada = dossie_mais_recente_do_topico(db, real.id)
     assert encontrada is not None
     assert encontrada.id == dossie_proprio.id
+
+
+def test_dossie_mais_recente_do_topico_segue_relacao_de_subconjunto(db: Session) -> None:
+    """I1: sem dossiê próprio nem equivalente pleno, um tópico ligado por cobertura parcial
+    (`subconjunto_curado`) ainda encontra o dossiê — não "sumir" é melhor que a plena mesmo sem
+    o rótulo de plena (quem precisa do aviso usa `repositorio_aula
+    .aula_publicada_do_topico_com_origem`)."""
+    cascavel = _topico(db, "dir-pro-civ-05-recursos-apelacao")
+    tjpr = _topico(db, "noc-dir-pro-civ-07-recursos")
+    dossie = salvar_dossie(db, topico_id=cascavel.id, conteudo=_conteudo())
+    criar_relacao_subconjunto(
+        db, de_id=cascavel.id, para_id=tjpr.id, evidencia="cobre só parte do item"
+    )
+    db.flush()
+
+    encontrada = dossie_mais_recente_do_topico(db, tjpr.id)
+    assert encontrada is not None
+    assert encontrada.id == dossie.id
+
+
+def test_dossie_mais_recente_do_topico_prefere_equivalente_pleno_a_subconjunto(
+    db: Session,
+) -> None:
+    plena = _topico(db, "a-plena")
+    parcial = _topico(db, "b-parcial")
+    alvo = _topico(db, "c-alvo")
+    dossie_plena = salvar_dossie(db, topico_id=plena.id, conteudo=_conteudo())
+    salvar_dossie(db, topico_id=parcial.id, conteudo=_conteudo("outra versão"))
+    criar_relacao_equivalente(db, de_id=alvo.id, para_id=plena.id, evidencia="mesma lei")
+    criar_relacao_subconjunto(db, de_id=alvo.id, para_id=parcial.id, evidencia="parte do item")
+    db.flush()
+
+    encontrada = dossie_mais_recente_do_topico(db, alvo.id)
+    assert encontrada is not None
+    assert encontrada.id == dossie_plena.id
 
 
 def _conteudo_com_sumula() -> ConteudoDossie:

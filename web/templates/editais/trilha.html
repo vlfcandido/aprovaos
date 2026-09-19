@@ -1,8 +1,10 @@
 {# O que é: a trilha de estudo do concurso (`GET /concurso/{id}/trilha`, fatia 6) — os tópicos do
    edital ordenados por `dominio.trilha.montar_trilha`: não visto/fraco primeiro (por peso
    medido), dominado ao final. Cada item mostra o `motivo` (números reais, nunca "parece
-   difícil") e um link para a aula (quando publicada) e para as questões. Quando ler: ao mudar o
-   critério de ordenação ou o que a trilha mostra por tópico. #}
+   difícil") e um link para a aula (quando publicada, direta ou por `topico_relacao` — I2) e
+   para as questões; quando a aula vem de cobertura parcial (`subconjunto_curado`, I1), mostra o
+   aviso "cobre parte deste item". Quando ler: ao mudar o critério de ordenação ou o que a
+   trilha mostra por tópico. #}
 {% extends "base.html" %}
 {% block titulo %}Trilha de estudo — {{ concurso.cargo }} — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -22,6 +24,10 @@
           {% endif %}
           <a href="/topico/{{ item.slug }}/questoes">Responder questões</a>
         </p>
+        {% if item.cobertura_parcial %}
+          <p class="nota">Esta aula vem de um dossiê de outro edital que cobre parte deste item,
+            não o item inteiro.</p>
+        {% endif %}
       </li>
     {% endfor %}
   </ol>

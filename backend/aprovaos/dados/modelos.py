@@ -218,20 +218,24 @@ class TopicoRelacao(ChaveUuid, Carimbos, Base):
     por tópico passa a olhar também os tópicos ligados a ele por `origem="equivalencia_curada"`
     antes de desistir.
 
-    `origem` guarda os três valores que `docs/04-modelo-de-dados.md` §3 já previa
-    (`edital`/`dossie`/`coocorrencia` — nenhum implementado ainda, ADR-0041 é a primeira aresta
-    real desta tabela) mais o quarto que esta ADR acrescenta, `equivalencia_curada`: uma
-    correspondência decidida à mão, com evidência textual literal (a mesma lei/expressão citada
-    nos dois lados), nunca inferida por similaridade automática (ADR-0036 — "na dúvida, não
-    relacione"). `evidencia` é a extensão desta ADR ao mínimo do modelo de dados (mesmo padrão de
-    `dna_concurso`/`questao`/`aula` — coluna além do que a Fase 3 documentava): sem ela, a
-    relação seria "parecem iguais" sem rastro, o que a tarefa que originou esta tabela proíbe
-    explicitamente. `peso` é sempre `1.000` para `equivalencia_curada` (equivalência plena, não
-    força parcial); os outros `origem` ainda não têm produtor, então o intervalo de `peso` deles
-    continua em aberto. A relação é **simétrica na leitura** (`de_id`/`para_id` não importam
-    quem é quem — `topicos_equivalentes` busca nas duas direções) ainda que gravada como aresta
-    direcionada; `criar_relacao_equivalente` é idempotente nas duas direções, então nunca existem
-    duas linhas para o mesmo par.
+    `origem` guarda os dois valores que `docs/04-modelo-de-dados.md` §3 já previa
+    (`edital`/`dossie` — nenhum implementado ainda; `coocorrencia` idem) mais os dois que a
+    correção estrutural de 19/09/2026 acrescentou: `equivalencia_curada` (ADR-0041, peso sempre
+    `1.000` — o mesmo assunto, visto por dois editais, nunca uma força parcial) e
+    `subconjunto_curado` (I1 de uma revisão independente no mesmo dia, peso sempre `< 1.000` —
+    um dossiê/aula cobre só um subconjunto do item do outro edital; ex.: um dossiê que detalha
+    apelação/agravo/embargos para o item genérico "Dos recursos" do TJ-PR **não** é a mesma
+    coisa que o item inteiro, mesmo citando a mesma lei). As duas são decididas à mão, com
+    evidência textual literal (a mesma lei/expressão citada nos dois lados, ou o que fica de
+    fora quando é subconjunto), nunca inferidas por similaridade automática (ADR-0036 — "na
+    dúvida, não relacione"). `evidencia` é a extensão desta ADR ao mínimo do modelo de dados
+    (mesmo padrão de `dna_concurso`/`questao`/`aula` — coluna além do que a Fase 3 documentava):
+    sem ela, a relação seria "parecem iguais" sem rastro, o que a tarefa que originou esta tabela
+    proíbe explicitamente. A relação é **simétrica na leitura** (`de_id`/`para_id` não importam
+    quem é quem — `topicos_equivalentes`/`topicos_subconjunto` buscam nas duas direções) ainda
+    que gravada como aresta direcionada; `criar_relacao_equivalente`/`criar_relacao_subconjunto`
+    são idempotentes nas duas direções, então nunca existem duas linhas para o mesmo par na
+    mesma origem.
     """
 
     __tablename__ = "topico_relacao"
@@ -239,7 +243,9 @@ class TopicoRelacao(ChaveUuid, Carimbos, Base):
         UniqueConstraint("de_id", "para_id", "origem"),
         CheckConstraint("de_id <> para_id", name="de_id_diferente_de_para_id"),
         CheckConstraint(
-            "origem IN ('edital','dossie','coocorrencia','equivalencia_curada')", name="origem"
+            "origem IN ('edital','dossie','coocorrencia','equivalencia_curada',"
+            "'subconjunto_curado')",
+            name="origem",
         ),
     )
 

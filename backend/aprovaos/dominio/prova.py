@@ -435,11 +435,29 @@ def _blocos_por_questao(linhas: list[str]) -> list[tuple[int | None, list[str]]]
 def _indices_das_alternativas(linhas: list[str], numero_item: int) -> dict[_LETRA, int]:
     """Acha, num bloco de questão, o índice de cada alternativa A–E, por eliminação posicional.
 
-    Junta todos os candidatos (linhas que começam com uma letra A–E seguida de espaço) e resolve
-    da direita para a esquerda: a alternativa E é o último candidato "E" do bloco; a D é o último
-    candidato "D" que vem antes da E já resolvida; e assim por diante até A. Isso decide sozinho,
-    sem adivinhar, qual candidato "A" é a alternativa de verdade quando o enunciado da questão
-    começa com o artigo "A" (achado do passo 1: 5 das 40 questões do caderno real começam assim).
+    Junta todos os candidatos (linhas que começam com uma letra A–E seguida de espaço). B, C e D
+    têm letra antes e depois no bloco, então cada uma é resolvida como o último candidato que vem
+    antes da letra seguinte já resolvida — decide sozinho, sem adivinhar, qual candidato é o de
+    verdade quando existe um espúrio mais cedo no bloco (o artigo "A" do enunciado, achado do
+    passo 1: 5 das 40 questões do caderno real começam assim).
+
+    A e E são os dois casos de borda — cada um só tem letra vizinha de um lado — e por isso são
+    resolvidos **antes** da cadeia de B/C/D, cada um apoiado só no candidato bruto (ainda não
+    resolvido) da sua única letra vizinha, sempre pelo lado que reduz a janela, nunca pelo que a
+    amplia:
+    - **A** (só tem B depois): o último candidato de A que vem antes do **primeiro** candidato
+      bruto de B — a mesma regra de sempre, só que o teto agora é o candidato de B mais cedo
+      possível (o mais conservador), não um B já resolvido.
+    - **E** (só tem D antes): simétrico — o **primeiro** candidato de E que vem depois do
+      **último** candidato bruto de D. Sem este piso, uma linha *dentro do próprio texto* da
+      alternativa E que comece com "E " + maiúscula (nome próprio, "E ainda...") seria lida como
+      um novo início de E, corrompendo em silêncio o fim de D e o começo de E — a mesma classe de
+      defeito que a segmentação C/E já tratou nos itens 99/106/111/116 do caderno da TJ_PA
+      (narrativa de situação hipotética sem marcador), agora do lado da última alternativa em vez
+      do primeiro item (achado da revisão do passo 1 da fatia V3b).
+
+    Com A e E fixados, B, C e D são resolvidos pela cadeia original, da direita para a esquerda,
+    dentro da janela `(A, E)` que os dois já delimitam.
 
     Args:
         linhas: as linhas do bloco da questão (sem a própria linha "Questão N").
@@ -449,7 +467,8 @@ def _indices_das_alternativas(linhas: list[str], numero_item: int) -> dict[_LETR
         Um mapa `letra -> índice`, com os cinco índices em ordem estritamente crescente.
 
     Raises:
-        SegmentacaoAmbigua: alguma letra não tem candidato, ou não tem candidato antes da letra
+        SegmentacaoAmbigua: alguma letra não tem candidato, A não tem candidato antes do primeiro
+            B, E não tem candidato depois do último D, ou B/C/D não têm candidato antes da letra
             seguinte já resolvida — estrutura de alternativas não reconhecida.
     """
     candidatos: dict[_LETRA, list[int]] = {letra: [] for letra in _LETRAS_ALTERNATIVA}
@@ -467,9 +486,22 @@ def _indices_das_alternativas(linhas: list[str], numero_item: int) -> dict[_LETR
             "estrutura de alternativas não reconhecida."
         )
 
-    indices: dict[_LETRA, int] = {"E": candidatos["E"][-1]}
+    antes_do_primeiro_b = [indice for indice in candidatos["A"] if indice < candidatos["B"][0]]
+    if not antes_do_primeiro_b:
+        raise SegmentacaoAmbigua(
+            f"Questão {numero_item}: a alternativa A não aparece antes da alternativa B — "
+            "estrutura de alternativas não reconhecida."
+        )
+    depois_do_ultimo_d = [indice for indice in candidatos["E"] if indice > candidatos["D"][-1]]
+    if not depois_do_ultimo_d:
+        raise SegmentacaoAmbigua(
+            f"Questão {numero_item}: a alternativa E não aparece depois da alternativa D — "
+            "estrutura de alternativas não reconhecida."
+        )
+
+    indices: dict[_LETRA, int] = {"A": antes_do_primeiro_b[-1], "E": depois_do_ultimo_d[0]}
     limite = indices["E"]
-    for letra in ("D", "C", "B", "A"):
+    for letra in ("D", "C", "B"):
         anteriores = [indice for indice in candidatos[letra] if indice < limite]
         if not anteriores:
             raise SegmentacaoAmbigua(

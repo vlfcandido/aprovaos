@@ -363,6 +363,36 @@ D quarta alternativa.
         segmentar_multipla_escolha(texto)
 
 
+def test_multipla_escolha_continuacao_de_e_comecando_com_e_nao_vira_alternativa_falsa() -> None:
+    """Uma linha *dentro* do texto da própria alternativa E que comece com "E " + maiúscula
+    (nome próprio, "E ainda...") não pode ser lida como um novo início de E.
+
+    Achado da revisão do passo 1: ao contrário de A–D (que são resolvidas pela candidata mais
+    próxima, à esquerda, da letra seguinte — robusto contra uma candidata espúria mais cedo no
+    bloco, como o artigo "A" do enunciado), a alternativa E, por ser a última, não tinha limite à
+    direita e pegava a *última* ocorrência de "E " do bloco inteiro — inclusive uma que fosse só
+    continuação do próprio texto de E, corrompendo em silêncio o fim de D e o começo de E.
+    """
+    texto = """\
+Questão 1
+Acerca de algum assunto, assinale a opção correta.
+A primeira alternativa.
+B segunda alternativa.
+C terceira alternativa.
+D quarta alternativa.
+E José relatou o ocorrido perante a autoridade competente.
+E ainda apresentou novos documentos como prova.
+"""
+    itens = segmentar_multipla_escolha(texto)
+    assert len(itens) == 1
+    alternativas = {a.letra: a.texto for a in itens[0].alternativas}
+    assert alternativas["D"] == "quarta alternativa."
+    assert alternativas["E"] == (
+        "José relatou o ocorrido perante a autoridade competente. E ainda apresentou novos "
+        "documentos como prova."
+    )
+
+
 def test_multipla_escolha_bate_com_o_numero_de_entradas_do_gabarito_no_caderno_real() -> None:
     """A contagem de questões segmentadas bate com a do gabarito real (regra de ouro da fatia)."""
     caminho_gabarito = (

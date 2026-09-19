@@ -43,10 +43,14 @@ def test_dispositivo_que_o_extrator_le_vira_fonte_com_trecho_literal_e_url() -> 
 
 
 def test_dispositivo_que_o_extrator_nao_trata_vira_lacuna_com_trecho_literal_do_erro() -> None:
-    """Art. 9º (título de Seção em Title Case entre ele e o art. 10) vira lacuna, não invenção."""
+    """Art. 19 (a linha solta "Pena: detenção de seis a dez meses e multa." entre o caput e o
+    parágrafo único, sem nenhum prefixo de §/inciso/alínea) vira lacuna, não invenção — estrutura
+    diferente das quatro tratadas pela P-40 nesta rodada (título Title Case, § com sufixo de
+    letra, alínea direto sob o caput, anotação "Vigência" órfã); a rede de segurança continua de
+    pé para o que não foi tratado."""
     conteudo = montar_dossie(
         topico_slug="dir-adm-06-improbidade-administrativa",
-        pedidos=[PedidoDispositivo(norma="lei-8429-1992", artigo="9")],
+        pedidos=[PedidoDispositivo(norma="lei-8429-1992", artigo="19")],
         normas_html={"lei-8429-1992": HTML_LEI_8429},
         normas_url={"lei-8429-1992": URL_LEI_8429},
         hoje=HOJE,
@@ -55,9 +59,9 @@ def test_dispositivo_que_o_extrator_nao_trata_vira_lacuna_com_trecho_literal_do_
     assert conteudo.fontes == []
     assert len(conteudo.lacunas) == 1
     lacuna = conteudo.lacunas[0]
-    assert lacuna.dispositivo == "Lei 8.429/1992 art. 9"
-    assert "Seção II" in lacuna.motivo
-    assert "Dos Atos de Improbidade" in lacuna.motivo
+    assert lacuna.dispositivo == "Lei 8.429/1992 art. 19"
+    assert "Pena" in lacuna.motivo
+    assert "detenção" in lacuna.motivo
     # a lacuna é nomeada no conteúdo, mas nenhum trecho de artigo é inventado no lugar dela:
     assert "Lacunas declaradas" in conteudo.conteudo
     assert "[F1]" not in conteudo.conteudo
@@ -84,7 +88,7 @@ def test_log_de_buscas_registra_uma_entrada_por_pedido_inclusive_falhas() -> Non
         topico_slug="dir-adm-06-improbidade-administrativa",
         pedidos=[
             PedidoDispositivo(norma="lei-8429-1992", artigo="1", paragrafo="1"),
-            PedidoDispositivo(norma="lei-8429-1992", artigo="9"),
+            PedidoDispositivo(norma="lei-8429-1992", artigo="19"),
         ],
         normas_html={"lei-8429-1992": HTML_LEI_8429},
         normas_url={"lei-8429-1992": URL_LEI_8429},

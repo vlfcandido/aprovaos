@@ -112,15 +112,13 @@ def test_norma_fora_do_catalogo_e_lacuna_e_entra_no_ranking(db: Session) -> None
     assert db.query(DispositivoLegal).count() == 0
 
 
-def test_clt_esta_no_catalogo_mas_art_477_nao_resolve_por_estrutura_nao_tratada(
+def test_clt_resolve_o_art_477_depois_da_p40_tratar_a_anotacao_vigencia_encerrada_orfa(
     db: Session,
 ) -> None:
-    """CLT entrou no catálogo (ampliação 19/09/2026), mas o art. 477 tem uma anotação
-
-    ("Vigência\\nencerrada", sem parênteses) que `dominio.legislacao.extrair_artigo` não trata
-    (ver `knowledge/fixtures/juridico/LEIA-ME.md`, achado 2) — a questão cai em
-    `catalogada_nao_resolvida`, não em `lacuna_norma` (a norma já está no catálogo), e nenhum
-    dispositivo é gravado (a falha é engolida por `_resolver_trecho`, nunca trava o comando).
+    """CLT entrou no catálogo (ampliação 19/09/2026); o art. 477 tinha uma anotação
+    ("Vigência\\nencerrada", sem parênteses) que `dominio.legislacao.extrair_artigo` não tratava
+    (ver `knowledge/fixtures/juridico/LEIA-ME.md`, achado 2) e derrubava o artigo inteiro — agora
+    tratada (P-40), a citação ao caput resolve normalmente.
     """
     salvar_questoes(
         db,
@@ -130,11 +128,13 @@ def test_clt_esta_no_catalogo_mas_art_477_nao_resolve_por_estrutura_nao_tratada(
 
     relatorio = ancorar_citacoes(db)
 
-    assert relatorio.resolvidas == 0
+    assert relatorio.resolvidas == 1
     assert relatorio.lacuna_norma == 0
-    assert relatorio.catalogada_nao_resolvida == 1
-    assert relatorio.normas_fora_do_catalogo == {}
-    assert db.query(DispositivoLegal).count() == 0
+    assert relatorio.catalogada_nao_resolvida == 0
+    dispositivo = db.query(DispositivoLegal).one()
+    assert dispositivo.norma == "clt"
+    assert dispositivo.artigo == "477"
+    assert dispositivo.texto.startswith("Art. 477. Na extinção do contrato de trabalho")
 
 
 def test_clt_resolve_um_artigo_sem_a_anotacao_problematica(db: Session) -> None:

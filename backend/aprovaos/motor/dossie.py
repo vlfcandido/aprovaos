@@ -68,10 +68,13 @@ RECEITAS: dict[str, ReceitaDossie] = {
             PedidoDispositivo(norma=_LEI_8429, artigo="1", paragrafo="8"),  # divergência não é
             PedidoDispositivo(norma=_LEI_8429, artigo="2"),  # quem é agente público
             PedidoDispositivo(norma=_LEI_8429, artigo="3"),  # particular que induz dolosamente
-            PedidoDispositivo(norma=_LEI_8429, artigo="9"),  # lacuna: "Seção II" (Title Case)
-            PedidoDispositivo(norma=_LEI_8429, artigo="10"),  # lacuna: idem
-            PedidoDispositivo(norma=_LEI_8429, artigo="11"),  # lacuna: idem + "CAPÍTULO III"
-            PedidoDispositivo(norma=_LEI_8429, artigo="17"),  # lacuna: "§ 4º-A" (sufixo letra)
+            # arts. 9, 10, 11 e 17 eram lacuna (título de Seção/Capítulo em Title Case entre os
+            # três primeiros; "§ 4º-A" no 17) até a P-40 tratar as quatro estruturas em
+            # `dominio.legislacao` — resolvem como fonte desde então.
+            PedidoDispositivo(norma=_LEI_8429, artigo="9"),  # enriquecimento ilícito
+            PedidoDispositivo(norma=_LEI_8429, artigo="10"),  # prejuízo ao erário
+            PedidoDispositivo(norma=_LEI_8429, artigo="11"),  # atentado aos princípios
+            PedidoDispositivo(norma=_LEI_8429, artigo="17"),  # rito único + § 4º-A (foro)
             PedidoDispositivo(norma=_LEI_8429, artigo="23"),  # prescrição
         ],
         sumulas=[
@@ -105,9 +108,9 @@ RECEITAS: dict[str, ReceitaDossie] = {
             PedidoDispositivo(norma=_LEI_13105, artigo="1022"),  # embargos de declaração—cabimento
             PedidoDispositivo(norma=_LEI_13105, artigo="1023"),  # embargos — prazo
             PedidoDispositivo(norma=_LEI_13105, artigo="1024"),  # embargos — julgamento
-            # lacuna proposital: "Seção I Do Recurso Ordinário" em Title Case entre 1.025 e
-            # 1.026 (achado desta fatia, §2 do plano) — mantido para provar que o dossiê declara
-            # em vez de esconder.
+            # era lacuna proposital: "Seção I Do Recurso Ordinário" em Title Case entre 1.025 e
+            # 1.026 (achado desta fatia, §2 do plano) — a P-40 tratou título em Title Case em
+            # `dominio.legislacao`, resolve como fonte desde então.
             PedidoDispositivo(norma=_LEI_13105, artigo="1026"),
         ],
         sumulas=[

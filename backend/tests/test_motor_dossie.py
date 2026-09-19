@@ -61,15 +61,27 @@ class TestConstruirDossieImprobidade:
             {c for c in citacoes if c.startswith("Lei")}
         )
 
-    def test_declara_lacuna_para_artigos_com_estrutura_nao_tratada(self, db: Session) -> None:
-        """Arts. 9º, 10, 11 (Título Caso) e 17 (§ com sufixo de letra) viram lacuna."""
+    def test_resolve_artigos_9_10_11_e_17_depois_da_p40_tratar_as_estruturas(
+        self, db: Session
+    ) -> None:
+        """Arts. 9º, 10, 11 (título de Seção em Title Case entre eles) e 17 (§ com sufixo de
+        letra) eram lacuna antes desta rodada (`EstruturaNaoTratada` em
+        `dominio.legislacao.extrair_artigo`) — tratados pela P-40, agora resolvem como fonte,
+        com o texto literal do artigo que define o ato de improbidade correspondente."""
         _topico(db, "dir-adm-06-improbidade-administrativa")
 
         _dossie, conteudo = construir_dossie(db, "dir-adm-06-improbidade-administrativa", hoje=HOJE)
 
-        dispositivos_das_lacunas = {lacuna.dispositivo for lacuna in conteudo.lacunas}
-        assert "Lei 8.429/1992 art. 9" in dispositivos_das_lacunas
-        assert "Lei 8.429/1992 art. 17" in dispositivos_das_lacunas
+        assert conteudo.lacunas == []
+        fontes_por_citacao = {fonte.citacao_canonica: fonte for fonte in conteudo.fontes}
+        assert "Lei 8.429/1992 art. 9" in fontes_por_citacao
+        assert "Lei 8.429/1992 art. 10" in fontes_por_citacao
+        assert "Lei 8.429/1992 art. 11" in fontes_por_citacao
+        assert "Lei 8.429/1992 art. 17" in fontes_por_citacao
+        assert fontes_por_citacao["Lei 8.429/1992 art. 9"].trecho.startswith(
+            "Art. 9º Constitui ato de improbidade administrativa importando em enriquecimento "
+            "ilícito"
+        )
 
 
 class TestConstruirDossieDireitosGarantias:
@@ -107,15 +119,21 @@ class TestConstruirDossieRecursosApelacao:
         assert "STJ Súmula 98" in citacoes
         assert "STJ Súmula 347" in citacoes
 
-    def test_artigo_1026_fica_como_lacuna_declarada_de_proposito(self, db: Session) -> None:
-        """Achado registrado, não remendado (§2 do plano): título de Seção em Title Case entre
-        os arts. 1.025 e 1.026 do CPC."""
+    def test_artigo_1026_resolve_depois_da_p40_tratar_o_titulo_em_title_case(
+        self, db: Session
+    ) -> None:
+        """Era lacuna de propósito (§2 do plano): título de Seção em Title Case ("Seção I\\nDo
+        Recurso Ordinário") entre os arts. 1.025 e 1.026 do CPC. Tratado pela P-40 — resolve."""
         _topico(db, "dir-pro-civ-05-recursos-apelacao", materia="direito-processual-civil")
 
         _dossie, conteudo = construir_dossie(db, "dir-pro-civ-05-recursos-apelacao", hoje=HOJE)
 
-        dispositivos_das_lacunas = {lacuna.dispositivo for lacuna in conteudo.lacunas}
-        assert "Lei 13.105/2015 art. 1026" in dispositivos_das_lacunas
+        assert conteudo.lacunas == []
+        fontes_por_citacao = {fonte.citacao_canonica: fonte for fonte in conteudo.fontes}
+        assert "Lei 13.105/2015 art. 1026" in fontes_por_citacao
+        assert fontes_por_citacao["Lei 13.105/2015 art. 1026"].trecho.startswith(
+            "Art. 1.026. Os embargos de declaração não possuem efeito suspensivo"
+        )
 
 
 class TestConstruirDossieAtosProcessuais:

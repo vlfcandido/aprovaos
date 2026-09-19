@@ -15,6 +15,7 @@ from sqlalchemy.pool import StaticPool
 from aprovaos.dados.base import Base
 from aprovaos.dados.modelos import (
     Alternativa,
+    Assinatura,
     Bloco,
     Citacao,
     Concurso,
@@ -23,6 +24,7 @@ from aprovaos.dados.modelos import (
     Documento,
     DossieTopico,
     Edital,
+    EventoCobranca,
     EventoEstudo,
     Fonte,
     PerfilEstudo,
@@ -88,6 +90,8 @@ def test_tabelas() -> None:
         "calibracao",
         "veredito_questao",
         "concurso_radar",
+        "assinatura",
+        "evento_cobranca",
     }
 
 
@@ -716,3 +720,79 @@ def test_tipo_do_bloco_restrito(db: Session) -> None:
     db.add(Bloco(plano_dia_id=plano.id, ordem=1, tipo="simulado", duracao_min=10, porque="x"))
     with pytest.raises(IntegrityError):
         db.commit()
+
+
+def _assinatura_pro(usuario: Usuario, **sobrescritas: object) -> Assinatura:
+    campos: dict[str, object] = {
+        "usuario": usuario,
+        "tier": "pro",
+        "periodicidade": "mensal",
+        "status": "ativa",
+        "inicio": datetime.now(UTC),
+        "fim": date(2026, 10, 19),
+        "gateway": "mercado_pago",
+        "id_externo": "preap-1",
+    }
+    campos.update(sobrescritas)
+    return Assinatura(**campos)
+
+
+def test_insere_assinatura(db: Session) -> None:
+    """Uma `Assinatura` grava e é lida com os campos do modelo de dados §2."""
+    _, usuario, _ = _conta(db)
+    db.add(_assinatura_pro(usuario))
+    db.commit()
+    assinatura = db.scalars(select(Assinatura)).one()
+    assert assinatura.tier == "pro"
+    assert assinatura.status == "ativa"
+    assert assinatura.cancelada_em is None
+
+
+def test_assinatura_e_unica_por_usuario(db: Session) -> None:
+    """Uma segunda `Assinatura` para o mesmo usuário viola `UniqueConstraint(usuario_id)`."""
+    _, usuario, _ = _conta(db)
+    db.add(_assinatura_pro(usuario))
+    db.commit()
+    db.add(_assinatura_pro(usuario, id_externo="preap-2"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_tier_da_assinatura_restrito(db: Session) -> None:
+    """`tier` fora de `free`/`pro` viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    db.add(_assinatura_pro(usuario, tier="elite"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_status_da_assinatura_restrito(db: Session) -> None:
+    """`status` fora dos quatro valores do domínio viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    db.add(_assinatura_pro(usuario, status="inadimplente"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_periodicidade_da_assinatura_restrita(db: Session) -> None:
+    """`periodicidade` fora de `mensal`/`anual` viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    db.add(_assinatura_pro(usuario, periodicidade="semanal"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_insere_evento_cobranca(db: Session) -> None:
+    """`EventoCobranca` grava o payload cru do webhook e nasce sem `processado_em`."""
+    db.add(
+        EventoCobranca(
+            gateway="mercado_pago",
+            id_externo="preap-1",
+            tipo="assinatura_autorizada",
+            payload={"id": 999, "type": "subscription_preapproval"},
+        )
+    )
+    db.commit()
+    evento = db.scalars(select(EventoCobranca)).one()
+    assert evento.payload["id"] == 999
+    assert evento.processado_em is None

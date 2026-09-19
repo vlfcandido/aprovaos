@@ -32,6 +32,7 @@ from aprovaos.api.questoes import (
     RESPOSTAS_VALIDAS_POR_TIPO,
     contexto_evento,
     contexto_questao,
+    veredito_de_limite,
 )
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
@@ -195,6 +196,11 @@ def diagnostico(
     materias_forcadas = frozenset({insistir}) if insistir else frozenset()
 
     if total_itens < MAXIMO_ITENS:
+        veredito = veredito_de_limite(db, usuario)
+        if not veredito.permitido:
+            contexto_limite = {"limite": {"motivo": veredito.motivo, "convite": veredito.convite}}
+            return renderizar(request, "diagnostico/andamento.html", contexto_limite, usuario)
+
         respondidos_por_topico = Counter(r.topico_id for r in respostas)
         candidatos = ordenar_candidatos(topicos, estados, respondidos_por_topico, materias_forcadas)
         for candidato in candidatos:

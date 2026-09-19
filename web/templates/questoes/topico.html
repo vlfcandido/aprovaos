@@ -16,6 +16,11 @@
   <div id="questao">
     {% if questao %}
       {% include "questoes/_cartao_questao.html" %}
+    {% elif limite %}
+      <div class="mensagem mensagem--porque" role="status">
+        <p>{{ limite.motivo }}</p>
+        <p><a class="botao" href="/assinar">{{ limite.convite }}</a></p>
+      </div>
     {% else %}
       <p>Ainda não temos questões deste tópico.</p>
     {% endif %}

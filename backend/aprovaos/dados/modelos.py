@@ -30,7 +30,10 @@ sem precisar reescrever `publicavel` (o veredito estrutural do curador, que o ca
 toca). A fatia 5 acrescenta `veredito_questao` (histórico append-only das tentativas de validação
 de uma inédita — ver o docstring da classe `VereditoQuestao`); nenhuma coluna de `Questao` muda,
 já que `origem`/`inedita`/`validada_em`/`validador_versao`/`justificativa_certo`/
-`justificativa_errado` já existiam desde a V3/fundação jurídica para este caso.
+`justificativa_errado` já existiam desde a V3/fundação jurídica para este caso. A fatia 12
+(billing real, RF-22/23, Alembic 0019) acrescenta `assinatura` (uma por usuário, atualizada no
+lugar pelo webhook do gateway de pagamento — ver o docstring da classe) e `evento_cobranca`
+(append-only, o corpo cru de cada webhook, para auditoria).
 """
 
 from datetime import date, datetime, time
@@ -101,6 +104,64 @@ class Usuario(ChaveUuid, Carimbos, Base):
     consentimento_dados_rotina_versao: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     tenant: Mapped[Tenant] = relationship()
+
+
+class Assinatura(ChaveUuid, Carimbos, Base):
+    """A assinatura de um usuário (fatia 12, RF-22, ADR-0015/ADR-0025): uma por usuário.
+
+    Não é versionada nem append-only — é o estado atual, atualizado no lugar pelo webhook do
+    gateway (`dados.repositorio_assinatura.aplicar_evento`) e pelo cancelamento em um clique.
+    `tier`/`status`/`fim` são o que `dominio.assinatura.tier_efetivo` lê para decidir o tier
+    efetivo: uma assinatura `cancelada` continua Pro até `fim` inclusive; `em_atraso` continua Pro
+    por `dominio.assinatura.DIAS_TOLERANCIA_EM_ATRASO` dias a partir de `fim` (churn involuntário
+    não é churn, regra 5.3 da fábrica). `UniqueConstraint(usuario_id)` cumpre "uma por usuário"
+    (`docs/04-modelo-de-dados.md` §2) — assinar de novo depois de cancelar atualiza a mesma linha,
+    nunca cria uma segunda. `gateway` é sempre `"mercado_pago"` hoje (ADR-0025); `id_externo` é a
+    identidade da assinatura no gateway (o `id` do recurso `/preapproval`).
+    """
+
+    __tablename__ = "assinatura"
+    __table_args__ = (
+        UniqueConstraint("usuario_id"),
+        CheckConstraint("tier IN ('free','pro')", name="tier"),
+        CheckConstraint("status IN ('ativa','em_atraso','cancelada','expirada')", name="status"),
+        CheckConstraint("periodicidade IN ('mensal','anual')", name="periodicidade"),
+    )
+
+    usuario_id: Mapped[UUID] = mapped_column(ForeignKey("usuario.id"), index=True, nullable=False)
+    tier: Mapped[str] = mapped_column(String(8), nullable=False)
+    periodicidade: Mapped[str] = mapped_column(String(8), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    inicio: Mapped[datetime] = mapped_column(DataHoraUtc, nullable=False)
+    fim: Mapped[date] = mapped_column(Date, nullable=False)
+    gateway: Mapped[str] = mapped_column(String(24), nullable=False)
+    id_externo: Mapped[str] = mapped_column(String(120), nullable=False)
+    cancelada_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+
+    usuario: Mapped[Usuario] = relationship()
+
+
+class EventoCobranca(ChaveUuid, Base):
+    """Um webhook recebido do gateway de pagamento, cru — auditoria (fatia 12).
+
+    "Dinheiro exige rastro": append-only por contrato, como `EventoEstudo`/`Traco` (por isso não
+    herda `Carimbos`):
+    `recebido_em` é o carimbo de chegada; `processado_em` nasce `None` e é preenchido depois que
+    `dados.repositorio_assinatura.aplicar_evento` decide o que fazer com ele — a mesma linha nunca
+    é apagada mesmo quando o evento não altera nada (ex.: um `type` que esta fatia não processa,
+    `pagamento.gateway.GatewayPagamento.ler_evento` devolvendo `None`). `payload` é o corpo bruto
+    do webhook, decodificado como JSON — a fonte de verdade para reprocessar ou auditar sem
+    depender da interpretação de hoje.
+    """
+
+    __tablename__ = "evento_cobranca"
+
+    gateway: Mapped[str] = mapped_column(String(24), nullable=False)
+    id_externo: Mapped[str] = mapped_column(String(120), nullable=False)
+    tipo: Mapped[str] = mapped_column(String(32), nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    recebido_em: Mapped[datetime] = mapped_column(DataHoraUtc, default=agora_utc, nullable=False)
+    processado_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
 
 
 class Sessao(ChaveUuid, Carimbos, Base):

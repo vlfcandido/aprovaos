@@ -1,15 +1,18 @@
 """Repositório de sessão de login server-side (ADR-0026): abre, consulta e revoga.
 
-O que é: `abrir_sessao`, `usuario_da_sessao`, `revogar_sessao`. O banco guarda só o SHA-256 do
-token; o token em claro vive apenas no cookie. Quando ler: ao mexer em login, logout ou na
-validade da sessão. As funções fazem `add`/`flush`; o `commit` é da rota.
+O que é: `abrir_sessao`, `usuario_da_sessao`, `revogar_sessao` e `revogar_todas_as_sessoes`
+(fatia 12, RF-23 — usada por `dados.repositorio_lgpd.excluir_dados_do_usuario`, para uma sessão
+já aberta parar de funcionar assim que a conta é excluída). O banco guarda só o SHA-256 do token;
+o token em claro vive apenas no cookie. Quando ler: ao mexer em login, logout, exclusão de conta
+ou na validade da sessão. As funções fazem `add`/`flush`; o `commit` é da rota.
 """
 
 import hashlib
 import secrets
 from datetime import datetime, timedelta
+from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.modelos import Sessao, Usuario
@@ -73,4 +76,20 @@ def revogar_sessao(db: Session, token: str, agora: datetime) -> None:
     if sessao is None or sessao.revogada_em is not None:
         return
     sessao.revogada_em = agora
+    db.flush()
+
+
+def revogar_todas_as_sessoes(db: Session, usuario_id: UUID, agora: datetime) -> None:
+    """Revoga toda sessão ainda não revogada deste usuário (fatia 12, RF-23 — exclusão de conta).
+
+    Args:
+        db: sessão do request.
+        usuario_id: dono das sessões.
+        agora: instante gravado em `revogada_em`.
+    """
+    db.execute(
+        update(Sessao)
+        .where(Sessao.usuario_id == usuario_id, Sessao.revogada_em.is_(None))
+        .values(revogada_em=agora)
+    )
     db.flush()

@@ -14,7 +14,7 @@ from typing import Final, Literal
 from uuid import UUID
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from aprovaos.agentes.analista_de_edital import ResultadoDna
@@ -283,6 +283,27 @@ def concurso_principal(db: Session, tenant_id: UUID) -> Concurso | None:
 
     lista = listar_concursos_do_tenant(db, tenant_id)
     return lista[0] if lista else None
+
+
+def contagem_editais_com_dna(db: Session, tenant_id: UUID) -> int:
+    """Quantos concursos **distintos** deste tenant já têm `dna_concurso` (fatia 12, ADR-0015).
+
+    Usado por `dominio.assinatura.pode_criar_edital` — o Free processa o DNA de 1 concurso; é
+    uma contagem total do tenant, não diária.
+
+    Args:
+        db: sessão do request.
+        tenant_id: dono dos concursos.
+
+    Returns:
+        A contagem (`0` se o tenant nunca subiu edital nenhum).
+    """
+    consulta = (
+        select(func.count(func.distinct(DnaConcursoRegistro.concurso_id)))
+        .join(Concurso, Concurso.id == DnaConcursoRegistro.concurso_id)
+        .where(Concurso.tenant_id == tenant_id)
+    )
+    return db.scalar(consulta) or 0
 
 
 def buscar_concurso(db: Session, concurso_id: UUID) -> Concurso | None:

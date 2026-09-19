@@ -17,7 +17,7 @@ from typing import Annotated, Any, Protocol
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
@@ -36,7 +36,13 @@ from aprovaos.api.templates import renderizar, responder_redirecionamento
 from aprovaos.config import Configuracoes
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Usuario
+from aprovaos.dados.repositorio_assinatura import (
+    assinatura_do_usuario,
+    cancelar_assinatura,
+    tier_do_usuario,
+)
 from aprovaos.dados.repositorio_conta import autenticar, criar_conta, criar_ou_ligar_conta_google
+from aprovaos.dados.repositorio_lgpd import excluir_dados_do_usuario, exportar_dados_do_usuario
 from aprovaos.dados.repositorio_sessao import abrir_sessao, revogar_sessao
 from aprovaos.dominio.conta import DadosCadastro, DadosLogin, PerfilGoogle
 from aprovaos.dominio.erros import (
@@ -45,6 +51,7 @@ from aprovaos.dominio.erros import (
     EmailJaCadastrado,
     GoogleOAuthIndisponivel,
 )
+from aprovaos.pagamento.gateway import GatewayPagamento
 
 router = APIRouter(include_in_schema=False)
 
@@ -368,17 +375,103 @@ def entrar_google_callback(
 
 
 @router.get("/conta")
-def minha_conta(request: Request, usuario: Annotated[Usuario, Depends(exigir_usuario)]) -> Response:
-    """Página protegida mínima: mostra o e-mail e o botão de sair.
+def minha_conta(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+) -> Response:
+    """Página da conta: e-mail, sair, o bloco de assinatura (fatia 12) e os botões de LGPD.
+
+    O bloco de assinatura só aparece com o gateway configurado (Ruling 46) — sem ele, o produto
+    roda como hoje e todo mundo é Free sem tela nenhuma de billing. Os botões de exportar/excluir
+    (RF-23) aparecem sempre, independente do gateway: LGPD não é billing.
 
     Args:
         request: a requisição atual.
+        db: sessão de banco do request (só leitura).
         usuario: o usuário logado (sem login, `exigir_usuario` redireciona para `/entrar`).
 
     Returns:
         O HTML de `conta/conta.html`.
     """
-    return renderizar(request, "conta/conta.html", {"email": usuario.email}, usuario)
+    gateway: GatewayPagamento | None = request.app.state.gateway_pagamento
+    contexto: dict[str, object] = {
+        "email": usuario.email,
+        "billing_disponivel": gateway is not None,
+    }
+    if gateway is not None:
+        contexto["assinatura"] = assinatura_do_usuario(db, usuario.id)
+        contexto["tier"] = "pro" if _e_pro_agora(db, usuario) else "free"
+    return renderizar(request, "conta/conta.html", contexto, usuario)
+
+
+def _e_pro_agora(db: Session, usuario: Usuario) -> bool:
+    """`True` se o tier efetivo do usuário, agora, é Pro (`dados.repositorio_assinatura`)."""
+    return tier_do_usuario(db, usuario.id, agora_utc().date()) == "pro"
+
+
+@router.get("/conta/exportar")
+def exportar_conta(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+) -> Response:
+    """Exporta tudo que é do usuário em JSON (RF-23).
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (só leitura).
+        usuario: o usuário logado.
+
+    Returns:
+        `JSONResponse` com `dados.repositorio_lgpd.exportar_dados_do_usuario`.
+    """
+    return JSONResponse(exportar_dados_do_usuario(db, usuario))
+
+
+@router.post("/conta/excluir")
+def excluir_conta(
+    request: Request,
+    db: Annotated[Session, Depends(obter_db)],
+    usuario: Annotated[Usuario, Depends(exigir_usuario)],
+    confirmar: Annotated[str | None, Form()] = None,
+) -> Response:
+    """Exclui a conta (RF-23, Ruling 48) — exige confirmação explícita e cancela a assinatura antes.
+
+    Args:
+        request: a requisição atual.
+        db: sessão de banco do request (o commit é feito aqui).
+        usuario: o usuário logado.
+        confirmar: precisa vir preenchido (o formulário só o manda com a caixa marcada) — sem
+            isso, a página volta sem apagar nada (200, nunca um erro por "esquecer de marcar").
+
+    Returns:
+        `conta/conta.html` com aviso (200) sem confirmação; redirecionamento para `/` com o
+        cookie limpo, depois de excluir.
+    """
+    if not confirmar:
+        contexto = {
+            "email": usuario.email,
+            "aviso_exclusao": "Marque a confirmação para excluir sua conta.",
+        }
+        return renderizar(request, "conta/conta.html", contexto, usuario)
+
+    gateway: GatewayPagamento | None = request.app.state.gateway_pagamento
+    if gateway is not None:
+        assinatura = assinatura_do_usuario(db, usuario.id)
+        if assinatura is not None and assinatura.status in ("ativa", "em_atraso"):
+            gateway.cancelar(assinatura.id_externo)
+            cancelar_assinatura(db, assinatura, agora_utc())
+
+    token = token_do_request(request)
+    if token is not None:
+        revogar_sessao(db, token, agora_utc())
+    excluir_dados_do_usuario(db, usuario, agora_utc())
+    db.commit()
+
+    resposta = responder_redirecionamento(request, "/")
+    limpar_cookie(resposta, request.app.state.config)
+    return resposta
 
 
 @router.post("/sair")

@@ -1,0 +1,31 @@
+{# O que é: a tela de planos (`GET/POST /assinar`, fatia 12, RF-22, ADR-0015) — Free × Pro, os
+   dois preços e o formulário de assinatura por Pix/cartão via Mercado Pago. Só existe quando o
+   dono liga `MERCADO_PAGO_ACCESS_TOKEN`/`_WEBHOOK_SECRET` (Ruling 46) — `api/assinatura.py`
+   devolve 404 sem isso. Quando ler: ao mudar preço, texto do plano ou o formulário de assinar. -#}
+{% extends "base.html" %}
+{% block titulo %}Assinar o Pro — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Free e Pro</h1>
+  <div class="planos">
+    <section class="plano">
+      <h2>Free</h2>
+      <p>Diagnóstico, DNA de 1 concurso, plano básico, 20 questões por dia, painel com curva.</p>
+      <p class="preco">R$ 0</p>
+    </section>
+    <section class="plano plano--destaque">
+      <h2>Pro</h2>
+      <p>Tudo do Free, sem o limite de 20 questões por dia, e mais de um concurso com DNA.</p>
+      <p class="preco">R$ {{ preco_mensal }}/mês <span class="frase">ou R$ {{ preco_anual }}/ano</span></p>
+      <form method="post" action="/assinar" class="formulario">
+        <div class="campo">
+          <label><input type="radio" name="periodicidade" value="mensal" checked> Mensal — R$ {{ preco_mensal }}</label>
+        </div>
+        <div class="campo">
+          <label><input type="radio" name="periodicidade" value="anual"> Anual — R$ {{ preco_anual }}</label>
+        </div>
+        <button class="botao" type="submit">Assinar o Pro (Pix ou cartão)</button>
+      </form>
+    </section>
+  </div>
+  <p class="frase">Cancelamento em um clique — o Pro continua valendo até o fim do período já pago.</p>
+{% endblock %}

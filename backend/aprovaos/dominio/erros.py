@@ -115,6 +115,16 @@ class EmailGoogleNaoVerificado(ErroDominio):
     """
 
 
+class AssinaturaWebhookInvalida(ErroDominio):
+    """A assinatura HMAC do webhook de pagamento não confere (fatia 12, ADR-0044).
+
+    Levantada por `pagamento.mercado_pago.GatewayMercadoPago.ler_evento` **antes** de qualquer
+    leitura do corpo — webhook sem essa checagem é um endpoint que qualquer um usa para liberar
+    Pro de graça, o defeito que esta exceção existe para não ter. A rota devolve 400 sem gravar
+    nada em `evento_cobranca`.
+    """
+
+
 class SumulaNaoEncontrada(ErroDominio):
     """A súmula pedida não resolveu (`dominio/sumula.py`).
 

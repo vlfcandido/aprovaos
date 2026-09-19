@@ -2,13 +2,15 @@
 # marcado como principal) e a entrada "Meus editais" na navegação e em `/conta`. Quando ler: ao
 # mexer em `editais/lista.html`, `base.html` ou `conta/conta.html`.
 import re
+from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aprovaos.dados.modelos import Concurso
+from aprovaos.dados.base import agora_utc
+from aprovaos.dados.modelos import Assinatura, Concurso, Usuario
 from tests.test_rota_subir_edital import CADASTRO, PDF
 
 
@@ -46,6 +48,21 @@ def test_editais_lista_e_marca_principal(logado: TestClient, db: Session) -> Non
     primeiro = _subir(logado)
     concurso = db.scalars(select(Concurso)).one()
     concurso.criado_em = concurso.criado_em.replace(year=2025)
+    # ADR-0015: Free processa o DNA de 1 concurso só — o segundo upload deste teste (ele testa a
+    # listagem/"principal" com 2 concursos, não o limite) precisa de um tenant Pro.
+    usuario = db.scalars(select(Usuario)).one()
+    db.add(
+        Assinatura(
+            usuario_id=usuario.id,
+            tier="pro",
+            periodicidade="mensal",
+            status="ativa",
+            inicio=agora_utc(),
+            fim=date(2099, 1, 1),
+            gateway="mercado_pago",
+            id_externo="teste-pro",
+        )
+    )
     db.commit()
     segundo = _subir(logado)
 

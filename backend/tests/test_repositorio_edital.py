@@ -25,6 +25,7 @@ from aprovaos.dados.repositorio_edital import (
     DadosDocumento,
     buscar_concurso,
     concurso_principal,
+    contagem_editais_com_dna,
     dna_atual,
     edital_atual,
     listar_concursos_do_tenant,
@@ -355,3 +356,21 @@ def test_registrar_edital_nasce_real_e_aceita_fixture(
     db.commit()
     assert real.origem == "real"
     assert teste.origem == "fixture"
+
+
+def test_contagem_editais_com_dna(
+    db: Session, resultado: ResultadoDna, materias: list[MateriaExtraida], documento: DadosDocumento
+) -> None:
+    """Conta concursos **distintos** com `dna_concurso` — ADR-0015: Free processa só 1."""
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    outro_tenant_id = _tenant(db, "outra@exemplo.com")
+    assert contagem_editais_com_dna(db, tenant_id) == 0
+
+    registrar_edital(db, tenant_id, resultado, materias, documento)
+    db.commit()
+    assert contagem_editais_com_dna(db, tenant_id) == 1
+
+    registrar_edital(db, tenant_id, resultado, materias, documento)
+    db.commit()
+    assert contagem_editais_com_dna(db, tenant_id) == 2
+    assert contagem_editais_com_dna(db, outro_tenant_id) == 0

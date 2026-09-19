@@ -70,6 +70,7 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
+from aprovaos.dados.repositorio_assinatura import tier_do_usuario
 from aprovaos.dados.repositorio_aula import aula_publicada_do_topico
 from aprovaos.dados.repositorio_cartao import cartoes_vencidos, registrar_erro, revisar_cartao
 from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
@@ -82,6 +83,8 @@ from aprovaos.dados.repositorio_questao import (
     registrar_reporte,
     registrar_resposta,
 )
+from aprovaos.dados.repositorio_uso import uso_do_dia
+from aprovaos.dominio.assinatura import Veredito, pode_responder
 from aprovaos.dominio.aula import CitacaoAula, renderizar_com_notas
 from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
 from aprovaos.dominio.fio_memoria import (
@@ -473,6 +476,27 @@ def contexto_evento(
     }
 
 
+def veredito_de_limite(db: Session, usuario: Usuario) -> Veredito:
+    """O `Veredito` de `dominio.assinatura.pode_responder` para este usuário, agora (Ruling 47).
+
+    Conferido só ao **montar** a próxima questão (`GET /topico/{slug}/questoes` e
+    `GET /diagnostico`) — nunca no meio de uma resposta (`POST`), e nunca em `/revisar` nem
+    `/topico/{slug}/aula`: essas duas rotas não chamam esta função, então, por construção, não
+    existe caminho para limitá-las.
+
+    Args:
+        db: sessão do request.
+        usuario: o usuário logado.
+
+    Returns:
+        O `Veredito` (`permitido=True` para Pro ou Free abaixo do limite diário).
+    """
+    hoje = agora_utc().date()
+    tier = tier_do_usuario(db, usuario.id, hoje)
+    uso = uso_do_dia(db, usuario.id, hoje)
+    return pode_responder(tier, uso)
+
+
 def _proximo_item_intercalado(
     db: Session, usuario: Usuario, topico: Topico
 ) -> tuple[ItemIntercalado, Questao] | tuple[None, None]:
@@ -533,6 +557,13 @@ def obter_questao(
         HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant (decisão 2).
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
+
+    veredito = veredito_de_limite(db, usuario)
+    if not veredito.permitido:
+        contexto = contexto_questao(db, topico, None)
+        contexto["limite"] = {"motivo": veredito.motivo, "convite": veredito.convite}
+        return renderizar(request, "questoes/topico.html", contexto, usuario)
+
     item, questao_intercalada = _proximo_item_intercalado(db, usuario, topico)
     if item is not None and questao_intercalada is not None:
         contexto = contexto_questao(

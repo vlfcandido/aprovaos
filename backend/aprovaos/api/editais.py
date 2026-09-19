@@ -24,6 +24,7 @@ from aprovaos.config import Configuracoes
 from aprovaos.dados.arquivos import guardar_pdf
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Concurso, Usuario
+from aprovaos.dados.repositorio_assinatura import tier_do_usuario
 from aprovaos.dados.repositorio_aula import aula_publicada_do_topico_com_origem
 from aprovaos.dados.repositorio_edital import (
     STATUS_NAO_VISTO,
@@ -31,6 +32,7 @@ from aprovaos.dados.repositorio_edital import (
     MateriaVerticalizada,
     TopicoVerticalizado,
     buscar_concurso,
+    contagem_editais_com_dna,
     dna_atual,
     edital_atual,
     listar_concursos_do_tenant,
@@ -40,6 +42,7 @@ from aprovaos.dados.repositorio_edital import (
 from aprovaos.dados.repositorio_fio_memoria import estatisticas_topicos_vistos
 from aprovaos.dados.repositorio_questao import contagem_por_topico, topicos_vistos
 from aprovaos.dados.repositorio_traco import registrar_traco
+from aprovaos.dominio.assinatura import pode_criar_edital
 from aprovaos.dominio.dna import DnaConcurso
 from aprovaos.dominio.edital import DESCONHECIDO, extrair_conteudo_programatico, slug_materia
 from aprovaos.dominio.erros import ArquivoInvalido, ConteudoProgramaticoNaoEncontrado, PdfSemTexto
@@ -164,8 +167,16 @@ async def processar_edital(
 
     Returns:
         Redirecionamento (`HX-Redirect` ou 303) no sucesso; a página com a mensagem (200) para
-        arquivo que não é PDF, maior que 10 MB, sem texto ou sem conteúdo programático.
+        arquivo que não é PDF, maior que 10 MB, sem texto ou sem conteúdo programático, ou para
+        o limite do Free (ADR-0015: DNA de 1 concurso — `dominio.assinatura.pode_criar_edital`,
+        conferido **antes** de gastar o pipeline de PDF/DNA num upload que não vai ser aceito).
     """
+    tier = tier_do_usuario(db, usuario.id, agora_utc().date())
+    veredito = pode_criar_edital(tier, contagem_editais_com_dna(db, usuario.tenant_id))
+    if not veredito.permitido:
+        contexto = {"erros": [f"{veredito.motivo} {veredito.convite}"]}
+        return renderizar(request, "editais/subir.html", contexto, usuario)
+
     conteudo = await arquivo.read(LIMITE_BYTES + 1)
     try:
         validar_pdf(conteudo, arquivo.content_type or "")

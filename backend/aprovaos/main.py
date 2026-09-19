@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Engine
 
 from aprovaos.api import (
+    assinatura,
     conta,
     diagnostico,
     editais,
@@ -31,6 +32,7 @@ from aprovaos.api.templates import criar_templates
 from aprovaos.config import Configuracoes, obter_configuracoes
 from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
 from aprovaos.motor.fontes.cebraspe import criar_fonte_cebraspe
+from aprovaos.pagamento.mercado_pago import criar_gateway_mercado_pago, gateway_pagamento_disponivel
 
 
 def criar_app(config: Configuracoes | None = None, engine: Engine | None = None) -> FastAPI:
@@ -47,8 +49,10 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
         upload), `app.state.fonte_cebraspe` (fatia 1b — cliente HTTP real da Cebraspe, para o
         detalhe ao vivo do radar) e `app.state.cliente_google_oauth` (fatia 1b — cliente HTTP
         genérico para o login por Google, RF-20; inerte enquanto `GOOGLE_OAUTH_CLIENT_ID`/
-        `_SECRET` forem `None`) preenchidos — testes substituem os dois por dublês. `/static`
-        é montado a partir de `config.web_dir` (padrão: `web/`).
+        `_SECRET` forem `None`) e `app.state.gateway_pagamento` (fatia 12 — o gateway de
+        pagamento real, `None` enquanto `MERCADO_PAGO_ACCESS_TOKEN`/`_WEBHOOK_SECRET` forem
+        `None`, Ruling 46/ADR-0044) preenchidos — testes substituem por dublês. `/static` é
+        montado a partir de `config.web_dir` (padrão: `web/`).
     """
     config = config or obter_configuracoes()
     engine = engine or criar_engine(config.database_url)
@@ -62,10 +66,14 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.state.uploads_dir = config.uploads_dir or raiz / "data" / "uploads"
     app.state.fonte_cebraspe = criar_fonte_cebraspe(config)
     app.state.cliente_google_oauth = httpx2.Client(timeout=10)
+    app.state.gateway_pagamento = (
+        criar_gateway_mercado_pago(config) if gateway_pagamento_disponivel(config) else None
+    )
 
     app.mount("/static", StaticFiles(directory=web_dir / "static"), name="static")
     app.include_router(inicio.router)
     app.include_router(conta.router)
+    app.include_router(assinatura.router)
     app.include_router(editais.router)
     app.include_router(questoes.router)
     app.include_router(diagnostico.router)

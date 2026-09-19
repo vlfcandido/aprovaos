@@ -21,6 +21,11 @@
     <div id="questao">
       {% include "questoes/_cartao_questao.html" %}
     </div>
+  {% elif limite %}
+    <div class="mensagem mensagem--porque" role="status">
+      <p>{{ limite.motivo }}</p>
+      <p><a class="botao" href="/assinar">{{ limite.convite }}</a></p>
+    </div>
   {% else %}
     <p class="frase">Ainda não temos questão nenhuma para o seu concurso principal — sem
       diagnóstico possível por enquanto. <a href="/editais">Veja seus editais</a>.</p>

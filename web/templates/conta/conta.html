@@ -1,5 +1,7 @@
-{# O que é: página protegida mínima (`GET /conta`) — mostra o e-mail da conta e o botão de sair.
-   Quando ler: ao adicionar o primeiro conteúdo real da conta (rotina, exportar/excluir dados). -#}
+{# O que é: página protegida da conta (`GET /conta`) — e-mail, sair, o bloco de assinatura (fatia
+   12, RF-22 — só com o gateway configurado, Ruling 46) e os botões de LGPD (RF-23: exportar em
+   JSON, excluir com confirmação explícita), que aparecem sempre. Quando ler: ao mexer no que a
+   conta mostra sobre plano ou dados pessoais. -#}
 {% extends "base.html" %}
 {% block titulo %}Minha conta — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -10,6 +12,35 @@
   <p><a href="/diagnostico">Diagnóstico adaptativo</a> e <a href="/rotina">sua rotina</a> — até 30
     itens para saber onde você está, e horas/energia/data-alvo para o plano.</p>
   <p class="frase">A previsão e o check-in chegam nas próximas fatias do piloto.</p>
+
+  {% if billing_disponivel %}
+    <section class="mensagem">
+      <h2>Plano</h2>
+      <p>Você está no plano <strong>{{ "Pro" if tier == "pro" else "Free" }}</strong>{% if assinatura and assinatura.status == "cancelada" %} (cancelado, vale até {{ assinatura.fim }}){% endif %}.</p>
+      {% if tier == "pro" %}
+        <form method="post" action="/assinatura/cancelar">
+          <button class="botao botao--secundario" type="submit">Cancelar assinatura</button>
+        </form>
+      {% else %}
+        <p><a class="botao" href="/assinar">Assinar o Pro</a></p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <section class="mensagem">
+    <h2>Seus dados (LGPD)</h2>
+    {% if aviso_exclusao %}
+      <p class="mensagem mensagem--erro" role="alert">{{ aviso_exclusao }}</p>
+    {% endif %}
+    <p><a class="botao botao--secundario" href="/conta/exportar">Exportar meus dados (JSON)</a></p>
+    <form method="post" action="/conta/excluir" class="formulario">
+      <div class="campo">
+        <label><input type="checkbox" name="confirmar" value="sim"> Confirmo que quero excluir minha conta e todos os meus dados.</label>
+      </div>
+      <button class="botao botao--secundario" type="submit">Excluir minha conta</button>
+    </form>
+  </section>
+
   <form method="post" action="/sair">
     <button class="botao botao--secundario" type="submit">Sair</button>
   </form>

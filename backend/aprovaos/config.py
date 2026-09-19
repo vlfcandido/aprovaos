@@ -61,6 +61,13 @@ class Configuracoes(BaseSettings):
             aplicações web — https://developers.google.com/identity/protocols/oauth2/web-server.
         google_oauth_client_secret: `Client Secret` do mesmo par de credenciais; `None` no mesmo
             critério de `google_oauth_client_id` (as duas nascem e morrem juntas).
+        mercado_pago_access_token: token de acesso do Mercado Pago (fatia 12, RF-22, ADR-0025,
+            ADR-0044); `None` = billing inativo — `/assinar` devolve 404, nenhuma tela de
+            assinatura aparece, todo mundo permanece Free. Fonte:
+            `github.com/mercadopago/openapi` (`spec3.json`, recurso `/preapproval`).
+        mercado_pago_webhook_secret: segredo usado só para validar o HMAC do `x-signature` de
+            `POST /webhooks/pagamento`; `None` no mesmo critério de `mercado_pago_access_token`
+            (as duas nascem e morrem juntas — Ruling 46).
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -85,6 +92,8 @@ class Configuracoes(BaseSettings):
     modelo_validador_questao: str = "gemini-3.6-flash"
     google_oauth_client_id: str | None = None
     google_oauth_client_secret: SecretStr | None = None
+    mercado_pago_access_token: SecretStr | None = None
+    mercado_pago_webhook_secret: SecretStr | None = None
 
 
 @lru_cache

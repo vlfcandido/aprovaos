@@ -139,6 +139,17 @@ divergem em quase dois dias com e sem esses dois campos). Detalhe e evidência e
 **Decisão:** `GatewayPagamento` (criar cobrança, criar assinatura, cancelar, webhook) com implementação Mercado Pago; Pix e cartão; sem boleto. O que foi verificado: para PF, criar link de pagamento não custa e Pix não tem taxa (blog oficial do Mercado Pago, set/2026 — secundário); o produto "Planos de assinatura" existe (página oficial, sem detalhe legível). **Não verificado:** taxas de cartão para PF e elegibilidade de assinatura recorrente para conta PF — o dono confirma na própria conta antes da fatia 12. Imposto: rendimento de PF recebido de PF → **Carnê-Leão mensal** pelo Carnê-Leão Web (e-CAC), pago até o último dia útil do mês seguinte (Receita Federal, https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/pagamento/carne-leao/carne-leao). Ao chegar a 10 pagantes: abrir MEI e migrar para PJ (Asaas ou Mercado Pago PJ) sem mudar a interface.
 **Alternativas:** Stripe (exige CNPJ no Brasil — não verificado nesta sessão); Asaas PF; abrir MEI já.
 **Por quê:** o dono escolheu ficar PF até 10 pagantes; a interface isola a troca.
+**Adendo 19/09/2026 (fatia 12, `pagamento/mercado_pago.py`):** `GatewayPagamento` implementado
+por completo, atrás de `MERCADO_PAGO_ACCESS_TOKEN`/`_WEBHOOK_SECRET` (Ruling 46/ADR-0044) e
+testado contra um gateway falso (`tests/dubles_pagamento.py`) — sem conta real, o código fica
+pronto e inerte. Endpoints e campos citados nos docstrings vêm do **OpenAPI oficial** que o
+Mercado Pago mantém em `github.com/mercadopago/openapi` (`spec3.json`, recurso `/preapproval`;
+`schemas/webhooks.yaml`, formato do `x-signature`) — a documentação humana interativa
+(mercadopago.com.br/developers) é renderizada em JS e não expõe o corpo sem executá-la. Os dois
+pontos não verificados desta ADR continuam abertos (P-02); a fatia acrescenta um terceiro,
+P-72 (qual `id` exatamente entra no manifesto HMAC do webhook — a fonte oficial não fecha isso) e
+um quarto, P-75 (pagamento recusado/`em_atraso` não tem produtor real ainda, só o domínio já sabe
+tratar). Ver `docs/fatias/12-execucao.md`.
 
 ## ADR-0026 — Auth: e-mail + senha (argon2) e Google OAuth via Authlib; sessão por cookie assinado; sem serviço externo · 2026-09-14 · aceita
 **Decisão:** `authlib` para OAuth do Google, `argon2-cffi` para senha, sessão server-side em Postgres com cookie `HttpOnly/Secure/SameSite=Lax`; verificação de e-mail; sem JWT no MVP (HTMX é same-origin).

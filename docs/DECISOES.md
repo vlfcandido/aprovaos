@@ -450,11 +450,17 @@ isto, "grafo do fio da memória e da propagação") como ponte, nunca implementa
 `dados.repositorio_topico_relacao.criar_relacao_equivalente` grava uma aresta com o quarto valor
 de `origem` que a tabela ganhou nesta ADR, `equivalencia_curada` (os três que o modelo de dados já
 prometia — `edital`/`dossie`/`coocorrencia` — continuam sem produtor, essa é a primeira aresta
-real da tabela). Toda leitura por tópico passou a tentar o `topico_id` direto e, sem achar, cada
+real da tabela). Toda leitura por tópico *deveria* tentar o `topico_id` direto e, sem achar, cada
 equivalente, antes de desistir: `repositorio_dossie.dossie_mais_recente_do_topico`,
 `repositorio_aula.aula_publicada_do_topico` e `motor.ligar_por_topico.ligar_por_topico` (esta
 última generalizando as questões elegíveis de `Questao.topico_id == dossie.topico_id` para
-`topico_id` ∪ equivalentes). `motor.aula._dossies_relacionados` (candidatos ao fio da memória (a))
+`topico_id` ∪ equivalentes) — **eram três, uma quarta ficou de fora e a frase original desta ADR
+dizia "toda leitura", o que era falso** (achado I2 de uma revisão independente, 19/09/2026):
+`api/editais.py::trilha_do_concurso` (`GET /concurso/{id}/trilha`) consultava `Aula` direto por
+`topico_id`, sem passar por `topicos_equivalentes` — um tópico sem aula própria mas equivalente a
+outro que tem nunca mostrava "Ver aula" na trilha, mesmo com `GET /topico/{slug}/aula` servindo a
+mesma aula normalmente. Corrigido na mesma revisão: a trilha passou a usar
+`repositorio_aula.aula_publicada_do_topico_com_origem` (a mesma leitura da rota de aula). `motor.aula._dossies_relacionados` (candidatos ao fio da memória (a))
 passou a excluir também os equivalentes do tópico da aula — sem isso, uma aula citaria como
 "relacionado" o próprio conteúdo de que já é feita, travestido no slug de outro edital. A
 curadoria dos pares é manual e versionada em código (`motor/relacionar_topicos.py::RELACOES`,
@@ -496,3 +502,24 @@ relação de tópico ("na dúvida, não relacione", ADR-0036); reaproveitar a ta
 dados já previu é mais barato e menos arriscado que inventar uma estrutura nova para o mesmo
 grafo; e conteúdo caro que já existe tem de chegar à aluna antes de qualquer fatia nova (CLAUDE.md
 regra 6/9 — poucas horas por semana, automação e MVP pequeno valem mais que ambição).
+
+**Adendo 19/09/2026 (achado I1 da mesma revisão independente): um dos quatro pares não era
+equivalência plena.** O par `dir-pro-civ-05-recursos-apelacao <-> noc-dir-pro-civ-07-recursos`
+tinha `evidencia` dizendo, com todas as letras, "a cobertura do dossiê é parcial em relação ao
+item do TJ-PR" — mas foi gravado com `origem="equivalencia_curada"` e `peso=1` (equivalência
+plena) do mesmo jeito, e o docstring de `TopicoRelacao`/o comentário de
+`repositorio_topico_relacao.py` chegaram a afirmar "`peso` é sempre 1.000 ... nunca parcial",
+contradizendo a própria evidência gravada ao lado. Na tela, a aluna receberia uma aula só de
+apelação/agravo/embargos de declaração rotulada como a aula inteira de "Dos recursos" do TJ-PR,
+sem nada dizendo que cobre só parte. Corrigido: novo valor de `origem`,
+`subconjunto_curado` (peso `0,5` — sinal direcional de cobertura parcial, não uma fração medida;
+medir "quanto" exigiria decompor o item do outro edital em partes comparáveis, fora do escopo
+desta correção), com `criar_relacao_subconjunto`/`topicos_subconjunto` próprios
+(`dados/repositorio_topico_relacao.py`) e migração `0014_topico_relacao_subconjunto` (amplia o
+`CHECK` de `origem` e corrige o dado real já gravado no `dev.db`). `dossie_mais_recente_do_topico`
+e `aula_publicada_do_topico` passaram a tentar também `topicos_subconjunto` (nesta ordem: direto →
+equivalência plena → subconjunto) para o conteúdo continuar sendo servido — e
+`aula_publicada_do_topico_com_origem` (nova) devolve de onde a aula veio, para a trilha
+(`GET /concurso/{id}/trilha`) avisar "cobre parte deste item" quando a origem é
+`subconjunto_curado`. `motor/relacionar_topicos.py::RELACOES` (equivalência plena) e
+`RELACOES_PARCIAIS` (cobertura parcial, novo) separam a curadoria dos dois tipos de par.

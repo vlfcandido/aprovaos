@@ -136,9 +136,13 @@ linda.piloto@exemplo.com --edital-id 508314e5-cba3-4799-bb60-9fd3a482b20a --temp
 
 `tempo_alvo_min` calibrado por tentativa: a primeira rodada (dry-run, `tempo_alvo_min=25`)
 devolveu 418 palavras — bem abaixo da faixa esperada para 25 min (720–1080); o modelo, limitado
-a **só o que o dossiê real sustenta** (12 fontes para improbidade), simplesmente não tem mais
-fato para alongar sem inventar — o próprio validador correto, não um defeito. Recalibrado para
-`tempo_alvo_min=12` (faixa 345–518 palavras), compatível com o volume real de cada dossiê.
+a **só o que o dossiê real sustenta** (10 fontes para improbidade — 8 dispositivos da Lei
+8.429/1992 + 2 súmulas do STJ; conferido em `backend/dev.db`, `dossie_topico` versão 2, coluna
+`fontes`: os arts. 9º/10/11/17 continuavam como lacuna nesse dossiê, a P-40 ainda não tinha sido
+regenerada para os dados persistidos — número corrigido em 19/09/2026, era "12" por engano),
+simplesmente não tem mais fato para alongar sem inventar — o próprio validador correto, não um
+defeito. Recalibrado para `tempo_alvo_min=12` (faixa 345–518 palavras), compatível com o volume
+real de cada dossiê.
 
 | tentativa | tópico | resultado | motivo |
 |---|---|---|---|

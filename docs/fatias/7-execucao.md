@@ -77,11 +77,11 @@ diagnóstico + 4 de rotina (`test_rota_diagnostico.py`, `test_rota_rotina.py`), 
 contrato `{codigo, mensagem, acao}` para `confianca` ausente (400) e tópico fora do edital (404).
 
 ## Testes e checagem
-656 → **703 testes** (37 novos: 20 domínio diagnóstico, 6 domínio rotina, 6+3 modelo/repositório
-perfil, 2 repositório diagnóstico, 6 rota diagnóstico, 4 rota rotina — a diferença de contagem
-vem de ajustes nos testes existentes de `test_modelos.py`/`test_repositorio_edital.py`).
-`bash scripts/checar.sh` verde (ruff check, ruff format, mypy --strict, import sem efeito
-colateral, pytest).
+656 → **703 testes** (47 novos, número corrigido em 19/09/2026 — o título dizia "37" por engano,
+mas a própria enumeração já somava 47, exatamente 703−656: 20 domínio diagnóstico, 6 domínio
+rotina, 6+3 modelo/repositório perfil, 2 repositório diagnóstico, 6 rota diagnóstico, 4 rota
+rotina). `bash scripts/checar.sh` verde (ruff check, ruff format, mypy --strict, import sem
+efeito colateral, pytest).
 
 ## Demonstração real contra `dev.db` (Linda)
 Migração 0011 aplicada (`alembic upgrade head`). Login via sessão aberta diretamente pelo

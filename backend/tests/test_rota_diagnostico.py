@@ -1,6 +1,7 @@
 # O que é: testes de contrato e de fluxo de `GET/POST /diagnostico` (fatia 7, F2.1) — sem login
 # redireciona; sem concurso principal avisa sem quebrar; fluxo completo até uma matéria fechar;
-# matéria sem questão nunca aparece como item; "insistir" funciona e respeita o teto de 30.
+# matéria sem questão nunca aparece como item; "insistir" funciona e respeita o teto de 30
+# (escritos em 19/09/2026 — o cabeçalho já os prometia, mas não existiam; revisão independente).
 # Quando ler: ao mexer em `api/diagnostico.py`.
 from uuid import UUID
 
@@ -10,8 +11,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
-from aprovaos.dados.modelos import Concurso, Documento, Edital, Questao, Topico, TopicoEdital
-from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dados.modelos import (
+    Concurso,
+    Documento,
+    Edital,
+    Questao,
+    Topico,
+    TopicoEdital,
+    Usuario,
+)
+from aprovaos.dados.repositorio_questao import proxima_questao, salvar_questoes
+from aprovaos.dominio.diagnostico import MAXIMO_ITENS
 from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
 
 CADASTRO = {"email": "linda@exemplo.com", "senha": "12345678"}
@@ -208,3 +218,93 @@ def test_post_diagnostico_topico_fora_do_edital_404(logado: TestClient, db: Sess
     assert resposta.status_code == 404
     corpo = resposta.json()
     assert corpo["codigo"] == "nao_encontrado"
+
+
+def _responder_proxima(
+    cliente: TestClient, db: Session, usuario_id: UUID, topico: Topico, *, insistir: bool = False
+) -> None:
+    """Responde (certeza/acerto) o próximo item pendente do tópico — via GET+POST, como a tela
+    faz de verdade, sem pular a rota."""
+    params = {"insistir": topico.materia} if insistir else None
+    resposta_get = cliente.get("/diagnostico", params=params)
+    assert resposta_get.status_code == 200
+
+    db.expire_all()
+    pendente = proxima_questao(db, usuario_id, topico.id)
+    assert pendente is not None
+    resposta_post = cliente.post(
+        "/diagnostico",
+        data={
+            "resposta": "C",
+            "questao_id": str(pendente.id),
+            "topico_id": str(topico.id),
+            "confianca": "certeza",
+            "tempo_ms": "1000",
+        },
+    )
+    assert resposta_post.status_code == 200
+
+
+def test_diagnostico_insistir_funciona_na_materia_ja_fechada(
+    logado: TestClient, db: Session
+) -> None:
+    """ "Insistir" (o "discordar" do plano §6): depois que Direito Administrativo fecha (3 itens
+    com certeza e acerto, mesma conta de `test_diagnostico_flui_ate_a_materia_fechar`), o
+    diagnóstico normal termina — mas `?insistir=<matéria>` libera mais um item nela, com o
+    motivo dizendo que foi a aluna quem pediu."""
+    tenant_id = _tenant_id(db)
+    edital, com_questao, _sem_questao = _edital_com_topicos(db, tenant_id)
+    documento_prova = _documento(db, "prova-insistir")
+    salvar_questoes(
+        db, [_questao(com_questao, documento_prova.id, n) for n in range(1, 6)]
+    )  # 5 questões: 3 fecham a margem, a 4ª é a do "insistir"
+    db.commit()
+    usuario = db.scalars(select(Usuario).where(Usuario.email == CADASTRO["email"])).one()
+
+    for _ in range(3):
+        _responder_proxima(logado, db, usuario.id, com_questao)
+
+    concluido_sem_insistir = logado.get("/diagnostico")
+    assert concluido_sem_insistir.status_code == 200
+    assert "diagnóstico concluído" in concluido_sem_insistir.text.lower()
+    assert "parei em 3 itens" in concluido_sem_insistir.text.lower()
+
+    resposta_insistir = logado.get("/diagnostico", params={"insistir": com_questao.materia})
+    assert resposta_insistir.status_code == 200
+    assert "por que este item" in resposta_insistir.text.lower()
+    assert "você pediu para continuar" in resposta_insistir.text.lower()
+    assert com_questao.materia in resposta_insistir.text
+
+    _responder_proxima(logado, db, usuario.id, com_questao, insistir=True)
+
+    resultado_final = logado.get("/diagnostico")
+    assert resultado_final.status_code == 200
+    assert "diagnóstico concluído" in resultado_final.text.lower()
+    assert "parei em 4 itens" in resultado_final.text.lower()
+
+
+def test_diagnostico_respeita_o_teto_de_30_mesmo_insistindo(
+    logado: TestClient, db: Session
+) -> None:
+    """O teto (`MAXIMO_ITENS`, F2.1) é duro: mesmo pedindo para insistir, o diagnóstico não
+    passa de 30 itens — a rota decide pelo `total_itens` antes de olhar `insistir` (`api
+    /diagnostico.py::diagnostico`, `if total_itens < MAXIMO_ITENS`)."""
+    tenant_id = _tenant_id(db)
+    edital, com_questao, _sem_questao = _edital_com_topicos(db, tenant_id)
+    documento_prova = _documento(db, "prova-teto")
+    # MAXIMO_ITENS (30) questões — todas do mesmo tópico, para poder insistir o tempo todo (a
+    # margem fecha bem antes dos 30, então sem "insistir" o diagnóstico pararia bem antes).
+    salvar_questoes(
+        db, [_questao(com_questao, documento_prova.id, n) for n in range(1, MAXIMO_ITENS + 1)]
+    )
+    db.commit()
+    usuario = db.scalars(select(Usuario).where(Usuario.email == CADASTRO["email"])).one()
+
+    for _ in range(MAXIMO_ITENS):
+        _responder_proxima(logado, db, usuario.id, com_questao, insistir=True)
+
+    resultado = logado.get("/diagnostico", params={"insistir": com_questao.materia})
+    assert resultado.status_code == 200
+    assert "diagnóstico concluído" in resultado.text.lower()
+    assert f"parei em {MAXIMO_ITENS} itens" in resultado.text.lower()
+    assert f"atingi o máximo de {MAXIMO_ITENS}" in resultado.text.lower()

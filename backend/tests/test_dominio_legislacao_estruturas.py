@@ -134,6 +134,19 @@ def test_artigo_116_da_lei_6404_tem_alineas_direto_no_caput() -> None:
 # --- (d) anotação "Vigência\nencerrada" órfã (sem parênteses) ----------------------------------
 
 
+def test_artigo_477_da_clt_reconhece_redacao_dada_quebrada_em_duas_linhas() -> None:
+    """Achado colateral ao destravar (d): o caput vigente do art. 477 só ficou visível depois
+    da correção acima — e ele expôs uma quebra de linha do Planalto bem no meio da palavra-chave
+    da anotação (`"(Redação \\r\\ndada pela Lei nº 13.467, de 2017)"`), que `_PADRAO_ANOTACAO`
+    não reconhecia (esperava um único espaço, não `\\s+`). Sem esta correção, a trava "`redacao_de`
+    continua vindo quando o Planalto informa a emenda/lei que deu a redação" quebraria bem no
+    artigo que este trabalho existe para destravar."""
+    artigo = extrair_artigo(HTML_CLT, "477")
+
+    assert artigo.caput.redacao_de == "Redação dada pela Lei nº 13.467, de 2017"
+    assert "Redação" not in artigo.caput.texto
+
+
 def test_artigo_477_da_clt_engole_a_anotacao_vigencia_encerrada_orfa() -> None:
     """Depois de um parágrafo revogado (MPV 905/2019, revogada pela MPV 955/2020) sobra, fora do
     `<strike>`, só a anotação em duas palavras `"Vigência\\nencerrada"` — sem parênteses, então

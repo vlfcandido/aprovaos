@@ -95,10 +95,15 @@ _PADRAO_PARAGRAFO_HTML = re.compile(r"<p\b[^>]*>(.*?)</p\s*>", re.IGNORECASE | r
 _PADRAO_TAG = re.compile(r"<[^>]+>")
 _PADRAO_ESPACOS = re.compile(r"\s+")
 _PADRAO_ANOTACAO = re.compile(
-    r"\(\s*(?:Reda[cç][aã]o dada|Inclu[ií]d[oa]|Acrescid[oa]|Renumerad[oa]|Revogad[oa]|"
+    r"\(\s*(?:Reda[cç][aã]o\s+dada|Inclu[ií]d[oa]|Acrescid[oa]|Renumerad[oa]|Revogad[oa]|"
     r"Suprimid[oa]|Vide|Vig[eê]ncia)[^()]*\)",
     re.IGNORECASE,
 )
+# "Reda[cç][aã]o\s+dada" (não um único espaço): o Planalto às vezes quebra a linha bem entre as
+# duas palavras da anotação (medido em `clt_planalto_compilada.htm`, art. 477 — caput só ficou
+# alcançável depois da correção da anotação "Vigência encerrada" órfã, achado 2 da P-40 —
+# `"(Redação \r\ndada pela Lei nº 13.467, de 2017)"`); um espaço literal não casava com o
+# `\r\n` no meio, e a anotação inteira sobrava dentro de `texto` em vez de virar `redacao_de`.
 # O Planalto também encadeia, depois de uma ou mais notas "(Vide Decreto/Lei nº..., de ANO)",
 # um link cujo texto é só "Vigência" — sem parênteses (medido em `lei14133_planalto_compilada
 # .htm`, art. 6º, XXII: cadeia de decretos regulamentadores sucessivos). Maiúscula e sem

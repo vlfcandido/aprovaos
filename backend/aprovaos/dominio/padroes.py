@@ -5,8 +5,11 @@ O que é: `RespostaClassificada` (o que a detecção precisa de cada resposta j�
 arbitrário de diferença: um cruzamento só vira padrão quando tem `n >= MINIMO_RESPOSTAS_PADRAO`
 **e** sua banda de Wilson (`dominio/estatistica.py`) não se sobrepõe à da linha de base — sem
 sobreposição a diferença é defensável, com sobreposição é ruído e não aparece. Isso cumpre
-literalmente o CA "só mostra padrão com suporte estatístico mínimo". Quando ler: ao mudar o piso
-de suporte, as faixas de horário ou o texto da frase exibida.
+literalmente o CA "só mostra padrão com suporte estatístico mínimo". `"materia"` e `"topico"` são
+dimensões distintas e nunca se confundem: matéria vem de `materia`, tópico vem de `topico_nome`
+(`questao.topico_id` → `topico`) — rotular um agrupamento por matéria como `"topico"` seria "dado
+errado com cara de certo" (ADR-0036), a classe de defeito mais cara deste projeto. Quando ler: ao
+mudar o piso de suporte, as faixas de horário ou o texto da frase exibida.
 Plano: `docs/fatias/10-painel.md` §4.
 """
 
@@ -17,19 +20,21 @@ from pydantic import BaseModel
 
 from aprovaos.dominio.estatistica import Proporcao, intervalo_wilson, sobrepoe
 
-Dimensao = Literal["topico", "banca", "horario", "energia"]
+Dimensao = Literal["materia", "topico", "banca", "horario", "energia"]
 
 #: Piso de suporte estatístico (RF-17 "definir n"): abaixo disso o cruzamento nem é avaliado.
 MINIMO_RESPOSTAS_PADRAO: Final = 8
 
 
 class RespostaClassificada(BaseModel):
-    """Uma resposta já classificada nas quatro dimensões que `detectar_padroes` cruza.
+    """Uma resposta já classificada nas cinco dimensões que `detectar_padroes` cruza.
 
     Attributes:
         acertou: se a resposta foi certa.
-        materia: a matéria do tópico respondido — é o que a dimensão `"topico"` agrupa (o edital
-            não dá peso nem nome curto por tópico individual nesta camada, P-39).
+        materia: a matéria do tópico respondido — é o que a dimensão `"materia"` agrupa.
+        topico_nome: o nome do tópico respondido (`topico.nome`, via `questao.topico_id`) — é o
+            que a dimensão `"topico"` agrupa; nunca confundido com `materia` (mais de um tópico
+            cabe na mesma matéria).
         banca: a banca da questão (`questao.banca`).
         hora_local: a hora do dia (0–23) já convertida para `America/Sao_Paulo` (Ruling 37,
             fora deste módulo).
@@ -39,6 +44,7 @@ class RespostaClassificada(BaseModel):
 
     acertou: bool
     materia: str
+    topico_nome: str
     banca: str
     hora_local: int
     energia: int | None
@@ -48,9 +54,10 @@ class PadraoErro(BaseModel):
     """Um padrão de erro/acerto com suporte estatístico (banda de Wilson sem sobreposição).
 
     Attributes:
-        dimensao: em qual das quatro dimensões o padrão apareceu.
-        valor: o rótulo do subgrupo ("Direito Administrativo", "CESPE/Cebraspe", "madrugada",
-            "energia 2").
+        dimensao: em qual das cinco dimensões o padrão apareceu.
+        valor: o rótulo do subgrupo ("Direito Administrativo" em `"materia"`, "Improbidade
+            Administrativa" em `"topico"`, "CESPE/Cebraspe" em `"banca"`, "madrugada" em
+            `"horario"`, "energia 2" em `"energia"`).
         proporcao: a banda de Wilson do subgrupo.
         base: a banda de Wilson da linha de base (todas as respostas recebidas).
         frase: o texto pronto para a tela, já com os números.
@@ -113,7 +120,11 @@ def _frase(dimensao: Dimensao, valor: str, proporcao: Proporcao, base: Proporcao
 
 
 def detectar_padroes(respostas: list[RespostaClassificada]) -> list[PadraoErro]:
-    """Cruza o histórico nas quatro dimensões e devolve só os cruzamentos com suporte estatístico.
+    """Cruza o histórico nas cinco dimensões e devolve só os cruzamentos com suporte estatístico.
+
+    `"materia"` e `"topico"` são cruzamentos separados e nunca se misturam: o mesmo suporte
+    estatístico e o mesmo critério de sobreposição valem para as cinco dimensões — nenhuma delas
+    tem piso ou tolerância diferente para "aparecer mais fácil".
 
     Args:
         respostas: o histórico já classificado
@@ -133,7 +144,8 @@ def detectar_padroes(respostas: list[RespostaClassificada]) -> list[PadraoErro]:
     base = intervalo_wilson(acertos_geral, total_geral)
 
     candidatos: list[tuple[Dimensao, str, list[RespostaClassificada]]] = []
-    candidatos += _agrupar(respostas, "topico", lambda r: r.materia)
+    candidatos += _agrupar(respostas, "materia", lambda r: r.materia)
+    candidatos += _agrupar(respostas, "topico", lambda r: r.topico_nome)
     candidatos += _agrupar(respostas, "banca", lambda r: r.banca)
     candidatos += _agrupar(respostas, "horario", lambda r: _faixa_horario(r.hora_local))
     candidatos += _agrupar(

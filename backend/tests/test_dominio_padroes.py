@@ -13,12 +13,18 @@ def _resposta(
     *,
     acertou: bool,
     materia: str = "Direito Administrativo",
+    topico_nome: str = "Improbidade Administrativa",
     banca: str = "Cebraspe",
     hora_local: int = 10,
     energia: int | None = None,
 ) -> RespostaClassificada:
     return RespostaClassificada(
-        acertou=acertou, materia=materia, banca=banca, hora_local=hora_local, energia=energia
+        acertou=acertou,
+        materia=materia,
+        topico_nome=topico_nome,
+        banca=banca,
+        hora_local=hora_local,
+        energia=energia,
     )
 
 
@@ -85,13 +91,53 @@ def test_dimensao_energia_ignora_respostas_sem_energia_declarada() -> None:
     assert all(padrao.proporcao.total in (20, 80) for padrao in padroes_energia)
 
 
-def test_dimensao_topico_agrupa_por_materia() -> None:
+def test_dimensao_materia_agrupa_por_materia() -> None:
     respostas = _grupo(20, 4, materia="Improbidade Administrativa") + _grupo(
         80, 76, materia="Direito Constitucional"
     )
     padroes = detectar_padroes(respostas)
-    valores = {padrao.valor for padrao in padroes if padrao.dimensao == "topico"}
+    valores = {padrao.valor for padrao in padroes if padrao.dimensao == "materia"}
     assert "Improbidade Administrativa" in valores
+
+
+def test_dimensao_topico_agrupa_por_topico_nome_nao_por_materia() -> None:
+    # mesma matéria nos dois grupos — só o `topico_nome` distingue os subgrupos, provando que a
+    # dimensão "topico" não está lendo `materia` por engano (ADR-0036: "dado errado com cara de
+    # certo", o desvio corrigido nesta fatia).
+    respostas = _grupo(
+        20, 4, materia="Direito Administrativo", topico_nome="Improbidade Administrativa"
+    ) + _grupo(80, 76, materia="Direito Administrativo", topico_nome="Licitações")
+    padroes = detectar_padroes(respostas)
+
+    padrao_topico = next(p for p in padroes if p.dimensao == "topico")
+    assert padrao_topico.valor == "Improbidade Administrativa"
+    assert all(padrao.dimensao != "materia" for padrao in padroes)  # só 1 matéria, sem contraste
+
+
+def test_topico_e_materia_saem_separados_quando_os_dois_passam_no_piso() -> None:
+    # "Improbidade Administrativa" (tópico) tem suporte e diferença próprios; "Direito
+    # Administrativo" (a matéria que o contém, somada a outro tópico fraco) também passa — as
+    # duas dimensões têm de aparecer como padrões distintos, nunca um confundido com o outro.
+    topico_fraco = _grupo(
+        20, 6, materia="Direito Administrativo", topico_nome="Improbidade Administrativa"
+    )
+    outro_topico_da_mesma_materia = _grupo(
+        20, 10, materia="Direito Administrativo", topico_nome="Legislação Especial"
+    )
+    materia_forte_de_fora = _grupo(60, 54, materia="Português", topico_nome="Crase")
+    respostas = topico_fraco + outro_topico_da_mesma_materia + materia_forte_de_fora
+
+    padroes = detectar_padroes(respostas)
+
+    padrao_topico = next(
+        p for p in padroes if p.dimensao == "topico" and p.valor == "Improbidade Administrativa"
+    )
+    padrao_materia = next(
+        p for p in padroes if p.dimensao == "materia" and p.valor == "Direito Administrativo"
+    )
+    assert padrao_topico.proporcao.total == 20
+    assert padrao_materia.proporcao.total == 40
+    assert padrao_topico.valor != padrao_materia.valor
 
 
 def test_ordem_por_maior_diferenca_primeiro() -> None:

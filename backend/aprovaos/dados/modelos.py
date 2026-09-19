@@ -814,8 +814,10 @@ class PlanoDia(ChaveUuid, Base):
         energia: `1`–`5` declarada no check-in; `None` na `versao=1`.
         sono_h: horas de sono declaradas no check-in; `None` na `versao=1`.
         tempo_min: minutos disponíveis usados para montar este plano.
-        modo: `"normal"`/`"descanso"`/`"semana_prova"` (só os dois primeiros têm comportamento
-            nesta fatia — `dominio.plano.montar_plano` nunca produz `"semana_prova"`).
+        modo: `"normal"`/`"descanso"`/`"semana_prova"` — os três com comportamento desde a
+            fatia 10 (RF-19, fecha a P-55): `"semana_prova"` sai quando faltam de 0 a 7 dias
+            para `perfil_estudo.data_alvo`, e a precedência é descanso > semana_prova > normal
+            (descansar continua vencendo — regra de saúde, visão §4).
         porque_geral: a explicação final do dia inteiro (`dominio.plano.motivo_geral_do_plano`)
             — nunca vazia, mesmo sem bloco nenhum.
     """
@@ -855,9 +857,11 @@ class Bloco(ChaveUuid, Base):
     Attributes:
         plano_dia_id: o `PlanoDia` (uma versão específica) dono deste bloco.
         ordem: posição no dia, a partir de 1.
-        tipo: `"aula"`/`"questoes"`/`"revisao"`/`"resumo"`/`"descanso"` — só os três primeiros têm
-            produtor nesta fatia (`"resumo"` é F4.7, `"descanso"` como bloco explícito não nasce
-            aqui — ver `dominio.plano.montar_plano`).
+        tipo: `"aula"`/`"questoes"`/`"revisao"`/`"resumo"`/`"descanso"` — quatro têm produtor
+            hoje; `"resumo"` (F4.7) ainda não. `"descanso"` passou a nascer na fatia 10: a
+            semana da prova termina em um bloco de descanso, e ele é **o último a ser cortado**
+            quando o tempo aperta (RF-19: "revisão cirúrgica **+ descanso**"). Ver
+            `dominio.plano.montar_plano`.
         topico_id: tópico do bloco; `None` em `"revisao"` (abrange vários tópicos).
         aula_id: `None` nesta fatia — a tela de bloco de aula resolve a aula pelo `topico_id` via
             `aula_publicada_do_topico`, mesmo caminho de `/topico/{slug}/aula`; a coluna existe

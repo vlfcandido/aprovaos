@@ -40,6 +40,10 @@ class Configuracoes(BaseSettings):
             "simple data processing" — o Lite é o mais barato da família e a tarefa certa para
             ele; `modelo_dna` continua Flash porque o DNA do edital é raciocínio, não triagem).
         lote_classificacao: quantas questões o curador classifica por chamada ao LLM.
+        modelo_justificativa: modelo Gemini do agente `gerador-de-justificativa` (fundação
+            jurídica, passo 5). `gemini-3.6-flash`, não o Lite: explicar por que um gabarito é o
+            que é, ancorado em dispositivo, é raciocínio — o mesmo motivo de `modelo_dna`, não
+            "simple data processing" como a classificação de tópico.
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -58,6 +62,7 @@ class Configuracoes(BaseSettings):
     contato_coletor: str = "vlfcandido@gmail.com"
     modelo_classificacao: str = "gemini-3.5-flash-lite"
     lote_classificacao: int = Field(default=20, gt=0)
+    modelo_justificativa: str = "gemini-3.6-flash"
 
 
 @lru_cache

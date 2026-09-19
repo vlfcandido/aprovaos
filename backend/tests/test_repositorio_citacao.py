@@ -9,6 +9,7 @@ from aprovaos.dados.modelos import Citacao, DispositivoLegal
 from aprovaos.dados.repositorio_citacao import (
     buscar_dispositivo_por_citacao_canonica,
     buscar_ou_criar_dispositivo,
+    dispositivos_da_questao,
     maior_posicao,
     registrar_citacao,
 )
@@ -214,3 +215,57 @@ def test_maior_posicao_acompanha_citacoes_existentes(db: Session) -> None:
 
     assert maior_posicao(db, conteudo_tipo="questao", conteudo_id=questao_id) == 3
     assert maior_posicao(db, conteudo_tipo="questao", conteudo_id=uuid4()) == 0
+
+
+def test_dispositivos_da_questao_na_ordem_da_posicao(db: Session) -> None:
+    """`dispositivos_da_questao` devolve só os dispositivos ligados a esta questão, por posição."""
+    art1 = buscar_ou_criar_dispositivo(
+        db,
+        citacao_canonica="Lei 8.429/1992 art. 1",
+        norma="lei-8429-1992",
+        artigo="1",
+        inciso=None,
+        paragrafo=None,
+        texto="Art. 1º Os atos de improbidade [...]",
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+    )
+    art2 = buscar_ou_criar_dispositivo(
+        db,
+        citacao_canonica="Lei 8.429/1992 art. 2",
+        norma="lei-8429-1992",
+        artigo="2",
+        inciso=None,
+        paragrafo=None,
+        texto="Art. 2º Reputa-se agente público [...]",
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+    )
+    db.flush()
+    questao_id = uuid4()
+    outra_questao_id = uuid4()
+    registrar_citacao(
+        db, conteudo_tipo="questao", conteudo_id=questao_id, dispositivo_id=art2.id, posicao=1
+    )
+    registrar_citacao(
+        db, conteudo_tipo="questao", conteudo_id=questao_id, dispositivo_id=art1.id, posicao=2
+    )
+    registrar_citacao(
+        db,
+        conteudo_tipo="questao",
+        conteudo_id=outra_questao_id,
+        dispositivo_id=art1.id,
+        posicao=1,
+    )
+    db.flush()
+
+    encontrados = dispositivos_da_questao(db, questao_id)
+
+    assert [d.citacao_canonica for d in encontrados] == [
+        "Lei 8.429/1992 art. 2",
+        "Lei 8.429/1992 art. 1",
+    ]
+
+
+def test_dispositivos_da_questao_vazio_sem_nenhuma_citacao(db: Session) -> None:
+    assert dispositivos_da_questao(db, uuid4()) == []

@@ -90,6 +90,31 @@ def buscar_dispositivo_por_citacao_canonica(
     ).first()
 
 
+def dispositivos_da_questao(db: Session, questao_id: UUID) -> list[DispositivoLegal]:
+    """Os dispositivos ligados a uma questão, na ordem de `Citacao.posicao`.
+
+    Usado pelo comando `motor.justificar` para montar a única fonte que o agente
+    `gerador-de-justificativa` pode citar (regra 1 da fundação jurídica, passo 5): uma questão
+    sem nenhuma linha aqui não pode gerar justificativa nesta rodada — lista vazia é o sinal
+    disso, não uma falha.
+
+    Args:
+        db: sessão de banco.
+        questao_id: chave da questão.
+
+    Returns:
+        Os `DispositivoLegal` ligados a `questao_id` (`conteudo_tipo="questao"`), ordenados por
+        `posicao`; lista vazia se nenhum estiver ligado ainda.
+    """
+    consulta = (
+        select(DispositivoLegal)
+        .join(Citacao, Citacao.dispositivo_id == DispositivoLegal.id)
+        .where(Citacao.conteudo_tipo == "questao", Citacao.conteudo_id == questao_id)
+        .order_by(Citacao.posicao)
+    )
+    return list(db.scalars(consulta).all())
+
+
 def maior_posicao(db: Session, *, conteudo_tipo: str, conteudo_id: UUID) -> int:
     """Devolve a maior `posicao` já gravada em `citacao` para este conteúdo (`0` se nenhuma).
 

@@ -303,6 +303,66 @@ def registrar_reporte(db: Session, usuario: Usuario, questao: Questao, motivo: s
     return reporte
 
 
+def questoes_publicaveis_do_topico(db: Session, topico_slug: str) -> list[Questao]:
+    """As questões publicáveis de um tópico, ordenadas por criação (determinístico).
+
+    Usado pelo comando `motor.justificar` para escolher o universo de uma rodada com
+    `--topico`. Como `contagem_por_topico`, ignora o edital de origem (o tópico é vocabulário
+    global) — a única restrição é `publicavel=True`, o mesmo gate de `proxima_questao`.
+
+    Args:
+        db: sessão do request/comando.
+        topico_slug: slug do tópico.
+
+    Returns:
+        As `Questao` publicáveis desse tópico, na ordem de `criado_em`/`id`; lista vazia se o
+        tópico não existir ou não tiver nenhuma publicável.
+    """
+    consulta = (
+        select(Questao)
+        .join(Topico, Questao.topico_id == Topico.id)
+        .where(Topico.slug == topico_slug, Questao.publicavel.is_(True))
+        .order_by(Questao.criado_em, Questao.id)
+    )
+    return list(db.scalars(consulta).all())
+
+
+def gravar_justificativa_certo_errado(
+    db: Session, questao: Questao, *, certo: str, errado: str
+) -> None:
+    """Grava as duas justificativas de um item certo/errado já aprovado pelo validador mecânico.
+
+    Args:
+        db: sessão do request/comando.
+        questao: a questão já publicável cujo par de justificativas foi aprovado.
+        certo: o texto de `justificativa_certo` (`dominio.justificativa.montar_texto` das
+            afirmações aprovadas).
+        errado: o texto de `justificativa_errado`.
+    """
+    questao.justificativa_certo = certo
+    questao.justificativa_errado = errado
+    db.flush()
+
+
+def gravar_justificativa_alternativas(
+    db: Session, questao: Questao, textos_por_letra: dict[str, str]
+) -> None:
+    """Grava a justificativa de cada alternativa de uma questão de múltipla escolha já aprovada.
+
+    Args:
+        db: sessão do request/comando.
+        questao: a questão de múltipla escolha cujas justificativas foram aprovadas.
+        textos_por_letra: `{letra: texto}` (`dominio.justificativa.montar_texto` das afirmações
+            de cada alternativa); uma letra sem entrada aqui não é tocada.
+    """
+    alternativas = db.scalars(select(Alternativa).where(Alternativa.questao_id == questao.id)).all()
+    for alternativa in alternativas:
+        texto = textos_por_letra.get(alternativa.letra)
+        if texto is not None:
+            alternativa.justificativa = texto
+    db.flush()
+
+
 def topicos_vistos(db: Session, usuario_id: UUID, edital_id: UUID) -> set[UUID]:
     """Os tópicos deste edital com pelo menos uma resposta deste usuário (premissa N).
 

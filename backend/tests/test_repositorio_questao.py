@@ -27,7 +27,10 @@ from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_questao import (
     atualizar_classificacao,
     contagem_por_topico,
+    gravar_justificativa_alternativas,
+    gravar_justificativa_certo_errado,
     proxima_questao,
+    questoes_publicaveis_do_topico,
     registrar_reporte,
     registrar_resposta,
     salvar_questoes,
@@ -460,3 +463,71 @@ def test_atualizar_classificacao_ignora_hash_inexistente(db: Session) -> None:
 
     assert (atualizadas, ignoradas) == (0, 1)
     assert db.scalar(select(func.count()).select_from(Questao)) == 0
+
+
+def test_questoes_publicaveis_do_topico_ignora_nao_publicaveis_e_outros_topicos(
+    db: Session,
+) -> None:
+    """Só as publicáveis do tópico pedido — nem as de outro tópico, nem as não publicáveis."""
+    documento = _documento(db, "d-just-1")
+    topico = _topico(db, "dir-adm-06-improbidade-administrativa")
+    outro_topico = _topico(db, "dir-civ-02-decadencia")
+    salvar_questoes(
+        db,
+        [
+            _questao_curada(1, "Publicável do tópico certo.", topico.slug, documento.id),
+            _questao_curada(2, "Não publicável.", topico.slug, documento.id, publicavel=False),
+            _questao_curada(3, "De outro tópico.", outro_topico.slug, documento.id),
+        ],
+    )
+    db.commit()
+
+    encontradas = questoes_publicaveis_do_topico(db, topico.slug)
+
+    assert [q.enunciado for q in encontradas] == ["Publicável do tópico certo."]
+
+
+def test_gravar_justificativa_certo_errado(db: Session) -> None:
+    documento = _documento(db, "d-just-2")
+    topico = _topico(db, "dir-adm-06-improbidade-administrativa")
+    salvar_questoes(db, [_questao_curada(1, "Enunciado C/E.", topico.slug, documento.id)])
+    db.commit()
+    questao = db.scalars(select(Questao)).one()
+
+    gravar_justificativa_certo_errado(
+        db,
+        questao,
+        certo="Seria certo porque [...] [Lei X art. 1º]",
+        errado="Está errado [...] [Lei X art. 1º]",
+    )
+    db.commit()
+    db.refresh(questao)
+
+    assert questao.justificativa_certo == "Seria certo porque [...] [Lei X art. 1º]"
+    assert questao.justificativa_errado == "Está errado [...] [Lei X art. 1º]"
+
+
+def test_gravar_justificativa_alternativas(db: Session) -> None:
+    documento = _documento(db, "d-just-3")
+    topico = _topico(db, "dir-adm-06-improbidade-administrativa")
+    salvar_questoes(
+        db,
+        [
+            _questao_curada_multipla_escolha(
+                1, "Enunciado A-E.", topico.slug, documento.id, gabarito="B"
+            )
+        ],
+    )
+    db.commit()
+    questao = db.scalars(select(Questao)).one()
+
+    gravar_justificativa_alternativas(db, questao, {"A": "não é [...]", "B": "é a correta [...]"})
+    db.commit()
+
+    alternativas = {
+        a.letra: a.justificativa
+        for a in db.scalars(select(Alternativa).where(Alternativa.questao_id == questao.id)).all()
+    }
+    assert alternativas["A"] == "não é [...]"
+    assert alternativas["B"] == "é a correta [...]"
+    assert alternativas["C"] is None

@@ -24,6 +24,11 @@ data/raw/
 knowledge/raw/
 *.pdf
 !knowledge/fixtures/**/*.pdf
+# Provas/gabaritos coletados da Cebraspe (V3, passo 5) vão para o git (decisão do dono).
+!knowledge/provas/**/*.pdf
+
+# Bancos locais (SQLite de dev; recriável rodando as migrações + o comando de coleta de novo)
+*.db
 
 # Recursos externos em avaliação
 externos/

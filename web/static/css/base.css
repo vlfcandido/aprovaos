@@ -58,57 +58,67 @@ a {
   text-underline-offset: 0.15em;
 }
 
-/* Largura de celular com gutter de 16px; nunca rola na horizontal */
-.pagina {
-  width: 100%;
-  max-width: 28rem;
-  margin-inline: auto;
-  padding-inline: var(--espaco-4);
-  padding-block: var(--espaco-6) var(--espaco-12);
+/* ---- Shell de aplicação (ADR-0019 + protótipo clicável, docs/evidencias/mockups/2026-09-14):
+   barra lateral fixa à esquerda, conteúdo à direita com largura de leitura confortável. O padrão
+   é a visão de desktop; a barra colapsa para uma faixa horizontal em telas estreitas (media
+   query no fim do arquivo) — nunca o contrário. */
+.shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  min-height: 100dvh;
 }
 
-.cabecalho {
+.lateral {
+  background: var(--cor-lateral-fundo);
+  color: var(--cor-lateral-texto);
+  padding: var(--espaco-6) var(--espaco-4);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espaco-3);
-  flex-wrap: wrap;
-  padding-block: var(--espaco-3);
-  border-bottom: 1px solid var(--cor-linha);
-  margin-bottom: var(--espaco-8);
+  flex-direction: column;
+  gap: var(--espaco-6);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .marca {
   font-family: var(--fonte-titulo);
   font-weight: 700;
   font-size: var(--texto-medio);
-  color: var(--cor-texto);
+  color: var(--cor-lateral-texto-forte);
   text-decoration: none;
+  padding-inline: var(--espaco-2);
 }
 
-.navegacao {
+.lateral__links {
   display: flex;
-  gap: var(--espaco-4);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--espaco-1);
 }
 
-.navegacao a {
-  color: var(--cor-texto-2);
+.lateral__links a {
+  display: block;
+  padding: var(--espaco-2);
+  border-radius: var(--raio-pequeno);
+  color: var(--cor-lateral-texto);
   text-decoration: none;
   font-size: var(--texto-pequeno);
 }
 
-.navegacao a:hover,
-.navegacao a:focus-visible,
-.navegacao .botao-link:hover,
-.navegacao .botao-link:focus-visible {
-  color: var(--cor-acao);
-  text-decoration: underline;
+.lateral__links a:hover,
+.lateral__links a:focus-visible {
+  background: var(--cor-lateral-hover);
+  color: var(--cor-lateral-texto-forte);
 }
 
-.navegacao__sair {
-  display: inline;
-  margin: 0;
+.lateral__links a[aria-current="page"] {
+  background: var(--cor-lateral-ativo);
+  color: var(--cor-lateral-texto-forte);
+}
+
+.lateral__rodape {
+  margin-top: auto;
+  padding-inline: var(--espaco-2);
 }
 
 /* Botão com cara de link: para ações POST na navegação (ex.: sair) */
@@ -116,10 +126,34 @@ a {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cor-texto-2);
+  color: var(--cor-lateral-texto);
   font: inherit;
   font-size: var(--texto-pequeno);
   cursor: pointer;
+}
+
+.botao-link:hover,
+.botao-link:focus-visible {
+  color: var(--cor-lateral-texto-forte);
+  text-decoration: underline;
+}
+
+.coluna {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Largura de leitura confortável no desktop; vira largura cheia com gutter de 16px no mobile */
+.conteudo {
+  width: 100%;
+  max-width: 67.5rem;
+  padding: var(--espaco-8) var(--espaco-8) var(--espaco-12);
+}
+
+/* Formulários isolados (login, cadastro, subir edital): não esticam pela largura toda */
+.formulario {
+  max-width: 26rem;
 }
 
 .frase {
@@ -217,6 +251,7 @@ a:focus-visible {
 
 .rodape {
   margin-top: var(--espaco-12);
+  padding-inline: var(--espaco-8);
   color: var(--cor-texto-3);
   font-size: var(--texto-pequeno);
 }
@@ -224,13 +259,48 @@ a:focus-visible {
 /* A única transição da base: só com movimento permitido */
 @media (prefers-reduced-motion: no-preference) {
   .botao,
+  .botao-resposta,
   .campo input,
-  .navegacao a {
+  .lateral__links a {
     transition:
       background-color var(--duracao-curta) var(--curva-padrao),
       border-color var(--duracao-curta) var(--curva-padrao),
       color var(--duracao-curta) var(--curva-padrao),
       filter var(--duracao-curta) var(--curva-padrao);
+  }
+}
+
+/* Barra lateral colapsa em telas estreitas — o padrão é a visão de desktop acima */
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .lateral {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-3);
+    padding: var(--espaco-3) var(--espaco-4);
+  }
+
+  .lateral__links {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .lateral__rodape {
+    margin-top: 0;
+  }
+
+  .conteudo {
+    padding: var(--espaco-6) var(--espaco-4) var(--espaco-8);
+  }
+
+  .rodape {
+    padding-inline: var(--espaco-4);
   }
 }
 
@@ -400,9 +470,32 @@ small.fonte {
   color: var(--cor-texto-2);
 }
 
+.status--visto {
+  background: var(--cor-ok-suave);
+  color: var(--cor-ok);
+}
+
+.topico__contagem {
+  flex: none;
+  color: var(--cor-texto-3);
+  font-size: var(--texto-pequeno);
+  white-space: nowrap;
+}
+
+/* Cabeçalho de grupo do edital (ex.: "CONHECIMENTOS ESPECÍFICOS" — P-26), acima das matérias */
+.grupo {
+  margin: var(--espaco-6) 0 var(--espaco-2);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* Lista "Meus editais" (V2) */
 .concursos {
   list-style: none;
+  max-width: 34rem;
   margin: 0 0 var(--espaco-6);
   padding: 0;
   display: grid;
@@ -436,4 +529,198 @@ small.fonte {
 
 .concurso .fonte {
   margin: 0;
+}
+
+/* Cartão genérico (protótipo `.card`/`.card.lift`): base para conteúdo em destaque, como a
+   questão a resolver. */
+.cartao {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio);
+  padding: var(--espaco-6);
+}
+
+.cartao--elevado {
+  box-shadow: var(--sombra);
+  border-color: transparent;
+}
+
+/* ---- Resolver questão (V3): comando, apoio recolhível, origem, confiança e os dois botões ---- */
+.questao {
+  margin-bottom: var(--espaco-4);
+}
+
+.questao__comando {
+  font-weight: 600;
+}
+
+.questao__apoio {
+  margin: 0 0 var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+}
+
+.questao__apoio summary {
+  cursor: pointer;
+  color: var(--cor-acao);
+  font-weight: 600;
+}
+
+.questao__apoio p {
+  margin: var(--espaco-3) 0 0;
+}
+
+.questao__enunciado {
+  font-size: var(--texto-medio);
+}
+
+.questao__origem {
+  color: var(--cor-texto-3);
+  font-size: var(--texto-pequeno);
+}
+
+fieldset {
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+  border: 0;
+}
+
+fieldset legend {
+  padding: 0 0 var(--espaco-2);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+  font-weight: 600;
+}
+
+/* Controle segmentado (protótipo `.seg`) — rádios de verdade, só estilizados: o `required`
+   nativo continua valendo sem nenhuma linha de JS. */
+.segmentado {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1);
+  background: var(--cor-superficie-2);
+  border-radius: var(--raio);
+}
+
+.segmentado__opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-pequeno);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segmentado__opcao:has(input:checked) {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+.segmentado__opcao input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--cor-acao);
+}
+
+.respostas {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+/* Os dois botões grandes Certo/Errado (protótipo `.ce button`) */
+.botao-resposta {
+  flex: 1;
+  min-height: 3.5rem;
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  font-size: var(--texto-medio);
+  cursor: pointer;
+}
+
+.botao-resposta:hover {
+  border-color: var(--cor-acao);
+}
+
+.botao-resposta:focus-visible {
+  outline: 3px solid var(--cor-acao-suave);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 var(--espaco-1);
+  margin-left: var(--espaco-1);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-pequeno);
+}
+
+.resultado__gabarito {
+  padding: var(--espaco-3) var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+  border-radius: var(--raio);
+  font-weight: 600;
+}
+
+.resultado__gabarito > p:first-child {
+  margin: 0;
+}
+
+.resultado__gabarito--certo {
+  background: var(--cor-ok-suave);
+  color: var(--cor-ok);
+}
+
+.resultado__gabarito--errado {
+  background: var(--cor-erro-suave);
+  color: var(--cor-erro);
+}
+
+.resultado__justificativa {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-texto-2);
+  font-weight: 400;
+}
+
+.form-reportar {
+  margin-top: var(--espaco-6);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-linha);
+}
+
+.form-reportar label {
+  display: block;
+  margin-bottom: var(--espaco-1);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.form-reportar textarea {
+  width: 100%;
+  min-height: 4rem;
+  padding: var(--espaco-2) var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+  resize: vertical;
 }

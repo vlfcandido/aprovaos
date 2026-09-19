@@ -6,14 +6,17 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
-from sqlalchemy import Engine
+from sqlalchemy import Engine, select
+from sqlalchemy.orm import Session
 
 from aprovaos.api import editais
 from aprovaos.api.templates import formatar_pct
 from aprovaos.config import Configuracoes
+from aprovaos.dados.modelos import Topico, Usuario
 from aprovaos.dominio.dna import DnaConcurso, montar_dna_por_regras
 from aprovaos.dominio.edital import extrair_conteudo_programatico
 from aprovaos.main import criar_app
+from tests.test_rota_questoes import _criar_questao, _documento
 from tests.test_rota_subir_edital import CADASTRO, FIXTURE_MD, PDF, AnalistaFalso
 
 MATERIAS_DO_CONTEUDO = [
@@ -113,6 +116,52 @@ def test_concurso_mostra_verticalizado(cliente: TestClient, pagina: str) -> None
     assert corpo.count("<details open") == 7
 
 
+def _topico_por_slug(db: Session, slug: str) -> Topico:
+    return db.scalars(select(Topico).where(Topico.slug == slug)).one()
+
+
+def _usuario_por_email(db: Session, email: str) -> Usuario:
+    return db.scalars(select(Usuario).where(Usuario.email == email)).one()
+
+
+def test_concurso_mostra_contagem_e_link(cliente: TestClient, pagina: str, db: Session) -> None:
+    topico = _topico_por_slug(db, "dir-adm-04-licitacoes-contratos")
+    documento = _documento(db, "prova-concurso-1")
+    for numero in (58, 59, 60):
+        _criar_questao(db, topico, documento.id, numero_item=numero)
+
+    corpo = cliente.get(pagina).text
+    inicio = corpo.index('data-slug="dir-adm-04-licitacoes-contratos"')
+    trecho = corpo[inicio : corpo.index("</li>", inicio)]
+    assert "3 questões" in trecho
+    assert 'href="/topico/dir-adm-04-licitacoes-contratos/questoes"' in trecho
+
+    outro_inicio = corpo.index('data-slug="lin-por-01-compreensao-interpretacao"')
+    outro_trecho = corpo[outro_inicio : corpo.index("</li>", outro_inicio)]
+    assert "<a href=" not in outro_trecho
+
+
+def test_contador_de_vistos(cliente: TestClient, pagina: str, db: Session) -> None:
+    topico = _topico_por_slug(db, "dir-adm-04-licitacoes-contratos")
+    documento = _documento(db, "prova-concurso-2")
+    questao = _criar_questao(db, topico, documento.id, numero_item=61)
+
+    resposta = cliente.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+
+    corpo = cliente.get(pagina).text
+    assert "1 de 36" in corpo
+
+
+def test_grupo_com_acento(cliente: TestClient, pagina: str) -> None:
+    corpo = cliente.get(pagina).text
+    assert "CONHECIMENTOS ESPECÍFICOS" in corpo
+    assert "Conhecimentos Especificos" not in corpo
+
+
 def test_concurso_gerado_por_ia(
     config_teste: Configuracoes, engine: Engine, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -125,7 +174,7 @@ def test_concurso_gerado_por_ia(
     with TestClient(criar_app(config, engine=engine)) as cliente:
         assert cliente.post("/cadastro", data=CADASTRO, follow_redirects=False).status_code == 303
         corpo = cliente.get(_subir(cliente)).text
-    assert "Gerado por IA (gemini-2.5-flash)" in corpo
+    assert "Gerado por IA (gemini-3.6-flash)" in corpo
     assert "Gerado por regras" not in corpo
 
 

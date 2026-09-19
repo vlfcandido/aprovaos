@@ -1,0 +1,9 @@
+{# O que é: página inteira de confirmação de `POST /questoes/{id}/reportar` fora do htmx (POST
+   direto do formulário, sem JS) — a mesma app-shell de `base.html` (barra lateral, navegação),
+   nunca um `<p>` solto sem contexto. Inclui `_reportado.html`, que é o mesmo conteúdo servido
+   como fragmento sob htmx. Quando ler: ao mudar a confirmação de reporte fora do htmx. -#}
+{% extends "base.html" %}
+{% block titulo %}Reporte registrado — AprovaOS{% endblock %}
+{% block conteudo %}
+  {% include "questoes/_reportado.html" %}
+{% endblock %}

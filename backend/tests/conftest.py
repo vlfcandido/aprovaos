@@ -18,10 +18,13 @@ from aprovaos.main import criar_app
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Pula `postgres` sem `DATABASE_URL_TEST` e `llm` sem `GOOGLE_API_KEY`."""
+    """Pula `postgres` sem `DATABASE_URL_TEST`, `llm` sem `GOOGLE_API_KEY` e `rede` sem
+    `APROVAOS_TESTES_DE_REDE`.
+    """
     marcadores = {
         "postgres": ("DATABASE_URL_TEST", "defina DATABASE_URL_TEST"),
         "llm": ("GOOGLE_API_KEY", "defina GOOGLE_API_KEY"),
+        "rede": ("APROVAOS_TESTES_DE_REDE", "defina APROVAOS_TESTES_DE_REDE=1"),
     }
     for marcador, (variavel, motivo) in marcadores.items():
         if os.environ.get(variavel):

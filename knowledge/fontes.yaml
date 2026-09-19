@@ -1,0 +1,28 @@
+# O que é: as fichas de fonte do coletor (protocolo `monitor-de-fontes`, passo 1) — uma entrada
+# por fonte, com URL verificada, política de coleta e evidência real salva em disco.
+# Quando ler: antes de propor ou codificar uma fonte nova; ao revisar `motor/fontes/<id>.py`.
+#
+# Regras da ficha (skill `monitor-de-fontes`): campo sem resposta = "desconhecido" e a fonte entra
+# com status "pendente_mapeamento" (a tarefa para aí e vira pendência); `evidencia` só existe se a
+# URL foi aberta de verdade e a resposta foi salva; `user_agent` usa o contato real do dono, nunca
+# um domínio inventado; `termos_de_uso` com cláusula anti-automação implica `status: vetada` até
+# decisão em `docs/DECISOES.md` (caso FGV, P-13).
+
+- id: cebraspe
+  nome: Cebraspe — Centro Brasileiro de Pesquisa em Avaliação e Seleção de Candidatos a Concursos
+  url_lista: https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/fase/encerrado
+  url_detalhe: https://apis.cebraspe.org.br/cebraspe/eventos/{eventoURL}
+  url_arquivo: https://cdn.cebraspe.org.br/concursos/{eventoURL}/arquivos/{nomeArquivo}
+  formato: api_json
+  o_que_publica: [edital, prova, gabarito]
+  identidade_do_item: "{eventoURL}/{nomeArquivo}"
+  robots_txt: "permite (lido em 14/09/2026, P-11 — docs/evidencias/2026-09-14-p11-provas-cebraspe-fgv.md §1: `User-agent: * / Disallow:` vazio)"
+  termos_de_uso: "não localizados (P-11 — sem /termos-de-uso/ nem cláusula de reprodução/automação nas páginas verificadas)"
+  politica_coleta:
+    frequencia: 24h
+    user_agent: "AprovaOS-coletor/0.1 (+contato: vlfcandido@gmail.com)"
+    sem_login: true
+    cache: nenhum
+  verificado_em: 2026-09-18
+  evidencia: knowledge/fixtures/fontes/cebraspe/lista-encerrado-v1.json
+  status: ativa

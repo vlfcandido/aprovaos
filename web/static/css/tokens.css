@@ -29,6 +29,13 @@
   --cor-alerta: #9a5b00;
   --cor-alerta-suave: #fdf0dc;
 
+  /* Barra lateral do shell (protótipo clicável, docs/evidencias/mockups/2026-09-14) */
+  --cor-lateral-fundo: #131b2e;
+  --cor-lateral-texto: #c9d1e6;
+  --cor-lateral-texto-forte: #ffffff;
+  --cor-lateral-ativo: #2f46b8;
+  --cor-lateral-hover: rgb(255 255 255 / 0.06);
+
   --sombra: 0 1px 2px rgb(19 27 46 / 0.06), 0 8px 24px rgb(19 27 46 / 0.06);
 
   /* Espaço (gutter de celular = --espaco-4 = 16px) */
@@ -85,6 +92,11 @@
     --cor-alerta: #f0b860;
     --cor-alerta-suave: #3a2a10;
 
+    --cor-lateral-fundo: #0a0f1c;
+    --cor-lateral-texto: #a9b3cc;
+    --cor-lateral-texto-forte: #ffffff;
+    --cor-lateral-ativo: #3a52c9;
+
     --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
   }
 }
@@ -111,6 +123,11 @@
   --cor-erro-suave: #3d1a17;
   --cor-alerta: #f0b860;
   --cor-alerta-suave: #3a2a10;
+
+  --cor-lateral-fundo: #0a0f1c;
+  --cor-lateral-texto: #a9b3cc;
+  --cor-lateral-texto-forte: #ffffff;
+  --cor-lateral-ativo: #3a52c9;
 
   --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
 }

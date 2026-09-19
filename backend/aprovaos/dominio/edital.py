@@ -16,7 +16,13 @@ from pydantic import BaseModel
 
 from aprovaos.dominio.erros import ConteudoProgramaticoNaoEncontrado
 
-_MARCADOR_INICIO = re.compile(r"CONTE[ÚU]DO PROGRAM[ÁA]TICO", re.IGNORECASE)
+_MARCADOR_INICIO = re.compile(
+    r"^(?:ANEXO\s+[IVXLCD]+\s*[-–—:]?\s*)?"  # cabeçalho do anexo, quando o marcador está nele
+    r"(?:DOS?\s+|DAS?\s+)?"  # "DO(S)"/"DA(S)" de "ANEXO II – DOS CONTEÚDOS PROGRAMÁTICOS"
+    r"CONTE[ÚU]DOS?\s+PROGRAM[ÁA]TICOS?"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 _MARCADOR_FIM = re.compile(r"^ANEXO\s", re.MULTILINE)
 _MAIUSCULAS = "A-ZÁÀÂÃÉÊÍÓÔÕÚÇ"
 _CABECALHO_COM_DOIS_PONTOS = re.compile(rf"^([{_MAIUSCULAS}][{_MAIUSCULAS}\s]{{2,}}?)\s*:\s*(.*)$")
@@ -210,7 +216,10 @@ def _itens_numerados(texto: str) -> list[tuple[int, str]]:
 
     Procura o número N seguido de ponto e espaço sempre a partir do fim do item anterior, com N
     crescente; por isso `14.133/2021` dentro do item 4 não vira item novo. Cada item vai até o
-    começo do seguinte.
+    começo do seguinte. O item `1.` tem de abrir o próprio bloco (posição 0): se o primeiro
+    "1. " só aparece no meio do texto, não é uma lista numerada de topo — é numeração decimal
+    hierárquica (`1.1.1.1.`) coincidindo por acaso com o padrão, e a função devolve lista vazia
+    em vez de itens que começam no meio do bloco, com o conteúdo anterior descartado.
     """
     itens: list[tuple[int, str]] = []
     numero = 1
@@ -220,6 +229,13 @@ def _itens_numerados(texto: str) -> list[tuple[int, str]]:
         encontrado = re.compile(rf"\b{numero}\.\s").search(texto, posicao)
         if encontrado is None:
             break
+        if numero == 1 and encontrado.start() != 0:
+            # O "1." não abre o bloco: não é lista numerada de topo, e sim numeração decimal
+            # hierárquica (`1.1.1.1.`) coincidindo por acaso com o padrão dentro de texto sem
+            # itens (visto na FCC — CONTABILIDADE TRIBUTÁRIA). Aceitar aqui devolveria itens
+            # que começam no meio do bloco, com pedaços de conteúdo anterior perdidos — melhor
+            # devolver bloco sem itens (vira `grupo`) do que uma lista fabricada.
+            return []
         if inicio_anterior is not None:
             itens.append((numero - 1, texto[inicio_anterior : encontrado.start()].strip()))
         inicio_anterior = encontrado.start()
@@ -234,8 +250,12 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
     """Extrai matérias e itens do conteúdo programático do texto de um edital, sem LLM.
 
     Algoritmo:
-        1. Localiza o marcador `CONTEÚDO PROGRAMÁTICO` (com ou sem acento, qualquer caixa) e
-           recorta dali até a próxima linha que começa com `ANEXO` ou até o fim do texto.
+        1. Localiza o marcador — o cabeçalho `(ANEXO N –) (DOS/DAS) CONTEÚDO(S)
+           PROGRAMÁTICO(S)` sozinho numa linha (singular ou plural, com ou sem acento, qualquer
+           caixa; `ANEXO N` pode ficar em linha separada do resto, como na FCC) — e recorta
+           dali até a próxima linha que começa com `ANEXO` ou até o fim do texto. Exigir a
+           linha inteira evita casar uma referência cruzada em prosa antes do anexo de verdade
+           (ex.: "Os conteúdos programáticos [...] encontram-se no Anexo II deste Edital.").
         2. Percorre as linhas do recorte. Linha que começa em caixa alta seguida de `:`
            (`DIREITO CIVIL: …`) ou seguida do item `1.` (`DIREITO TRIBUTÁRIO 1. …`) abre um
            bloco; qualquer outra linha é continuação do bloco aberto e é unida a ele com um
@@ -256,15 +276,21 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
         As matérias na ordem do edital, cada uma com seus itens.
 
     Raises:
-        ConteudoProgramaticoNaoEncontrado: sem o marcador ou sem nenhuma matéria com itens.
+        ConteudoProgramaticoNaoEncontrado: sem o marcador; ou com o marcador encontrado mas
+            nenhum cabeçalho de matéria reconhecido (nomes fora de `NOME EM CAIXA ALTA:`); ou
+            com matérias reconhecidas mas nenhuma com itens numerados — cada caso com uma
+            mensagem própria, para a página de upload apontar o motivo certo.
     """
+    blocos = _blocos(_recortar_conteudo(texto))
     materias: list[MateriaExtraida] = []
     grupo: str | None = None
-    for bloco in _blocos(_recortar_conteudo(texto)):
+    algum_bloco_tem_itens = False
+    for bloco in blocos:
         itens = _itens_numerados(bloco.texto)
         if not itens:
             grupo = bloco.nome
             continue
+        algum_bloco_tem_itens = True
         topicos = [
             TopicoExtraido(
                 numero=numero, texto_original=item, slug=slug_topico(bloco.nome, numero, item)
@@ -277,7 +303,18 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
             )
         )
     if not materias:
-        raise ConteudoProgramaticoNaoEncontrado()
+        if not blocos:
+            raise ConteudoProgramaticoNaoEncontrado(
+                "Encontrei o anexo do conteúdo programático, mas não reconheci nenhuma matéria "
+                "nele — o parser espera o nome em CAIXA ALTA seguido de dois-pontos (ex.: "
+                "'DIREITO CONSTITUCIONAL: 1. ...'). Peça para o suporte olhar este edital."
+            )
+        assert not algum_bloco_tem_itens  # "not materias" e blocos não vazios só coexistem aqui.
+        raise ConteudoProgramaticoNaoEncontrado(
+            "Encontrei o anexo do conteúdo programático e as matérias, mas os itens não estão "
+            "numerados (1., 2., 3., ...) — este parser ainda não lê listas sem numeração. Peça "
+            "para o suporte olhar este edital."
+        )
     return materias
 
 
@@ -299,8 +336,11 @@ _ANULA = re.compile(r"anula|desconto", re.IGNORECASE)
 _MINIMO_GLOBAL = re.compile(r"(\d+)\s*%\s*do total(?: de pontos)?", re.IGNORECASE)
 _NOTA_ZERO = re.compile(r"nota zero", re.IGNORECASE)
 _CARGO = re.compile(r"Cargo:\s*([^.]+)\.")
-_BANCA_EXECUTADO = re.compile(r"executad[oa] pel[ao]\s+(.+?)\s*\(banca", re.IGNORECASE)
-_BANCA_ORGANIZADORA = re.compile(r"banca organizadora[:\s]+(.+?)[.,]", re.IGNORECASE)
+_BANCA_EXECUTADO = re.compile(r"executad[oa] pel[ao]\s+(.+?)(?:\s*\(banca|[.,])", re.IGNORECASE)
+# Só com dois-pontos — igual à convenção de `Cargo:` — porque "banca organizadora" também
+# aparece em cláusulas que não identificam ninguém (ex.: "recurso [...] pela banca organizadora
+# resultar anulação..."); sem o rótulo explícito, casar por proximidade ainda seria chute.
+_BANCA_ORGANIZADORA = re.compile(r"banca organizadora\s*:\s*(.+?)[.,]", re.IGNORECASE)
 _NUMERO_DO_EDITAL = re.compile(r"EDITAL[^\n]*?N[ºo°.]?\s*(\d+/\d{4})")
 _DATA_PROVA = re.compile(r"[Dd]ata (?:provável )?da prova[^\d]*(\d{2}/\d{2}/\d{4})")
 _DISCURSIVA = re.compile(r"[Pp]rova discursiva[^.]*?peso\s+(\d+)\s+pontos")

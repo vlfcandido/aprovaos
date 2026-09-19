@@ -20,6 +20,11 @@ from aprovaos.dominio.erros import ConteudoProgramaticoNaoEncontrado
 RAIZ = Path(__file__).resolve().parents[2]
 FIXTURE_MD = RAIZ / "docs/evidencias/2026-09-17-fase4-skills/fixtures/edital-assessor-gabinete.md"
 FIXTURE_PDF = RAIZ / "knowledge/fixtures/editais/edital-assessor-gabinete.pdf"
+# Editais reais (procedência em `knowledge/fixtures/editais/LEIA-ME.md`) — ao contrário da
+# fixture acima, sintética, estes dois vieram de bancas de verdade e cada um quebra o parser de
+# um jeito diferente; ver `.superpowers/sdd/V3-questoes-cebraspe/parser-edital-real-report.md`.
+FIXTURE_PDF_AOCP = RAIZ / "knowledge/fixtures/editais/edital-tjpr-tecnico-judiciario-2025.pdf"
+FIXTURE_PDF_FCC = RAIZ / "knowledge/fixtures/editais/edital-trt9-fcc-2022.pdf"
 
 MATERIAS_ESPERADAS = [
     "LÍNGUA PORTUGUESA",
@@ -233,6 +238,42 @@ def test_cabecalho_desconhecido() -> None:
     assert cabecalho.data_prova is None
 
 
+def test_banca_organizadora_solta_no_meio_de_outra_frase_nao_vira_banca() -> None:
+    # Achado ao rodar o parser contra o edital real da AOCP: a expressão "banca organizadora"
+    # aparece no §17.9, numa cláusula de recurso ("Se da análise do recurso pela banca
+    # organizadora resultar anulação de questão(ões)..."), sem identificar ninguém. O padrão
+    # antigo (`banca organizadora` + qualquer espaço) casava aí e devolvia esse trecho como se
+    # fosse o nome da banca — dado errado com cara de fato. Sem "banca organizadora:" com
+    # dois-pontos (o rótulo explícito, no padrão de `Cargo:`), a resposta certa é desconhecido.
+    texto = (
+        "17.9. Se da análise do recurso pela banca organizadora resultar anulação de "
+        "questão(ões) ou alteração de gabarito da Prova."
+    )
+    assert extrair_fatos(texto).cabecalho.banca == "desconhecido"
+
+
+def test_banca_organizadora_com_rotulo_explicito_ainda_reconhecida() -> None:
+    # O padrão restrito continua útil quando o edital rotula a banca de verdade.
+    texto = "1.1. Banca organizadora: INSTITUTO EXEMPLO DE CONCURSOS."
+    assert extrair_fatos(texto).cabecalho.banca == "INSTITUTO EXEMPLO DE CONCURSOS"
+
+
+def test_edital_real_aocp_banca_e_a_do_paragrafo_de_execucao_nao_a_do_recurso() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    cabecalho = extrair_fatos(texto).cabecalho
+    assert cabecalho.banca == "Instituto AOCP"
+    assert cabecalho.fonte == "edital §1.1"
+
+
+def test_edital_real_fcc_banca_continua_desconhecida() -> None:
+    # A FCC não usa nem "executado pel[oa] X" nem "banca organizadora:" — fica desconhecida, e é
+    # a resposta certa (nenhum padrão casa com segurança neste texto).
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    assert extrair_fatos(texto).cabecalho.banca == "desconhecido"
+
+
 def test_etapas(texto_md: str) -> None:
     assert extrair_fatos(texto_md).etapas == [
         Etapa(nome="objetiva", pontos=80, quem_faz=None, fonte="edital §6.2"),
@@ -253,3 +294,51 @@ def test_fonte_conteudo_programatico(texto_md: str) -> None:
         "edital (conteúdo programático)"
     )
     assert fonte_conteudo_programatico("nada") == "edital (conteúdo programático)"
+
+
+# ---- Editais reais: TJ-PR/AOCP e TRT9/FCC ------------------------------------------------------
+#
+# Nenhum dos dois usa a palavra no singular que o marcador aceitava antes ("CONTEÚDO
+# PROGRAMÁTICO") — o TJ-PR diz "ANEXO II – DOS CONTEÚDOS PROGRAMÁTICOS" (plural) e o TRT9 diz
+# "ANEXO III\nCONTEÚDO PROGRAMÁTICO" partido em duas linhas pelo PDF, mas com a mesma frase
+# aparecendo antes, três vezes, como referência cruzada em prosa ("O Conteúdo Programático
+# consta do Anexo III deste Edital.") — o marcador tem de achar o cabeçalho do anexo, não a
+# primeira menção em prosa. Ver o relatório para os números e o porquê de cada um continuar sem
+# extrair nenhuma matéria (a AOCP usa nome de matéria em Título Caso — "Língua Portuguesa:" — e
+# não em CAIXA ALTA como a fixture sintética; a FCC não numera os itens).
+
+
+def test_fonte_aponta_o_anexo_certo_no_edital_real_aocp() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    assert fonte_conteudo_programatico(texto) == "edital Anexo II"
+
+
+def test_edital_real_aocp_marcador_encontrado_mas_sem_materia_reconhecida() -> None:
+    # A AOCP nomeia as matérias em Título Caso ("Língua Portuguesa:", "Noções de Direito
+    # Administrativo:") — o parser só reconhece cabeçalho em CAIXA ALTA. O marcador (corrigido
+    # para aceitar o plural) já acha o Anexo II certo; o parser falha de forma honesta e
+    # específica na estrutura do cabeçalho, não com o erro genérico de marcador ausente.
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    with pytest.raises(ConteudoProgramaticoNaoEncontrado) as erro:
+        extrair_conteudo_programatico(texto)
+    assert "não reconheci nenhuma matéria" in str(erro.value)
+
+
+def test_fonte_aponta_o_anexo_certo_no_edital_real_fcc() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    assert fonte_conteudo_programatico(texto) == "edital Anexo III"
+
+
+def test_edital_real_fcc_marcador_encontrado_mas_itens_sem_numeracao() -> None:
+    # A FCC nomeia a matéria em CAIXA ALTA ("LÍNGUA PORTUGUESA:"), mas não numera os itens —
+    # são frases separadas por ponto. O marcador acha o Anexo III certo (não a primeira das três
+    # menções em prosa, antes dele); o parser reconhece as 24 matérias como cabeçalho, mas
+    # nenhuma tem item numerado a partir do próprio início do bloco, então nenhuma vira matéria.
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    with pytest.raises(ConteudoProgramaticoNaoEncontrado) as erro:
+        extrair_conteudo_programatico(texto)
+    assert "itens não estão numerados" in str(erro.value)

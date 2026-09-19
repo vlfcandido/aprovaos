@@ -1,9 +1,9 @@
 """Exceções de domínio (regras de negócio, independentes de HTTP e de banco).
 
-O que é: `ErroDominio` e as subclasses de conta (`EmailJaCadastrado`, `CredenciaisInvalidas`) e
-de edital (`ArquivoInvalido`, `PdfSemTexto`, `ConteudoProgramaticoNaoEncontrado`). Quando ler: ao
-tratar falhas esperadas numa rota ou ao criar regra de domínio nova; `str(erro)` é o texto pt-BR
-mostrado ao aluno.
+O que é: `ErroDominio` e as subclasses de conta (`EmailJaCadastrado`, `CredenciaisInvalidas`), de
+edital (`ArquivoInvalido`, `PdfSemTexto`, `ConteudoProgramaticoNaoEncontrado`) e de prova
+(`SegmentacaoAmbigua`). Quando ler: ao tratar falhas esperadas numa rota ou ao criar regra de
+domínio nova; `str(erro)` é o texto pt-BR mostrado ao aluno.
 """
 
 
@@ -41,3 +41,23 @@ class ArquivoInvalido(ErroDominio):
 
 class PdfSemTexto(ErroDominio):
     """O PDF abriu, mas não tem texto extraível (provável imagem digitalizada; OCR é ADR-0023)."""
+
+
+class SegmentacaoAmbigua(ErroDominio):
+    """Um bloco do caderno tem mais fronteiras de comando candidatas do que o padrão conhecido.
+
+    A segmentação (`dominio/prova.py`) reconhece até duas fronteiras num bloco de item (fim do
+    enunciado; fim de uma narrativa de apoio implícita) e até uma num bloco de texto de apoio
+    explícito. Uma fronteira a mais é estrutura que a regra não cobre — a função para em vez de
+    adivinhar qual delas é a certa; o documento fica para revisão manual.
+    """
+
+
+class GabaritoNaoReconhecido(ErroDominio):
+    """O texto não tem forma de gabarito Cebraspe C/E reconhecível (grade de itens numerados).
+
+    Levantada por `dominio/gabarito.ler_gabarito_cebraspe` em vez de devolver um mapa vazio —
+    mapa vazio esconderia falha de leitura pelo mesmo motivo que `FonteIndisponivel` existe para
+    o coletor: "sem entradas" não pode significar "não consegui ler". Cobre tanto um PDF
+    qualquer quanto um gabarito de banca em formato diferente (ex.: múltipla escolha A–E).
+    """

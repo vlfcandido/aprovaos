@@ -1,0 +1,8 @@
+{# O que é: o conteúdo da confirmação de reporte — usado dos dois jeitos: sozinho como fragmento
+   HTMX (`api/questoes.py::reportar_questao`, quando `HX-Request: true`, substitui `#questao`) e
+   incluído dentro de `questoes/reportado.html` (página inteira, POST sem JS). Nunca renderizado
+   `{% extends %}` aqui — quem decide o layout é quem inclui. Quando ler: ao mudar a confirmação
+   de reporte. -#}
+<div class="cartao cartao--elevado questao">
+  <p>Obrigado — seu reporte foi registrado e vamos revisar esta questão.</p>
+</div>

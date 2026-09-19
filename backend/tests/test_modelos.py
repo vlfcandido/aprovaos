@@ -1,5 +1,6 @@
-# O que é: testes do passo 3 da V1 e do passo 2 da V2 — mapeamento ORM das tabelas base e das
-# tabelas de edital/DNA. Quando ler: ao alterar coluna/constraint delas ou o `DataHoraUtc`.
+# O que é: testes do passo 3 da V1, do passo 2 da V2 e do passo 10 da V3 — mapeamento ORM das
+# tabelas base, de edital/DNA e de questões/eventos. Quando ler: ao alterar coluna/constraint
+# delas ou o `DataHoraUtc`.
 import uuid
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
@@ -13,10 +14,15 @@ from sqlalchemy.pool import StaticPool
 
 from aprovaos.dados.base import Base
 from aprovaos.dados.modelos import (
+    Alternativa,
     Concurso,
     DnaConcursoRegistro,
     Documento,
     Edital,
+    EventoEstudo,
+    Fonte,
+    Questao,
+    ReporteErro,
     Sessao,
     Tenant,
     Topico,
@@ -59,6 +65,11 @@ def test_tabelas() -> None:
         "topico",
         "topico_edital",
         "dna_concurso",
+        "fonte",
+        "questao",
+        "alternativa",
+        "evento_estudo",
+        "reporte_erro",
     }
 
 
@@ -207,3 +218,194 @@ def test_tipo_do_documento_restrito(db: Session) -> None:
     )
     with pytest.raises(IntegrityError):
         db.commit()
+
+
+def _origem_json() -> dict[str, object]:
+    """Os 8 campos de `Origem` (`dominio/questao.py`), já como dict pronto para a coluna JSON."""
+    return {
+        "banca": "cebraspe",
+        "orgao": "TJ-PA",
+        "cargo": "Analista Judiciário",
+        "ano": 2025,
+        "numero_item": 58,
+        "tipo_caderno": None,
+        "url_prova": "https://cdn.cebraspe.org.br/prova.pdf",
+        "documento_id": str(uuid.uuid4()),
+    }
+
+
+def test_insere_fonte_questao_evento_reporte(db: Session) -> None:
+    tenant, usuario, _ = _conta(db)
+    fonte = Fonte(
+        id_externo="cebraspe",
+        nome="Cebraspe — Centro Brasileiro de Pesquisa em Avaliação e Seleção",
+        url_lista="https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/fase/encerrado",
+        status="ativa",
+    )
+    concurso = Concurso(tenant=tenant, orgao="TJ-PA", cargo="Analista", banca="cebraspe")
+    documento = Documento(
+        tipo="prova",
+        hash="c" * 64,
+        caminho="c.pdf",
+        baixado_em=datetime.now(UTC),
+        metadados={},
+    )
+    topico = Topico(materia="direito-civil", nome="Prescrição", slug="dir-civ-01-prescricao")
+    questao = Questao(
+        adapter="concursos",
+        banca="cebraspe",
+        tipo_item="certo_errado",
+        comando="Julgue o item a seguir.",
+        texto_apoio=None,
+        texto_apoio_itens=[],
+        enunciado="O prazo prescricional é de 5 anos.",
+        gabarito_preliminar=None,
+        gabarito="C",
+        gabarito_status="definitivo",
+        publicavel=True,
+        motivo_nao_publicavel=None,
+        regra_prova={"anula_por_erro": True, "fonte": "instrução do caderno"},
+        topico=topico,
+        topico_confianca="alta",
+        topico_evidencia="menciona prescrição",
+        origem=_origem_json(),
+        documento=documento,
+        hash_dedup="a" * 40,
+        dificuldade_est=None,
+        discriminacao_est=None,
+    )
+    evento = EventoEstudo(
+        usuario_id=usuario.id,
+        ocorrido_em=datetime.now(UTC),
+        tipo="resposta",
+        questao=questao,
+        acertou=True,
+        resposta="C",
+        confianca_declarada="certeza",
+        tempo_ms=4200,
+    )
+    reporte = ReporteErro(
+        usuario_id=usuario.id,
+        conteudo_tipo="questao",
+        conteudo_id=uuid.uuid4(),
+        motivo="gabarito parece errado",
+        status="aberto",
+    )
+    db.add_all([fonte, concurso, documento, topico, questao, evento, reporte])
+    db.commit()
+
+    for linha in (fonte, questao, evento, reporte):
+        assert isinstance(linha.id, uuid.UUID)
+    assert questao.publicada is False
+    assert questao.inedita is False
+
+
+def test_hash_dedup_unico(db: Session) -> None:
+    documento = Documento(
+        tipo="prova", hash="d" * 64, caminho="d.pdf", baixado_em=datetime.now(UTC), metadados={}
+    )
+    dados_comuns: dict[str, object] = {
+        "adapter": "concursos",
+        "banca": "cebraspe",
+        "tipo_item": "certo_errado",
+        "comando": None,
+        "texto_apoio": None,
+        "texto_apoio_itens": [],
+        "gabarito_preliminar": None,
+        "gabarito": "C",
+        "gabarito_status": "definitivo",
+        "publicavel": True,
+        "motivo_nao_publicavel": None,
+        "regra_prova": {"anula_por_erro": True, "fonte": "instrução do caderno"},
+        "topico_confianca": "media",
+        "topico_evidencia": "sem correspondência",
+        "origem": _origem_json(),
+        "documento": documento,
+        "hash_dedup": "b" * 40,
+    }
+    db.add(Questao(enunciado="Enunciado 1.", **dados_comuns))
+    db.commit()
+    db.add(Questao(enunciado="Enunciado 2 (repetido de propósito).", **dados_comuns))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_evento_estudo_valida_tipo(db: Session) -> None:
+    _, usuario, _ = _conta(db)
+    db.add(EventoEstudo(usuario_id=usuario.id, ocorrido_em=datetime.now(UTC), tipo="qualquer"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_gabarito_status_do_evento_reporte_status_restritos(db: Session) -> None:
+    _, usuario, _ = _conta(db)
+    documento = Documento(
+        tipo="prova", hash="e" * 64, baixado_em=datetime.now(UTC), caminho="e.pdf", metadados={}
+    )
+    db.add(
+        Questao(
+            adapter="concursos",
+            banca="cebraspe",
+            tipo_item="certo_errado",
+            comando=None,
+            texto_apoio=None,
+            texto_apoio_itens=[],
+            enunciado="X",
+            gabarito_preliminar=None,
+            gabarito=None,
+            gabarito_status="xx",
+            publicavel=False,
+            motivo_nao_publicavel="sem gabarito",
+            regra_prova={"anula_por_erro": True, "fonte": "instrução do caderno"},
+            topico_confianca="baixa",
+            topico_evidencia="",
+            origem=_origem_json(),
+            documento=documento,
+            hash_dedup="f" * 40,
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()
+
+    db.add(
+        ReporteErro(
+            usuario_id=usuario.id,
+            conteudo_tipo="questao",
+            conteudo_id=uuid.uuid4(),
+            motivo="x",
+            status="xx",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_alternativa_ligada_a_questao(db: Session) -> None:
+    documento = Documento(
+        tipo="prova", hash="g" * 64, baixado_em=datetime.now(UTC), caminho="g.pdf", metadados={}
+    )
+    questao = Questao(
+        adapter="concursos",
+        banca="fgv",
+        tipo_item="multipla_escolha",
+        comando=None,
+        texto_apoio=None,
+        texto_apoio_itens=[],
+        enunciado="Marque a alternativa correta.",
+        gabarito_preliminar=None,
+        gabarito=None,
+        gabarito_status="definitivo",
+        publicavel=True,
+        motivo_nao_publicavel=None,
+        regra_prova={"anula_por_erro": False, "fonte": "edital §6.1"},
+        topico_confianca="alta",
+        topico_evidencia="",
+        origem=_origem_json(),
+        documento=documento,
+        hash_dedup="h" * 40,
+    )
+    alternativa = Alternativa(questao=questao, letra="A", texto="Certa", correta=True)
+    db.add_all([questao, alternativa])
+    db.commit()
+    assert alternativa.questao_id == questao.id

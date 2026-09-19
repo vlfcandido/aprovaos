@@ -7,11 +7,17 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from aprovaos.config import Configuracoes
 from aprovaos.dados.modelos import Traco
 from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_traco import gasto_do_dia, registrar_traco
 from aprovaos.dominio.conta import DadosCadastro
-from aprovaos.roteador.custo import ChamadaLlm, ModeloSemPreco, estimar_custo_brl
+from aprovaos.roteador.custo import (
+    PRECOS_USD_POR_MILHAO,
+    ChamadaLlm,
+    ModeloSemPreco,
+    estimar_custo_brl,
+)
 from aprovaos.roteador.teto import TetoDiario
 
 AGORA = datetime(2026, 9, 17, 15, 30, tzinfo=UTC)
@@ -41,9 +47,40 @@ def test_estimar_custo_flash_lite() -> None:
     assert estimar_custo_brl("gemini-2.5-flash-lite", 1_000_000, 0) == Decimal("0.540000")
 
 
+def test_estimar_custo_gemini_3_6_flash() -> None:
+    # Preço paid tier (o teto diário protege esse valor; no free tier o custo real é zero):
+    # 1M de entrada × US$ 0,75/M × 5,40 = R$ 4,05; 1M de saída × US$ 3,75/M × 5,40 = R$ 20,25.
+    assert estimar_custo_brl("gemini-3.6-flash", 1_000_000, 0) == Decimal("4.050000")
+    assert estimar_custo_brl("gemini-3.6-flash", 0, 1_000_000) == Decimal("20.250000")
+
+
+def test_estimar_custo_gemini_3_5_flash_lite() -> None:
+    # Preço paid tier (passo 12c — modelo do classificador; free tier real é zero):
+    # 1M de entrada × US$ 0,30/M × 5,40 = R$ 1,62; 1M de saída × US$ 2,50/M × 5,40 = R$ 13,50.
+    assert estimar_custo_brl("gemini-3.5-flash-lite", 1_000_000, 0) == Decimal("1.620000")
+    assert estimar_custo_brl("gemini-3.5-flash-lite", 0, 1_000_000) == Decimal("13.500000")
+
+
 def test_modelo_sem_preco() -> None:
     with pytest.raises(ModeloSemPreco):
         estimar_custo_brl("gemini-x", 1, 1)
+
+
+def test_todo_modelo_default_de_configuracoes_tem_preco_tabelado() -> None:
+    """Menor da revisão do passo 12: sem isso, a próxima troca de modelo (`modelo_dna`/
+    `modelo_classificacao`, ou um campo `modelo_*` novo) só quebra o roteador em produção
+    (`ModeloSemPreco` na primeira chamada), não aqui.
+    """
+    campos_de_modelo = {
+        nome: campo.default
+        for nome, campo in Configuracoes.model_fields.items()
+        if nome.startswith("modelo_")
+    }
+    assert campos_de_modelo, "nenhum campo `modelo_*` encontrado em Configuracoes — teste inútil"
+    for nome, modelo_padrao in campos_de_modelo.items():
+        assert modelo_padrao in PRECOS_USD_POR_MILHAO, (
+            f"{nome}={modelo_padrao!r} sem preço em PRECOS_USD_POR_MILHAO"
+        )
 
 
 def test_registrar_traco_grava_linha(db: Session) -> None:

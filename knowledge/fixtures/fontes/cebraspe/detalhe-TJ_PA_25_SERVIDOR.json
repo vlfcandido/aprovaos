@@ -1,0 +1,1110 @@
+{
+  "idEvento": 3250,
+  "eventoNomeAbreviado": "TJ PA 25 SERVIDOR",
+  "eventoNomeCompleto": "TJ PA 25 SERVIDOR",
+  "eventoTotalVagas": null,
+  "eventoSalarioMaximo": null,
+  "strEventoSalarioMaximo": "R$ ",
+  "eventoURL": "TJ_PA_25_SERVIDOR",
+  "eventoStatus": "Encerrado",
+  "eventoTipo": "concursos",
+  "eventoAno": 2025,
+  "periodoInscricao": "De 30/06/2025 até 22/07/2025 às 18:00, horário oficial de Brasília/DF",
+  "eventoCargos": [
+    {
+      "idArea": "01",
+      "area": "CARGO 1: ANALISTA JUDICIÁRIO – ÁREA ADMINISTRATIVA"
+    },
+    {
+      "idArea": "02",
+      "area": "CARGO 2: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ADMINISTRAÇÃO"
+    },
+    {
+      "idArea": "03",
+      "area": "CARGO 3: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ANÁLISE DE SISTEMAS"
+    },
+    {
+      "idArea": "04",
+      "area": "CARGO 4: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ANÁLISE DE SUPORTE"
+    },
+    {
+      "idArea": "05",
+      "area": "CARGO 5: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ARQUITETURA"
+    },
+    {
+      "idArea": "06",
+      "area": "CARGO 6: ANALISTA JUDICIÁRIO – ESPECIALIDADE: BIBLIOTECONOMIA"
+    },
+    {
+      "idArea": "07",
+      "area": "CARGO 7: ANALISTA JUDICIÁRIO – ESPECIALIDADE: CIÊNCIAS CONTÁBEIS"
+    },
+    {
+      "idArea": "08",
+      "area": "CARGO 8: ANALISTA JUDICIÁRIO – ESPECIALIDADE: COMUNICAÇÃO SOCIAL"
+    },
+    {
+      "idArea": "09",
+      "area": "CARGO 9: ANALISTA JUDICIÁRIO – ESPECIALIDADE: DIREITO"
+    },
+    {
+      "idArea": "10",
+      "area": "CARGO 10: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ECONOMIA"
+    },
+    {
+      "idArea": "11",
+      "area": "CARGO 11: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ENFERMAGEM"
+    },
+    {
+      "idArea": "12",
+      "area": "CARGO 12: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ENGENHARIA CIVIL"
+    },
+    {
+      "idArea": "13",
+      "area": "CARGO 13: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ENGENHARIA ELÉTRICA"
+    },
+    {
+      "idArea": "14",
+      "area": "CARGO 14: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ENGENHARIA MECÂNICA"
+    },
+    {
+      "idArea": "15",
+      "area": "CARGO 15: ANALISTA JUDICIÁRIO – ESPECIALIDADE: ESTATÍSTICA"
+    },
+    {
+      "idArea": "16",
+      "area": "CARGO 16: ANALISTA JUDICIÁRIO – ESPECIALIDADE: FISCAL DE ARRECADAÇÃO"
+    },
+    {
+      "idArea": "17",
+      "area": "CARGO 17: ANALISTA JUDICIÁRIO – ESPECIALIDADE: MEDICINA"
+    },
+    {
+      "idArea": "18",
+      "area": "CARGO 18: ANALISTA JUDICIÁRIO – ESPECIALIDADE: PEDAGOGIA"
+    },
+    {
+      "idArea": "19",
+      "area": "CARGO 19: ANALISTA JUDICIÁRIO – ESPECIALIDADE: PSICOLOGIA"
+    },
+    {
+      "idArea": "20",
+      "area": "CARGO 20: ANALISTA JUDICIÁRIO – ESPECIALIDADE: PSIQUIATRIA"
+    },
+    {
+      "idArea": "21",
+      "area": "CARGO 21: ANALISTA JUDICIÁRIO – ESPECIALIDADE: SERVIÇO SOCIAL"
+    },
+    {
+      "idArea": "22",
+      "area": "CARGO 22: OFICIAL DE JUSTIÇA AVALIADOR"
+    }
+  ],
+  "arquivosEdital": [
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "29/07/2026 16:17",
+      "nomeArquivo": "A350DD296EADDC23C59FBA6922690FDFB56358A677E15B376E699FCF46A09EBC.html",
+      "descricaoArquivo": "Edital nº 17 - Inclusão de candidato sub judice – Vlibras.",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-07-29T16:17:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "29/07/2026 16:16",
+      "nomeArquivo": "4CE28DF425E8BDC0BD09DA6A8580D78116C654274465646E54450D3701E91857.pdf",
+      "descricaoArquivo": "Edital nº 17 - Inclusão de candidato sub judice.",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-07-29T16:16:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "13/03/2026 10:00",
+      "nomeArquivo": "C6BF29BAA3C1B7ABA99EF594370F28974C4F1742504552F3CF9D0FA36915BC6B.html",
+      "descricaoArquivo": "Edital nº 16 – Resultado final na avaliação de títulos e o resultado final no concurso público - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-03-13T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "13/03/2026 10:00",
+      "nomeArquivo": "7B99F487514C3B061D7C9E938CA64607F4990988CC120276C168A8DEB1688BF9.pdf",
+      "descricaoArquivo": "Edital nº 16 – Resultado final na avaliação de títulos e o resultado final no concurso público",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-03-13T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "12/03/2026 16:50",
+      "nomeArquivo": "DF7E71713EA9F323E33798085876BE0A92741EEBDE96E9C53A09AE23FD293001.html",
+      "descricaoArquivo": "Comunicado – Edital de resultado final na avaliação de títulos e de resultado final no concurso - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-03-12T16:50:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "12/03/2026 16:50",
+      "nomeArquivo": "2E66A1CEFEB38D73815055ECE8CA16D742A2F167A5EC0DEE495567218D2EF13B.pdf",
+      "descricaoArquivo": "Comunicado – Edital de resultado final na avaliação de títulos e de resultado final no concurso",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-03-12T16:50:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "27/02/2026 10:00",
+      "nomeArquivo": "F6D3B3265960F279E3FDE787D5189D51DF7906C92C3092CD68EB11B7EE312497.html",
+      "descricaoArquivo": "Edital nº 15 – Retificação da data constante do subitem 3.1 do Edital nº 14 - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-27T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "27/02/2026 10:00",
+      "nomeArquivo": "83D8B9232400C74B40B6517E8E70E32102409A114F7449C01207F2DC1E4EB476.pdf",
+      "descricaoArquivo": "Edital nº 15 – Retificação da data constante do subitem 3.1 do Edital nº 14",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-27T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "10/02/2026 10:00",
+      "nomeArquivo": "BC28135279C60A9A206A916A533B7284599408CD6FEE58AAA22EBF89C3D3D6F3.html",
+      "descricaoArquivo": "Edital nº 14 – Resultado provisório na avaliação de títulos - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-10T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "10/02/2026 10:00",
+      "nomeArquivo": "698F52C960EEE51A5D6D3521A802ECDB766486B57CE5E87F8470964B81AEA382.pdf",
+      "descricaoArquivo": "Edital nº 14 – Resultado provisório na avaliação de títulos",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-10T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "09/02/2026 14:30",
+      "nomeArquivo": "50BB70D84BE04650B154DD1103A009DBAC815EDFAA1D92998F1C9528404B87A1.html",
+      "descricaoArquivo": "Comunicado – Resultado provisório na avaliação de títulos – VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-09T14:30:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "09/02/2026 14:30",
+      "nomeArquivo": "3EF37627C1371F1394070AC5877BF6B739AB2B05C2212971450F043EE713555E.pdf",
+      "descricaoArquivo": "Comunicado – Resultado provisório na avaliação de títulos ",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-02-09T14:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "28/01/2026 10:00",
+      "nomeArquivo": "2B3962D461EEAE802EFC3DE6ACF930DAF4F7DA2A3ACEDAA1EC54982D434A2704.html",
+      "descricaoArquivo": "Edital nº 13 – Resultado final na avaliação biopsicossocial, no procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa, no procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas, a convocação para a avaliação de títulos e a convocação para o desempate de notas - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-01-28T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "28/01/2026 10:00",
+      "nomeArquivo": "818A8029C5266CFC87B50F82F4C8CD8607050FDE5249EC666BBCCEEAEF35FBAD.pdf",
+      "descricaoArquivo": "Edital nº 13 – Resultado final na avaliação biopsicossocial, no procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa, no procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas, a convocação para a avaliação de títulos e a convocação para o desempate de notas",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-01-28T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "14/01/2026 10:00",
+      "nomeArquivo": "EA91CED08BDFC96728D4C2DA3E66B3B01B683B771EC9CEFC5202EF45B5A95FBF.html",
+      "descricaoArquivo": "Edital nº 12 – Inclusão de candidatos sub judice na relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa), o resultado provisório na avaliação biopsicossocial, o resultado provisório no procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa e o resultado provisório no procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-01-14T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "14/01/2026 10:00",
+      "nomeArquivo": "6ABAA4F2EF479CD8E3106167DA07BD129A29E9E3D5F0576905FF8C8257AB82E8.pdf",
+      "descricaoArquivo": "Edital nº 12 – Inclusão de candidatos sub judice na relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa), o resultado provisório na avaliação biopsicossocial, o resultado provisório no procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa e o resultado provisório no procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2026-01-14T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "16/12/2025 10:00",
+      "nomeArquivo": "6F5694A80E17DCE16A2C8997C267CE8FAA92AA4D453D511B74E8400153261D53.html",
+      "descricaoArquivo": "Edital nº 11 – Retificação da região judiciária do Cargo 19: Analista Judiciário – Especialidade: Psicologia, constante da relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa), divulgada por meio do item 3 do Edital nº 10, bem como a inclusão do subitem 7.1.1.1 no referido edital - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-12-16T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "16/12/2025 10:00",
+      "nomeArquivo": "CE5A57E2B72B6803AAE17CA8BAF57C13DEB90BE43A0E00B0CD3C3F37FF4929CE.pdf",
+      "descricaoArquivo": "Edital nº 11 – Retificação da região judiciária do Cargo 19: Analista Judiciário – Especialidade: Psicologia, constante da relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa), divulgada por meio do item 3 do Edital nº 10, bem como a inclusão do subitem 7.1.1.1 no referido edital",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-12-16T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "10/12/2025 10:00",
+      "nomeArquivo": "A969DE1E9DC969557AE3C40A75408A47EB8AB109EE845F550400D93DB2C42F65.html",
+      "descricaoArquivo": "Edital nº 10 – Resultado final na avaliação psicológica; convocação para a avaliação biopsicossocial; relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa); convocação para o procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa; convocação para o procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-12-10T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "10/12/2025 10:00",
+      "nomeArquivo": "24D7C1934EA408C56511E12FA60C85536EE9B34ECA9E1C0A879D633CC655589D.pdf",
+      "descricaoArquivo": "Edital nº 10 – Resultado final na avaliação psicológica; convocação para a avaliação biopsicossocial; relação dos candidatos que se autodeclararam negros que tiveram a foto deferida no procedimento de heteroidentificação (1ª etapa); convocação para o procedimento de heteroidentificação presencial (2ª etapa) dos candidatos que se autodeclararam negros que tiveram a foto indeferida na 1ª etapa; convocação para o procedimento de heteroidentificação dos candidatos que se autodeclararam indígenas",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-12-10T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "25/11/2025 10:00",
+      "nomeArquivo": "CCB7BFE4560236BD9889A17A47CDBD946C34E767937068C597F49E1097DF486D.html",
+      "descricaoArquivo": "Comunicado – Prorrogação do período de recurso contra o resultado provisório na avaliação psicológica - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-25T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "25/11/2025 10:00",
+      "nomeArquivo": "524931930E8D4BEF0CFB4DC6E825B9DCB58EE4A0B1298FAE9E1C1ADA2C8CB52B.pdf",
+      "descricaoArquivo": "Comunicado – Prorrogação do período de recurso contra o resultado provisório na avaliação psicológica",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-25T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "25/11/2025 09:00",
+      "nomeArquivo": "FDC53D980A24ADB2319CA54529D520ED5E1D0BD3762BF73E995C89AE9E81F3E0.html",
+      "descricaoArquivo": "Edital nº 9 –  Inclusão de candidatos no resultado  provisório na avaliação psicológica  - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-25T09:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "25/11/2025 09:00",
+      "nomeArquivo": "18C5B88710AB9F910DC67D9753BC36AA7A173D0E25C62E30951E411D59320D95.pdf",
+      "descricaoArquivo": "Edital nº 9 – Inclusão de candidatos no resultado provisório na avaliação psicológica",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-25T09:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "13/11/2025 10:00",
+      "nomeArquivo": "25FFF1AD24CC9B0543D5D369095DEFF09D77D9259FB004A230D11E3C9CD11911.html",
+      "descricaoArquivo": "Edital nº 8 – Resultado provisório na avaliação psicológica - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-13T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "13/11/2025 10:00",
+      "nomeArquivo": "E20256BE33A4BA023F2BD7B06D4FE9B6FB959C3A5539883089ADC6EBEB397A06.pdf",
+      "descricaoArquivo": "Edital nº 8 – Resultado provisório na avaliação psicológica",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-11-13T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "21/10/2025 10:00",
+      "nomeArquivo": "D28605EDACF3079CA195A5466F0AF42E0D7184ADC815A3BB38E1E0E3E95B5864.html",
+      "descricaoArquivo": "Currículos dos Integrantes da Banca Examinadora para a Avaliação Psicológica - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-21T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "21/10/2025 10:00",
+      "nomeArquivo": "C664683D84A57C526971F010D9EBD2CB1C3AAAE7FC95A61FE16A46B33D4BE8E3.pdf",
+      "descricaoArquivo": "Currículos dos Integrantes da Banca Examinadora para a Avaliação Psicológica",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-21T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "20/10/2025 10:00",
+      "nomeArquivo": "3E9EE5867CB5AD8FF629641D8696217416BE86E307E6AF6E42DB85C717105E3E.html",
+      "descricaoArquivo": "Edital nº 7 – Resultado final na prova discursiva e a convocação para a avaliação psicológica - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-20T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "20/10/2025 10:00",
+      "nomeArquivo": "10DFC86245A84619327B841188987C2854AC634DDAC6E1C493746474EFE17812.pdf",
+      "descricaoArquivo": "Edital nº 7 – Resultado final na prova discursiva e a convocação para a avaliação psicológica",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-20T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "08/10/2025 16:50",
+      "nomeArquivo": "5E10ADD3DCD4007DF1CFDCC2950380475E1C11ED98E3574F8A3A91CAA6C4EF82.pdf",
+      "descricaoArquivo": "Justificativas de alterações de gabarito",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-08T16:50:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "07/10/2025 10:00",
+      "nomeArquivo": "9DB08D2B0B57D91E65FC5D0E9CD85C57A6B1B50BACEA7D52E47674E3BF31C3E2.html",
+      "descricaoArquivo": "Edital nº 6 – Retificação do modelo de Declaração de Pertencimento ao Povo Indígena, constante do Anexo IV do Edital nº 1 - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-07T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "07/10/2025 10:00",
+      "nomeArquivo": "061157FB1CA99CFAEAFA3D68A402EC773B9916BD40037EFD40332C8DC752A7E7.pdf",
+      "descricaoArquivo": "Edital nº 6 – Retificação do modelo de Declaração de Pertencimento ao Povo Indígena, constante do Anexo IV do Edital nº 1",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-07T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "01/10/2025 10:00",
+      "nomeArquivo": "5A1405015950F012CF82A58658595400E77A6545A19728E3A960BF0CE7E6F617.html",
+      "descricaoArquivo": "Edital nº 5 – Resultado final nas provas objetivas e o resultado provisório na prova discursiva - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 10:00",
+      "nomeArquivo": "83D17DFA86A1B87F7453BED64BF70C77D15A5E45AC94915AB98BC51AA0280E56.pdf",
+      "descricaoArquivo": "Edital nº 5 – Resultado final nas provas objetivas e o resultado provisório na prova discursiva",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "22/08/2025 11:00",
+      "nomeArquivo": "54D8DCBAA3FBCDFF77509924243AF4C880D0CA79B33C59C14A8F14A369AE0EDB.pdf",
+      "descricaoArquivo": "Demanda de candidatos por vaga",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-22T11:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "21/08/2025 10:00",
+      "nomeArquivo": "B3D73FA34748414D8B5DBA586F9B3A06D1A1E6DB2646224FFAA6107F3B5E7C08.html",
+      "descricaoArquivo": "Edital nº 4 – Retificação dos subitens 6.4.8.2.3.1 e 8.11.5 do Edital nº 1 – TJPA – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-21T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "21/08/2025 10:00",
+      "nomeArquivo": "538C8FF1CD5E3C28D3B23F616196FB2AFAB1FA4B486490C48A07BF396C68DB5F.pdf",
+      "descricaoArquivo": "Edital nº 4 – Retificação dos subitens 6.4.8.2.3.1 e 8.11.5 do Edital nº 1 – TJPA",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-21T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "18/08/2025 10:00",
+      "nomeArquivo": "11FFA3E563B2353864E364095AB4CE7DF101532BAC87B13EB45061488E3C0C66.html",
+      "descricaoArquivo": "Edital nº 3 – Locais de aplicação das provas objetivas e da prova discursiva – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-18T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "18/08/2025 10:00",
+      "nomeArquivo": "433B74F064C459D8A3102C7D2D7AF17C37A60DFD0D15AA93385FBAE23BC8050C.pdf",
+      "descricaoArquivo": "Edital nº 3 – Locais de aplicação das provas objetivas e da prova discursiva",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-18T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "11/08/2025 10:00",
+      "nomeArquivo": "TJPA_Servidor_Rel_Final_PCD.html",
+      "descricaoArquivo": "Relação final dos candidatos com a inscrição deferida para concorrer na condição de pessoa com deficiência - em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-11T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "11/08/2025 10:00",
+      "nomeArquivo": "TJPA_Servidor_Rel_Final_PCD.pdf",
+      "descricaoArquivo": "Relação final dos candidatos com a inscrição deferida para concorrer na condição de pessoa com deficiência",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-11T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "01/08/2025 10:00",
+      "nomeArquivo": "TJPA_Servidor_Rel_Prov_PCD.html",
+      "descricaoArquivo": "Relação provisória dos candidatos com a inscrição deferida para concorrer na condição de pessoa com deficiência – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-01T10:00:01"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/08/2025 10:00",
+      "nomeArquivo": "TJPA_Servidor_Rel_Prov_PCD.pdf",
+      "descricaoArquivo": "Relação provisória dos candidatos com a inscrição deferida para concorrer na condição de pessoa com deficiência",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-08-01T10:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "30/06/2025 15:00",
+      "nomeArquivo": "Ed_2_2025_TJPA_Servidor_Ret_Cargos_Conteudo.html",
+      "descricaoArquivo": "Edital nº 2 – Alterações no Edital nº 1 – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-30T15:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "30/06/2025 15:00",
+      "nomeArquivo": "Ed_2_2025_TJPA_Servidor_Ret_Cargos_Conteúdo.pdf",
+      "descricaoArquivo": "Edital nº 2 – Alterações no Edital nº 1",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-30T15:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "24/06/2025 10:00",
+      "nomeArquivo": "7C2431FCA7D3FBCA92E6C73C2EF3837D994818B4BDA998D1D36782BC18781EB2.html",
+      "descricaoArquivo": "Edital nº 1 – Abertura – Atualizado conforme retificações – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-24T10:00:59"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "24/06/2025 10:00",
+      "nomeArquivo": "ADB53B6B6540C545B1FD74673EBB1E06DE6A483F4738C1695AD06D8DFDDF4D1B.pdf",
+      "descricaoArquivo": "Edital nº 1 – Abertura – Atualizado conforme retificações",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-24T10:00:20"
+    },
+    {
+      "tipoExtensaoArquivo": "_.html",
+      "dataArquivo": "24/06/2025 10:00",
+      "nomeArquivo": "Ed_1_2025_TJPA_Servidor_Abertura.html",
+      "descricaoArquivo": "Edital n° 1 - Abertura – em VLibras",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-24T10:00:10"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "24/06/2025 10:00",
+      "nomeArquivo": "Ed_1_2025_TJPA_Servidor_Abertura.pdf",
+      "descricaoArquivo": "Edital nº 1 - Abertura",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-06-24T10:00:00"
+    }
+  ],
+  "arquivosGabarito": [
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "A19ACA7DA2B5CB5A9EDDDC4A8963EC7018C10A7A27BB5B47F0F4824B1F502F6E.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS GERAIS PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "626CD174A62325A94A5AEEC41B9019721F0B6816665C682BC5511B045BAB967A.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS GERAIS PARA OS CARGOS 3 E 4",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "873AE3ACF6AABCBAB3E5B75B08B43AB1B3B3E683DD1A28706C6EC83D72B2230A.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS GERAIS PARA OS CARGOS 5, 7, 10, 12, 13, 14, 15 E 16",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "8D0A7ED3F2BD0DFF8F10361914A587771344C03C0E5A49E025A6F58F07DAAFC7.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENOS GERAIS PARA OS CARGOS 11, 17, 19, 20 E 21",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "DA0132F9A0A017A2D229274D30E1E5A5492D180BB58CF77BEA1CFC3B66221257.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 1",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "A7C6BBB6D951497D42F2CDFDB693FCFAD87F363507913782B36644DF24983F64.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 2",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "294AA06BC75868E48C12B7E5F70D909C06D8DB5C67D1F704654B8FA2BEE15207.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 3",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "23AA3FFFD00C2F512B8F7046DF0B493AF171BE376773417C6F0E25291AB35EBB.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 4",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "4C7B898E3A40C0B824C427FBF6074566360F55937486608426BE3BA6DCC54548.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 5",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "F19C54B20FD0D5205B807609CAA7B026A9156B542B10B872D7AB1D9E9048D39C.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 6",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "997A2301295B6821C34ADF27A580FFEAC8B89044CCFECAA155FEE00AF14CD2A5.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 7",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "57E97AF23FA0FAC862A787318FCD4CF717FA626CD0FBE28BCFCD10AA46756759.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 8",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "EF721EA56FA324A5AE5E9F7A8FD2FE4800E803E772BC6D03E0403D1B61632F72.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "53483EE025122C939B2F57E9D9831C4AE6DBB76242274755374ADFDE74576960.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 10",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "8BB03F0A786CEEA9ACBFF04A127BCCD13F72E5A21D71E11A24B3E022BFC60084.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 11",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "4747C613F090DB6EB5B97262E27A5F28BE0ECA0E989D7BDD9CBDD8641481BDD6.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 12",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "5DAE9896D12649072A073FB7E2A33711C317E518C2F6F512354EB854CC38B515.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 13",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "058D4540DD8A1815AD4FC48D3F9766A416725F938CC9FAF58A2B2125ED9A95B5.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 14",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "C0DA7CFE349696B285B3F02C505AF46EF0301A5164D07EE77C6155D9DAF5DC90.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 15",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "CDBB1F28321FCCABDD27FBFB5FFB13744C3BB0368EF860AE233A315FE18BEA14.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 16",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "852B4E66DF4E08993988778FA7B13E429C16A5AE9E46266D00007D7D04F24C37.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 17",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "BD731E8E936496FAB8D3DDB387D5AFB48FA631E21DD3CABEE27F64737DA03AF3.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 18",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "BF0C842446923A0180D1DB700CADB835BA08079DE71ADD1F587761A709EC6A9E.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 19",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "9A25EDA1E1E95DA273F94A7A65B735AB8DD11E6890BA83E2479B5A2E7935A2E2.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 20",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "7EF1B8AB1D6E6BE5630B5ECD06F5EF28FFF1E1BE69AE094F9C636A146FF109E1.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 21",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 11:30",
+      "nomeArquivo": "283A5B36A353CEA27C03850D8B92E15781C7682056B9557B2A88037406F56928.pdf",
+      "descricaoArquivo": "GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 22",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T11:30:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "01/10/2025 10:40",
+      "nomeArquivo": "73F1AE792CB7443161E526AB5189BE05BDB207B8F7CC3F4B3FD8033CC0B2AEEA.pdf",
+      "descricaoArquivo": "PADRÃO DEFINITIVO DE RESPOSTA – PROVA DISCURSIVA – TODOS OS CARGOS",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-10-01T10:40:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "C9F8D295B931672227C93D2C75D28DC412FC4048D1F1B99E3DC9F0F51D58ACB0.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS GERAIS PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "02D7D3F415481FBDD3691235CA3FCCE9FD64CF975305872DCA5D156C0DC1E436.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS GERAIS PARA OS CARGOS 3 E 4",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "7B302B06480147D547365E7799BDF697AD40B8B8882C85753D805FAFC4E6640D.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS GERAIS PARA OS CARGOS 5, 7, 10, 12, 13, 14, 15 E 16",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "40772BA304EA6A6E351C619D42DF49D2660EC0646704EEB621B55A36CA5CB10C.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENOS GERAIS PARA OS CARGOS 11, 17, 19, 20 E 21",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "F96B6B45965253393F2C47C57456063F699B3F2FC9EF9757369A4C559FB50181.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 1",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "490BE7C0113E3A76B3012EED150E0EF98555239FB4C4D91A8C834361D3AA17C3.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 2",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "974BCB3ECE2FC89963D9FB7F28413DE2FD7947B199629C0C2D3DFADFB003C520.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 3",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "74B82550FDF43960DCCACFC9A9E23443D47460AED41749058FB3A27504372EDD.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 4",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "0E516F30F38692A87923D9942214F5507DEFE162DF6CE819FEE9DB20BEAA3C45.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 5",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "E417E757205201589E8B532580208FA2743A03FE466AE1E369DD3557075CC62E.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 6",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "C33359706B200ADF5E273573A7BAE4D9CDEE9D7EE6E9286E7011F07D35C16D48.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 7",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "CE33335C31890FFF003B611D990EF14136BB79660D76207992ABB22195616700.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 8",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "C15F414E0E91EF109220A73BDF53B232C4466F64770A91E715C56DCB94131F41.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "2DF32B284D7EA83F64088E4846E3569EAA7DB4486BB4B0CB28B36791657C6892.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 10",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "EBD71F566BEA7ED6E3F0E7B513EB796A97105FE9F77FD74159663743A2664465.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 11",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "1160A981A34637337E146044D23BDF1E36F3E26FBD533017AE18E2FF4D774E00.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 12",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "22E185A0F91CF43B19D3B6E8B19CDB5D04B8E00BE07213FB0675E7D5601199FE.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 13",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "9B3F6F15758D33E101716FCA3EE11406C294C02CE790170986B06030ED5606AA.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 14",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "8F3FC277D897F2859B22865BED211221D16B57F4629E2C8C9D405ECFB584A646.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 15",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "284634C4D0BDDDC0B0D5275BD3F1B1F43FAF801F3330ECC9C4B9DA6057E95DB9.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 16",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "4C075EC91129AF81CF4FD148DCC0023230067B98B239949879F62997666B9041.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 17",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "593E6BB4277AAC0DD2327A9FC48E3CE72969F2AE757B00C31765ECFED0B0E142.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 18",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "48E19A7C0FE0A18F1D6DECE8C490A478A126454C0B1D3B1EABFDEAFB7A76752E.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 19",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "093E51E5506148F0368D4C69C55AA4C98332A8CFFB325F9CA5E2FAAB46002EEC.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 20",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "E12A9D602EF5537DCE56A90D81DF389C2B6C007AACF001499A12F69C86114E2C.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 21",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "05/09/2025 19:00",
+      "nomeArquivo": "A1C4E9910233E9BD6F90DFF306B891A9189AF2D084816143803EC684136FBEF6.pdf",
+      "descricaoArquivo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 22",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-05T19:00:00"
+    },
+    {
+      "tipoExtensaoArquivo": "_.pdf",
+      "dataArquivo": "02/09/2025 19:00",
+      "nomeArquivo": "24260E21718C052FD7EA5E14033931C1CBD22B4E3033173BCC8A4683821CA991.pdf",
+      "descricaoArquivo": "PROVA DISCURSIVA - TODOS OS CARGOS",
+      "isDataValid": true,
+      "isGuid": false,
+      "dataArquivoObj": "2025-09-02T19:00:00"
+    }
+  ],
+  "aplicativos": [
+    {
+      "nomeAplicativo": "Recursos contra o resultado provisório na avaliação psicológica - Sub judice",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Psicologica/Recurso5FA5C9A5-2D6B-4AA9-8F5F",
+      "strDataInicio": "14/09/2026 10:55",
+      "dataInicio": "2026-09-14T10:55:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho de resultado provisório da avaliação psicológica",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Psicologica/ResultadoProvisorio_6F28B413-DB78-47EA-83C1/",
+      "strDataInicio": "27/03/2026 10:00",
+      "dataInicio": "2026-03-27T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho definitivo e(ou) às respostas aos recursos interpostos contra o resultado provisório na avaliação de títulos",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Titulo/ResultadoDefinitivo_640AA7E9-A7B7-4E1B/",
+      "strDataInicio": "06/03/2026 10:00",
+      "dataInicio": "2026-03-06T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho individual definitivo e(ou) as respostas aos recursos interpostos contra o resultado provisório na avaliação biopsicossocial",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Biopsicossocial/ResultadoDefinitivo_F03CA8BB-C4A3-43AC-B198",
+      "strDataInicio": "28/01/2026 10:00",
+      "dataInicio": "2026-01-28T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho individual de desempenho e(ou) às respostas aos recursos interpostos contra o resultado provisório no procedimento de heteroidentificação (2ª etapa) dos candidatos que se  autodeclararam negros e contra o resultado provisório no procedimento  de heteroidentificação dos candidatos que se autodeclararam indígenas",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Cotas/ResultadoDefinitivo_815142CC-211B-4AD0-9A95",
+      "strDataInicio": "28/01/2026 10:00",
+      "dataInicio": "2026-01-28T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho definitivo e de respostas aos recursos interpostos contra resultado provisório na avaliação psicológica",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Psicologica/ResultadoDefinitivo_5761A461-56F0-4C90-B997",
+      "strDataInicio": "17/12/2025 10:00",
+      "dataInicio": "2025-12-17T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Link para consulta aos Laudos Sínteses",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/LaudoSintese/Consulta_31682106-8DE2-441A/",
+      "strDataInicio": "10/12/2025 16:35",
+      "dataInicio": "2025-12-10T16:35:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho individual definitivo e(ou) as respostas aos recursos interpostos contra o resultado provisório na prova discursiva",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Discursiva/ResultadoDefinitivo_F85A1E68-6EB2-4210/",
+      "strDataInicio": "27/10/2025 10:00",
+      "dataInicio": "2025-10-27T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta ao espelho individual de desempenho nas provas objetivas",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Objetiva/DesempenhoIndividual_03F93896-19DA-4F90",
+      "strDataInicio": "08/10/2025 10:00",
+      "dataInicio": "2025-10-08T10:00:00"
+    },
+    {
+      "nomeAplicativo": "Consulta individual aos gabaritos oficiais definitivos das provas objetivas e ao caderno de provas",
+      "link": "https://security.cebraspe.org.br/TJ_PA_25_SERVIDOR/Recursos/Objetiva/GabaritoDefinitivo_F86E6A40-41FF-49A4-8821-26D1E460211D/",
+      "strDataInicio": "01/10/2025 10:00",
+      "dataInicio": "2025-10-01T10:00:00"
+    }
+  ],
+  "isInscricaoAberta": false,
+  "isDBCriado": 0,
+  "tituloCargos": "Cargos",
+  "tituloCardCargos": "Cargo",
+  "areaCandidato": false
+}

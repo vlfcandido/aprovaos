@@ -10,6 +10,8 @@
 | Gemini 2.5 Flash-Lite | US$ 0,10 in / 0,40 out por 1M tokens | oficial, https://ai.google.dev/gemini-api/docs/pricing (14/09/2026) |
 | Gemini 2.5 Flash | US$ 0,30 in / 2,50 out | idem |
 | Gemini 3.1 Flash-Lite (alternativa mais nova) | US$ 0,25 in / 1,50 out | idem |
+| Gemini 3.6 Flash (`modelo_dna` desde 18/09/2026 — ver Adendo §7) | US$ 0,75 in / 3,75 out (paid tier, até 31/12/2026) | oficial, https://ai.google.dev/gemini-api/docs/pricing (18/09/2026) |
+| Gemini 3.5 Flash-Lite (`modelo_classificacao` desde 18/09/2026 — ver Adendo §7) | US$ 0,30 in / 2,50 out (paid tier) | oficial, https://ai.google.dev/gemini-api/docs/pricing (18/09/2026) |
 | Gemini Embedding 2 | US$ 0,20 por 1M tokens (texto) | idem |
 | Cloud Text-to-Speech | Standard US$ 4/1M chars; WaveNet/Neural2 US$ 16/1M; **free tier 4M chars (Standard) e 1M (demais)/mês** | **secundária** (costbench, 2026) — página oficial não abriu; confirmar antes da fatia 6 |
 | Hetzner CX23 (2 vCPU, 4 GB, 40 GB, 20 TB) | **€ 5,49/mês** (subiu de € 3,99 em abr/2026) | **secundária** (bitdoze/whtop, set/2026); site oficial mostrou "not available" no fetch |
@@ -70,3 +72,13 @@ Regra que sai daqui para a ADR-0018: o teto de R$ 100 é **enquanto não há rec
 
 ## 6. O que o roteador precisa medir para esta planilha virar realidade
 Por chamada: modelo, tokens in/out, custo em R$ (tabela de preços versionada em `knowledge/precos.yaml` com data), usuário, tier, agente. Página `/admin/custos` soma por dia/agente/tier e compara com esta planilha. Quando o real divergir > 30 % da estimativa de uma linha, esta página é atualizada (data na linha).
+
+## 7. Adendo 18/09/2026 — `gemini-2.5-flash` parou de aceitar chave nova; modelos e cota reais (passos 12b/12c da V3)
+Com a `GOOGLE_API_KEY` real do dono (AI Studio, gerada em 18/09/2026), `gemini-2.5-flash` e `gemini-2.5-flash-lite` (as duas linhas originais desta planilha, §1) respondem **404** ("This model is no longer available to new users"). Os preços dessas duas linhas continuam corretos para quem já tinha chave antes — não vetados, só indisponíveis para conta nova.
+
+**Modelos em produção desde 18/09/2026** (`aprovaos/config.py`):
+- `modelo_dna` (`analista-de-edital`, gera o `DnaConcurso` — raciocínio) = **`gemini-3.6-flash`**, US$ 0,75 in / 3,75 out por 1M (paid tier, válido até 31/12/2026 — sobe para US$ 1,50/7,50 em 1/1/2027, reconferir nessa data).
+- `modelo_classificacao` (`classificador`, tópico de item de prova num vocabulário fechado — "simple data processing", como a própria página do modelo o descreve) = **`gemini-3.5-flash-lite`**, US$ 0,30 in / 2,50 out por 1M (paid tier) — o mais barato da família em uso, escolhido de propósito pela tarefa mais simples.
+- `gemini-3.5-flash-lite` **não aceita** `thinking_config` no `GenerateContentConfig` (`400 INVALID_ARGUMENT` quando setado) — nenhuma configuração de "pensamento" é enviada para ele.
+
+**No free tier (a chave do piloto), o custo real de entrada/saída é zero** — os preços acima são só o que o `traco`/teto diário usariam se a conta virasse paga; o que de fato limita o uso hoje é **cota**, medida rodando de verdade: **5 requisições/minuto** e, mais restritivo, **20 requisições/dia por projeto por modelo** (`quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`). A cota é **por modelo**: `gemini-3.6-flash` esgotado no dia não impede usar `gemini-3.5-flash-lite`. Recuragem real de 3 cadernos (210 itens, 12 chamadas) custou US$ ~0,0435 estimados (R$ 0,2347) no paid tier — R$ 0,00 de verdade. Detalhe completo em `docs/fatias/V3-execucao.md` (passos 12b/12c).

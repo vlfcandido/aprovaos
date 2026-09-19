@@ -10,7 +10,9 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Porta no host configurável: numa máquina que já tenha Postgres local na 5432, o bind em
+      # 127.0.0.1 ganha do container e as conexões caem no banco errado. Defina POSTGRES_PORT no .env.
+      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aprovaos -d aprovaos"]
       interval: 5s

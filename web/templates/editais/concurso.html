@@ -1,7 +1,8 @@
 {# O que é: página do concurso (`GET /concurso/{id}`) — DNA reduzido (identificação, origem, pesos
    por matéria em % de pontos, regra de correção, etapas, lacunas) e o edital verticalizado
-   (matérias → tópicos, todos "não visto", cobertura "0 de N"). Quando ler: ao mudar o que a aluna
-   vê do DNA ou ao ligar o status dos tópicos aos eventos de estudo (V3/V4). -#}
+   (grupo com acento acima da matéria quando o edital tem um — P-26; tópico com questão vira link
+   para `/topico/{slug}/questoes` e mostra a contagem; cobertura "N de N" pelas respostas reais do
+   aluno). Quando ler: ao mudar o que a aluna vê do DNA ou o verticalizado (passo 14 da V3). -#}
 {% extends "base.html" %}
 {% block titulo %}{{ concurso.cargo }} — {{ concurso.orgao }} — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -67,12 +68,31 @@
   <section aria-labelledby="titulo-vertical">
     <h2 id="titulo-vertical">Edital verticalizado</h2>
     <p class="cobertura">Cobertura: <strong>{{ topicos_vistos }} de {{ total_topicos }}</strong> tópicos vistos.</p>
+    {% set ns = namespace(grupo_atual=None) %}
     {% for m in materias %}
+      {% if m.grupo and m.grupo != ns.grupo_atual %}
+        <h3 class="grupo">{{ m.grupo }}</h3>
+        {% set ns.grupo_atual = m.grupo %}
+      {% elif not m.grupo %}
+        {% set ns.grupo_atual = None %}
+      {% endif %}
       <details open class="materia">
         <summary><span class="materia__nome">{{ m.nome_exibicao }}</span> <small>{{ m.topicos | length }} tópicos</small></summary>
         <ol class="topicos">
           {% for t in m.topicos %}
-            <li data-slug="{{ t.slug }}"><span class="topico__texto">{{ t.texto_original }}</span> <span class="status status--nao-visto">{{ t.status }}</span></li>
+            <li data-slug="{{ t.slug }}">
+              <span class="topico__texto">
+                {% if t.questoes > 0 %}
+                  <a href="/topico/{{ t.slug }}/questoes">{{ t.texto_original }}</a>
+                {% else %}
+                  {{ t.texto_original }}
+                {% endif %}
+              </span>
+              {% if t.questoes > 0 %}
+                <span class="topico__contagem">{{ t.questoes }} questõ{{ "es" if t.questoes != 1 else "ão" }}</span>
+              {% endif %}
+              <span class="status status--{{ 'visto' if t.status == 'visto' else 'nao-visto' }}">{{ t.status }}</span>
+            </li>
           {% endfor %}
         </ol>
       </details>

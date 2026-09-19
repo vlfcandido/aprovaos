@@ -7,7 +7,7 @@
   <h1>Subir edital</h1>
   <p class="frase">Envie o edital em PDF. Eu leio o conteúdo programático, monto o DNA do concurso
     e o seu edital verticalizado.</p>
-  <form id="form-edital" method="post" action="/editais/subir" enctype="multipart/form-data"
+  <form id="form-edital" class="formulario" method="post" action="/editais/subir" enctype="multipart/form-data"
         hx-post="/editais/subir" hx-encoding="multipart/form-data"
         hx-select="#form-edital" hx-target="#form-edital" hx-swap="outerHTML">
     {% if erros %}

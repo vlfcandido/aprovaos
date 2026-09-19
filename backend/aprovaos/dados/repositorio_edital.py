@@ -54,12 +54,19 @@ class DadosDocumento(BaseModel):
 class TopicoVerticalizado(BaseModel):
     """Um tópico do edital verticalizado, pronto para o template.
 
+    `id` existe só para a rota juntar este tópico com `contagem_por_topico`/`topicos_vistos`
+    (repositório de questões) sem uma segunda ida ao banco por `slug` — este módulo não sabe de
+    `questao` nem de usuário; quem soma contagem e status por aluno é a rota (passo 14 da V3).
+
     Attributes:
+        id: chave do tópico (vocabulário global).
         slug: slug global do tópico.
         texto_original: o item como está no edital.
-        status: `não visto` na V2 (eventos de estudo chegam na V3/V4).
+        status: `não visto` aqui sempre — este módulo não sabe de eventos de estudo; a rota
+            sobrescreve para `visto` quando o aluno já respondeu (passo 14 da V3).
     """
 
+    id: UUID
     slug: str
     texto_original: str
     status: Literal["não visto"] = STATUS_NAO_VISTO
@@ -71,11 +78,15 @@ class MateriaVerticalizada(BaseModel):
     Attributes:
         nome: nome como está no edital (`LÍNGUA PORTUGUESA`).
         slug: `slug_materia(nome)`, a chave usada em `pesos.materia` do DNA.
+        grupo: cabeçalho agrupador acima da matéria no edital (ex.: `CONHECIMENTOS
+            ESPECÍFICOS`), vindo de `topico_edital.grupo`; `None` quando a matéria aparece
+            solta (P-26).
         topicos: tópicos na ordem do edital.
     """
 
     nome: str
     slug: str
+    grupo: str | None = None
     topicos: list[TopicoVerticalizado]
 
 
@@ -162,6 +173,7 @@ def registrar_edital(
                     ordem=ordem,
                     peso_edital=_peso_edital(peso.pct_uniforme) if peso else None,
                     texto_original=item.texto_original,
+                    grupo=materia.grupo,
                 )
             )
 
@@ -279,10 +291,13 @@ def verticalizado(db: Session, edital_id: UUID) -> list[MateriaVerticalizada]:
         if not materias or materias[-1].nome != topico.materia:
             materias.append(
                 MateriaVerticalizada(
-                    nome=topico.materia, slug=slug_materia(topico.materia), topicos=[]
+                    nome=topico.materia,
+                    slug=slug_materia(topico.materia),
+                    grupo=linha.grupo,
+                    topicos=[],
                 )
             )
         materias[-1].topicos.append(
-            TopicoVerticalizado(slug=topico.slug, texto_original=linha.texto_original)
+            TopicoVerticalizado(id=topico.id, slug=topico.slug, texto_original=linha.texto_original)
         )
     return materias

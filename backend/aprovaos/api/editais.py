@@ -23,8 +23,10 @@ from aprovaos.dados.arquivos import guardar_pdf
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Usuario
 from aprovaos.dados.repositorio_edital import (
+    STATUS_NAO_VISTO,
     DadosDocumento,
     MateriaVerticalizada,
+    TopicoVerticalizado,
     buscar_concurso,
     dna_atual,
     edital_atual,
@@ -32,9 +34,10 @@ from aprovaos.dados.repositorio_edital import (
     registrar_edital,
     verticalizado,
 )
+from aprovaos.dados.repositorio_questao import contagem_por_topico, topicos_vistos
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.dna import DnaConcurso
-from aprovaos.dominio.edital import DESCONHECIDO, extrair_conteudo_programatico
+from aprovaos.dominio.edital import DESCONHECIDO, extrair_conteudo_programatico, slug_materia
 from aprovaos.dominio.erros import ArquivoInvalido, ConteudoProgramaticoNaoEncontrado, PdfSemTexto
 from aprovaos.dominio.pdf import LIMITE_BYTES, contar_paginas, extrair_texto, validar_pdf
 from aprovaos.roteador.custo import ChamadaLlm
@@ -143,10 +146,15 @@ def _materias_de_prova(
 ) -> list[dict[str, Any]]:
     """Linhas da tabela de pesos: `pesos.materia` + nome de exibição vindo do verticalizado.
 
-    O nome é o da matéria do conteúdo programático cujo slug bate com a chave; quando nenhuma
-    bate (a chave é um grupo, como `conhecimentos-especificos`), o próprio slug em Title Case.
+    O nome é o da matéria do conteúdo programático cujo slug bate com a chave; quando a chave é
+    o **grupo** (ex.: `conhecimentos-especificos`, quando o DNA só sabe o peso do bloco inteiro,
+    não de cada matéria dentro dele), o nome vem de `topico_edital.grupo` — com acento, nunca do
+    slug em Title Case (P-26). Só na ausência de ambos é que o slug vira o nome, último recurso.
     """
     nome_por_slug = {m.slug: _nome_exibicao(m.nome) for m in materias}
+    for m in materias:
+        if m.grupo:
+            nome_por_slug.setdefault(slug_materia(m.grupo), _nome_exibicao(m.grupo))
     linhas: list[dict[str, Any]] = []
     for slug, peso in dna.pesos.materia.items():
         linha = peso.model_dump(mode="json")
@@ -155,6 +163,31 @@ def _materias_de_prova(
         linha["pct_barra"] = 0 if isinstance(peso.pct_pontos, str) else peso.pct_pontos
         linhas.append(linha)
     return linhas
+
+
+def _topico_verticalizado(
+    topico: TopicoVerticalizado, contagem: dict[UUID, int], vistos: set[UUID]
+) -> dict[str, Any]:
+    """Um tópico do verticalizado pronto para o template: contagem de questões e status por aluno.
+
+    `verticalizado()` não sabe de `questao` nem de usuário (é só o edital); é aqui, na rota, que
+    a contagem publicável (`contagem_por_topico`) e o "já respondeu" (`topicos_vistos`) — os dois
+    do repositório de questões — se juntam ao tópico pelo `id` (passo 14 da V3).
+
+    Args:
+        topico: o tópico como `verticalizado()` devolveu, com `status` sempre `não visto`.
+        contagem: `{topico_id: questões publicáveis}`, de `contagem_por_topico`.
+        vistos: `topico_id` com pelo menos uma resposta deste aluno, de `topicos_vistos`.
+
+    Returns:
+        Dicionário para o template, com `questoes` (contagem) e `status` (`visto`/`não visto`).
+    """
+    return {
+        "slug": topico.slug,
+        "texto_original": topico.texto_original,
+        "status": "visto" if topico.id in vistos else STATUS_NAO_VISTO,
+        "questoes": contagem.get(topico.id, 0),
+    }
 
 
 def _texto_anula(valor: bool | str) -> str:
@@ -197,6 +230,8 @@ def concurso(
 
     dna = DnaConcurso.model_validate(registro.conteudo)
     materias = verticalizado(db, edital.id)
+    contagem = contagem_por_topico(db, edital.id)
+    vistos = topicos_vistos(db, usuario.id, edital.id)
     regra = dna.regra_correcao
     contexto: dict[str, Any] = {
         "concurso": {
@@ -227,10 +262,17 @@ def concurso(
         "peso_uniforme": any(t.metodo == "uniforme_no_edital" for t in dna.pesos.topico.values()),
         "texto_peso_uniforme": TEXTO_PESO_UNIFORME,
         "materias": [
-            {**m.model_dump(mode="json"), "nome_exibicao": _nome_exibicao(m.nome)} for m in materias
+            {
+                "nome": m.nome,
+                "slug": m.slug,
+                "grupo": m.grupo,
+                "nome_exibicao": _nome_exibicao(m.nome),
+                "topicos": [_topico_verticalizado(t, contagem, vistos) for t in m.topicos],
+            }
+            for m in materias
         ],
         "total_topicos": sum(len(m.topicos) for m in materias),
-        "topicos_vistos": 0,
+        "topicos_vistos": len(vistos),
     }
     return renderizar(request, "editais/concurso.html", contexto, usuario)
 

@@ -459,3 +459,63 @@ Tocados: `backend/aprovaos/motor/curar.py` (`ParDivergente`, `_conferir_par`),
 `backend/tests/{test_motor_curar,test_roteador}.py`, `docs/DECISOES.md` (ADR-0018),
 `docs/06-custos.md` (§1 e §7 novos), `docs/PENDENCIAS.md` (P-27, P-29), `docs/fatias/V3-execucao.md`
 (este bloco e a correção da tabela antes × depois acima).
+
+## Passo 15 — Fechamento documental e o limite honesto da V3
+
+Executado em 18/09/2026. Sem código de produção — só docs, decisões e pendências (ADR-0033,
+0034, 0035; `docs/RISCOS.md` R-21; `docs/PENDENCIAS.md`; `docs/02-produto.md` §6; `CLAUDE.md`).
+
+### Achado que muda a leitura de tudo acima: a banca da Linda não é a Cebraspe
+Conferindo a tela do concurso no fechamento da fatia, apareceu — **literal no PDF do edital dela**
+desde a V2 (`knowledge/fixtures/editais/edital-assessor-gabinete.pdf`), não é suposição — o que a
+P-17 pedia desde a abertura da V2: §1.1 diz que a banca organizadora é a **Fundação de Apoio à
+Unioeste (COGEPS)**; §6.1 diz que a prova objetiva tem **50 questões de múltipla escolha com 5
+alternativas (A a E)**, só uma correta, **sem desconto por questão errada**. O DNA já extraía e
+exibia essa informação na página do concurso desde a V2 — ninguém tinha lido com atenção até agora.
+A skill `monitor-de-fontes` (Fase 4) já continha essa banca como exemplo de ficha (`id:
+unioeste-cogeps` no `SKILL.md`, com snapshot real salvo em
+`docs/evidencias/2026-09-17-fase4-skills/fixtures/unioeste-cogeps-correntes-2026-09-17.html`): a
+fonte certa já estava mapeada, faltou ligar o ponto ao edital da piloto. P-17 fechada com ✅ e a
+data de hoje em `docs/PENDENCIAS.md`, sem apagar o texto original.
+
+**O limite honesto do que a V3 entregou, dito com todas as letras:** as **210 questões** da base
+(63 publicáveis) são **certo/errado da Cebraspe** — úteis como **conteúdo** de Direito, porque as
+matérias do edital dela se sobrepõem às que a Cebraspe cobra (ADR-0027) —, mas **não treinam o
+formato de prova que a Linda vai encontrar de verdade**, que é múltipla escolha A–E sem desconto,
+da Unioeste/COGEPS. Isso não é demérito da fatia: o cano inteiro (coletor → curador → gate de
+publicação → telas) é agnóstico de banca e de formato de item — é exatamente esse desenho que
+permite a V3b (segmentador A–E + fonte Unioeste/COGEPS) ser uma fatia pequena, reaproveitando tudo
+que a V3 construiu, em vez de recomeçar do zero. Mas quem ler este diário daqui a um mês precisa
+saber, sem precisar garimpar: **a V3 valida o cano; a V3b entrega o formato certo**.
+
+### Consequência para a V3b (registrada em P-30, `docs/PENDENCIAS.md`)
+Não é "acrescentar suporte A–E genérico" — é **coletar provas anteriores da Unioeste/COGEPS** (a
+fonte já mapeada na skill desde a Fase 4) e servir questões no formato real dela. O caderno e o
+gabarito do `TJ_CE_23_SERVIDOR` (A–E, coletado no passo 5 desta fatia e fora do escopo por decisão
+J do plano) continuam úteis como **primeiro fixture** para testar o segmentador A–E antes de mapear
+o formato exato da Unioeste — mas deixam de ser o alvo final.
+
+### Números finais da V3, para não garimpar em outro lugar
+4 concursos coletados (`TJ_PA_25_SERVIDOR`, `STJ_24`, `TRT10_24` com 2 cargos, mais
+`TJ_CE_23_SERVIDOR` coletado e não curado por ser A–E), 10 PDFs, 1,3 MB no repositório; **210
+questões** na base; **63 publicáveis** (classificação por regras isolada dava 43; com IA em lote
+foi a 63) — TJ-PA 12→37, STJ_24 19→19 (saldo neutro), TRT10_24 cargo 12 12→7 (**ganho de
+precisão**, não regressão: 8 dos 9 itens "perdidos" pela IA eram falso positivo do léxico por
+regras, auditado item a item). Modelos: `gemini-3.6-flash` para o DNA do edital (V2), nunca usado
+para classificar questão; `gemini-3.5-flash-lite` para a classificação de tópico desde o passo
+12c. Suíte: **298 passed, 5 skipped** antes de o redesenho de UX (protótipo validado com a piloto)
+começar a tocar `web/templates/**` e as rotas de questões/editais em paralelo a este passo — este
+fechamento documental não altera nem depende desse redesenho, que segue em andamento por outro
+agente.
+
+### O que este passo fechou, abriu e não tentou fechar
+Fechadas: **P-26** (grupo com acento) e **P-17** (banca e formato da Linda). Abertas:
+**P-30** (V3b — Unioeste/COGEPS, A–E), **P-31** (cobertura de tópicos e reclassificação com IA
+quando houver cota), **P-32** (`fonte.politica`/`ultima_varredura`/`proxima` sem consumidor),
+**P-33** (`questoes/topico.html` não renomeado para `resolver.html`, divergência nominal com o
+plano). Confirmada, não fechada: **P-29** (item 96 do TRT10_24) — caso isolado, nada novo desde o
+passo 12c. ADR-0033 (gate de publicação sem validador para original; `questao` é pool global),
+ADR-0034 (dependências: `httpx2` em runtime, `pyyaml`/`types-pyyaml` em dev) e ADR-0035 (política
+de coleta da Cebraspe, identidade `{eventoURL}/{nomeArquivo}`, com o adendo de que a Cebraspe é
+fonte de conteúdo, não de formato, para o piloto) entram em `docs/DECISOES.md`. `docs/RISCOS.md`
+ganha R-21 (política de dados do free tier do Gemini).

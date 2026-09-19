@@ -10,7 +10,9 @@ para o htmx trocar só o miolo — nenhuma rota de fragmento separada. Sem rotin
 concurso principal/edital (`SemConcursoPrincipal`), a página mostra a mensagem com o link certo
 (`/rotina` ou `/editais/subir`), 200, nunca uma exceção estourada. `plano.dias_para_prova`
 (RF-19, fatia 10 §7) é recalculado a cada exibição a partir de `perfil_estudo.data_alvo` — nunca
-gravado — e liga o selo "Semana da prova" no template quando `plano.modo == "semana_prova"`.
+gravado — e liga o selo "Semana da prova" no template quando `plano.modo == "semana_prova"`. O
+alerta de atraso da curva (RF-10, fatia 10 §8, `dados.repositorio_painel.alerta_atual`) aparece
+acima do plano, quando existir — mesmo alerta de `GET /painel`, recomputado a cada visita.
 Quando ler: ao mexer na tela "Hoje" ou no fluxo de check-in/discordar.
 """
 
@@ -25,6 +27,7 @@ from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Bloco, PlanoDia, Topico, Usuario
+from aprovaos.dados.repositorio_painel import alerta_atual
 from aprovaos.dados.repositorio_plano import (
     buscar_bloco_do_usuario,
     concluir_bloco,
@@ -118,10 +121,22 @@ def _pagina_sem_rotina(request: Request, usuario: Usuario, motivo: str) -> Respo
 def _pagina_do_plano(
     request: Request, db: Session, usuario: Usuario, plano: PlanoDia, impacto: str | None = None
 ) -> Response:
-    """A página com o plano já gravado — `impacto` é a frase de "Discordar" (F3.4), quando há."""
+    """A página com o plano já gravado — `impacto` é a frase de "Discordar" (F3.4), quando há.
+
+    Também busca o alerta de atraso da curva (RF-10, fatia 10 §8) e o mostra acima do plano,
+    quando existir — mesmo critério de `dados.repositorio_painel.alerta_atual`, usado também por
+    `GET /painel`, para o alerta nunca divergir entre as duas telas.
+    """
     contexto = _contexto_pagina(db, plano)
     if impacto is not None:
         contexto["impacto"] = impacto
+    alerta = alerta_atual(db, usuario, plano.data)
+    if alerta is not None:
+        contexto["alerta_curva"] = {
+            "titulo": alerta.titulo,
+            "porque": alerta.porque,
+            "ajuste": alerta.ajuste,
+        }
     return renderizar(request, "hoje/pagina.html", contexto, usuario)
 
 

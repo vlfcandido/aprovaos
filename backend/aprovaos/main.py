@@ -17,6 +17,7 @@ from aprovaos.api import (
     editais,
     eventos,
     inicio,
+    painel,
     plano,
     publico,
     questoes,
@@ -61,6 +62,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.include_router(diagnostico.router)
     app.include_router(rotina.router)
     app.include_router(plano.router)
+    app.include_router(painel.router)
     app.include_router(eventos.router)
     app.include_router(publico.router)
     app.include_router(saude.router)

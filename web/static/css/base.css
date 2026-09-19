@@ -810,6 +810,15 @@ kbd {
   color: var(--cor-acao);
 }
 
+/* Inédita validada (fatia 5): no lugar do bloco de origem de prova (`.questao__origem`) quando
+   `questao.inedita` é `true` — cor de alerta (não o verde de "ok" nem o âmbar do "por quê"): o
+   aluno precisa notar, sem esforço, que este item não veio de uma prova real, mesmo já validado
+   por um segundo agente antes de chegar aqui (regra 1 do produto). */
+.selo--inedita {
+  background: var(--cor-alerta-suave);
+  color: var(--cor-alerta);
+}
+
 .justificativa {
   margin-top: var(--espaco-2);
   margin-bottom: var(--espaco-4);
@@ -877,6 +886,12 @@ kbd {
   margin-top: var(--espaco-6);
   padding-top: var(--espaco-4);
   border-top: 1px solid var(--cor-linha);
+}
+
+/* ---- Painel (fatia 10): svg da curva e da banda da previsão, montados no servidor ---- */
+.chart-curva,
+.chart-previsao {
+  margin: var(--espaco-3) 0 var(--espaco-4);
 }
 
 .form-reportar label {

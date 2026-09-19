@@ -4,8 +4,9 @@
    formulário usa `hx-select="#conteudo"` para o htmx trocar só o miolo da página — sem rota de
    fragmento separada. `sem_rotina=True` quando `SemConcursoPrincipal` impede montar o plano.
    `plano.modo == "semana_prova"` (RF-19, fatia 10 §7) mostra o selo "Semana da prova" e, com
-   `plano.dias_para_prova`, os dias restantes. Quando ler: ao mudar o que aparece na tela "Hoje"
-   ou o texto do check-in/discordar. -#}
+   `plano.dias_para_prova`, os dias restantes. `alerta_curva` (RF-10, fatia 10 §8) aparece acima
+   do plano quando a curva de domínio está atrasada — mesmo alerta de `/painel`. Quando ler: ao
+   mudar o que aparece na tela "Hoje" ou o texto do check-in/discordar. -#}
 {% extends "base.html" %}
 {% block titulo %}Hoje — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -35,6 +36,14 @@
       {% endif %}
       {% if plano.energia %}<span class="selo">Energia {{ plano.energia }}/5</span>{% endif %}
     </p>
+
+    {% if alerta_curva %}
+      <div class="mensagem mensagem--porque" role="status">
+        <h3>{{ alerta_curva.titulo }}</h3>
+        <p>{{ alerta_curva.porque }}</p>
+        <p><strong>{{ alerta_curva.ajuste }}</strong></p>
+      </div>
+    {% endif %}
 
     {% if impacto %}
       <div class="mensagem mensagem--porque" role="status">

@@ -1,0 +1,25 @@
+{# O que é: a tela "Painel" (`GET /painel`, fatia 10, §8) — curva de domínio com o alerta de
+   atraso (RF-10), padrões de erro com suporte estatístico (RF-17) e previsão de nota v0 (RF-18).
+   `sem_concurso=True` quando o usuário ainda não tem concurso principal/edital resolvível (P-23)
+   — a tela mostra o caminho para `/rotina`/`/editais/subir`, nunca um erro. Shell e paleta do
+   protótipo validado (`docs/evidencias/mockups/2026-09-14-prototipo-clicavel.html`). Quando ler:
+   ao mudar a ordem ou o texto dos blocos do painel. #}
+{% extends "base.html" %}
+{% block titulo %}Painel — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Painel</h1>
+  {% if sem_concurso %}
+    <p class="frase">{{ motivo }}</p>
+    <p class="acoes">
+      <a class="botao" href="/rotina">Configurar rotina</a>
+      <a href="/editais/subir">Subir edital</a>
+    </p>
+  {% else %}
+    {% include "painel/_curva.html" %}
+    {% include "painel/_previsao.html" %}
+    {% include "painel/_padroes.html" %}
+    <p class="acoes">
+      <a class="botao botao--secundario" href="/painel/semana">Ver resumo da semana</a>
+    </p>
+  {% endif %}
+{% endblock %}

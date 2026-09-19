@@ -1,0 +1,30 @@
+{# O que é: fragmento dos padrões de erro com suporte estatístico (RF-17). `padroes` já vem
+   filtrado por `dominio.padroes.detectar_padroes` (n mínimo + bandas de Wilson sem sobreposição)
+   — nunca um limiar arbitrário. Sem padrão nenhum, a lacuna é dita, não escondida. Incluído por
+   `painel/pagina.html`. Quando ler: ao mudar o texto ou a tabela dos padrões. #}
+<section class="cartao" aria-labelledby="padroes-titulo">
+  <h2 id="padroes-titulo">Padrões de erro com suporte estatístico</h2>
+
+  {% if padroes %}
+    <table class="tabela-justificativa">
+      <thead>
+        <tr><th scope="col">Onde</th><th scope="col">O que</th><th scope="col">n</th></tr>
+      </thead>
+      <tbody>
+        {% for padrao in padroes %}
+          <tr>
+            <th scope="row">{{ padrao.valor }}</th>
+            <td>{{ padrao.frase }}</td>
+            <td class="nota">n={{ padrao.n }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">
+      Ainda não há nenhum padrão com suporte estatístico mínimo — pelo menos
+      {{ minimo_respostas_padrao }} respostas por grupo, com bandas que não se sobrepõem à média
+      geral. Menos dado que isso, sem afirmação.
+    </p>
+  {% endif %}
+</section>

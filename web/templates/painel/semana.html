@@ -1,0 +1,53 @@
+{# O que é: a tela "Resumo da semana" (`GET /painel/semana`, F4.4c, fio da memória (c)) —
+   cumulativo, sem LLM (Ruling 36). `resumo.acertos` é a banda de Wilson (`Proporcao | None`,
+   `None` só quando `resumo.respostas == 0`) — mesma regra de "previsão sempre com intervalo" do
+   resto do painel (Ruling 35). `sem_concurso=True` mostra o caminho para `/rotina`/
+   `/editais/subir`. Quando ler: ao mudar o texto do resumo semanal. #}
+{% extends "base.html" %}
+{% block titulo %}Resumo da semana — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Resumo da semana</h1>
+  {% if sem_concurso %}
+    <p class="frase">{{ motivo }}</p>
+    <p class="acoes">
+      <a class="botao" href="/rotina">Configurar rotina</a>
+      <a href="/editais/subir">Subir edital</a>
+    </p>
+  {% else %}
+    <p class="nota">
+      {{ resumo.inicio.strftime("%d/%m") }} a {{ resumo.fim.strftime("%d/%m/%Y") }} —
+      {{ aviso_fuso }}
+    </p>
+
+    {% if resumo.respostas == 0 %}
+      <p class="frase">Semana sem estudo registrado.</p>
+    {% else %}
+      <p class="frase">
+        {{ resumo.respostas }} resposta{{ "s" if resumo.respostas != 1 else "" }} —
+        {{ resumo.acertos.pct | pct }} de acerto (entre {{ resumo.acertos.inferior_pct | pct }}
+        e {{ resumo.acertos.superior_pct | pct }}), {{ resumo.acertos.acertos }} certas de
+        {{ resumo.acertos.total }}.
+      </p>
+
+      {% if resumo.conquista %}
+        <div class="mensagem mensagem--porque"><p>{{ resumo.conquista }}</p></div>
+      {% endif %}
+
+      {% if resumo.topicos_novos %}
+        <h2>Tópicos novos esta semana</h2>
+        <ul class="lista-limpa">
+          {% for nome in resumo.topicos_novos %}<li>{{ nome }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if resumo.para_rever %}
+        <h2>Vale revisar</h2>
+        <ul class="lista-limpa">
+          {% for item in resumo.para_rever %}<li>{{ item.frase }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+    {% endif %}
+
+    <p class="acoes"><a href="/painel">Voltar ao painel</a></p>
+  {% endif %}
+{% endblock %}

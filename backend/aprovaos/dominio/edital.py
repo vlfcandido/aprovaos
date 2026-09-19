@@ -336,8 +336,11 @@ _ANULA = re.compile(r"anula|desconto", re.IGNORECASE)
 _MINIMO_GLOBAL = re.compile(r"(\d+)\s*%\s*do total(?: de pontos)?", re.IGNORECASE)
 _NOTA_ZERO = re.compile(r"nota zero", re.IGNORECASE)
 _CARGO = re.compile(r"Cargo:\s*([^.]+)\.")
-_BANCA_EXECUTADO = re.compile(r"executad[oa] pel[ao]\s+(.+?)\s*\(banca", re.IGNORECASE)
-_BANCA_ORGANIZADORA = re.compile(r"banca organizadora[:\s]+(.+?)[.,]", re.IGNORECASE)
+_BANCA_EXECUTADO = re.compile(r"executad[oa] pel[ao]\s+(.+?)(?:\s*\(banca|[.,])", re.IGNORECASE)
+# Só com dois-pontos — igual à convenção de `Cargo:` — porque "banca organizadora" também
+# aparece em cláusulas que não identificam ninguém (ex.: "recurso [...] pela banca organizadora
+# resultar anulação..."); sem o rótulo explícito, casar por proximidade ainda seria chute.
+_BANCA_ORGANIZADORA = re.compile(r"banca organizadora\s*:\s*(.+?)[.,]", re.IGNORECASE)
 _NUMERO_DO_EDITAL = re.compile(r"EDITAL[^\n]*?N[ºo°.]?\s*(\d+/\d{4})")
 _DATA_PROVA = re.compile(r"[Dd]ata (?:provável )?da prova[^\d]*(\d{2}/\d{2}/\d{4})")
 _DISCURSIVA = re.compile(r"[Pp]rova discursiva[^.]*?peso\s+(\d+)\s+pontos")

@@ -238,6 +238,42 @@ def test_cabecalho_desconhecido() -> None:
     assert cabecalho.data_prova is None
 
 
+def test_banca_organizadora_solta_no_meio_de_outra_frase_nao_vira_banca() -> None:
+    # Achado ao rodar o parser contra o edital real da AOCP: a expressão "banca organizadora"
+    # aparece no §17.9, numa cláusula de recurso ("Se da análise do recurso pela banca
+    # organizadora resultar anulação de questão(ões)..."), sem identificar ninguém. O padrão
+    # antigo (`banca organizadora` + qualquer espaço) casava aí e devolvia esse trecho como se
+    # fosse o nome da banca — dado errado com cara de fato. Sem "banca organizadora:" com
+    # dois-pontos (o rótulo explícito, no padrão de `Cargo:`), a resposta certa é desconhecido.
+    texto = (
+        "17.9. Se da análise do recurso pela banca organizadora resultar anulação de "
+        "questão(ões) ou alteração de gabarito da Prova."
+    )
+    assert extrair_fatos(texto).cabecalho.banca == "desconhecido"
+
+
+def test_banca_organizadora_com_rotulo_explicito_ainda_reconhecida() -> None:
+    # O padrão restrito continua útil quando o edital rotula a banca de verdade.
+    texto = "1.1. Banca organizadora: INSTITUTO EXEMPLO DE CONCURSOS."
+    assert extrair_fatos(texto).cabecalho.banca == "INSTITUTO EXEMPLO DE CONCURSOS"
+
+
+def test_edital_real_aocp_banca_e_a_do_paragrafo_de_execucao_nao_a_do_recurso() -> None:
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    cabecalho = extrair_fatos(texto).cabecalho
+    assert cabecalho.banca == "Instituto AOCP"
+    assert cabecalho.fonte == "edital §1.1"
+
+
+def test_edital_real_fcc_banca_continua_desconhecida() -> None:
+    # A FCC não usa nem "executado pel[oa] X" nem "banca organizadora:" — fica desconhecida, e é
+    # a resposta certa (nenhum padrão casa com segurança neste texto).
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    assert extrair_fatos(texto).cabecalho.banca == "desconhecido"
+
+
 def test_etapas(texto_md: str) -> None:
     assert extrair_fatos(texto_md).etapas == [
         Etapa(nome="objetiva", pontos=80, quem_faz=None, fonte="edital §6.2"),

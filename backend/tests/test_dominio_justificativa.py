@@ -206,3 +206,39 @@ def test_montar_texto_concatena_afirmacoes_com_a_citacao() -> None:
         "O TCU aprecia mediante parecer prévio [CF/88 art. 71 I] "
         "Quem julga é o Congresso [CF/88 art. 49 IX]"
     )
+
+
+# ---- cobertura declarada: melhor nenhuma explicação do que uma fora do assunto ----------
+
+
+def test_reprova_quando_o_gerador_declara_cobertura_insuficiente() -> None:
+    """Caso real, lido no `dev.db` em 19/09/2026 — explicação impecável de fonte e fora do item.
+
+    A questão perguntava sobre **legitimidade para propor a ação** de improbidade; a justificativa
+    dizia *"Se o item afirmasse que o sistema de responsabilização tutela a probidade na
+    organização do Estado, estaria certo"*, citando o art. 1º com trecho literal conferido.
+    Verdadeira, com fonte — e sobre outra proposição. O validador conferia procedência e não
+    pertinência.
+
+    Medir pertinência por proxy foi tentado e falhou (ver o docstring de
+    `verificar_justificativa_certo_errado`): o cosseno de TF-IDF inverteu o ranking neste caso
+    exato. A guarda passou a ser **declarada** pelo gerador, que é quem vê o item e os
+    dispositivos lado a lado — o validador só lê o booleano.
+    """
+    justificativa = JustificativaCertoErrado(
+        afirmacoes_certo=[_afirmacao()],
+        afirmacoes_errado=[_afirmacao()],
+        cobertura_insuficiente=True,
+    )
+    veredito = verificar_justificativa_certo_errado(justificativa, [DISPOSITIVO])
+    assert not veredito.aprovado
+    assert any("não cobrem o assunto" in motivo for motivo in veredito.motivos), veredito.motivos
+
+
+def test_cobertura_suficiente_e_o_padrao_e_continua_aprovando() -> None:
+    """O campo novo não pode reprovar nada que já era aprovado — ele nasce `False`."""
+    justificativa = JustificativaCertoErrado(
+        afirmacoes_certo=[_afirmacao()], afirmacoes_errado=[_afirmacao()]
+    )
+    assert justificativa.cobertura_insuficiente is False
+    assert verificar_justificativa_certo_errado(justificativa, [DISPOSITIVO]).aprovado

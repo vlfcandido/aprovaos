@@ -20,15 +20,14 @@ Quando ler: antes de mudar o prompt do `validador-de-questao`; ao investigar por
 boa (ou ruim) foi aprovada/reprovada. Plano: `docs/fatias/5-questoes-ineditas.md` §3.
 """
 
-import math
 import re
-from collections import Counter
 
 from pydantic import BaseModel, Field
 
 from aprovaos.dominio.dossie import FonteDossie
 from aprovaos.dominio.questao import Letra
 from aprovaos.dominio.questao_inedita import QuestaoGerada
+from aprovaos.dominio.texto import similaridade_lexica
 
 #: Limiar mínimo de `similaridade_lexica` com os originais para o item não ser reprovado por
 #: "estilo" (Ruling 43) — cosseno de TF-IDF entre textos curtos raramente passa de 0,3 mesmo
@@ -64,11 +63,6 @@ def _sentencas(texto: str) -> list[str]:
     """Divide `texto` em sentenças por pontuação de fim de frase, descartando vazias."""
     partes = _FIM_DE_FRASE.split(texto)
     return [parte.strip() for parte in partes if parte.strip()]
-
-
-def _tokens(texto: str) -> list[str]:
-    """Tokeniza `texto` em palavras minúsculas, sem pontuação (para TF-IDF e contagem)."""
-    return [token.lower() for token in _TOKEN.findall(texto)]
 
 
 class AlternativaParaValidador(BaseModel):
@@ -223,67 +217,6 @@ def verificar_fontes(item: QuestaoGerada, dossie: list[FonteDossie]) -> list[str
         )
 
     return motivos
-
-
-def similaridade_lexica(texto: str, originais: list[str]) -> float:
-    """Cosseno médio de TF-IDF entre `texto` e cada um dos `originais` (Ruling 43).
-
-    O corpus para o IDF é `originais + [texto]`; cada documento vira um vetor TF-IDF (frequência
-    do termo no documento × log do inverso da frequência de documentos que o contêm), e a
-    similaridade é o cosseno médio entre o vetor de `texto` e o de cada original — um proxy
-    determinístico de "este item parece estilisticamente com os originais", declaradamente mais
-    fraco que o embedding que a skill pede (pendência registrada em `docs/PENDENCIAS.md`).
-
-    Args:
-        texto: o enunciado do item gerado.
-        originais: os enunciados das questões originais do mesmo tópico/banca (não vazio).
-
-    Returns:
-        A média das similaridades de cosseno, em `[0, 1]`; `0.0` se `texto` ou todo original for
-        vazio de tokens (nenhuma divisão por zero).
-
-    Raises:
-        ValueError: `originais` vazio — não há com o que comparar.
-    """
-    if not originais:
-        raise ValueError("originais não pode ser vazio")
-
-    documentos = [*originais, texto]
-    tokens_por_documento = [_tokens(doc) for doc in documentos]
-
-    n_documentos = len(documentos)
-    contagem_documentos: Counter[str] = Counter()
-    for tokens in tokens_por_documento:
-        contagem_documentos.update(set(tokens))
-
-    def _vetor_tfidf(tokens: list[str]) -> dict[str, float]:
-        tf = Counter(tokens)
-        return {
-            termo: (frequencia / len(tokens))
-            * math.log((n_documentos + 1) / (contagem_documentos[termo] + 1) + 1)
-            for termo, frequencia in tf.items()
-        }
-
-    vetor_texto = _vetor_tfidf(tokens_por_documento[-1])
-    if not vetor_texto:
-        return 0.0
-
-    similaridades: list[float] = []
-    for tokens_original in tokens_por_documento[:-1]:
-        vetor_original = _vetor_tfidf(tokens_original)
-        if not vetor_original:
-            similaridades.append(0.0)
-            continue
-        termos_comuns = set(vetor_texto) & set(vetor_original)
-        produto_escalar = sum(vetor_texto[t] * vetor_original[t] for t in termos_comuns)
-        norma_texto = math.sqrt(sum(v * v for v in vetor_texto.values()))
-        norma_original = math.sqrt(sum(v * v for v in vetor_original.values()))
-        if norma_texto == 0.0 or norma_original == 0.0:
-            similaridades.append(0.0)
-        else:
-            similaridades.append(produto_escalar / (norma_texto * norma_original))
-
-    return sum(similaridades) / len(similaridades)
 
 
 def _consequencia_acrescentada(enunciado: str, trecho_que_decide: str) -> str | None:

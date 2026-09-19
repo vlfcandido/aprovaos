@@ -108,10 +108,14 @@ class JustificativaCertoErrado(BaseModel):
         afirmacoes_errado: por que o item está errado, apoiado na fonte — presente mesmo quando
             o gabarito é "certo": o aluno vê os dois lados (contrato da skill
             `gerador-questao-banca`).
+        cobertura_insuficiente: o gerador declara que os dispositivos ligados a esta questão
+            **não cobrem** o assunto do item. `True` reprova a justificativa — ver
+            `verificar_justificativa_certo_errado`.
     """
 
     afirmacoes_certo: list[Afirmacao]
     afirmacoes_errado: list[Afirmacao]
+    cobertura_insuficiente: bool = False
 
 
 class JustificativaPorAlternativa(BaseModel):
@@ -182,8 +186,26 @@ def verificar_justificativa_certo_errado(
 
     Reprova quando: falta `afirmacoes_certo` ou `afirmacoes_errado` (as duas são obrigatórias —
     regra 3 da tarefa); alguma afirmação cita dispositivo fora dos `dispositivos` recebidos
-    (regra 4 — zero invenção de fonte); ou o `trecho_que_decide` de alguma afirmação não existe
-    literalmente no texto do dispositivo citado (regra 2).
+    (regra 4 — zero invenção de fonte); o `trecho_que_decide` de alguma afirmação não existe
+    literalmente no texto do dispositivo citado (regra 2); ou o gerador marcou
+    `cobertura_insuficiente`.
+
+    **Por que existe `cobertura_insuficiente`** (achado de 19/09/2026, lendo o `dev.db`): as três
+    regras acima conferem **procedência** — "isso é verdade e vem da lei?" — e nenhuma confere
+    **pertinência** — "isso é sobre a questão que ela acabou de responder?". Numa questão sobre
+    legitimidade para propor ação de improbidade, o gerador entregou *"Se o item afirmasse que o
+    sistema de responsabilização tutela a probidade na organização do Estado, estaria certo"*:
+    citada, literal, verdadeira e sobre outra proposição. Acontece quando os dispositivos ligados
+    ao tópico não cobrem o assunto daquele item — o gerador não tem do que falar e fala de outra
+    coisa, sem violar nenhuma regra de fonte.
+
+    Pertinência é pergunta **semântica**, e medi-la por proxy foi tentado e falhou: no caso real
+    acima, o cosseno de TF-IDF (ADR-0045) deu **0,125 para o trecho fora do assunto e 0,074 para
+    o pertinente** — ranking invertido; e a sobreposição de palavras de conteúdo dava zero também
+    numa justificativa legítima. Publicar uma guarda que erra assim daria falsa confiança, que é
+    pior que não ter guarda. Então a checagem mudou de nível: em vez de **adivinhar**, o contrato
+    **pergunta** — o gerador, que é quem vê os dispositivos e o item lado a lado, declara o campo,
+    e o validador só lê um booleano. Sem léxico, sem limiar, sem repetir a ADR-0036.
 
     Args:
         justificativa: a saída do gerador para um item certo/errado.
@@ -196,6 +218,11 @@ def verificar_justificativa_certo_errado(
         normalizar_citacao_para_comparacao(d.citacao_canonica): d.texto for d in dispositivos
     }
     motivos: list[str] = []
+    if justificativa.cobertura_insuficiente:
+        motivos.append(
+            "o gerador declarou que os dispositivos ligados não cobrem o assunto do item — "
+            "melhor nenhuma explicação do que uma explicação que não é sobre a questão"
+        )
     if not justificativa.afirmacoes_certo:
         motivos.append("faltou justificativa_certo (as duas são obrigatórias)")
     if not justificativa.afirmacoes_errado:

@@ -20,10 +20,19 @@ Você **não pode citar dispositivo que não esteja na lista recebida** — nunc
   ],
   "afirmacoes_errado": [
     {"texto": "O item está errado porque a lei diz que ...", "dispositivo": "Lei 8.429/1992 art. 1º", "trecho_que_decide": "serão punidos na forma desta lei"}
-  ]
+  ],
+  "cobertura_insuficiente": false
 }
 ```
-**As duas listas são obrigatórias, mesmo quando o gabarito é só um dos dois lados** — o aluno vê os dois lados: por que o item estaria certo (o que a fonte diria para isso ser verdade) e por que está errado (o que a fonte realmente diz). Cada lista pode ter mais de uma afirmação quando a questão junta mais de um fato.
+
+### `cobertura_insuficiente` — o campo mais importante desta tarefa
+Marque **`true`** quando os dispositivos que você recebeu **não cobrem o assunto do item**, e devolva as duas listas vazias.
+
+Não é uma saída de emergência: é a resposta certa nesse caso. O que **não** pode acontecer é você, sem ter do que falar, escrever uma frase verdadeira sobre **outra** proposição — citada, literal, impecável de fonte, e que não explica nada do que foi perguntado. Isso já aconteceu aqui: numa questão sobre *legitimidade para propor a ação de improbidade*, veio *"Se o item afirmasse que o sistema de responsabilização tutela a probidade na organização do Estado, estaria certo"*. Tudo verdadeiro. Nada a ver com a pergunta. E foi publicado com selo de fonte.
+
+Pergunte-se, antes de escrever: **o trecho que eu vou citar decide o que o item afirma?** Se decide outra coisa, `cobertura_insuficiente: true`. A questão é servida com origem e gabarito oficial, sem explicação — melhor nenhuma explicação do que uma explicação que não é sobre a questão.
+
+**As duas listas são obrigatórias quando `cobertura_insuficiente` é `false`, mesmo que o gabarito seja só um dos dois lados** — o aluno vê os dois lados: por que o item estaria certo (o que a fonte diria para isso ser verdade) e por que está errado (o que a fonte realmente diz). Cada lista pode ter mais de uma afirmação quando a questão junta mais de um fato.
 
 ## A saída, para `multipla_escolha`, é este JSON
 ```json

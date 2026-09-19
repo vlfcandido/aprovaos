@@ -4,9 +4,9 @@
 # ao investigar por que um item bom (ou ruim) foi aprovado/reprovado.
 from aprovaos.dominio.dossie import FonteDossie
 from aprovaos.dominio.questao_inedita import AlternativaGerada, QuestaoGerada
+from aprovaos.dominio.texto import similaridade_lexica
 from aprovaos.dominio.validacao_questao import (
     julgar,
-    similaridade_lexica,
     verificar_fontes,
     verificar_forma,
 )

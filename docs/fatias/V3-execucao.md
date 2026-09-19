@@ -339,7 +339,7 @@ IA ou sem. O método corrigido chama `decidir_publicacao` de verdade — mesmo g
 `questao.publicavel` — com a classificação de `classificar_por_regras` (rodado offline sobre os
 itens segmentados do PDF, sem rede) e com `gabarito_status`/`origem` **reais** lidos do banco;
 "só IA" e "só regras" são a diferença simétrica dos dois conjuntos de publicáveis resultantes.
-28 → 27 na TJ-PA (2 itens anulados saíram da contagem, 1 outro ajuste); 6 → 5 na STJ_24. As duas
+29 → 27 na TJ-PA (os itens 104 e 105, anulados, saíram da contagem); 6 → 5 na STJ_24. As duas
 somas agora fecham: `publicáveis (regras) + só IA − só regras = publicáveis (IA)` em todas as
 três linhas (ex.: TJ-PA: 12 + 27 − 2 = 37).
 

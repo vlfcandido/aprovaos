@@ -5,8 +5,15 @@ neutros na primeira vez); `POST /rotina` valida (`dominio.rotina.DadosRotina`), 
 consentimento de dados de rotina/energia (R-01, LGPD — energia é dado sensível por cautela) antes
 de gravar, confere que o `concurso_principal_id` escolhido pertence ao tenant do usuário (P-23) e
 grava uma nova versão de `perfil_estudo`. Erros esperados voltam na mesma página com mensagem e
-status 200 (mesmo padrão de `api/conta.py`/`api/editais.py`). Quando ler: ao mexer no formulário de
-rotina ou na regra de consentimento.
+status 200 (mesmo padrão de `api/conta.py`/`api/editais.py`).
+
+Corrigido em 19/09/2026 (I8): a caixa de consentimento **nunca nasce marcada**, nem para quem já
+autorizou antes — caixa pré-marcada não é manifestação inequívoca (LGPD) e é exatamente o
+"gruda silenciosamente" que o plano da fatia 7 já rejeitava. Quem já autorizou vê, em texto ao
+lado da caixa desmarcada, a data e a versão do aceite anterior (`usuario
+.consentimento_dados_rotina_em`/`_versao`, já gravados por `repositorio_perfil.salvar_perfil`).
+
+Quando ler: ao mexer no formulário de rotina ou na regra de consentimento.
 """
 
 from datetime import date
@@ -75,6 +82,15 @@ def _contexto_formulario(
     data_alvo: str,
     concurso_principal_id: UUID | None,
 ) -> dict[str, object]:
+    # Corrigido em 19/09/2026 (I8): a caixa de consentimento nunca nasce marcada — mesmo quando
+    # já houve aceite antes, marcar a caixa de novo é o "gruda silenciosamente" que o próprio
+    # plano da fatia 7 rejeitava, e caixa pré-marcada não é manifestação inequívoca (LGPD). Quem
+    # já autorizou vê a data/versão do aceite anterior em texto, ao lado da caixa desmarcada.
+    consentimento_anterior_em = (
+        usuario.consentimento_dados_rotina_em.strftime("%d/%m/%Y")
+        if usuario.consentimento_dados_rotina and usuario.consentimento_dados_rotina_em
+        else ""
+    )
     return {
         "erros": erros,
         "dias": _dias_para_formulario(horas),
@@ -84,7 +100,8 @@ def _contexto_formulario(
         "energia_tipica": energia_tipica,
         "data_alvo": data_alvo,
         "concursos": _concursos_para_formulario(db, usuario, concurso_principal_id),
-        "consentimento_marcado": usuario.consentimento_dados_rotina,
+        "consentimento_anterior_em": consentimento_anterior_em,
+        "consentimento_anterior_versao": usuario.consentimento_dados_rotina_versao,
     }
 
 

@@ -1,7 +1,9 @@
 {# O que é: formulário de rotina (`GET/POST /rotina`, fatia 7, F2.2) — horas por dia da semana,
    horário preferido, energia típica, data-alvo, o concurso principal (P-23) e o consentimento de
-   dados de rotina/energia (R-01, LGPD). Erros esperados voltam aqui, 200. Quando ler: ao mudar os
-   campos da rotina ou o texto do consentimento. -#}
+   dados de rotina/energia (R-01, LGPD). A caixa de consentimento nunca nasce marcada (I8,
+   19/09/2026, mesmo para quem já autorizou antes) — a data/versão do aceite anterior aparece em
+   texto ao lado dela. Erros esperados voltam aqui, 200. Quando ler: ao mudar os campos da rotina
+   ou o texto do consentimento. -#}
 {% extends "base.html" %}
 {% block titulo %}Sua rotina — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -69,11 +71,15 @@
 
     <div class="campo">
       <label>
-        <input type="checkbox" name="consentimento" {% if consentimento_marcado %}checked{% endif %}>
+        <input type="checkbox" name="consentimento">
         Autorizo o uso da minha energia típica para ajustar o plano — dado tratado como sensível
         por cautela (LGPD); usado só para o meu próprio plano, nunca em ranking nem repassado a
         terceiros. Posso exportar ou excluir meus dados a qualquer momento em <a href="/conta">Minha conta</a>.
       </label>
+      {% if consentimento_anterior_em %}
+        <p class="nota">Você autorizou em {{ consentimento_anterior_em }} (versão
+          {{ consentimento_anterior_versao }}). Marque de novo para confirmar e salvar.</p>
+      {% endif %}
     </div>
 
     <div class="acoes">

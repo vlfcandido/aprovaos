@@ -65,6 +65,38 @@ def test_post_rotina_com_consentimento_salva_perfil(cliente: TestClient, db: Ses
     assert perfil.horas_por_dia_semana["seg"] == 2.0
 
 
+def test_get_rotina_checkbox_nunca_nasce_marcada_mesmo_apos_consentir(
+    cliente: TestClient, db: Session
+) -> None:
+    """I8: caixa pré-marcada não é manifestação inequívoca (LGPD) — mesmo depois de consentir
+    uma vez, a próxima `GET /rotina` mostra a caixa desmarcada, com a data do aceite anterior em
+    texto ao lado."""
+    _entrar(cliente, "d@exemplo.com")
+    dados = dict(CAMPOS_PADRAO, consentimento="on")
+    assert cliente.post("/rotina", data=dados, follow_redirects=False).status_code in (200, 303)
+
+    resposta = cliente.get("/rotina")
+
+    assert resposta.status_code == 200
+    assert 'name="consentimento" checked' not in resposta.text
+    assert 'name="consentimento">' in resposta.text
+    assert "você autorizou em" in resposta.text.lower()
+    assert "versão" in resposta.text.lower()
+
+    usuario = db.query(Usuario).filter_by(email="d@exemplo.com").one()
+    assert usuario.consentimento_dados_rotina is True
+
+
+def test_get_rotina_sem_consentimento_anterior_nao_mostra_aviso(cliente: TestClient) -> None:
+    _entrar(cliente, "e@exemplo.com")
+
+    resposta = cliente.get("/rotina")
+
+    assert resposta.status_code == 200
+    assert 'name="consentimento" checked' not in resposta.text
+    assert "você autorizou em" not in resposta.text.lower()
+
+
 def test_post_rotina_rejeita_concurso_de_outro_tenant(cliente: TestClient, db: Session) -> None:
     outro = criar_conta(db, DadosCadastro(email="dono-outro@exemplo.com", senha="12345678"))
     texto = FIXTURE_MD.read_text(encoding="utf-8")

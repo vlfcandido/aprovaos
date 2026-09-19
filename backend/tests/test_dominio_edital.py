@@ -219,6 +219,57 @@ def test_regra_desconhecida() -> None:
     assert regra.minimo_por_materia == "desconhecido"
 
 
+# ---- anula_por_erro só de cláusula que liga erro NA QUESTÃO a desconto/anulação de ponto -------
+#
+# Achado ao medir o §11.3-equivalente dos dois editais reais: `_ANULA` (antes, "anula|desconto"
+# em qualquer lugar) casava com cláusulas administrativas sem relação com a correção da prova
+# (anulação de inscrição por fraude, de nomeação por declaração falsa) e devolvia `True` como se
+# fosse regra de correção — dado errado com cara de fato, na mesma família do bug da banca.
+# Ruling do coordenador: sem cláusula explícita ligando erro e desconto, a resposta é
+# `desconhecido` com lacuna — nunca `False` por suposição (isso seria inferir sobre o mercado,
+# não ler o edital).
+
+
+def test_anula_por_erro_ignora_clausula_administrativa_de_anulacao_de_inscricao() -> None:
+    # Texto do §5.10.1 real da AOCP (achado do relatório da V3): fala de fraude na inscrição,
+    # não de desconto por questão errada.
+    texto = (
+        "5.10.1 Declaração falsa ou inexata dos dados constantes no Formulário de Inscrição, "
+        "bem como a falsificação de declarações ou de dados e/ou outras irregularidades na "
+        "documentação, determinará o cancelamento da inscrição e anulação de todos os atos "
+        "dela decorrentes, implicando, em qualquer época, na eliminação do(a) candidato(a)."
+    )
+    regra = extrair_fatos(texto).regra
+    assert regra.anula_por_erro == "desconhecido"
+
+
+def test_anula_por_erro_ignora_clausula_administrativa_de_anulacao_de_nomeacao() -> None:
+    # Texto do §6.5.1 real da FCC: fala de declaração falsa e anulação da nomeação, não de
+    # desconto por questão errada.
+    texto = (
+        "6.5.1 Constatada a falsidade da declaração a que se refere o item 6.5, será o "
+        "candidato eliminado do concurso e, se houver sido nomeado, ficará sujeito à anulação "
+        "de sua nomeação ao serviço público após o procedimento administrativo."
+    )
+    regra = extrair_fatos(texto).regra
+    assert regra.anula_por_erro == "desconhecido"
+
+
+def test_anula_por_erro_true_com_verbo_diferente_de_anula() -> None:
+    # A regra de ouro é a proximidade com "errada/errado", não a palavra "anula" sozinha —
+    # "subtrai"/"desconta" também contam, desde que perto de erro na questão.
+    texto = "6.2 Cada questão errada subtrai 0,5 ponto da pontuação final do candidato."
+    regra = extrair_fatos(texto).regra
+    assert regra.anula_por_erro is True
+
+
+def test_anula_por_erro_false_sem_desconto_por_questao_errada_isolado() -> None:
+    # O caso legítimo e comum tem de continuar saindo False, isolado do restante do edital.
+    texto = "6.1 Prova objetiva de múltipla escolha, sem desconto por questão errada."
+    regra = extrair_fatos(texto).regra
+    assert regra.anula_por_erro is False
+
+
 # ---- Alternativas por extenso e múltipla escolha inferida do mecanismo (V3b, achado da V3) -----
 
 
@@ -268,10 +319,11 @@ def test_edital_real_aocp_multipla_escolha_inferida_do_paragrafo_113() -> None:
     regra = extrair_fatos(texto).regra
     assert regra.tipo_item == "multipla_escolha"
     assert regra.alternativas == 5
-    # §5.10.1 é o achado (já reportado, não corrigido nesta tarefa) de `_ANULA` casando com uma
-    # cláusula de fraude na inscrição, não com desconto por questão errada; §11.3 é o mecanismo
+    # Nenhum parágrafo do edital real liga "errada" a desconto/anulação de ponto — §5.10.1 (fraude
+    # na inscrição) não conta mais (era o bug da mesma família do da banca); §11.3 é o mecanismo
     # de múltipla escolha desta correção.
-    assert regra.fonte == "edital §5.10.1, §11.3"
+    assert regra.anula_por_erro == "desconhecido"
+    assert regra.fonte == "edital §11.3"
 
 
 def test_edital_real_fcc_alternativas_por_extenso_no_mesmo_paragrafo_da_frase_literal() -> None:
@@ -280,7 +332,9 @@ def test_edital_real_fcc_alternativas_por_extenso_no_mesmo_paragrafo_da_frase_li
     regra = extrair_fatos(texto).regra
     assert regra.tipo_item == "multipla_escolha"
     assert regra.alternativas == 5
-    assert regra.fonte == "edital §6.5.1, §7.2, §10.6"
+    # §6.5.1 (declaração falsa, anulação de nomeação) não conta mais pelo mesmo motivo do AOCP.
+    assert regra.anula_por_erro == "desconhecido"
+    assert regra.fonte == "edital §7.2, §10.6"
 
 
 def test_banca_executado_exige_nome_proprio_nao_qualquer_frase_ate_a_virgula() -> None:

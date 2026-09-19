@@ -363,7 +363,16 @@ _MECANISMO_UMA_ALTERNATIVA_CORRETA = re.compile(
     r"apenas\s+1\s*\(?uma\)?\s+alternativa\s+correta", re.IGNORECASE
 )
 _NAO_ANULA = re.compile(r"sem desconto|não haverá desconto", re.IGNORECASE)
-_ANULA = re.compile(r"anula|desconto", re.IGNORECASE)
+# "anula"/"desconto" sozinhos casam com qualquer cláusula administrativa (anulação de inscrição
+# por fraude, de nomeação por declaração falsa — achado real na AOCP §5.10.1 e na FCC §6.5.1,
+# nenhuma das duas sobre desconto por questão errada). Regra de correção de verdade liga o ERRO
+# NA QUESTÃO ("errada"/"errado") ao desconto/anulação de ponto, a poucas palavras de distância,
+# na mesma frase (`[^.]` não cruza ponto final).
+_ANULA = re.compile(
+    r"errad[ao]\b[^.]{0,40}\b(?:anula|desconta|desconto|subtrai)"
+    r"|\b(?:anula|desconta|desconto|subtrai)\b[^.]{0,40}errad[ao]\b",
+    re.IGNORECASE,
+)
 _MINIMO_GLOBAL = re.compile(r"(\d+)\s*%\s*do total(?: de pontos)?", re.IGNORECASE)
 _NOTA_ZERO = re.compile(r"nota zero", re.IGNORECASE)
 _CARGO = re.compile(r"Cargo:\s*([^.]+)\.")
@@ -408,8 +417,9 @@ class RegraExtraida(BaseModel):
             alternativa correta" no mesmo parágrafo), `certo_errado` ou `desconhecido`.
         alternativas: número de alternativas — em dígito, com ou sem o extenso entre parênteses
             ("5 (cinco) alternativas"), ou só o extenso ("cinco alternativas") — ou `None`.
-        anula_por_erro: `True` se uma errada anula uma certa, `False` se "sem desconto",
-            senão `desconhecido`.
+        anula_por_erro: `True` só se uma cláusula liga o erro NA QUESTÃO ("errada"/"errado") a
+            desconto/anulação de ponto na mesma frase; `False` se "sem desconto" (explícito);
+            senão `desconhecido` — nunca `False` por suposição de mercado sem o edital dizer.
         minimo_por_materia: `nota zero elimina` ou `desconhecido`.
         minimo_global: `N % do total de pontos` ou `desconhecido`.
         fonte: parágrafos casados (`edital §6.1, §6.3`).

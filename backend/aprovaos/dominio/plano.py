@@ -8,10 +8,13 @@ tópico dominado ou sem aula/questão nunca é candidato — a escassez é trata
 mensagem de erro), `selecionar_blocos` (greedy determinístico pelo tempo disponível),
 `montar_plano` (a função pública: aplica as duas de cima, atribui `ordem`/`hora_sugerida` e monta
 o `porque_geral`) e `escolher_substituto` (o "discordar" — F3.3/F3.4: a próxima alternativa que
-ainda não está no plano e cabe no tempo que sobra). Nenhuma função lê banco, chama `datetime.now`
-ou usa `random` — `dados/repositorio_plano.py` monta a entrada; `api/plano.py`/`motor/plano.py`
-decidem o que fazer com a saída. Quando ler: ao mexer em quais blocos entram no plano, no texto do
-porquê, ou na troca de um bloco.
+ainda não está no plano e cabe no tempo que sobra). Na semana da prova (RF-19, fatia 10 §7),
+`montar_plano` também acrescenta um bloco `"descanso"` sempre por último
+(`_garantir_bloco_de_descanso_da_semana_prova`) — o último a ser cortado pelo orçamento, nunca o
+primeiro. Nenhuma função lê banco, chama `datetime.now` ou usa `random` —
+`dados/repositorio_plano.py` monta a entrada; `api/plano.py`/`motor/plano.py` decidem o que fazer
+com a saída. Quando ler: ao mexer em quais blocos entram no plano, no texto do porquê, ou na
+troca de um bloco.
 
 **Por que sem LLM** (plano `docs/fatias/8-plano-do-dia.md` §7): a cota do free tier está esgotada
 e o `porque`/`porque_geral` já saem determinísticos, com os números reais (quantos cartões,
@@ -52,6 +55,11 @@ DURACAO_REVISAO_MAX_MIN: Final = 40
 #: `motor/aula.py --tempo-alvo-min 25`).
 DURACAO_QUESTOES_MIN: Final = 20
 DURACAO_AULA_MIN: Final = 25
+
+#: Duração do bloco de descanso da semana da prova (RF-19: "revisão cirúrgica **+ descanso**").
+#: Curto de propósito — não é uma pausa cronometrada de verdade, é o registro de que descansar é
+#: parte do plano, não uma folga informal fora dele.
+DURACAO_DESCANSO_SEMANA_PROVA_MIN: Final = 15
 
 #: Teto de blocos por dia (o protótipo mostra 5 blocos em 2h) — não deixa o plano virar uma lista
 #: infinita quando `tempo_min` é grande.
@@ -114,9 +122,10 @@ class CandidatoBloco(BaseModel):
     """Um bloco possível, ainda sem posição no dia (`ordem`/`hora_sugerida`).
 
     Attributes:
-        tipo: `"revisao"`, `"aula"` ou `"questoes"` nesta fatia (`"resumo"`/`"descanso"` ficam
-            reservados no esquema — ver plano §8).
-        topico_id: `None` para `"revisao"` (abrange vários tópicos, os cartões vencidos).
+        tipo: `"revisao"`, `"aula"` ou `"questoes"` (fatia 8) e `"descanso"` (fatia 10, RF-19 —
+            só na semana da prova, sempre por último); `"resumo"` fica reservado no esquema
+            (ver plano §8).
+        topico_id: `None` para `"revisao"` e para `"descanso"` (nenhum dos dois é de um tópico).
         duracao_min: estimativa de duração.
         porque: a frase pt-BR pronta para a tela — nunca vazia.
     """
@@ -192,6 +201,64 @@ def _frase_dias_para_prova(dias_para_prova: int) -> str:
     verbo = _plural(dias_para_prova, "Falta", "Faltam")
     dia = _plural(dias_para_prova, "dia", "dias")
     return f"{verbo} {dias_para_prova} {dia} para a prova"
+
+
+def _bloco_descanso_semana_prova(dias_para_prova: int) -> CandidatoBloco:
+    """O bloco de descanso que RF-19 pede sempre por último na semana da prova.
+
+    Args:
+        dias_para_prova: sempre `>= 0` neste ponto (`_em_semana_prova` já garantiu a janela).
+    """
+    frase = _frase_dias_para_prova(dias_para_prova)
+    return CandidatoBloco(
+        tipo="descanso",
+        topico_id=None,
+        duracao_min=DURACAO_DESCANSO_SEMANA_PROVA_MIN,
+        porque=(
+            f"{frase} — na semana da prova, descansar é parte do plano: memória consolida "
+            "fora do estudo."
+        ),
+    )
+
+
+def _garantir_bloco_de_descanso_da_semana_prova(
+    selecionados: list[CandidatoBloco], descanso: CandidatoBloco, tempo_min: int
+) -> list[CandidatoBloco]:
+    """Acrescenta `descanso` ao fim de `selecionados`, abrindo espaço se for preciso.
+
+    RF-19: na semana da prova, o plano sempre termina com o bloco de descanso — ele é o
+    **último** a ser cortado, nunca o primeiro. Quando o orçamento (`tempo_min`) ou o teto de
+    blocos (`MAXIMO_BLOCOS`) não deixam espaço, remove o candidato de conteúdo mais recente
+    (nunca a revisão, que é sempre o cartão vencido do dia) até caber; se não sobrar mais nada
+    para remover e ainda assim não couber, o descanso entra do mesmo jeito — a regra de saúde
+    (visão §4) vence o orçamento, igual ao pedido explícito de descanso.
+
+    Args:
+        selecionados: os blocos já escolhidos por `selecionar_blocos` (revisão + tópicos
+            fracos), antes de ganhar posição/horário.
+        descanso: o candidato de descanso (`_bloco_descanso_semana_prova`).
+        tempo_min: o orçamento de tempo do dia.
+
+    Returns:
+        `selecionados` (possivelmente reduzido, cortando do fim para o começo) com `descanso`
+        sempre acrescentado por último.
+    """
+    resultado = list(selecionados)
+    while True:
+        cabe_tempo = sum(b.duracao_min for b in resultado) + descanso.duracao_min <= tempo_min
+        cabe_teto = len(resultado) + 1 <= MAXIMO_BLOCOS
+        if cabe_tempo and cabe_teto:
+            return [*resultado, descanso]
+        indice_removivel = next(
+            (i for i in range(len(resultado) - 1, -1, -1) if resultado[i].tipo != "revisao"),
+            None,
+        )
+        if indice_removivel is None:
+            # Só sobrou a revisão (ou nada) e ainda não cabe — nada mais para cortar; o
+            # descanso entra do mesmo jeito, como o pedido explícito de descanso também vence
+            # o orçamento.
+            return [*resultado, descanso]
+        resultado.pop(indice_removivel)
 
 
 def montar_candidatos(
@@ -455,7 +522,10 @@ def montar_plano(
         O `ResultadoPlano` completo. Precedência de `modo`: `"descanso"` (pedido explícito, ou
         regime restrito por energia/sono sem nenhum bloco — regra de saúde, sempre vence) >
         `"semana_prova"` (`dias_para_prova` na janela) > `"normal"` (demais casos, inclui o
-        regime restrito que ainda gerou um bloco de revisão).
+        regime restrito que ainda gerou um bloco de revisão). Na semana da prova, `blocos`
+        sempre termina em `tipo="descanso"` (RF-19) — exceto quando o dia inteiro já é de
+        descanso (regime restrito sem nenhum bloco: a regra de saúde já cobriu o dia inteiro,
+        o bloco explícito por cima do nada seria redundante).
     """
     restrito = (
         pediu_descanso
@@ -472,6 +542,16 @@ def montar_plano(
             topicos, cartoes_vencidos_qtd, restrito, dias_para_prova=dias_para_prova
         )
         selecionados = selecionar_blocos(candidatos, tempo_min)
+        # RF-19: a semana da prova sempre termina em descanso — exceto quando o regime ficou
+        # tão restrito que nem revisão sobrou (o dia já é de descanso inteiro, regra de saúde).
+        vira_semana_prova = _em_semana_prova(dias_para_prova) and not (
+            restrito and not selecionados
+        )
+        if vira_semana_prova:
+            assert dias_para_prova is not None  # `_em_semana_prova` já garantiu isto
+            selecionados = _garantir_bloco_de_descanso_da_semana_prova(
+                selecionados, _bloco_descanso_semana_prova(dias_para_prova), tempo_min
+            )
         blocos = _atribuir_ordem_e_hora(selecionados, horario_preferido)
 
     descanso_forcado = pediu_descanso or (restrito and not blocos)

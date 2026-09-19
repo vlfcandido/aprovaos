@@ -1,11 +1,12 @@
 # O que é: testes de `dominio/resumo_semanal.py` (fatia 10, F4.4c) — o resumo cumulativo de
-# sábado: contagem da semana, recorte por data (fuso de Brasília incluso), tópicos novos,
-# "para rever" (erro mais recente, no máximo 5) e a conquista (só com número real). Quando ler:
-# ao mexer no resumo semanal.
+# sábado: contagem da semana (com banda de Wilson, unificada com o resto do painel), recorte por
+# data (fuso de Brasília incluso), tópicos novos, "para rever" (erro mais recente, no máximo 5) e
+# a conquista (só com número real). Quando ler: ao mexer no resumo semanal.
 from datetime import UTC, date, datetime
 from uuid import UUID, uuid4
 
-from aprovaos.dominio.resumo_semanal import MAXIMO_PARA_REVER, RespostaHistorica, montar_resumo
+from aprovaos.dominio.curva import RespostaHistorica
+from aprovaos.dominio.resumo_semanal import MAXIMO_PARA_REVER, montar_resumo
 
 INICIO = date(2026, 9, 14)  # segunda
 FIM = date(2026, 9, 20)  # domingo
@@ -28,8 +29,7 @@ def _em(dia: date, hora: int = 12) -> datetime:
 def test_semana_vazia() -> None:
     resumo = montar_resumo([], NOMES, INICIO, FIM)
     assert resumo.respostas == 0
-    assert resumo.acertos.total == 0
-    assert resumo.acertos.pct == 0.0
+    assert resumo.acertos is None  # sem resposta, sem intervalo fabricado (regra 11)
     assert resumo.topicos_novos == []
     assert resumo.para_rever == []
     assert resumo.conquista is None
@@ -46,16 +46,21 @@ def test_recorte_por_data_exclui_resposta_de_domingo_anterior() -> None:
     assert resumo.respostas == 1
 
 
-def test_acertos_pct_calculado_sobre_a_semana() -> None:
+def test_acertos_e_intervalo_de_wilson_sobre_a_semana() -> None:
+    # 2 de 3 é exatamente o caso do Ruling 35 (`dominio.estatistica`, docs/fatias/10-painel.md
+    # §2): pct 66,67, banda ampla (n pequeno) — nunca um "±" fixo.
     respostas = [
         _resposta(TOPICO_A, True, _em(date(2026, 9, 15))),
         _resposta(TOPICO_A, True, _em(date(2026, 9, 16))),
         _resposta(TOPICO_A, False, _em(date(2026, 9, 17))),
     ]
     resumo = montar_resumo(respostas, NOMES, INICIO, FIM)
+    assert resumo.acertos is not None
     assert resumo.acertos.total == 3
-    assert resumo.acertos.corretos == 2
+    assert resumo.acertos.acertos == 2
     assert round(resumo.acertos.pct, 2) == 66.67
+    assert round(resumo.acertos.inferior_pct, 2) == 20.77
+    assert round(resumo.acertos.superior_pct, 2) == 93.85
 
 
 def test_topico_novo_e_o_que_nunca_apareceu_antes_da_semana() -> None:

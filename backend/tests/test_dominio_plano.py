@@ -495,9 +495,21 @@ def test_porque_geral_cita_os_dias_com_blocos() -> None:
     assert "3 dias" in resultado.porque_geral
 
 
-def test_porque_geral_cita_os_dias_sem_bloco_nenhum() -> None:
-    # Semana da prova, mas nada de conteúdo elegível (só um tópico nunca visto) — sem bloco,
-    # ainda assim explica a semana da prova, não a escassez genérica.
+def test_porque_geral_sem_bloco_nenhum_cita_a_semana_da_prova_direto() -> None:
+    # `motivo_geral_do_plano` continua sabendo explicar "semana da prova sem nada para revisar"
+    # quando chamada direto com `blocos=[]` — via `montar_plano` esse caminho não acontece mais
+    # (RF-19 sempre acrescenta o bloco de descanso), mas a função pura continua correta para
+    # quem a chamar assim.
+    texto = motivo_geral_do_plano(
+        restrito=False, pediu_descanso=False, blocos=[], tempo_min=60, topicos=[], dias_para_prova=3
+    )
+    assert "3 dias" in texto
+    assert "não há cartão vencido nem tópico fraco" in texto
+
+
+def test_semana_da_prova_sem_conteudo_elegivel_ainda_assim_ganha_o_descanso() -> None:
+    # Semana da prova, mas nada de conteúdo elegível (só um tópico nunca visto) — via
+    # `montar_plano`, RF-19 garante o bloco de descanso mesmo sem revisão nenhuma.
     topicos = [_topico(status="nao_visto", tem_aula=True, questoes=10)]
     resultado = montar_plano(
         topicos,
@@ -509,6 +521,84 @@ def test_porque_geral_cita_os_dias_sem_bloco_nenhum() -> None:
         horario_preferido="manha",
         dias_para_prova=3,
     )
-    assert resultado.blocos == []
+    assert [b.tipo for b in resultado.blocos] == ["descanso"]
     assert resultado.modo == "semana_prova"
     assert "3 dias" in resultado.porque_geral
+
+
+# ---------------------------------------------------------------------------
+# bloco de descanso da semana da prova (RF-19: "revisão cirúrgica + descanso")
+# ---------------------------------------------------------------------------
+
+
+def test_semana_da_prova_com_tempo_suficiente_termina_em_descanso() -> None:
+    topicos = [
+        _topico(topico_id=TOPICO_A, nome="Tópico A", questoes=5, status="fraco"),
+        _topico(topico_id=TOPICO_B, nome="Tópico B", questoes=5, status="fraco"),
+    ]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=100,  # sobra espaço para os dois tópicos (40 min) + o descanso (15 min)
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert [b.tipo for b in resultado.blocos] == ["questoes", "questoes", "descanso"]
+    assert resultado.blocos[-1].tipo == "descanso"
+    assert resultado.blocos[-1].ordem == 3
+
+
+def test_semana_da_prova_com_tempo_curto_descanso_sobrevive_questoes_cai() -> None:
+    topicos = [
+        _topico(topico_id=TOPICO_A, nome="Tópico A", questoes=5, status="fraco"),
+        _topico(topico_id=TOPICO_B, nome="Tópico B", questoes=5, status="fraco"),
+    ]
+    # Os dois blocos de questões (20 min cada) cabem sozinhos em 50 min, mas não sobra espaço
+    # para o descanso (15 min) depois — o segundo tópico (o mais recente a entrar) é quem cai.
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=50,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert [b.tipo for b in resultado.blocos] == ["questoes", "descanso"]
+    assert resultado.blocos[0].topico_id == TOPICO_A
+    assert resultado.blocos[-1].tipo == "descanso"
+
+
+def test_fora_da_semana_da_prova_nenhum_bloco_de_descanso_aparece() -> None:
+    topicos = [_topico(status="fraco", tem_aula=True, questoes=10)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=100,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=None,
+    )
+    assert "descanso" not in [b.tipo for b in resultado.blocos]
+
+
+def test_dia_de_descanso_explicito_continua_zerando_tudo_mesmo_na_semana_da_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=5,
+        tempo_min=100,
+        energia=5,
+        sono_h=8.0,
+        pediu_descanso=True,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert resultado.blocos == []
+    assert resultado.modo == "descanso"

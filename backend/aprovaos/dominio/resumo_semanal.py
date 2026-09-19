@@ -1,23 +1,23 @@
 """Resumo semanal cumulativo (fatia 10, F4.4c — fio da memória (c)): o que aconteceu na semana.
 
-O que é: `RespostaHistorica` (uma resposta do histórico, o bastante para o resumo), `Acertos`
-(contagem simples certo/total da semana), `ItemResumo` (um tópico a revisar, com a frase pronta)
-e `ResumoSemanal` (a saída de `montar_resumo`) — a função pura que monta o resumo de sábado:
-quantas respostas, quantos acertos, quais tópicos foram vistos pela primeira vez, quais merecem
-revisão (erro mais recente primeiro, no máximo 5) e se algum tópico passou a ser "dominado"
-durante a semana. Determinístico e sem LLM (Ruling 36, `docs/fatias/10-painel.md` §1) — nenhuma
-frase é gerada por modelo, só composta a partir dos números reais. Nenhuma função lê banco, chama
-`datetime.now` ou usa `random`; `dados/repositorio_painel.py` (passo 7, fora deste escopo) monta a
-entrada. Quando ler: ao mexer no texto ou nos números do resumo semanal.
+O que é: `ItemResumo` (um tópico a revisar, com a frase pronta) e `ResumoSemanal` (a saída de
+`montar_resumo`) — a função pura que monta o resumo de sábado: quantas respostas, quantos
+acertos (com banda de Wilson — ver abaixo), quais tópicos foram vistos pela primeira vez, quais
+merecem revisão (erro mais recente primeiro, no máximo 5) e se algum tópico passou a ser
+"dominado" durante a semana. Determinístico e sem LLM (Ruling 36, `docs/fatias/10-painel.md`
+§1) — nenhuma frase é gerada por modelo, só composta a partir dos números reais. Nenhuma função
+lê banco, chama `datetime.now` ou usa `random`; `dados/repositorio_painel.py` (passo 7, fora
+deste escopo) monta a entrada. Quando ler: ao mexer no texto ou nos números do resumo semanal.
 
-**Decisão de fronteira:** `RespostaHistorica` está definida aqui, e não importada de
-`dominio.curva` (que descreve o mesmo formato no plano §3) — `curva.py` nasce nesta mesma fatia,
-em paralelo, por outra frente de trabalho, e este módulo não pode depender de um arquivo em
-construção simultânea. O mesmo vale para `Acertos`: não é `dominio.estatistica.Proporcao`
-(Wilson) — aquele módulo também nasce em paralelo, e a contagem cumulativa da semana é atividade,
-não uma estimativa de proficiência (Ruling 35 reserva Wilson para o que a tela chama de
-proficiência). Quando os três módulos existirem lado a lado, avaliar unificar no passo 7 —
-registrado no diário da fatia (`docs/fatias/10-execucao.md`).
+**Unificação com o resto do painel:** `RespostaHistorica` é a de `dominio.curva` (mesmo formato:
+`topico_id`, `acertou`, `ocorrido_em` em UTC) — não uma cópia local. `ResumoSemanal.acertos` é
+`dominio.estatistica.Proporcao` (intervalo de Wilson), não uma contagem simples: a regra 11 do
+`CLAUDE.md` ("previsão sempre com intervalo") vale para "acertou X de Y" tanto quanto para
+qualquer outro número de proficiência do painel (Ruling 35). `acertos` é `None` só quando não há
+nenhuma resposta na semana (`total == 0`) — `intervalo_wilson` recusa `total == 0` de propósito
+(regra 11: lacuna declarada, nunca um intervalo fabricado para dado inexistente); a tela já cobre
+esse caso com "semana sem estudo registrado" via `respostas == 0`, então `acertos=None` não perde
+informação nenhuma.
 """
 
 from datetime import date, datetime
@@ -27,6 +27,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel
 
+from aprovaos.dominio.curva import RespostaHistorica
+from aprovaos.dominio.estatistica import Proporcao, intervalo_wilson
 from aprovaos.dominio.trilha import LIMIAR_DOMINADO, MINIMO_PARA_DOMINADO
 
 #: Fuso fixo da aluna (Ruling 37, `docs/fatias/10-painel.md` §1): `evento_estudo.ocorrido_em` é
@@ -36,34 +38,6 @@ _FUSO_BRASILIA: Final = ZoneInfo("America/Sao_Paulo")
 
 #: Máximo de itens em `ResumoSemanal.para_rever` — cabe em uma tela (§6 do plano).
 MAXIMO_PARA_REVER: Final = 5
-
-
-class RespostaHistorica(BaseModel):
-    """Uma resposta do histórico da aluna, o bastante para montar o resumo semanal.
-
-    Attributes:
-        topico_id: o tópico respondido.
-        acertou: se a resposta foi certa.
-        ocorrido_em: instante da resposta, *aware* em UTC (`evento_estudo.ocorrido_em`).
-    """
-
-    topico_id: UUID
-    acertou: bool
-    ocorrido_em: datetime
-
-
-class Acertos(BaseModel):
-    """Contagem de acertos da semana — proporção simples, sem banda estatística (ver cabeçalho).
-
-    Attributes:
-        total: quantas respostas na janela.
-        corretos: quantas delas certas.
-        pct: `corretos / total * 100`; `0.0` quando `total == 0` (nunca uma divisão por zero).
-    """
-
-    total: int
-    corretos: int
-    pct: float
 
 
 class ItemResumo(BaseModel):
@@ -85,7 +59,9 @@ class ResumoSemanal(BaseModel):
         inicio: primeiro dia da semana (segunda, inclusive).
         fim: último dia da semana (domingo, inclusive).
         respostas: quantas respostas aconteceram dentro de `[inicio, fim]`.
-        acertos: contagem de acerto/total desta janela.
+        acertos: `dominio.estatistica.Proporcao` (Wilson) de acerto/total desta janela; `None`
+            quando `respostas == 0` (`intervalo_wilson` recusa `total == 0` de propósito — ver
+            cabeçalho do módulo).
         topicos_novos: nomes dos tópicos cuja primeira resposta de todos os tempos (em todo o
             histórico recebido por `montar_resumo`) caiu dentro desta janela — não um simples
             "apareceu esta semana", que confundiria reaparecimento com novidade.
@@ -100,7 +76,7 @@ class ResumoSemanal(BaseModel):
     inicio: date
     fim: date
     respostas: int
-    acertos: Acertos
+    acertos: Proporcao | None
     topicos_novos: list[str]
     para_rever: list[ItemResumo]
     conquista: str | None
@@ -159,16 +135,15 @@ def montar_resumo(
         fim: último dia da semana (domingo, inclusive).
 
     Returns:
-        O `ResumoSemanal` — `respostas=0`, listas vazias e `conquista=None` quando não há
-        nenhuma resposta na janela (semana sem estudo registrado).
+        O `ResumoSemanal` — `respostas=0`, `acertos=None`, listas vazias e `conquista=None`
+        quando não há nenhuma resposta na janela (semana sem estudo registrado).
     """
     da_semana = [r for r in respostas if _dentro_da_semana(r.ocorrido_em, inicio, fim)]
     antes = {r.topico_id for r in respostas if _data_local(r.ocorrido_em) < inicio}
 
     total = len(da_semana)
     corretos = sum(1 for r in da_semana if r.acertou)
-    pct = (corretos / total * 100) if total else 0.0
-    acertos = Acertos(total=total, corretos=corretos, pct=pct)
+    acertos = intervalo_wilson(corretos, total) if total > 0 else None
 
     ids_semana = {r.topico_id for r in da_semana}
     topicos_novos = sorted(_nome(nomes_por_topico, tid) for tid in ids_semana if tid not in antes)

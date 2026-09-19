@@ -7,6 +7,9 @@ import pytest
 from aprovaos.dominio.estatistica import intervalo_wilson
 from aprovaos.dominio.previsao import DesempenhoMateria, prever_nota
 
+#: Um dígito, ponto, dígito — o formato decimal que não pode aparecer na tela em pt-BR.
+_TEM_PONTO_DECIMAL = __import__("re").compile(r"\d\.\d")
+
 
 def test_materia_sem_dado_nao_vira_zero_nem_entra_na_media() -> None:
     com_dado = DesempenhoMateria(
@@ -103,3 +106,27 @@ def test_com_corte_a_comparacao_sai_pela_banda_nao_pelo_ponto() -> None:
     assert previsao.probabilidade_lacuna is None
     assert previsao.nota_pct < 80.0
     assert "em cima do corte" in previsao.porque
+
+
+def test_porque_usa_virgula_decimal_e_a_lacuna_comeca_maiuscula() -> None:
+    """Número em pt-BR e frase com inicial maiúscula — as duas aparecem na tela da aluna.
+
+    Achado olhando o painel renderizado: no mesmo parágrafo saíam "61,6 %" (vírgula) e "banda de
+    62.9 p.p." (ponto), e a lacuna da probabilidade começava em minúscula mesmo sendo a primeira
+    palavra de um período. Detalhe pequeno que faz o produto parecer descuidado justamente onde
+    ele pede confiança.
+    """
+    materias = [
+        DesempenhoMateria(
+            materia="Noções de Direito Administrativo",
+            proporcao=intervalo_wilson(2, 3),
+            peso_questoes=1,
+        ),
+        DesempenhoMateria(materia="Noções de Informática", proporcao=None, peso_questoes=1),
+    ]
+    previsao = prever_nota(materias)
+
+    assert "p.p." in previsao.porque
+    assert not _TEM_PONTO_DECIMAL.search(previsao.porque), previsao.porque
+    assert previsao.probabilidade_lacuna is not None
+    assert previsao.probabilidade_lacuna[0].isupper(), previsao.probabilidade_lacuna

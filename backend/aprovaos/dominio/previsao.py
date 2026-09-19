@@ -94,6 +94,14 @@ def _comparacao_com_corte(nota_inferior: float, nota_superior: float, corte: flo
     return "em cima do corte histórico"
 
 
+def _decimal_ptbr(valor: float) -> str:
+    """Uma casa decimal com vírgula — o separador do português.
+
+    Sem isto o mesmo parágrafo da tela saía com `61,6 %` de um lado e `62.9 p.p.` do outro.
+    """
+    return f"{valor:.1f}".replace(".", ",")
+
+
 def prever_nota(
     materias: list[DesempenhoMateria],
     corte_historico_pct: float | None = None,
@@ -145,14 +153,14 @@ def prever_nota(
     )
     partes_porque = [
         f"{maior_peso.materia} pesa mais ({questoes_maior_peso}) e puxa a nota",
-        f"banda de {banda:.1f} p.p. com {cobertura * 100:.0f} % do peso da prova medido",
+        f"banda de {_decimal_ptbr(banda)} p.p. com {cobertura * 100:.0f} % do peso da prova medido",
     ]
     if sem_dado:
         partes_porque.append(f"sem dado ainda em {', '.join(sem_dado)}")
 
     if corte_historico_pct is None:
         probabilidade_lacuna: str | None = (
-            "não temos o corte histórico deste concurso, então não é possível estimar a "
+            "Não temos o corte histórico deste concurso, então não é possível estimar a "
             "probabilidade de aprovação"
         )
     else:

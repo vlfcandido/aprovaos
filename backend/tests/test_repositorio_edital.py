@@ -33,7 +33,11 @@ from aprovaos.dados.repositorio_edital import (
 )
 from aprovaos.dominio.conta import DadosCadastro
 from aprovaos.dominio.dna import montar_dna_por_regras
-from aprovaos.dominio.edital import MateriaExtraida, extrair_conteudo_programatico
+from aprovaos.dominio.edital import (
+    MateriaExtraida,
+    TopicoExtraido,
+    extrair_conteudo_programatico,
+)
 
 RAIZ = Path(__file__).resolve().parents[2]
 FIXTURE_MD = RAIZ / "docs/evidencias/2026-09-17-fase4-skills/fixtures/edital-assessor-gabinete.md"
@@ -253,3 +257,89 @@ def test_buscar_concurso_e_verticalizado(
     assert primeiro.texto_original == "1. Compreensão e interpretação de textos."
     assert primeiro.status == "não visto"
     assert lista[4].topicos[3].texto_original == "4. Licitações e contratos — Lei nº 14.133/2021."
+
+
+def test_slug_igual_com_conteudo_diferente_nao_funde_dois_editais(
+    db: Session, resultado: ResultadoDna, documento: DadosDocumento
+) -> None:
+    """Mesmo slug com matéria/nome diferentes vira dois tópicos, não um só.
+
+    O defeito real que este teste tranca (achado em 19/09/2026 no `dev.db`): o edital fictício de
+    Cascavel escreve `LÍNGUA PORTUGUESA` com o item "Compreensão e interpretação de textos." e o
+    edital real do TJ-PR escreve `Língua Portuguesa` com "Compreensão e interpretação de texto.".
+    Os dois produzem `lin-por-01-compreensao-interpretacao`; com get-or-create só por slug, o item
+    do edital **real** virava silenciosamente o tópico do edital **fictício** — conteúdo cruzando
+    entre editais sem a relação curada que a ADR-0041 existe para exigir.
+    """
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    caixa_alta = [
+        MateriaExtraida(
+            nome="LÍNGUA PORTUGUESA",
+            slug="lingua-portuguesa",
+            grupo=None,
+            topicos=[
+                TopicoExtraido(
+                    numero=1,
+                    texto_original="1. Compreensão e interpretação de textos.",
+                    slug="lin-por-01-compreensao-interpretacao",
+                )
+            ],
+        )
+    ]
+    titulo_caso = [
+        MateriaExtraida(
+            nome="Língua Portuguesa",
+            slug="lingua-portuguesa",
+            grupo=None,
+            topicos=[
+                TopicoExtraido(
+                    numero=1,
+                    texto_original="1. Compreensão e interpretação de texto.",
+                    slug="lin-por-01-compreensao-interpretacao",
+                )
+            ],
+        )
+    ]
+    registrar_edital(db, tenant_id, resultado, caixa_alta, documento)
+    registrar_edital(db, tenant_id, resultado, titulo_caso, documento)
+    db.commit()
+
+    topicos = list(db.scalars(select(Topico).order_by(Topico.criado_em)))
+    assert len(topicos) == 2, [(t.slug, t.materia, t.nome) for t in topicos]
+    assert topicos[0].slug == "lin-por-01-compreensao-interpretacao"
+    assert topicos[0].materia == "LÍNGUA PORTUGUESA"
+    assert topicos[0].nome == "Compreensão e interpretação de textos."
+    assert topicos[1].slug == "lin-por-01-compreensao-interpretacao-2"
+    assert topicos[1].materia == "Língua Portuguesa"
+    assert topicos[1].nome == "Compreensão e interpretação de texto."
+
+
+def test_slug_igual_com_conteudo_identico_continua_reaproveitando(
+    db: Session, resultado: ResultadoDna, documento: DadosDocumento
+) -> None:
+    """Identidade de verdade (mesma matéria, mesmo nome) continua compartilhando um tópico só.
+
+    A premissa D (vocabulário global) não morre: ela passa a valer para o que é realmente o mesmo
+    item, não para o que apenas colide de slug.
+    """
+    tenant_id = _tenant(db, "linda@exemplo.com")
+    materia = [
+        MateriaExtraida(
+            nome="Língua Portuguesa",
+            slug="lingua-portuguesa",
+            grupo=None,
+            topicos=[
+                TopicoExtraido(
+                    numero=1,
+                    texto_original="1. Compreensão e interpretação de texto.",
+                    slug="lin-por-01-compreensao-interpretacao",
+                )
+            ],
+        )
+    ]
+    registrar_edital(db, tenant_id, resultado, materia, documento)
+    registrar_edital(db, tenant_id, resultado, materia, documento)
+    db.commit()
+
+    assert _contar(db, Topico) == 1
+    assert _contar(db, TopicoEdital) == 2

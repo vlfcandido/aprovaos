@@ -106,13 +106,47 @@ def _peso_edital(valor: float | str) -> Decimal | None:
 
 
 def _obter_ou_criar_topico(db: Session, materia: MateriaExtraida, slug: str, texto: str) -> Topico:
-    """Get-or-create de `topico` por `slug` (premissa D: vocabulário global)."""
-    topico = db.scalars(select(Topico).where(Topico.slug == slug)).first()
-    if topico is None:
-        topico = Topico(materia=materia.nome, nome=_nome_do_topico(texto), slug=slug)
-        db.add(topico)
-        db.flush()
-    return topico
+    """Get-or-create de `topico` por **identidade**: slug mais matéria e nome iguais.
+
+    A premissa D (vocabulário global de tópico) continua valendo para o que é realmente o mesmo
+    item em dois editais — aí compartilhar a linha é o que faz o conteúdo ser reaproveitado. Ela
+    **não** vale para o que apenas colide de slug: dois editais diferentes escrevem o mesmo
+    assunto com palavras ligeiramente diferentes e caem no mesmo identificador.
+
+    O defeito real que esta função passou a impedir (achado em 19/09/2026 lendo o `dev.db`): o
+    edital fictício de Cascavel tem `LÍNGUA PORTUGUESA` / "Compreensão e interpretação de
+    textos." e o edital real do TJ-PR tem `Língua Portuguesa` / "Compreensão e interpretação de
+    texto."; os dois geram `lin-por-01-compreensao-interpretacao`, e o get-or-create só por slug
+    fazia o item do edital **real** virar, em silêncio, o tópico do edital **fictício** — com a
+    matéria e o nome do outro. É o mesmo mal que a ADR-0041 trata: conteúdo cruzando entre
+    editais **sem** relação curada. A ponte entre editais é `topico_relacao`, que é explícita e
+    tem evidência; nunca uma colisão de identificador.
+
+    Args:
+        db: sessão do request.
+        materia: a matéria do edital sendo registrado (dá `topico.materia`).
+        slug: o slug proposto por `dominio.edital.slug_topico`.
+        texto: o texto original do item (dá `topico.nome`, sem o número).
+
+    Returns:
+        O `Topico` existente quando slug, matéria e nome coincidem; senão um novo, com o slug
+        desambiguado por sufixo numérico (`…-2`, `…-3`) — estável e determinístico, porque o
+        slug é endereço de URL (`/topico/{slug}/questoes`).
+    """
+    nome = _nome_do_topico(texto)
+    candidato = slug
+    sufixo = 1
+    while True:
+        topico = db.scalars(select(Topico).where(Topico.slug == candidato)).first()
+        if topico is None:
+            topico = Topico(materia=materia.nome, nome=nome, slug=candidato)
+            db.add(topico)
+            db.flush()
+            return topico
+        if topico.materia == materia.nome and topico.nome == nome:
+            return topico
+        sufixo += 1
+        candidato = f"{slug}-{sufixo}"
 
 
 def registrar_edital(

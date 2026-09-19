@@ -1,24 +1,27 @@
-"""Construção determinística do `DossieTopico` (fundação jurídica, passo 3).
+"""Construção determinística do `DossieTopico` (fundação jurídica; jurisprudência na fatia 4).
 
-O que é: `montar_dossie(topico_slug, pedidos, normas_html, normas_url, hoje)`, função pura que
-monta o conteúdo de um dossiê (fontes com trecho literal e URL, log de buscas, lacunas
-declaradas) para um conjunto de dispositivos **pedidos** de uma ou mais normas, usando só
-`dominio.legislacao.extrair_artigo`/`localizar_trecho` sobre HTML já decodificado. **Nenhuma**
-chamada de rede, banco ou LLM acontece aqui — é a mesma disciplina de `motor.ancorar`, aplicada
-ao sentido inverso: em vez de "a questão cita este artigo, resolvo o trecho", aqui é "o tópico
-precisa deste artigo, o extrator confirma (ou declara lacuna)".
+O que é: `montar_dossie(topico_slug, pedidos, normas_html, normas_url, hoje, sumulas_pedidas,
+sumulas_texto, sumulas_url)`, função pura que monta o conteúdo de um dossiê (fontes com trecho
+literal e URL, log de buscas, lacunas declaradas) para um conjunto de dispositivos **pedidos**
+de uma ou mais normas e de súmulas do STF/STJ, usando só `dominio.legislacao.extrair_artigo`/
+`localizar_trecho` (normas) e texto de súmula já resolvido por `motor.fontes.sumulas_offline`
+(jurisprudência) — nunca lendo HTML/PDF diretamente. **Nenhuma** chamada de rede, banco ou LLM
+acontece aqui — é a mesma disciplina de `motor.ancorar`, aplicada ao sentido inverso: em vez de
+"a questão cita este artigo, resolvo o trecho", aqui é "o tópico precisa deste artigo/súmula, o
+extrator confirma (ou declara lacuna)".
 
 Este módulo é a prova de conceito de que o dossiê da skill `deep-research-topico`
-(`.claude/skills/deep-research-topico/SKILL.md`) pode ser alimentado por dispositivo real —
-nunca por "o assunto costuma envolver X". Um pedido que `dominio.legislacao.extrair_artigo`/
-`localizar_trecho` não resolve (`DispositivoNaoEncontrado`/`EstruturaNaoTratada`) vira
-`LacunaDossie` com o **trecho literal da exceção**, nunca é preenchido de memória. O `conteudo`
-gerado aqui é um esqueleto mecânico (concatenação de trechos citados, sem prosa de ligação
-gerada por IA) — a rodada é 100 % determinística; a prosa de aula de verdade é outro passo,
-fora do escopo desta fundação.
+(`.claude/skills/deep-research-topico/SKILL.md`) pode ser alimentado por dispositivo/súmula real
+— nunca por "o assunto costuma envolver X". Um pedido que não resolve (`DispositivoNaoEncontrado`/
+`EstruturaNaoTratada` para norma; texto ausente de `sumulas_texto` para súmula) vira
+`LacunaDossie` com o **motivo real**, nunca preenchido de memória. O `conteudo` gerado aqui é um
+esqueleto mecânico (concatenação de trechos citados, sem prosa de ligação gerada por IA) — a
+rodada é 100 % determinística; a prosa de aula de verdade é outro passo, fora do escopo desta
+fundação. Uma fonte de súmula não vira `DispositivoLegal` ainda (ADR-0039, `docs/fatias/
+4-dossies-de-topico.md` §1.3) — só a de norma (`dados.repositorio_dossie.salvar_dossie`).
 
-Quando ler: antes de montar o dossiê de um tópico novo; ao investigar por que um dispositivo
-pedido virou lacuna em vez de fonte.
+Quando ler: antes de montar o dossiê de um tópico novo; ao investigar por que um dispositivo ou
+uma súmula pedida virou lacuna em vez de fonte.
 """
 
 from datetime import date
@@ -26,7 +29,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from aprovaos.dominio.citacao import citacao_canonica
+from aprovaos.dominio.citacao import citacao_canonica, citacao_canonica_sumula
 from aprovaos.dominio.erros import DispositivoNaoEncontrado, EstruturaNaoTratada
 from aprovaos.dominio.legislacao import extrair_artigo, localizar_trecho
 
@@ -47,34 +50,66 @@ class PedidoDispositivo(BaseModel):
     paragrafo: str | None = None
 
 
+class PedidoSumula(BaseModel):
+    """Uma súmula pedida para o dossiê — jurisprudência, fonte primária (STF/STJ).
+
+    Ao contrário de `PedidoDispositivo`, a resolução de uma súmula não é offline "de graça": o
+    STF exige resolver o índice antes (`dominio.sumula.resolver_id_interno_stf`) e o STJ exige
+    ler o PDF único de verbetes (`dominio.sumula.extrair_sumulas_stj`) — os dois passos
+    acontecem **antes** de `montar_dossie` ser chamado (em `motor.fontes.sumulas_offline`), que
+    entrega aqui só o texto já resolvido, pela mesma `chave` que identifica o pedido.
+
+    Attributes:
+        chave: id estável da súmula (ex.: `"stf-sv-11"`, `"stf-sumula-473"`,
+            `"stj-sumula-98"`) — usado para localizar o texto e a URL em `sumulas_texto`/
+            `sumulas_url` de `montar_dossie`.
+        tribunal: `"stf"` ou `"stj"` — usado para rotular a citação canônica.
+        numero: número do verbete, como o tribunal publica.
+        vinculante: `True` quando é Súmula Vinculante do STF (rótulo `"SV"`); sempre `False`
+            para o STJ (que não tem esse instituto).
+    """
+
+    chave: str
+    tribunal: Literal["stf", "stj"]
+    numero: int
+    vinculante: bool = False
+
+
 class FonteDossie(BaseModel):
     """Uma fonte do dossiê (`## Fontes` da skill `deep-research-topico`).
 
     Já ligada ao dispositivo estrutural que a originou — é o que `dados.repositorio_dossie` usa
-    para gravar `dispositivo_legal`/`citacao` sem reprocessar HTML.
+    para gravar `dispositivo_legal`/`citacao` sem reprocessar HTML (só para `tipo="norma"`; uma
+    fonte `tipo="sumula"` fica só no dossiê nesta rodada, ver módulo `motor.dossie`).
 
     Attributes:
         id: identificador `F-n`, na ordem em que entrou no dossiê.
+        tipo: `"norma"` (dispositivo de lei, `dominio.legislacao`) ou `"sumula"`
+            (jurisprudência, `dominio.sumula`) — julgado fica para outra rodada.
         norma / artigo / inciso / paragrafo: a referência estrutural do pedido que gerou esta
-            fonte.
+            fonte, quando `tipo="norma"`; todos `None` para `tipo="sumula"` (uma súmula não tem
+            artigo/inciso/parágrafo — o número dela vive em `citacao_canonica`).
         citacao_canonica: a mesma string estável que `motor.ancorar` grava em
-            `dispositivo_legal.citacao_canonica` — o elo entre o dossiê e o catálogo.
-        url: URL de onde o texto foi coletado (Planalto).
-        trecho: texto literal vigente do trecho (nunca parafraseado).
-        tipo: sempre `"norma"` nesta rodada (súmula/julgado ficam para a próxima).
-        vigente: sempre `True` — `extrair_artigo` já descarta o texto revogado.
-        redacao_de: procedência da redação, quando o Planalto a informou.
+            `dispositivo_legal.citacao_canonica` quando `tipo="norma"` (o elo entre o dossiê e o
+            catálogo); para `tipo="sumula"`, o rótulo estável da súmula (ex.: `"STF SV 11"`,
+            `"STJ Súmula 98"`) — não corresponde a nenhuma linha de `dispositivo_legal` ainda.
+        url: URL de onde o texto foi coletado (Planalto para norma; STF/STJ para súmula).
+        trecho: texto literal vigente do trecho, ou o texto integral do verbete de súmula
+            (nunca parafraseado).
+        vigente: sempre `True` — tanto `extrair_artigo` quanto a resolução de súmula já
+            descartam o que não está vigente antes de chegar aqui.
+        redacao_de: procedência da redação (só normas; sempre `None` para súmula).
     """
 
     id: str
-    norma: str
-    artigo: str
-    inciso: str | None
-    paragrafo: str | None
+    tipo: Literal["norma", "sumula"] = "norma"
+    norma: str | None = None
+    artigo: str | None = None
+    inciso: str | None = None
+    paragrafo: str | None = None
     citacao_canonica: str
     url: str
     trecho: str
-    tipo: Literal["norma"] = "norma"
     vigente: bool = True
     redacao_de: str | None = None
 
@@ -137,6 +172,11 @@ def _rotulo_dispositivo(pedido: PedidoDispositivo) -> str:
     )
 
 
+def _rotulo_sumula(pedido: PedidoSumula) -> str:
+    """Rótulo legível de uma `PedidoSumula`, para `LacunaDossie.dispositivo`/`EntradaLogBusca`."""
+    return citacao_canonica_sumula(pedido.tribunal, pedido.numero, vinculante=pedido.vinculante)
+
+
 def montar_dossie(
     *,
     topico_slug: str,
@@ -144,24 +184,38 @@ def montar_dossie(
     normas_html: dict[str, str],
     normas_url: dict[str, str],
     hoje: date,
+    sumulas_pedidas: list[PedidoSumula] | None = None,
+    sumulas_texto: dict[str, str] | None = None,
+    sumulas_url: dict[str, str] | None = None,
 ) -> ConteudoDossie:
-    """Monta o conteúdo de um dossiê para os dispositivos `pedidos`, offline e sem LLM.
+    """Monta o conteúdo de um dossiê para os dispositivos/súmulas pedidos, offline e sem LLM.
 
     Args:
         topico_slug: o tópico a que este dossiê pertence (só para a frase de abertura do
             `conteudo`; a persistência de verdade do vínculo é `dossie_topico.topico_id`).
-        pedidos: os dispositivos que o tópico precisa, na ordem em que devem entrar no dossiê.
+        pedidos: os dispositivos de norma que o tópico precisa, na ordem em que devem entrar.
         normas_html: HTML já decodificado (`motor.fontes.planalto.decodificar_html`) de cada
             norma citada em `pedidos`, por id de norma; norma ausente daqui vira lacuna para
             todo pedido dela.
         normas_url: URL de origem de cada norma (para `FonteDossie.url`), por id de norma.
         hoje: a data a gravar em cada `EntradaLogBusca.data` (injetada, não `date.today()` —
             determinismo do teste).
+        sumulas_pedidas: as súmulas que o tópico precisa, na ordem em que devem entrar; `None`
+            (ou lista vazia) quando o tópico não pede jurisprudência.
+        sumulas_texto: texto integral já resolvido de cada súmula pedida, por `PedidoSumula.
+            chave` (resolvido por `motor.fontes.sumulas_offline` antes desta chamada — resolver
+            índice do STF ou ler o PDF do STJ é I/O, que não acontece aqui); chave ausente vira
+            lacuna para o pedido correspondente.
+        sumulas_url: URL de origem de cada súmula pedida, por `PedidoSumula.chave`.
 
     Returns:
-        O `ConteudoDossie` pronto para persistir — nunca levanta: todo pedido vira fonte ou
-        lacuna.
+        O `ConteudoDossie` pronto para persistir — nunca levanta: todo pedido (norma ou súmula)
+        vira fonte ou lacuna.
     """
+    sumulas_pedidas = sumulas_pedidas or []
+    sumulas_texto = sumulas_texto or {}
+    sumulas_url = sumulas_url or {}
+
     fontes: list[FonteDossie] = []
     lacunas: list[LacunaDossie] = []
     log_buscas: list[EntradaLogBusca] = []
@@ -204,6 +258,7 @@ def montar_dossie(
 
         fonte = FonteDossie(
             id=f"F{len(fontes) + 1}",
+            tipo="norma",
             norma=pedido.norma,
             artigo=pedido.artigo,
             inciso=pedido.inciso,
@@ -221,6 +276,42 @@ def montar_dossie(
                 consulta=rotulo,
                 ferramenta="extrair_artigo (offline)",
                 resultado="aberta: trecho encontrado",
+                data=hoje,
+            )
+        )
+
+    for m, pedido_sumula in enumerate(sumulas_pedidas, start=len(pedidos) + 1):
+        rotulo = _rotulo_sumula(pedido_sumula)
+        texto = sumulas_texto.get(pedido_sumula.chave)
+        if texto is None:
+            motivo = f"súmula {pedido_sumula.chave!r} sem texto resolvido nesta rodada"
+            lacunas.append(LacunaDossie(dispositivo=rotulo, motivo=motivo))
+            log_buscas.append(
+                EntradaLogBusca(
+                    n=m,
+                    consulta=rotulo,
+                    ferramenta="resolucao de sumula (offline)",
+                    resultado=f"falhou: {motivo}",
+                    data=hoje,
+                )
+            )
+            continue
+
+        fonte = FonteDossie(
+            id=f"F{len(fontes) + 1}",
+            tipo="sumula",
+            citacao_canonica=rotulo,
+            url=sumulas_url.get(pedido_sumula.chave, ""),
+            trecho=texto,
+            vigente=True,
+        )
+        fontes.append(fonte)
+        log_buscas.append(
+            EntradaLogBusca(
+                n=m,
+                consulta=rotulo,
+                ferramenta="resolucao de sumula (offline)",
+                resultado="aberta: texto integral encontrado",
                 data=hoje,
             )
         )

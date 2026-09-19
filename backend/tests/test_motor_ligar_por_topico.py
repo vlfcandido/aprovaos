@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.modelos import Citacao, DispositivoLegal, Questao, Topico
 from aprovaos.dados.repositorio_citacao import registrar_citacao
 from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dominio.dossie import ConteudoDossie
 from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
 from aprovaos.motor.dossie import SLUG_IMPROBIDADE, construir_dossie_improbidade
 from aprovaos.motor.ligar_por_topico import ligar_por_topico
@@ -61,10 +62,19 @@ def _questao(numero_item: int, enunciado: str, topico_slug: str | None) -> Quest
     )
 
 
+def _n_fontes_norma(conteudo: ConteudoDossie) -> int:
+    """Só as fontes `tipo="norma"` viram `dispositivo_legal` — as de `tipo="sumula"` (fatia 4)
+
+    não entram em `ligar_por_topico` ainda (plano §1.3).
+    """
+    return sum(1 for fonte in conteudo.fontes if fonte.tipo == "norma")
+
+
 def test_questoes_do_topico_sem_nenhuma_citacao_ganham_os_dispositivos_do_dossie(
     db: Session,
 ) -> None:
-    """As 2 questões do tópico (nenhuma citava artigo) ganham as fontes do dossiê pelo tópico."""
+    """As 2 questões do tópico (nenhuma citava artigo) ganham as fontes de norma do dossiê pelo
+    tópico (as duas súmulas da receita de improbidade, fatia 4, não entram por essa via)."""
     _topico_improbidade(db)
     _dossie, conteudo = construir_dossie_improbidade(db, hoje=date(2026, 9, 19))
     db.flush()
@@ -88,11 +98,12 @@ def test_questoes_do_topico_sem_nenhuma_citacao_ganham_os_dispositivos_do_dossie
 
     relatorio = ligar_por_topico(db)
 
+    n_norma = _n_fontes_norma(conteudo)
     assert relatorio.topicos_processados == 1
     assert relatorio.questoes_no_topico == 2
     assert relatorio.questoes_que_ganharam_dispositivo == 2
-    assert relatorio.citacoes_novas == 2 * len(conteudo.fontes)
-    assert db.query(Citacao).count() == 2 * len(conteudo.fontes)
+    assert relatorio.citacoes_novas == 2 * n_norma
+    assert db.query(Citacao).count() == 2 * n_norma
 
 
 def test_rodar_duas_vezes_e_idempotente(db: Session) -> None:
@@ -143,8 +154,8 @@ def test_questao_que_ja_tinha_citacao_por_texto_nao_conta_como_ganho_novo(db: Se
     relatorio = ligar_por_topico(db)
 
     assert relatorio.questoes_que_ganharam_dispositivo == 0
-    # a fonte "art. 1" já existia (não duplica); as outras (len(fontes) - 1) são novas:
-    assert relatorio.citacoes_novas == len(conteudo.fontes) - 1
+    # a fonte "art. 1" já existia (não duplica); as outras fontes de norma são novas:
+    assert relatorio.citacoes_novas == _n_fontes_norma(conteudo) - 1
 
 
 def test_topico_sem_dossie_nao_gera_ligacao(db: Session) -> None:

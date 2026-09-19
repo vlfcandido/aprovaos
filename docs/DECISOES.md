@@ -350,3 +350,41 @@ está provada contra um fixture escrito por um modelo para o próprio parser ler
 corrigidos aqui (mais os dois adicionais, hífen e marcador de seção) são o que faltava para ela
 valer contra edital de banca real, sem inventar tópico nem matéria — o mesmo padrão de disciplina
 da ADR-0036, agora aplicado à extração de matérias/tópicos, não só aos fatos avulsos do edital.
+
+## ADR-0039 — Fatia 4 (dossiês de tópico): peso medido, não declarado; súmula não vira `dispositivo_legal` ainda · 2026-09-19 · aceita (fatia 4)
+**Decisão 1 — "tópicos de maior peso" é medido, nunca estimado.** A spec pede os tópicos "de
+maior peso do edital dela" (PRD §6, linha 4). O parser determinístico do conteúdo programático
+não produz peso por tópico (só peso uniforme por matéria — lacuna já registrada na V2, P-39, e
+confirmada nos dois editais reais mapeados na V3b). Calcular peso por tópico como "peso da
+matéria ÷ nº de tópicos dela" seria uma estimativa vestida de fato — o que a skill
+`dna-do-concurso` já proíbe para o mesmo problema (`pct_uniforme` é lacuna declarada, nunca peso
+real). O critério adotado é **nº de questões publicáveis por tópico na base real** (curadoria da
+V3), descendente — `motor/dossie.py::topicos_de_maior_peso`. É o único número que a base tem
+hoje que não é inventado, ainda que meça "o que a Cebraspe cobrou nas provas já curadas", não
+necessariamente "o que a banca real da aluna vai cobrar" (mesma ressalva já registrada na V3 sobre
+o edital fictício de Cascavel/Unioeste, ADR-0027/P-17).
+**Alternativas:** peso uniforme por matéria ÷ tópicos (rejeitada — estimativa, não fato);
+esperar o parser de tabela de distribuição de pontos por tópico (rejeitada — bloquearia esta
+fatia inteira por um parser de escopo maior, P-39/P-42/P-43, sem previsão); perguntar ao dono um
+número arbitrário de tópicos "importantes" (rejeitada — não escala, e o produto promete decisão
+por dado, não por achismo).
+
+**Decisão 2 — súmula entra no dossiê, mas não vira `dispositivo_legal` nesta fatia.** A skill
+`deep-research-topico` pede jurisprudência (súmula com número, texto integral, URL) no dossiê.
+A tabela `dispositivo_legal` (migração 0005) é, pelo próprio contrato, "um dispositivo de
+**norma**" — forçar uma súmula nela (sem artigo/inciso reais) distorceria uma tabela que
+`motor.ancorar`/`motor.ligar_por_topico` já usam para outra coisa, e essas duas rotinas não têm,
+nesta fatia, tempo de revisão para uma mudança de contrato tão espalhada. `FonteDossie` ganhou
+`tipo: "norma"|"sumula"`; `dados.repositorio_dossie.salvar_dossie` só cria `dispositivo_legal`
+para `tipo="norma"`. A súmula fica gravada (auditável, com número/texto/URL) no JSON de
+`dossie_topico.fontes`, mas fora do alcance de `motor.ligar_por_topico` até uma fatia jurídica
+dedicada decidir como estender o contrato de `dispositivo_legal`/`Citacao` para jurisprudência.
+**Alternativas:** gravar a súmula como se fosse um "artigo" de uma "norma" fictícia em
+`dispositivo_legal` (rejeitada — mentira estrutural na tabela, o `artigo` de uma súmula não
+existe); adiar toda jurisprudência para depois (rejeitada — a spec e a skill pedem explicitamente
+súmula no dossiê desta fatia); criar uma tabela nova `sumula`/`dispositivo_jurisprudencial`
+agora (rejeitada — dimensionar o contrato certo exige saber primeiro como `Citacao`/justificativa
+vão consumir julgado além de súmula; prematuro com uma fatia de evidência só).
+**Por quê:** as duas decisões seguem a mesma régua — "lacuna declarada vale mais que fonte
+inventada" (skill) e "não extrapole o plano" (CLAUDE.md regra 9): peso medido é o que a base
+prova hoje; súmula fora de `dispositivo_legal` é o que o contrato atual suporta sem distorção.

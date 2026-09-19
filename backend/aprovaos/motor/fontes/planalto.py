@@ -97,12 +97,20 @@ CATALOGO: dict[str, NormaCatalogada] = {
         titulo="Lei nº 6.830, de 22 de setembro de 1980 — Execução Fiscal (texto compilado)",
         url="https://www.planalto.gov.br/ccivil_03/leis/l6830.htm",
     ),
+    "lei-13105-2015": NormaCatalogada(
+        titulo="Lei nº 13.105, de 16 de março de 2015 — Código de Processo Civil (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm",
+    ),
 }
 """As normas que esta fonte sabe baixar hoje — cresce por norma (ver docstring do módulo). As
-seis últimas entraram na rodada de ampliação do catálogo (19/09/2026), na ordem de nº de
-questões da base real que citam cada uma (medição em `motor/ancorar.py`): CLT (11), Lei
-8.429/1992 (5), Lei 6.404/1976 (3), Lei 11.101/2005 (3), Lei 11.340/2006 (3), Lei 6.830/1980
-(2)."""
+seis normas de `motor/ancorar.py` entraram na rodada de ampliação do catálogo (19/09/2026), na
+ordem de nº de questões da base real que citam cada uma: CLT (11), Lei 8.429/1992 (5), Lei
+6.404/1976 (3), Lei 11.101/2005 (3), Lei 11.340/2006 (3), Lei 6.830/1980 (2). O CPC (Lei
+13.105/2015) entrou na fatia 4 (dossiês de tópico) — é a norma do tópico de maior peso medido
+("Recursos: apelação, agravo, embargos", `dir-pro-civ-05-recursos-apelacao`) e revelou um
+achado próprio: artigos ≥ 1.000 são grafados pelo Planalto com ponto de milhar
+(`"Art. 1.009."`), o que exigiu corrigir `dominio.legislacao._padrao_caput` (ver
+`docs/fatias/4-dossies-de-topico.md` §2)."""
 
 
 class _RespostaHttp(Protocol):

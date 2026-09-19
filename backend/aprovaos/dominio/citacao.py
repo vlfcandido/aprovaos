@@ -87,6 +87,7 @@ LABEL_NORMA: dict[str, str] = {
     "lei-11101-2005": "Lei 11.101/2005",
     "lei-11340-2006": "Lei 11.340/2006",
     "lei-6830-1980": "Lei 6.830/1980",
+    "lei-13105-2015": "Lei 13.105/2015",
 }
 """Rótulo legível de `citacao_canonica` para as normas do catálogo (`motor.fontes.planalto.
 CATALOGO`); para as demais (lacuna), o próprio id (`ReferenciaLegal.norma`) já é um rótulo
@@ -311,3 +312,25 @@ def citacao_canonica(
     if inciso is not None:
         partes.append(inciso)
     return " ".join(partes)
+
+
+def citacao_canonica_sumula(tribunal: str, numero: int, *, vinculante: bool = False) -> str:
+    """Monta o rótulo estável de uma súmula para `FonteDossie.citacao_canonica` (fatia 4).
+
+    Mesma função de `citacao_canonica`, para jurisprudência em vez de lei — usada por
+    `dominio.dossie.montar_dossie` para rotular uma `PedidoSumula` resolvida. Ao contrário de
+    `citacao_canonica`, esta string **não** corresponde hoje a nenhuma linha de
+    `dispositivo_legal` (decisão da fatia 4: súmula fica só no dossiê, não é ancorada a questão
+    ainda) — é só o rótulo de exibição, estável por si.
+
+    Args:
+        tribunal: `"stf"` ou `"stj"`.
+        numero: número do verbete, como o tribunal publica.
+        vinculante: `True` para uma Súmula Vinculante do STF (rótulo `"SV"`).
+
+    Returns:
+        `"STF Súmula 473"`, `"STF SV 11"` ou `"STJ Súmula 98"`.
+    """
+    orgao = "STF" if tribunal == "stf" else "STJ"
+    tipo = "SV" if vinculante else "Súmula"
+    return f"{orgao} {tipo} {numero}"

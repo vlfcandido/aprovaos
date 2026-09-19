@@ -87,3 +87,12 @@ class EstruturaNaoTratada(ErroDominio):
     qualquer inciso ou parágrafo a que ela possa pertencer. Melhor parar e mostrar o trecho cru
     do que gerar uma hierarquia inventada (o mesmo princípio de `SegmentacaoAmbigua`).
     """
+
+
+class SumulaNaoEncontrada(ErroDominio):
+    """A súmula pedida não resolveu (`dominio/sumula.py`).
+
+    Número ausente do índice/PDF, página de tribunal errada, ou verbete marcado como
+    cancelado/superado no índice do STF — nunca devolvida como se fosse vigente. Cobre STF
+    (índice + página) e STJ (PDF único de verbetes).
+    """

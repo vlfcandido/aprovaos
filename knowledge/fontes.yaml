@@ -43,3 +43,37 @@
   verificado_em: 2026-09-19
   evidencia: knowledge/fixtures/juridico/constituicao_planalto_compilada.htm
   status: ativa
+
+- id: stf-sumulas
+  nome: Supremo Tribunal Federal (portal.stf.jus.br) — súmulas e súmulas vinculantes
+  url_lista: "índice por base — https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=30 (súmulas comuns) e ?base=26 (vinculantes); cada item do índice é `sumariosumulas.asp?base=<base>&sumula=<id-interno>` — o `<id-interno>` não é o número da súmula, precisa resolver pelo texto do link antes de montar a URL da súmula individual (`dominio.sumula.resolver_id_interno_stf`)"
+  formato: html
+  o_que_publica: [sumula]
+  identidade_do_item: "`<id-interno>` da URL (não muda entre coletas); não há varredura de novidade nesta fatia — as súmulas pedidas são escolhidas por quem monta a receita do dossiê (`motor/dossie.py::RECEITAS`), não descobertas por polling"
+  robots_txt: "permite (lido em 19/09/2026: `GET https://portal.stf.jus.br/robots.txt` → `Disallow: /processos` só; `/jurisprudencia/sumariosumulas.asp` não está bloqueado)"
+  termos_de_uso: "não verificado nesta tarefa (mesma situação do Planalto — só Cebraspe/FGV tiveram termos checados até agora, P-11/P-13)"
+  politica_coleta:
+    frequencia: sob demanda (súmula não muda de texto; nova súmula é rara)
+    user_agent: "Mozilla/5.0 (compatible; AprovaOS-coletor/0.1; +contato: vlfcandido@gmail.com) (ADR-0037 — sem UA de navegador/híbrido, o STF devolve 403 nas páginas de súmula, medido em `.superpowers/sdd/V3b-multipla-escolha/fontes-juridicas-report.md`)"
+    sem_login: true
+    cache: nenhum
+  verificado_em: 2026-09-19
+  evidencia: knowledge/fixtures/juridico/stf_sumula_vinculante_11.html
+  status: ativa
+
+- id: stj-sumulas
+  nome: Superior Tribunal de Justiça (scon.stj.jus.br) — súmulas, PDF único de verbetes
+  url_lista: "https://scon.stj.jus.br/docs_internet/jurisprudencia/tematica/download/SU/Verbetes/VerbetesSTJ.pdf — um único PDF com todos os enunciados (vigentes e cancelados, marcados); não há índice separado, o número já está no texto de cada verbete"
+  formato: pdf
+  o_que_publica: [sumula]
+  identidade_do_item: "número da súmula, extraído do próprio texto do PDF (`dominio.sumula.extrair_sumulas_stj`) — não há item novo por varredura nesta fatia, mesma observação da ficha `stf-sumulas`"
+  robots_txt: "inexistente (checado em 19/09/2026: `GET https://scon.stj.jus.br/robots.txt` devolve 404 — mesma situação do Planalto)"
+  termos_de_uso: "não verificado nesta tarefa"
+  politica_coleta:
+    frequencia: sob demanda (o PDF é atualizado pelo STJ conforme novas súmulas saem; sem varredura periódica nesta rodada)
+    user_agent: "AprovaOS-coletor/0.1 (+contato: vlfcandido@gmail.com) (sem exigência de UA de navegador medida nesta fonte, ao contrário do STF/Planalto)"
+    sem_login: true
+    cache: nenhum
+  verificado_em: 2026-09-19
+  evidencia: knowledge/fixtures/juridico/stj_sumulas_verbetes.pdf
+  status: ativa

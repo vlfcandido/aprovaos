@@ -106,7 +106,12 @@ _PADRAO_ANOTACAO = re.compile(
 # aparece dezenas de vezes em frases de verdade (ex.: "a data de vigência desta Lei") e não pode
 # ser removida — por isso este padrão é sensível a maiúscula/minúscula (sem `re.IGNORECASE`).
 _PADRAO_VIGENCIA_SEM_PARENTESES = re.compile(r"\bVig[eê]ncia\b")
-_PADRAO_INICIO_ARTIGO_QUALQUER = re.compile(r"^Art\.\s*\d+[ºo]?\.?(?!\d)")
+_NUMERO_ARTIGO_COM_MILHAR = r"\d{1,3}(?:\.\d{3})*"
+"""Um número de artigo como o Planalto grafa, inclusive com ponto de milhar a partir de 1.000
+(medido: `lei13105_planalto_compilada.htm` — CPC/2015 — escreve `"Art. 1.009."`, nunca `"Art.
+1009."`; sem isso, `_PADRAO_INICIO_ARTIGO_QUALQUER` não reconhece o início de um artigo de 4
+dígitos como fronteira, e `_padrao_caput` não o acha de jeito nenhum)."""
+_PADRAO_INICIO_ARTIGO_QUALQUER = re.compile(rf"^Art\.\s*{_NUMERO_ARTIGO_COM_MILHAR}[ºo]?\.?(?!\d)")
 _PADRAO_PARAGRAFO = re.compile(r"^(§\s*\d+[ºo]?\.?|Par[aá]grafo único\.?)\s")
 _PADRAO_INCISO = re.compile(r"^([IVXLCDM]+)\s*[-–]\s")
 _PADRAO_ALINEA = re.compile(r"^([a-z])\)\s")
@@ -130,10 +135,28 @@ def _eh_titulo_estrutural(texto: str) -> bool:
     return any(c.isalpha() for c in texto) and texto == texto.upper()
 
 
+def _com_pontuacao_de_milhar(numero: str) -> str:
+    """`"1009"` → `"1.009"`; `"37"` → `"37"` (sem alteração abaixo de 1.000).
+
+    `extrair_artigo` sempre recebe o número normalizado, só dígitos (o mesmo formato que
+    `dominio.citacao._normalizar_numero` produz de uma citação em texto) — mas o Planalto grafa
+    artigos de 4+ dígitos com ponto de milhar (`"Art. 1.009."`). Esta função gera essa grafia
+    para `_padrao_caput` tentar as duas formas; não afeta números com menos de 4 dígitos.
+    """
+    if len(numero) <= 3:
+        return numero
+    return f"{numero[:-3]}.{numero[-3:]}"
+
+
 def _padrao_caput(numero: str) -> re.Pattern[str]:
-    """Monta o padrão do caput do artigo `numero` (ex.: `"Art. 37."`, `"Art. 6º"`)."""
-    numero_escapado = re.escape(numero)
-    return re.compile(rf"^Art\.\s*{numero_escapado}[ºo]?\.?(?!\d)\s")
+    """Monta o padrão do caput do artigo `numero`.
+
+    Ex.: `"Art. 37."`, `"Art. 6º"`, `"Art. 1.009."` — a última com o ponto de milhar do
+    Planalto para números de 4+ dígitos (ver `_com_pontuacao_de_milhar`).
+    """
+    variantes = {numero, _com_pontuacao_de_milhar(numero)}
+    alternativas = "|".join(re.escape(variante) for variante in variantes)
+    return re.compile(rf"^Art\.\s*(?:{alternativas})[ºo]?\.?(?!\d)\s")
 
 
 def _texto_do_paragrafo(bloco_html: str) -> tuple[str, str | None] | None:

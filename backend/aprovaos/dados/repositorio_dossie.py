@@ -1,11 +1,16 @@
 """Repositório de `dossie_topico`: versionamento por tópico (fundação jurídica, passo 3).
 
 `salvar_dossie` grava a linha do dossiê na próxima versão do tópico (`proxima_versao`) e,
-para cada `FonteDossie`, reaproveita
+para cada `FonteDossie` de `tipo="norma"`, reaproveita
 `dados.repositorio_citacao.buscar_ou_criar_dispositivo` (mesma dedup por `citacao_canonica` que
 `motor.ancorar` usa) — assim o dossiê e a ancoragem por texto sempre apontam para o mesmo
-`DispositivoLegal` quando citam o mesmo dispositivo. Quem chama decide o `commit`; aqui só há
-`add`/`flush`, como o resto dos repositórios.
+`DispositivoLegal` quando citam o mesmo dispositivo. Uma `FonteDossie` de `tipo="sumula"`
+(fatia 4, jurisprudência) **não** vira `DispositivoLegal` — essa tabela é, pelo próprio contrato
+(migração 0005), "um dispositivo de norma"; a súmula fica gravada no JSON de
+`dossie_topico.fontes` (com número, texto integral e URL), auditável, mas fora do alcance de
+`motor.ligar_por_topico` nesta rodada (decisão registrada em `docs/fatias/4-dossies-de-topico
+.md` §1.3). Quem chama decide o `commit`; aqui só há `add`/`flush`, como o resto dos
+repositórios.
 
 Quando ler: ao ligar o comando `motor/dossie.py`, ou ao investigar uma versão de dossiê que não
 incrementou.
@@ -64,6 +69,9 @@ def salvar_dossie(db: Session, *, topico_id: UUID, conteudo: ConteudoDossie) -> 
     db.flush()
 
     for fonte in conteudo.fontes:
+        if fonte.tipo != "norma":
+            continue  # súmula (fatia 4): fica só no dossiê, não vira `dispositivo_legal` ainda
+        assert fonte.norma is not None and fonte.artigo is not None  # garantido por `tipo="norma"`
         buscar_ou_criar_dispositivo(
             db,
             citacao_canonica=fonte.citacao_canonica,

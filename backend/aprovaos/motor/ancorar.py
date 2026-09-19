@@ -59,6 +59,7 @@ FIXTURES_OFFLINE: dict[str, str] = {
     "lei-11101-2005": "lei11101_planalto_compilada.htm",
     "lei-11340-2006": "lei11340_planalto_compilada.htm",
     "lei-6830-1980": "lei6830_planalto_compilada.htm",
+    "lei-13105-2015": "lei13105_planalto_compilada.htm",
 }
 """As normas do catálogo que esta rodada resolve — offline, do HTML medido em
 `knowledge/fixtures/juridico/` (ver `LEIA-ME.md` de lá). Uma norma nova no `CATALOGO` só entra

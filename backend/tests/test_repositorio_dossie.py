@@ -99,3 +99,41 @@ def test_salvar_dossie_nao_duplica_dispositivo_ja_existente(db: Session) -> None
 def test_proxima_versao_e_1_quando_nao_ha_dossie_do_topico(db: Session) -> None:
     topico = _topico(db)
     assert proxima_versao(db, topico.id) == 1
+
+
+def _conteudo_com_sumula() -> ConteudoDossie:
+    """Uma fonte `tipo="norma"` e uma `tipo="sumula"` — só a primeira deve virar
+    `dispositivo_legal` (fatia 4, §1.3 do plano)."""
+    conteudo = _conteudo()
+    fonte_sumula = FonteDossie(
+        id="F2",
+        tipo="sumula",
+        citacao_canonica="STJ Súmula 651",
+        url=(
+            "https://scon.stj.jus.br/docs_internet/jurisprudencia/tematica/download/SU/"
+            "Verbetes/VerbetesSTJ.pdf"
+        ),
+        trecho=(
+            "Compete à autoridade administrativa aplicar a servidor público a pena de demissão "
+            "em razão da prática de improbidade administrativa, independentemente de prévia "
+            "condenação, por autoridade judiciária, à perda da função pública."
+        ),
+        vigente=True,
+    )
+    return conteudo.model_copy(update={"fontes": [*conteudo.fontes, fonte_sumula]})
+
+
+def test_salvar_dossie_nao_cria_dispositivo_legal_para_fonte_de_sumula(db: Session) -> None:
+    """Uma fonte `tipo="sumula"` fica no JSON de `dossie_topico.fontes`, mas não vira
+    `dispositivo_legal` — essa tabela é, por contrato, só de dispositivo de norma."""
+    topico = _topico(db)
+
+    dossie = salvar_dossie(db, topico_id=topico.id, conteudo=_conteudo_com_sumula())
+    db.flush()
+
+    assert len(dossie.fontes) == 2
+    assert dossie.fontes[1]["tipo"] == "sumula"
+    assert dossie.fontes[1]["citacao_canonica"] == "STJ Súmula 651"
+    # só a fonte de norma (F1) virou dispositivo_legal — a súmula (F2), não:
+    assert db.query(DispositivoLegal).count() == 1
+    assert db.query(DispositivoLegal).one().citacao_canonica == "Lei 8.429/1992 art. 1 § 1º"

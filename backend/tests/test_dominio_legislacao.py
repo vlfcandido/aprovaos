@@ -21,6 +21,7 @@ def _ler(nome: str) -> str:
 
 HTML_CF = _ler("constituicao_planalto_compilada.htm")
 HTML_LEI_14133 = _ler("lei14133_planalto_compilada.htm")
+HTML_CPC = _ler("lei13105_planalto_compilada.htm")
 
 
 def test_caput_do_artigo_37_e_o_vigente_pela_ec19_nao_o_revogado() -> None:
@@ -226,3 +227,38 @@ def test_localizar_trecho_inciso_inexistente_levanta_dispositivo_nao_encontrado(
 
     with pytest.raises(DispositivoNaoEncontrado):
         localizar_trecho(artigo, inciso="XCIX")
+
+
+def test_artigo_com_numero_de_quatro_digitos_usa_separador_de_milhar_no_planalto() -> None:
+    """O CPC (Lei 13.105/2015) escreve `"Art. 1.009."` — com ponto de milhar —, não `"Art.
+    1009."`; `extrair_artigo` recebe o número normalizado (`"1009"`, sem pontuação, o mesmo
+    formato que `dominio.citacao` produz) e precisa reconhecer essa grafia mesmo assim. Achado
+    desta fatia (dossiês de tópico): sem este tratamento, todo artigo >= 1000 de qualquer norma
+    catalogada vira `DispositivoNaoEncontrado` por engano — não porque o artigo não exista, mas
+    porque a regex do caput comparava dígitos crus contra o texto pontuado do Planalto.
+    """
+    artigo = extrair_artigo(HTML_CPC, "1009")
+
+    assert artigo.caput.texto == "Art. 1.009. Da sentença cabe apelação."
+    assert [p.identificador for p in artigo.paragrafos] == ["§ 1º", "§ 2º", "§ 3º"]
+
+
+def test_artigo_de_quatro_digitos_para_no_proximo_artigo_tambem_pontuado() -> None:
+    """O `fim` do art. 1.009 é o início do art. 1.010 (também com separador de milhar) — os três
+    parágrafos do 1.009 não vazam para o artigo seguinte, nem o § 3º dele (que cita "art. 1.015"
+    em prosa) é confundido com um novo artigo."""
+    artigo = extrair_artigo(HTML_CPC, "1009")
+
+    assert "apelação, interposta por petição" not in artigo.paragrafos[-1].texto
+    ultimo_paragrafo = artigo.paragrafos[-1]
+    assert "art. 1.015" in ultimo_paragrafo.texto  # citação em prosa, não é um 4º artigo
+
+
+def test_artigo_1010_do_cpc_e_o_seguinte_ao_1009_nao_o_mesmo_caput() -> None:
+    """Confirma que o próximo artigo de quatro dígitos também resolve — não é sorte do 1.009."""
+    artigo = extrair_artigo(HTML_CPC, "1010")
+
+    assert artigo.caput.texto == (
+        "Art. 1.010. A apelação, interposta por petição dirigida ao juízo de primeiro grau, "
+        "conterá:"
+    )

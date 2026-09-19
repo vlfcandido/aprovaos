@@ -1,0 +1,100 @@
+<!-- O que é: a tela «Certo ou errado, no padrão da banca.» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-questoes">
+        <div class="screen-head">
+          <span class="eyebrow">7 · Questões e revisão</span>
+          <h1>Certo ou errado, no padrão da banca.</h1>
+          <p>Itens originais das provas, com banca, ano e número — e "inédita validada" só quando não existe original. Cada um com a justificativa dos dois lados. Errou? Um toque cria o cartão. Fique parada num item ou saia da aba e um aviso discreto aparece — sem culpa. <span class="chip novo">pedido da Linda</span></p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: cartões de certo e errado, com um check verde e um lápis">
+<g class="float"><rect x="30" y="34" width="80" height="96" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="70" y="82" text-anchor="middle" font-family="Sora, sans-serif" font-size="40" font-weight="700" fill="var(--good)">C</text><circle cx="96" cy="48" r="9" fill="var(--good-soft)"/><path d="M92 48 l3 3 l6 -7" fill="none" stroke="var(--good)" stroke-width="2"/></g>
+<g class="float" style="animation-delay:.6s"><rect x="130" y="34" width="80" height="96" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="170" y="82" text-anchor="middle" font-family="Sora, sans-serif" font-size="40" font-weight="700" fill="var(--ink-3)">E</text></g>
+<g transform="rotate(-30 190 130)"><rect x="176" y="120" width="60" height="12" rx="3" fill="var(--why)"/><path d="M236 120 l10 6 l-10 6z" fill="var(--ink)"/><rect x="176" y="120" width="8" height="12" rx="2" fill="var(--ink-3)"/></g>
+<text x="120" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--ink-3)">1 errado anula 1 certo</text>
+</svg></figure>
+        </div>
+
+        <div class="grid-sb">
+          <div class="stack" style="gap:16px">
+            <div class="card stack" style="gap:10px">
+              <div class="row between"><div class="row"><span class="eyebrow">Lista de hoje</span><span class="mono small" id="q-timer" data-info="Tempo neste item. A banca dá cerca de 2 min por item.">00:00</span></div><span class="small muted">atalhos: <kbd class="kbd">C</kbd> certo · <kbd class="kbd">E</kbd> errado</span></div>
+              <div class="dots" id="dots" aria-label="Progresso da lista"></div>
+            </div>
+            <div class="card stack" style="gap:14px">
+              <div class="row between"><span class="small muted">Item <b class="mono">7</b> de <b class="mono">20</b> · Controle Externo</span><div class="row"><span class="chip good">Original da prova</span><span class="chip novo">pedido da Linda</span></div></div>
+              <p class="small muted mono">Cebraspe · TCU · Auditor Federal de Controle Externo · 2021 · item 34 · gabarito oficial</p>
+              <p class="question" data-conteudo="q-tcu-2021-34">Compete ao Tribunal de Contas da União sustar, se não atendido, a execução do ato impugnado, comunicando a decisão à Câmara dos Deputados e ao Senado Federal.</p>
+              <div class="row between"><span class="small muted">Antes de marcar:</span><div class="seg sm" role="radiogroup" data-conf="ce-q1"><button type="button" data-v="certeza" aria-checked="true">Tenho certeza</button><button type="button" data-v="duvida">Estou em dúvida</button></div></div>
+              <div class="ce" id="ce-q1"><button data-ans="C">Certo</button><button data-ans="E">Errado</button></div>
+              <div id="ce-q1-fb" hidden class="stack">
+                <div id="ce-q1-res"></div>
+                <table>
+                  <tr><td><b>Se marcou Certo</b></td><td>É a redação literal do art. 71, X. Sustar <em>ato</em> é competência direta do TCU.</td></tr>
+                  <tr><td><b>Se marcou Errado</b></td><td>Provavelmente confundiu com <em>contrato</em>: aí a sustação é do Congresso (§1º). A banca cobra essa distinção em quase toda prova.</td></tr>
+                </table>
+                <div class="row"><span class="cite">CF/88, art. 71, X</span><span class="cite">CF/88, art. 71, §1º</span><button class="btn sm" id="mk-card">Criar cartão de revisão</button></div>
+              </div>
+            </div>
+
+            <div class="card stack" style="gap:14px">
+              <div class="row between"><span class="small muted">Item <b class="mono">8</b> de <b class="mono">20</b> · Controle Externo</span><span class="chip">Inédita · validada em 12/09 · sem original neste recorte</span></div>
+              <p class="question" data-conteudo="q-inedita-71p3">As decisões do TCU de que resulte imputação de débito ou multa dependem de homologação pelo Congresso Nacional para adquirir eficácia de título executivo.</p>
+              <div class="row between"><span class="small muted">Antes de marcar:</span><div class="seg sm" role="radiogroup" data-conf="ce-q2"><button type="button" data-v="certeza" aria-checked="true">Tenho certeza</button><button type="button" data-v="duvida">Estou em dúvida</button></div></div>
+              <div class="ce" id="ce-q2"><button data-ans="C">Certo</button><button data-ans="E">Errado</button></div>
+              <div id="ce-q2-fb" hidden class="stack">
+                <div id="ce-q2-res"></div>
+                <p class="small">A eficácia de título executivo decorre diretamente da Constituição, sem homologação de ninguém. "Dependem de homologação" é a inversão inserida.</p>
+                <div class="row"><span class="cite">CF/88, art. 71, §3º</span></div>
+              </div>
+            </div>
+
+            <div class="card stack" style="gap:14px; border-color: var(--accent)">
+              <div class="row between"><span class="small muted">Item <b class="mono">9</b> de <b class="mono">20</b> · Direito Constitucional <span class="chip accent">tema de 12 dias atrás</span></span><span class="chip good">Original da prova</span></div>
+              <div class="fio">
+                <span class="tag">Fio da memória</span>
+                <p>Entrou de propósito no bloco de Controle Externo: é o tema que a aula de hoje citou. Três itens desta lista são assim — de temas já vistos, para não escapar.</p>
+                <span></span>
+              </div>
+              <p class="small muted mono">Cebraspe · TCU · AUFC · 2024 · item 77 · gabarito oficial</p>
+              <p class="question" data-conteudo="q-tcu-2024-77">Conforme entendimento atual do STF, o Tribunal de Contas da União pode, no exercício de suas atribuições, afastar a aplicação de lei que considere inconstitucional.</p>
+              <div class="row between"><span class="small muted">Antes de marcar:</span><div class="seg sm" role="radiogroup" data-conf="ce-q3"><button type="button" data-v="certeza" aria-checked="true">Tenho certeza</button><button type="button" data-v="duvida">Estou em dúvida</button></div></div>
+              <div class="ce" id="ce-q3"><button data-ans="C">Certo</button><button data-ans="E">Errado</button></div>
+              <div id="ce-q3-fb" hidden class="stack">
+                <div id="ce-q3-res"></div>
+                <p class="small">Era o que dizia a Súmula 347/STF, mas em 2023 o Supremo superou esse entendimento: o TCU não pode declarar inconstitucionalidade nem afastar lei. Item clássico de "jurisprudência recente" da Cebraspe.</p>
+                <div class="row"><span class="cite">STF, MS 35.410 (2023)</span><span class="cite">Súmula 347/STF (superada)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card stack" style="gap:12px">
+              <div class="row between"><span class="eyebrow">Revisão espaçada</span><span class="chip">18 vencidos hoje</span></div>
+              <div class="flash" id="flash">
+                <div class="inner">
+                  <div class="face front"><span class="small muted">Direito Constitucional</span><b>Quem julga as contas anuais do Presidente da República?</b><span class="small muted">clique para virar</span></div>
+                  <div class="face back"><b>O Congresso Nacional</b><span class="small">CF, art. 49, IX. O TCU só <em>aprecia</em>, com parecer prévio em 60 dias (art. 71, I).</span><span class="small" style="color:var(--why)" id="flash-mnemo">Macete: "A antes de J" — TCU Aprecia, Congresso Julga.</span></div>
+                </div>
+              </div>
+              <div class="fsrs" id="fsrs">
+                <button data-r="Errei"><span>Errei</span><small>10 min</small></button>
+                <button data-r="Difícil"><span>Difícil</span><small>2 dias</small></button>
+                <button data-r="Bom"><span>Bom</span><small>6 dias</small></button>
+                <button data-r="Fácil"><span>Fácil</span><small>14 dias</small></button>
+              </div>
+              <p class="small muted" id="fsrs-out">Os intervalos vêm do FSRS, ajustados ao seu histórico com este tema.</p>
+            </div>
+            <div class="card stack">
+              <span class="eyebrow">Hoje nesta lista</span>
+              <div class="row between"><span class="small">Acertos</span><span class="mono" id="st-ac">5 de 6</span></div>
+              <div class="bar good"><i id="st-bar" style="width:83%"></i></div>
+              <div class="row between"><span class="small">Líquidos (certos − errados)</span><span class="mono" id="st-liq">4</span></div>
+              <div class="row between"><span class="small">Tempo médio por item</span><span class="mono" id="st-t">48 s</span></div>
+              <div class="row between"><span class="small">"Certeza" que virou erro</span><span class="mono" id="st-conf" data-info="Erro com certeza é o que mais custa na Cebraspe: você marcaria na prova. Dúvida que vira erro você deixaria em branco.">0</span></div>
+              <p class="small muted">A banca dá cerca de 2 min por item. Você está bem abaixo — bom sinal, desde que a taxa de erro não suba.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: como isso vira previsão</span><button class="btn primary" data-go="painel">Ver o painel</button></div>
+      </section>

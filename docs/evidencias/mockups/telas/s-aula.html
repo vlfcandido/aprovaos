@@ -1,0 +1,106 @@
+<!-- O que é: a tela «Competências do TCU (art. 71 da CF)» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-aula">
+        <div class="screen-head">
+          <span class="eyebrow">6 · Aula do dia</span>
+          <h1>Competências do TCU (art. 71 da CF)</h1>
+          <p>A mesma aula em três formatos: densa para estudar, em áudio para o trajeto, leiga para entender de primeira. Toda afirmação aponta para a fonte — clique e a lei abre.</p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: livro aberto, ondas de áudio e uma lâmpada acesa">
+<path d="M30 40 q45 -12 90 0 v84 q-45 -12 -90 0z" fill="var(--surface)" stroke="var(--line)"/><path d="M120 40 q45 -12 90 0 v84 q-45 -12 -90 0z" fill="var(--surface)" stroke="var(--line)"/><line x1="120" y1="40" x2="120" y2="124" stroke="var(--line)"/>
+<g stroke="var(--line)" stroke-width="4" stroke-linecap="round"><line x1="44" y1="58" x2="104" y2="52"/><line x1="44" y1="72" x2="96" y2="67"/><line x1="44" y1="86" x2="104" y2="81"/><line x1="44" y1="100" x2="84" y2="96"/><line x1="136" y1="52" x2="196" y2="58"/><line x1="136" y1="67" x2="180" y2="71"/></g>
+<rect x="44" y="70" width="40" height="6" rx="2" fill="#FFE58F" opacity=".9"/>
+<g class="wave-art" fill="var(--accent)"><rect x="140" y="88" width="5" height="16" rx="2"/><rect x="150" y="80" width="5" height="32" rx="2"/><rect x="160" y="84" width="5" height="24" rx="2"/><rect x="170" y="76" width="5" height="40" rx="2"/><rect x="180" y="86" width="5" height="20" rx="2"/><rect x="190" y="82" width="5" height="28" rx="2"/></g>
+<g class="float"><circle cx="200" cy="30" r="16" fill="var(--why-soft)"/><path d="M200 14 a12 12 0 0 1 6 22 v4 h-12 v-4 a12 12 0 0 1 6 -22z" fill="var(--why)"/><rect x="195" y="42" width="10" height="4" rx="1" fill="var(--ink)"/></g>
+</svg></figure>
+        </div>
+
+        <div class="grid-sb">
+          <div class="card stack" style="gap:16px">
+            <div class="aula-tools">
+              <div class="row"><span class="small muted">Leitura</span><div class="progress" style="width:140px"><i id="read-bar" style="width:0%"></i></div><span class="mono small" id="read-pct">0%</span><span class="small muted">· ~6 min</span></div>
+              <div class="row" style="gap:4px"><button class="btn sm" type="button" data-font="-1" aria-label="Diminuir letra">A−</button><button class="btn sm" type="button" data-font="1" aria-label="Aumentar letra">A+</button></div>
+            </div>
+            <div class="tabs" role="tablist">
+              <button role="tab" aria-selected="true" data-tab="denso">Texto denso</button>
+              <button role="tab" aria-selected="false" data-tab="leigo">Versão leiga</button>
+              <button role="tab" aria-selected="false" data-tab="audio">Áudio · 11:42</button>
+            </div>
+            <div class="tab-panel active" id="tab-denso">
+              <div class="prose" data-conteudo="aula-tcu-art71-denso">
+                <p>O controle externo é exercido pelo Congresso Nacional <b>com o auxílio</b> do TCU <span class="cite">CF, art. 71, caput</span>. A palavra "auxílio" é decisiva: o Tribunal não é órgão do Legislativo nem subordinado a ele — é órgão autônomo com competências próprias, listadas nos incisos do art. 71.</p>
+                <h3>As competências que a banca inverte</h3>
+                <p><b>Contas do Presidente: apreciar, não julgar.</b> O TCU emite parecer prévio em 60 dias <span class="cite">art. 71, I</span>; o julgamento é do Congresso <span class="cite">art. 49, IX</span>. Já as contas dos <b>demais administradores</b> de dinheiro público o TCU <b>julga</b> <span class="cite">art. 71, II</span>.</p>
+                <p><b>Atos de pessoal: aprecia para fins de registro.</b> Admissões e concessões de aposentadoria, reforma e pensão — <em>excetuadas as nomeações para cargo em comissão</em> e as melhorias posteriores que não alterem o fundamento legal <span class="cite">art. 71, III</span>.</p>
+                <div class="fio">
+                  <span class="tag">Fio da memória</span>
+                  <div class="stack" style="gap:6px">
+                    <p>Isso conversa com o que você viu <b>há 12 dias</b>, em controle de constitucionalidade: a <span class="cite">Súmula 347/STF</span> dizia que o TCU podia afastar lei inconstitucional; em 2023 o STF <b>superou</b> esse entendimento <span class="cite">MS 35.410</span>. Mesma lógica de hoje: o Tribunal controla a legalidade dos atos — não julga o Presidente nem declara lei inconstitucional.</p>
+                    <p class="small muted">Você acertou 4 de 6 itens desse tema na época. Ele entra de propósito nas questões de hoje. No sábado, o resumo cumulativo costura os dois.</p>
+                  </div>
+                  <button class="btn sm">Rever</button>
+                </div>
+                <p><b>Sustação: ato sim, contrato não.</b> O TCU susta a execução do <b>ato</b> impugnado, comunicando à Câmara e ao Senado <span class="cite">art. 71, X</span>. No caso de <b>contrato</b>, a sustação cabe ao Congresso, que solicita ao Executivo as medidas cabíveis <span class="cite">art. 71, §1º</span>; se em 90 dias nada for feito, o TCU decide <span class="cite">art. 71, §2º</span>.</p>
+                <p>Multas por ilegalidade de despesa ou irregularidade de contas <span class="cite">art. 71, VIII</span>; as decisões que imputem débito ou multa têm <b>eficácia de título executivo</b> <span class="cite">art. 71, §3º</span>.</p>
+              </div>
+            </div>
+            <div class="tab-panel" id="tab-leigo">
+              <div class="prose" data-conteudo="aula-tcu-art71-leigo">
+                <p>Pense no TCU como o auditor que trabalha para o Congresso, mas não obedece a ele. O Congresso é o "chefe" do controle; o TCU é quem faz o trabalho técnico.</p>
+                <p>Quando o assunto é a conta do Presidente, o TCU só dá a opinião (o parecer). Quem bate o martelo é o Congresso. Já com todo o resto — ministérios, autarquias, quem gasta dinheiro público — o próprio TCU julga.</p>
+                <p>Se um ato é ilegal, o TCU manda parar. Se é um contrato, ele avisa o Congresso e espera 90 dias antes de agir. Essa diferença entre ato e contrato é o que mais cai.</p>
+              </div>
+            </div>
+            <div class="tab-panel" id="tab-audio">
+              <div class="player">
+                <button class="play" aria-label="Reproduzir">▶</button>
+                <div class="stack" style="gap:6px"><span class="small">Competências do TCU — aula narrada</span><div class="track" id="track"><i id="track-i" style="width:34%"></i></div></div>
+                <div class="stack" style="gap:4px;align-items:flex-end"><span class="mono small muted" id="track-t">03:58 / 11:42</span><button class="btn sm" type="button" id="vel">1×</button></div>
+              </div>
+              <p class="small muted" style="margin-top:10px">Mesma aula, mesma fonte. Gerada com voz neutra; regenerada automaticamente quando a lei mudar.</p>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card stack" style="gap:10px">
+              <div class="row between"><span class="eyebrow">Seus grifos e anotações</span><span class="chip" id="notas-n">0</span></div>
+              <p class="small muted">Selecione um trecho da aula para grifar ou anotar. Fica salvo para esta aula e volta quando você reabrir.</p>
+              <div class="notas-lista" id="notas-lista"></div>
+              <div class="nota-livre field">
+                <label for="nota-livre">Anotação livre desta aula</label>
+                <textarea id="nota-livre" placeholder="O que você quiser lembrar sobre este tópico."></textarea>
+                <span class="small muted" id="nota-livre-st"></span>
+              </div>
+            </div>
+            <div class="card stack" style="gap:10px">
+              <div class="row between"><span class="eyebrow">Mnemônico do tópico</span><span class="chip novo">pedido da Linda</span></div>
+              <div class="mnemo">
+                <span class="small muted">Gerado e validado · contas do Presidente</span>
+                <span class="frase">"A antes de J": o TCU <b>A</b>precia, o Congresso <b>J</b>ulga.</span>
+                <p class="small muted">Vai junto no cartão de revisão. Quando existe um macete consagrado entre concurseiros, ele vem primeiro, com a origem.</p>
+              </div>
+              <div class="mnemo">
+                <span class="small muted">O seu · aparece no lugar do gerado</span>
+                <textarea id="meu-mnemo" placeholder="Escreva o seu macete. Ele substitui o gerado na aula e no cartão."></textarea>
+                <div class="row between"><span class="small muted" id="mnemo-out"></span><button class="btn sm" id="salvar-mnemo">Usar o meu</button></div>
+              </div>
+            </div>
+            <div class="card stack">
+              <span class="eyebrow">Fontes desta aula</span>
+              <table>
+                <tr><td>Constituição Federal, art. 71 e art. 49</td><td class="small muted">planalto.gov.br</td></tr>
+                <tr><td>Lei 8.443/1992 (Lei Orgânica do TCU)</td><td class="small muted">planalto.gov.br</td></tr>
+                <tr><td>Itens da banca: provas 2019, 2021, 2024</td><td class="small muted">cebraspe.org.br</td></tr>
+              </table>
+              <p class="small muted">Aula validada em 12/09/2026 · versão 3 do dossiê.</p>
+            </div>
+            <div class="card stack">
+              <span class="eyebrow">Achou um erro?</span>
+              <p class="small muted">Vai para a fila de calibração. Você acompanha o status e a correção, se houver, chega a todo mundo.</p>
+              <button class="btn sm">Reportar erro nesta aula</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: 20 itens sobre isso</span><button class="btn primary" data-go="questoes">Ir para as questões</button></div>
+      </section>

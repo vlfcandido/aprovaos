@@ -1,0 +1,93 @@
+<!-- O que é: a tela «Os editais chegam até você. Não o contrário.» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-editais">
+        <div class="screen-head">
+          <span class="eyebrow">1 · Editais e radar <span class="chip novo">pedido da Linda</span></span>
+          <h1>Os editais chegam até você. Não o contrário.</h1>
+          <p>O coletor varre o Diário Oficial, os sites das bancas e os portais dos órgãos a cada 6 horas. Edital que combina com o seu perfil aparece aqui com o DNA já em preparo — e você decide se estuda ou só acompanha.</p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: radar varrendo fontes oficiais e encontrando editais">
+<circle cx="120" cy="84" r="70" fill="var(--surface-2)"/><circle cx="120" cy="84" r="50" fill="none" stroke="var(--line)"/><circle cx="120" cy="84" r="30" fill="none" stroke="var(--line)"/><line x1="50" y1="84" x2="190" y2="84" stroke="var(--line)"/><line x1="120" y1="14" x2="120" y2="154" stroke="var(--line)"/>
+<path d="M120 84 L120 14 A70 70 0 0 1 180 49z" fill="var(--accent)" opacity=".25" class="sweep"/>
+<circle cx="120" cy="84" r="4" fill="var(--accent)"/>
+<g class="float"><circle cx="150" cy="56" r="6" fill="var(--good)"/><text x="160" y="52" font-family="Sora, sans-serif" font-size="9" font-weight="600" fill="var(--good)">TCU</text></g>
+<g class="float" style="animation-delay:.5s"><circle cx="88" cy="110" r="6" fill="var(--why)"/><text x="60" y="128" font-family="Sora, sans-serif" font-size="9" font-weight="600" fill="var(--why)">TCE-RJ</text></g>
+<g class="float" style="animation-delay:1s"><circle cx="96" cy="60" r="5" fill="var(--ink-3)"/><text x="58" y="56" font-family="Sora, sans-serif" font-size="9" fill="var(--ink-3)">MPU?</text></g>
+<g><rect x="176" y="118" width="58" height="30" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="205" y="131" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ink-3)">DOU · bancas</text><text x="205" y="142" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ink-3)">a cada 6h</text></g>
+</svg></figure>
+        </div>
+
+        <div class="grid-sb">
+          <div class="card stack" style="gap:12px">
+            <div class="row between"><h2>Meus concursos</h2><span class="small muted">o plano de hoje segue o principal</span></div>
+            <div class="meus" id="meus">
+              <div class="meu principal">
+                <div class="row between"><div class="row"><span class="chip accent">Principal</span><span class="chip">Cebraspe</span></div><span class="mono small muted">prova 17/12/2026</span></div>
+                <h3>TCU · Auditor Federal de Controle Externo</h3>
+                <div class="row between small muted"><span>inscrita ✓ · DNA pronto · 118 tópicos</span><span class="mono">94 dias</span></div>
+                <div class="bar"><i style="width:26%"></i></div>
+                <div class="row between small muted"><span>edital coberto: 31 de 118 tópicos</span><span>100% do plano</span></div>
+              </div>
+              <div class="meu">
+                <div class="row between"><div class="row"><span class="chip">Acompanhando</span><span class="chip">FGV</span></div><span class="mono small muted">prova 08/11/2026</span></div>
+                <h3>CGU · Auditor Federal de Finanças e Controle</h3>
+                <div class="row between small muted"><span>inscrições até 22/09 · DNA pronto · 74% das matérias coincidem com o TCU</span><span class="mono">55 dias</span></div>
+                <div class="row" style="gap:6px"><button class="btn sm" data-promover>Tornar principal</button><button class="btn sm ghost" data-dividir>Dividir o plano 70/30</button></div>
+              </div>
+            </div>
+            <div class="why"><span class="tag">Aviso</span><p>Se você dividir o plano com a CGU, a projeção do TCU cai de 70 para ~64 no dia da prova. As duas provas têm 39 dias de distância — dá para fazer a CGU como simulado real e voltar ao TCU.</p><button class="btn sm">Discordar</button></div>
+          </div>
+          <div class="stack">
+            <div class="card stack" style="gap:10px">
+              <div class="row between"><span class="eyebrow">Radar automático</span><span class="chip good" id="radar-st">ativo</span></div>
+              <table>
+                <tr><td>Diário Oficial da União</td><td class="mono small muted" data-ultima>06:12</td></tr>
+                <tr><td>cebraspe.org.br · concursos</td><td class="mono small muted" data-ultima>06:15</td></tr>
+                <tr><td>fgv.br · concursos</td><td class="mono small muted" data-ultima>06:15</td></tr>
+                <tr><td>Tribunais de Contas (27 portais)</td><td class="mono small muted" data-ultima>06:20</td></tr>
+                <tr><td>Diários oficiais estaduais</td><td class="mono small muted" data-ultima>06:31</td></tr>
+              </table>
+              <div class="row between small muted"><span>próxima varredura <b class="mono" id="radar-prox">12:00</b></span><button class="btn sm" id="radar-agora">Varrer agora</button></div>
+            </div>
+            <div class="card stack" style="gap:10px">
+              <div class="row between"><span class="eyebrow">Alerta por perfil</span><label class="switch"><input type="checkbox" id="alerta" checked><span></span></label></div>
+              <p class="small muted">Avisar quando sair edital que combine com:</p>
+              <div class="row" style="gap:6px"><span class="chip accent">Controle e gestão</span><span class="chip accent">Nível superior</span><span class="chip accent">Cebraspe · FGV</span><span class="chip accent">DF · RJ · nacional</span><span class="chip">salário ≥ R$ 12 mil</span></div>
+              <p class="small muted" id="alerta-txt">Último alerta: TCE-RJ, ontem às 09:40.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card stack" style="gap:12px">
+          <div class="row between">
+            <h2>Editais vigentes e no radar</h2>
+            <input type="text" id="busca-edital" placeholder="Buscar órgão, cargo ou banca" aria-label="Buscar edital" style="width:240px">
+          </div>
+          <div class="row" style="gap:6px" id="filtros">
+            <span class="small muted">Banca:</span><button class="chip fchip" data-f="banca" data-v="" aria-pressed="true">Todas</button><button class="chip fchip" data-f="banca" data-v="Cebraspe">Cebraspe</button><button class="chip fchip" data-f="banca" data-v="FGV">FGV</button>
+            <span class="small muted" style="margin-left:8px">Situação:</span><button class="chip fchip" data-f="sit" data-v="" aria-pressed="true">Todas</button><button class="chip fchip" data-f="sit" data-v="aberto">Inscrições abertas</button><button class="chip fchip" data-f="sit" data-v="previsto">Autorizado, sem edital</button>
+            <span class="small muted" style="margin-left:8px">Área:</span><button class="chip fchip" data-f="area" data-v="" aria-pressed="true">Todas</button><button class="chip fchip" data-f="area" data-v="controle">Controle</button><button class="chip fchip" data-f="area" data-v="judiciario">Judiciário</button>
+          </div>
+          <div class="table-wrap">
+            <table class="editais" id="editais">
+              <thead><tr><th>Órgão · cargo</th><th>Banca</th><th>Situação</th><th>Inscrições</th><th>Prova</th><th>Vagas</th><th>DNA</th><th>Combina</th><th></th></tr></thead>
+              <tbody>
+                <tr data-banca="Cebraspe" data-sit="aberto" data-area="controle"><td><b>TCU</b> · Auditor Federal de Controle Externo</td><td>Cebraspe</td><td><span class="chip good">Inscrições abertas</span></td><td class="mono">até 30/09</td><td class="mono">17/12</td><td class="mono">40</td><td><span class="chip good">pronto</span></td><td><span class="mono" data-info="Combinação com o seu perfil: área, nível, banca e localidade.">98%</span></td><td><span class="chip accent">Estudando</span></td></tr>
+                <tr data-banca="FGV" data-sit="aberto" data-area="controle"><td><b>CGU</b> · Auditor Federal de Finanças e Controle</td><td>FGV</td><td><span class="chip good">Inscrições abertas</span></td><td class="mono">até 22/09</td><td class="mono">08/11</td><td class="mono">120</td><td><span class="chip good">pronto</span></td><td class="mono">91%</td><td><span class="chip">Acompanhando</span></td></tr>
+                <tr data-banca="Cebraspe" data-sit="aberto" data-area="controle"><td><b>TCE-RJ</b> · Analista de Controle Externo</td><td>Cebraspe</td><td><span class="chip good">Inscrições abertas</span></td><td class="mono">até 10/10</td><td class="mono">22/11</td><td class="mono">30</td><td><span class="chip warn">gerando · <b class="mono" data-pct="62">62%</b></span></td><td class="mono">88%</td><td><button class="btn sm" data-estudar>Estudar este</button></td></tr>
+                <tr data-banca="FGV" data-sit="aberto" data-area="judiciario"><td><b>TRF-1</b> · Analista Judiciário (área administrativa)</td><td>FGV</td><td><span class="chip good">Inscrições abertas</span></td><td class="mono">até 05/10</td><td class="mono">29/11</td><td class="mono">80</td><td><span class="chip">na fila</span></td><td class="mono">61%</td><td><button class="btn sm ghost" data-acomp>Acompanhar</button></td></tr>
+                <tr data-banca="Cebraspe" data-sit="previsto" data-area="controle"><td><b>MPU</b> · Analista de Controle Interno</td><td>Cebraspe <span class="small muted">(provável)</span></td><td><span class="chip warn">Autorizado · edital previsto out/26</span></td><td class="mono">—</td><td class="mono">—</td><td class="mono">~60</td><td><span class="chip">após o edital</span></td><td class="mono">85%</td><td><button class="btn sm ghost" data-acomp>Avisar quando sair</button></td></tr>
+                <tr data-banca="FGV" data-sit="previsto" data-area="controle"><td><b>Tesouro Nacional</b> · Auditor Federal de Finanças e Controle</td><td>FGV <span class="small muted">(provável)</span></td><td><span class="chip warn">Autorizado · sem data</span></td><td class="mono">—</td><td class="mono">—</td><td class="mono">~40</td><td><span class="chip">após o edital</span></td><td class="mono">83%</td><td><button class="btn sm ghost" data-acomp>Avisar quando sair</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small muted" id="editais-n">6 editais · dados ilustrativos, inclusive datas e vagas</p>
+        </div>
+
+        <div class="card stack" style="gap:10px">
+          <div class="row between"><span class="eyebrow">Próximas provas no seu radar</span><span class="small muted">hoje: 15/09</span></div>
+          <div class="provas" id="provas"></div>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: o concurso principal por dentro</span><button class="btn primary" data-go="concurso">Ver o DNA do TCU</button></div>
+      </section>

@@ -1,0 +1,60 @@
+<!-- O que é: a tela «Bom dia, Ana. Como você está hoje?» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-checkin">
+        <div class="screen-head">
+          <span class="eyebrow">4 · Check-in matinal</span>
+          <h1>Bom dia, Ana. Como você está hoje?</h1>
+          <p>O plano foi gerado às 5h da manhã com o que o agente sabia ontem. Trinta segundos agora ajustam o dia ao que você realmente tem: energia, sono e tempo. Mexa nos controles e veja o plano reagir.</p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: sol nascendo, xícara de café e medidor de energia">
+<rect x="0" y="104" width="240" height="56" fill="var(--surface-2)"/>
+<g class="rays" style="transform-origin:78px 104px"><g stroke="var(--why)" stroke-width="3" stroke-linecap="round" opacity=".6"><line x1="78" y1="40" x2="78" y2="52"/><line x1="122" y1="60" x2="113" y2="69"/><line x1="34" y1="60" x2="43" y2="69"/><line x1="138" y1="104" x2="126" y2="104"/><line x1="18" y1="104" x2="30" y2="104"/></g></g>
+<path d="M40 104 a38 38 0 0 1 76 0z" fill="var(--why)"/>
+<g class="float"><rect x="160" y="70" width="44" height="34" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/><path d="M204 78 q14 0 14 10 q0 10 -14 10" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M172 60 q4 -6 0 -12 M182 60 q4 -6 0 -12 M192 60 q4 -6 0 -12" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" class="steam"/></g>
+<rect x="150" y="118" width="70" height="26" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/><rect x="220" y="126" width="5" height="10" rx="1" fill="var(--ink)"/>
+<rect x="156" y="124" width="10" height="14" rx="2" fill="var(--good)"/><rect x="169" y="124" width="10" height="14" rx="2" fill="var(--good)"/><rect x="182" y="124" width="10" height="14" rx="2" fill="var(--good)"/><rect x="195" y="124" width="10" height="14" rx="2" fill="var(--line)"/><rect x="208" y="124" width="8" height="14" rx="2" fill="var(--line)"/>
+<text x="36" y="136" font-family="Sora, sans-serif" font-size="11" font-weight="600" fill="var(--ink)">6h35 · bom dia</text>
+</svg></figure>
+        </div>
+
+        <div class="grid-2">
+          <div class="card stack" style="gap:18px">
+            <div class="field">
+              <div class="row between"><label for="energia">Energia agora</label><span class="mono small" id="energia-v">3 de 5</span></div>
+              <input type="range" id="energia" min="1" max="5" value="3" hidden>
+              <div class="seg" role="radiogroup" aria-label="Energia" data-seg="energia">
+                <button type="button" data-v="1">Exausta</button><button type="button" data-v="2">Baixa</button><button type="button" data-v="3" aria-checked="true">Normal</button><button type="button" data-v="4">Boa</button><button type="button" data-v="5">Ótima</button>
+              </div>
+            </div>
+            <div class="field">
+              <div class="row between"><label for="sono">Horas de sono</label><span class="mono small" id="sono-v">6h30</span></div>
+              <input type="range" id="sono" min="4" max="9" step="0.5" value="6.5">
+            </div>
+            <div class="field">
+              <label for="tempo">Tempo real disponível hoje</label>
+              <select id="tempo" hidden>
+                <option value="30">30 min</option>
+                <option value="60">1h</option>
+                <option value="120" selected>2h (o que estava no plano)</option>
+                <option value="180">3h</option>
+              </select>
+              <div class="seg" role="radiogroup" aria-label="Tempo disponível" data-seg="tempo">
+                <button type="button" data-v="30">30 min</button><button type="button" data-v="60">1h</button><button type="button" data-v="120" aria-checked="true">2h · planejado</button><button type="button" data-v="180">3h</button>
+              </div>
+            </div>
+          </div>
+          <div class="card lift stack" style="gap:14px" id="checkin-out">
+            <div class="row between"><span class="eyebrow">Plano reajustado</span><span class="chip good" id="checkin-chip">Mantido</span></div>
+            <h2 id="checkin-title">2h00 · 5 blocos, como planejado</h2>
+            <p id="checkin-text" class="muted">Energia e sono dentro do seu normal. Mantenho a aula de Controle Externo no primeiro bloco, que é onde você rende mais de manhã.</p>
+            <div class="chips-plano" id="checkin-blocos" aria-live="polite"></div>
+            <div class="why">
+              <span class="tag">Por quê</span>
+              <p id="checkin-why">Nos últimos 14 dias você acertou 71% dos itens antes das 8h e 54% depois das 21h. A aula nova vai para a manhã.</p>
+              <button class="btn sm">Discordar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: o plano de hoje</span><button class="btn primary" data-go="plano">Ver o plano</button></div>
+      </section>

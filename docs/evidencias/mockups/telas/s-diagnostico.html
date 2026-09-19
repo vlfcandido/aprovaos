@@ -1,0 +1,62 @@
+<!-- O que é: a tela «Trinta questões, no máximo. O agente para quando já sabe.» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-diagnostico">
+        <div class="screen-head">
+          <span class="eyebrow">3 · Diagnóstico</span>
+          <h1>Trinta questões, no máximo. O agente para quando já sabe.</h1>
+          <p>Simulado adaptativo: cada item é escolhido pelo que ainda está incerto sobre você. No fim, uma proficiência por matéria — com a margem de erro à mostra.</p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: alvo com anéis que se estreitam e um check no centro">
+<circle cx="120" cy="80" r="66" fill="var(--surface-2)"/><circle cx="120" cy="80" r="50" fill="var(--surface)" stroke="var(--line)"/><circle cx="120" cy="80" r="34" fill="var(--accent-soft)"/><circle cx="120" cy="80" r="18" fill="var(--accent)"/>
+<circle cx="120" cy="80" r="58" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 6" class="spin"/>
+<circle cx="120" cy="80" r="42" fill="none" stroke="var(--why)" stroke-width="2" stroke-dasharray="4 8" class="spin-r"/>
+<path d="M111 80 l6 6 l12 -13" fill="none" stroke="var(--surface)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="float"><rect x="176" y="22" width="52" height="22" rx="11" fill="var(--why-soft)" stroke="var(--why)"/><text x="202" y="37" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--why)">± 7</text></g>
+<g class="float" style="animation-delay:.7s"><rect x="16" y="112" width="52" height="22" rx="11" fill="var(--good-soft)" stroke="var(--good)"/><text x="42" y="127" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--good)">± 5</text></g>
+</svg></figure>
+        </div>
+
+        <div class="grid-sb">
+          <div class="card stack" style="gap:14px">
+            <div class="row between">
+              <div class="row"><span class="ring" data-info="18 itens respondidos. O simulado para quando todas as matérias fecharem em ±8."><svg viewBox="0 0 36 36" width="34" height="34" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle id="diag-arc" cx="18" cy="18" r="15" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="37.7" transform="rotate(-90 18 18)"/></svg><b class="mono" id="diag-n">18</b></span><span class="small muted">de no máximo <b class="mono">30</b> · <span id="diag-t" class="mono">00:41</span> neste item</span></div>
+              <span class="chip">Direito Constitucional · TCU</span>
+            </div>
+            <div class="why" style="padding:8px 12px"><span class="tag">Por que este item</span><p class="small">Sua margem em Direito Constitucional ainda está em ±7 e este item tem alta discriminação nas provas de 2019–2024. Ele decide mais que qualquer item de Português agora.</p><span></span></div>
+            <p class="question" data-conteudo="q-diag-18">Segundo a Constituição Federal, o Tribunal de Contas da União julga as contas prestadas anualmente pelo Presidente da República, mediante parecer prévio elaborado em sessenta dias a contar de seu recebimento.</p>
+            <div class="ce" id="ce-diag">
+              <button data-ans="C">Certo</button>
+              <button data-ans="E">Errado</button>
+            </div>
+            <div id="ce-diag-fb" hidden class="stack">
+              <p class="small"><b>Gabarito: Errado.</b> O TCU <em>aprecia</em> as contas do Presidente e emite parecer prévio (art. 71, I). Quem <em>julga</em> é o Congresso Nacional (art. 49, IX). A troca de "apreciar" por "julgar" é a inversão clássica desta banca.</p>
+              <div class="row"><span class="cite">CF/88, art. 71, I</span><span class="cite">CF/88, art. 49, IX</span></div>
+            </div>
+          </div>
+          <div class="card stack">
+            <span class="eyebrow">Estimativa até agora</span>
+            <div class="stack" style="gap:12px" id="prof-live"></div>
+            <p class="small muted">A faixa encolhe a cada resposta. O simulado termina quando todas as matérias estiverem abaixo de ±8.</p>
+          </div>
+        </div>
+
+        <div class="card stack" style="gap:14px">
+          <div class="row between"><h2>Sua rotina</h2><span class="small muted">editável depois; muda o plano no dia seguinte</span></div>
+          <div class="week">
+            <div><span>seg</span><b>2h</b></div><div><span>ter</span><b>2h</b></div><div><span>qua</span><b>1h30</b></div><div><span>qui</span><b>2h</b></div><div><span>sex</span><b>1h</b></div><div><span>sáb</span><b>4h</b></div><div><span>dom</span><b>—</b></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label for="f-horario">Horário preferido</label><select id="f-horario"><option>Manhã, antes do trabalho (6h–8h)</option><option>Noite (20h–22h)</option><option>Varia</option></select></div>
+            <div class="field"><label for="f-energia">Energia típica de manhã</label><select id="f-energia"><option>Alta</option><option selected>Média</option><option>Baixa</option></select></div>
+            <div class="field"><label for="f-data">Data-alvo</label><select id="f-data"><option selected>17/12/2026 — prova do TCU</option><option>Outra data</option></select></div>
+          </div>
+        </div>
+
+        <div class="why">
+          <span class="tag">Por quê</span>
+          <p>Escolhi 18 itens de Direito Constitucional e só 4 de Português porque sua margem em Português fechou rápido (você acertou os itens de maior discriminação). Gastar item onde já há certeza é desperdício do seu tempo.</p>
+          <button class="btn sm">Discordar</button>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: o primeiro dia</span><button class="btn primary" data-go="checkin">Gerar meu primeiro plano</button></div>
+      </section>

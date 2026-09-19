@@ -1,0 +1,89 @@
+<!-- O que é: a tela «Escolha o concurso. O DNA já está pronto.» do protótipo validado (14/09/2026), extraída literal
+     para o porte da fatia 14. Quando ler: antes de escrever o template equivalente.
+     Nunca editar: é evidência. CSS em _estilo-do-prototipo.css. -->
+<section class="screen" id="s-concurso">
+        <div class="screen-head">
+          <span class="eyebrow">2 · Concurso e DNA</span>
+          <h1>Escolha o concurso. O DNA já está pronto.</h1>
+          <p>O Motor de Conhecimento lê o edital e as provas anteriores da banca antes de você chegar. O que cai, com que peso, e como a banca costuma perguntar — tudo com a prova de origem.</p>
+          <figure class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Ilustração: um edital sendo lido e transformado em barras de peso por matéria">
+<rect x="18" y="18" width="84" height="116" rx="8" fill="var(--surface)" stroke="var(--line)"/><rect x="30" y="32" width="40" height="7" rx="3" fill="var(--ink)"/><rect x="30" y="48" width="60" height="5" rx="2" fill="var(--line)"/><rect x="30" y="60" width="52" height="5" rx="2" fill="var(--line)"/><rect x="30" y="72" width="60" height="5" rx="2" fill="var(--line)"/><rect x="30" y="84" width="44" height="5" rx="2" fill="var(--line)"/><rect x="30" y="96" width="58" height="5" rx="2" fill="var(--line)"/><rect x="30" y="108" width="36" height="5" rx="2" fill="var(--line)"/>
+<rect x="18" y="18" width="84" height="116" rx="8" fill="none" stroke="var(--accent)" stroke-width="2" class="scan" stroke-dasharray="400" />
+<path d="M110 76 h26" stroke="var(--why)" stroke-width="3" stroke-linecap="round"/><path d="M130 68 l10 8 l-10 8" fill="none" stroke="var(--why)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="grow"><rect x="150" y="40" width="70" height="12" rx="4" fill="var(--accent)"/><rect x="150" y="58" width="48" height="12" rx="4" fill="var(--accent)" opacity=".8"/><rect x="150" y="76" width="48" height="12" rx="4" fill="var(--accent)" opacity=".8"/><rect x="150" y="94" width="40" height="12" rx="4" fill="var(--accent)" opacity=".6"/><rect x="150" y="112" width="26" height="12" rx="4" fill="var(--accent)" opacity=".4"/></g>
+<text x="226" y="50" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--ink-3)">22%</text><text x="204" y="68" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--ink-3)">14%</text>
+</svg></figure>
+        </div>
+
+        <div class="row between">
+          <div class="row">
+            <span class="chip accent">Banca: Cebraspe</span><span class="chip">FGV</span><span class="chip">Todas</span>
+            <span class="chip">Área: Controle</span>
+          </div>
+          <input type="text" id="busca-concurso" placeholder="Buscar órgão ou cargo" aria-label="Buscar concurso" style="width:220px">
+        </div>
+
+        <div class="cat">
+          <button class="item selected">
+            <div class="row between"><span class="chip accent">Cebraspe</span><span class="mono small muted">17/12/2026</span></div>
+            <h3>TCU — Auditor Federal de Controle Externo</h3>
+            <span class="small muted">9 matérias · 120 itens C/E · DNA com 6 provas analisadas</span>
+            <span class="chip good">Selecionado</span>
+          </button>
+          <button class="item">
+            <div class="row between"><span class="chip">FGV</span><span class="mono small muted">08/11/2026</span></div>
+            <h3>CGU — Auditor Federal de Finanças e Controle</h3>
+            <span class="small muted">8 matérias · múltipla escolha · DNA com 4 provas analisadas</span>
+          </button>
+          <button class="item upload">
+            <b>Subir edital em PDF</b>
+            <span class="small">Concurso fora do catálogo? Em até 10 minutos o DNA fica pronto ou você recebe o motivo da falha.</span>
+          </button>
+        </div>
+
+        <div class="grid-sb">
+          <div class="card stack" style="gap:14px">
+            <div class="row between">
+              <h2>DNA do concurso</h2>
+              <span class="small muted">peso real por matéria, calculado das últimas provas</span>
+            </div>
+            <div class="weights" id="pesos"></div>
+          </div>
+          <div class="stack">
+            <div class="card stack">
+              <span class="eyebrow">Como a Cebraspe pergunta aqui</span>
+              <table>
+                <tr><td>Itens certo/errado com <b>anulação</b>: um erro apaga um acerto. Chutar custa caro.</td><td class="mono small muted">edital, item 9.3</td></tr>
+                <tr><td>Item longo e correto com <b>uma palavra invertida</b> ("exclusivamente", "independentemente").</td><td class="mono small muted">prova 2021, itens 34, 51</td></tr>
+                <tr><td>Cobra jurisprudência <b>recente</b> do STF sobre competências do TCU.</td><td class="mono small muted">prova 2024, item 77</td></tr>
+              </table>
+            </div>
+            <div class="card stack">
+              <span class="eyebrow">Corte histórico</span>
+              <div class="kpi"><span class="v">71 <small>a 76 pontos líquidos</small></span><span class="small muted">últimas 3 edições, ampla concorrência</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="why">
+          <span class="tag">Por quê</span>
+          <p>Priorizo Controle Externo e os dois Direitos porque juntos são metade da prova, e a banca tira daí os itens de maior discriminação — os que separam quem passa de quem quase passa.</p>
+          <button class="btn sm">Discordar</button>
+        </div>
+
+        <div class="card stack" style="gap:14px">
+          <div class="row between">
+            <div class="row"><h2>Edital verticalizado</h2><span class="chip novo">pedido da Linda</span></div>
+            <span class="small muted">todo tópico do edital · o que você já cobriu · seu acerto</span>
+          </div>
+          <div class="edital" id="edital">
+            <span class="h">Tópico do edital</span><span class="h">Status</span><span class="h" style="text-align:right">Acerto</span><span class="h" style="text-align:right">Itens</span>
+          </div>
+          <div class="row between">
+            <span class="small muted">Cobertura do edital: <b class="mono">31 de 118</b> tópicos vistos · <b class="mono">12</b> em andamento</span>
+            <button class="btn sm">Ver os 118 tópicos</button>
+          </div>
+        </div>
+
+        <div class="foot-nav"><span class="small muted">Próximo: diagnóstico</span><button class="btn primary" data-go="diagnostico">Fazer o diagnóstico</button></div>
+      </section>

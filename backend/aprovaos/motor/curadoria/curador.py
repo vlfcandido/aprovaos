@@ -1,14 +1,18 @@
 """O curador: junta segmentação + gabarito + classificação numa lista de `QuestaoCurada`.
 
 O que é: `curar(...)`, que implementa o pipeline inteiro da skill `ingestao-de-provas` para um
-caderno Cebraspe certo/errado — segmenta o texto da prova, lê o gabarito, classifica cada item
-no vocabulário do edital e aplica o gate de publicação (`dominio.questao.decidir_publicacao`) —
-e `verificar_curadoria(...)`, as 5 checagens de "Verificação antes de entregar" da skill. Função
-de orquestração pura (sem I/O, sem banco): quem lê PDF e grava em disco/banco é o passo 5
-(coletor) e o passo 12 (`motor/curar.py`), que chamam esta função com os textos já extraídos e
-os 8 campos de origem já gravados no `Documento`. Quando ler: ao ligar o curador num comando
-real, ao investigar por que um caderno virou `pendente_revisao`, ou ao mudar o gate de
-publicação.
+caderno Cebraspe — certo/errado (`tipo_item="certo_errado"`, passo 9 da V3) ou múltipla escolha
+A–E (`tipo_item="multipla_escolha"`, passo 2 da V3b) — segmenta o texto da prova, lê o gabarito,
+classifica cada item no vocabulário do edital e aplica o gate de publicação
+(`dominio.questao.decidir_publicacao`) — e `verificar_curadoria(...)`, as 5 checagens de
+"Verificação antes de entregar" da skill. As duas segmentações/leituras de gabarito convergem
+para um formato comum (`_ItemNormalizado`/`_EntradaNormalizada`, uso interno) logo no início de
+`curar`; o resto da função — classificação, gate de publicação, montagem da `QuestaoCurada` — é
+o mesmo código para as duas, nunca duplicado. Função de orquestração pura (sem I/O, sem banco):
+quem lê PDF e grava em disco/banco é o passo 5 (coletor) e o passo 12 (`motor/curar.py`), que
+chamam esta função com os textos já extraídos e os 8 campos de origem já gravados no
+`Documento`. Quando ler: ao ligar o curador num comando real, ao investigar por que um caderno
+virou `pendente_revisao`, ou ao mudar o gate de publicação.
 """
 
 from typing import Literal
@@ -16,10 +20,23 @@ from typing import Literal
 from pydantic import BaseModel
 
 from aprovaos.dominio.erros import GabaritoNaoReconhecido, SegmentacaoAmbigua
-from aprovaos.dominio.gabarito import ler_gabarito_cebraspe
-from aprovaos.dominio.prova import segmentar_cebraspe
+from aprovaos.dominio.gabarito import (
+    EntradaGabarito,
+    EntradaGabaritoAlternativa,
+    ler_gabarito_cebraspe,
+    ler_gabarito_multipla_escolha,
+)
+from aprovaos.dominio.prova import (
+    AlternativaBruta,
+    ItemBruto,
+    ItemBrutoAlternativas,
+    segmentar_cebraspe,
+    segmentar_multipla_escolha,
+)
 from aprovaos.dominio.questao import (
+    AlternativaCurada,
     GabaritoStatus,
+    Letra,
     Origem,
     QuestaoCurada,
     RegraProva,
@@ -33,6 +50,9 @@ from aprovaos.motor.curadoria.classificacao import (
     TopicoVocabulario,
     classificar,
 )
+
+TipoItem = Literal["certo_errado", "multipla_escolha"]
+"""Os dois tipos de item que `curar` sabe curar nesta fatia (FGV fica fora — decisão J da V3)."""
 
 
 class OrigemBase(BaseModel):
@@ -57,6 +77,101 @@ class OrigemBase(BaseModel):
     tipo_caderno: str | None
     url_prova: str
     documento_id: str
+
+
+class _ItemNormalizado(BaseModel):
+    """Um item já traduzido para o formato comum às duas segmentações (uso interno).
+
+    Para `tipo_item="multipla_escolha"`, `comando`/`texto_apoio` nascem `None` e
+    `texto_apoio_itens` vazio: o único caderno A–E real desta fatia não tem comando nem texto de
+    apoio compartilhado entre questões (`dominio.prova`, módulo); `alternativas` fica `None`
+    nesse tipo só quando a própria segmentação não devolveu nenhuma (nunca acontece na prática —
+    `segmentar_multipla_escolha` sempre entrega as cinco, ou levanta `SegmentacaoAmbigua`).
+
+    Attributes:
+        numero_item: número do item impresso no caderno.
+        comando: ver `ItemBruto.comando`; sempre `None` em múltipla escolha nesta fatia.
+        texto_apoio: ver `ItemBruto.texto_apoio`; sempre `None` em múltipla escolha nesta fatia.
+        texto_apoio_itens: ver `ItemBruto.texto_apoio_itens`; sempre vazia em múltipla escolha.
+        enunciado: a afirmação (certo/errado) ou o enunciado até a primeira alternativa (A–E).
+        alternativas: `None` em certo/errado; as cinco alternativas brutas em múltipla escolha.
+    """
+
+    numero_item: int
+    comando: str | None
+    texto_apoio: str | None
+    texto_apoio_itens: list[int]
+    enunciado: str
+    alternativas: list[AlternativaBruta] | None
+
+
+class _EntradaNormalizada(BaseModel):
+    """Uma entrada de gabarito já traduzida para o formato comum às duas leituras (uso interno).
+
+    Mesmos campos e semântica de `EntradaGabarito`/`EntradaGabaritoAlternativa` — só o alfabeto
+    de `valor`/`valor_preliminar` muda entre as duas (`Letra` cobre os dois, ver
+    `dominio.questao`).
+    """
+
+    valor: Letra | None
+    status: Literal["definitivo", "preliminar", "anulado", "alterado"]
+    valor_preliminar: Letra | None
+
+
+def _normalizar_itens_certo_errado(itens: list[ItemBruto]) -> list[_ItemNormalizado]:
+    """`ItemBruto` (C/E) → `_ItemNormalizado`, repassando comando/texto de apoio como vieram."""
+    return [
+        _ItemNormalizado(
+            numero_item=item.numero_item,
+            comando=item.comando,
+            texto_apoio=item.texto_apoio,
+            texto_apoio_itens=item.texto_apoio_itens,
+            enunciado=item.enunciado,
+            alternativas=None,
+        )
+        for item in itens
+    ]
+
+
+def _normalizar_itens_multipla_escolha(
+    itens: list[ItemBrutoAlternativas],
+) -> list[_ItemNormalizado]:
+    """`ItemBrutoAlternativas` (A–E) → `_ItemNormalizado`, sem comando/apoio (ver a classe)."""
+    return [
+        _ItemNormalizado(
+            numero_item=item.numero_item,
+            comando=None,
+            texto_apoio=None,
+            texto_apoio_itens=[],
+            enunciado=item.enunciado,
+            alternativas=item.alternativas,
+        )
+        for item in itens
+    ]
+
+
+def _normalizar_gabarito_certo_errado(
+    gabarito: dict[int, EntradaGabarito],
+) -> dict[int, _EntradaNormalizada]:
+    """`EntradaGabarito` (C/E) → `_EntradaNormalizada`, campo a campo."""
+    return {
+        numero: _EntradaNormalizada(
+            valor=entrada.valor, status=entrada.status, valor_preliminar=entrada.valor_preliminar
+        )
+        for numero, entrada in gabarito.items()
+    }
+
+
+def _normalizar_gabarito_multipla_escolha(
+    gabarito: dict[int, EntradaGabaritoAlternativa],
+) -> dict[int, _EntradaNormalizada]:
+    """`EntradaGabaritoAlternativa` (A–E) → `_EntradaNormalizada`, campo a campo."""
+    return {
+        numero: _EntradaNormalizada(
+            valor=entrada.valor, status=entrada.status, valor_preliminar=entrada.valor_preliminar
+        )
+        for numero, entrada in gabarito.items()
+    }
 
 
 class ResultadoCuradoria(BaseModel):
@@ -84,17 +199,24 @@ async def curar(
     classificador_ia: ClassificadorDeTopico | None,
     motivo_sem_ia: str | None,
     tamanho_lote: int,
+    tipo_item: TipoItem = "certo_errado",
 ) -> ResultadoCuradoria:
-    """Cura um caderno Cebraspe certo/errado inteiro: segmenta, lê o gabarito e classifica.
+    """Cura um caderno Cebraspe inteiro: segmenta, lê o gabarito e classifica.
 
-    Implementa o pipeline da skill `ingestao-de-provas`: `SegmentacaoAmbigua` (segmentação com
-    mais fronteiras de comando do que o padrão conhecido cobre) e `GabaritoNaoReconhecido`
-    (nenhuma grade de gabarito Cebraspe C/E reconhecível) tornam o documento inteiro
+    Implementa o pipeline da skill `ingestao-de-provas` para `tipo_item="certo_errado"`
+    (`segmentar_cebraspe`/`ler_gabarito_cebraspe`) ou `tipo_item="multipla_escolha"`
+    (`segmentar_multipla_escolha`/`ler_gabarito_multipla_escolha`) — as duas convergem para
+    `_ItemNormalizado`/`_EntradaNormalizada` logo no início; o resto da função é idêntico para
+    as duas. `SegmentacaoAmbigua` (segmentação com estrutura fora do padrão conhecido) e
+    `GabaritoNaoReconhecido` (nenhuma grade de gabarito reconhecível) tornam o documento inteiro
     `pendente_revisao`, sem gravar nenhuma questão — assim como uma contagem de itens diferente
     da contagem de entradas do gabarito (documento pode estar mal segmentado). Fora desses três
     casos, cada item vira uma `QuestaoCurada` — anulado, alterado sem definitivo ou sem entrada
     no gabarito continuam na base (contam para incidência e DNA), só que com `publicavel=False`
-    e o motivo.
+    e o motivo. Em múltipla escolha, `alternativas` sai preenchida com as cinco, `correta=True`
+    só na que bate com o gabarito definitivo/alterado (nenhuma, se a questão está anulada ou sem
+    gabarito — mesmo princípio da ADR-0036: sem gabarito para provar qual é a certa, nenhuma é
+    marcada).
 
     Args:
         texto_prova: texto do caderno de prova, já extraído do PDF.
@@ -105,18 +227,28 @@ async def curar(
         classificador_ia: implementação da porta de classificação com modelo, ou `None`.
         motivo_sem_ia: motivo registrado quando `classificador_ia` é `None`.
         tamanho_lote: quantos itens vão em cada chamada à IA (`config.lote_classificacao`).
+        tipo_item: `"certo_errado"` (padrão, Cebraspe C/E) ou `"multipla_escolha"` (Cebraspe
+            A–E, nível médio).
 
     Returns:
         `ResultadoCuradoria` com uma `QuestaoCurada` por item do caderno, ou `pendente_revisao`
         com a lista de problemas encontrados.
     """
     try:
-        itens = segmentar_cebraspe(texto_prova)
+        if tipo_item == "certo_errado":
+            itens = _normalizar_itens_certo_errado(segmentar_cebraspe(texto_prova))
+        else:
+            itens = _normalizar_itens_multipla_escolha(segmentar_multipla_escolha(texto_prova))
     except SegmentacaoAmbigua as erro:
         return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
 
     try:
-        gabarito = ler_gabarito_cebraspe(texto_gabarito)
+        if tipo_item == "certo_errado":
+            gabarito = _normalizar_gabarito_certo_errado(ler_gabarito_cebraspe(texto_gabarito))
+        else:
+            gabarito = _normalizar_gabarito_multipla_escolha(
+                ler_gabarito_multipla_escolha(texto_gabarito)
+            )
     except GabaritoNaoReconhecido as erro:
         return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
 
@@ -152,8 +284,8 @@ async def curar(
         )
 
         gabarito_status: GabaritoStatus
-        valor: Literal["C", "E"] | None
-        valor_preliminar: Literal["C", "E"] | None
+        valor: Letra | None
+        valor_preliminar: Letra | None
         if entrada is None:
             gabarito_status, valor, valor_preliminar = "sem_gabarito", None, None
         else:
@@ -168,14 +300,25 @@ async def curar(
             origem=origem,
         )
 
+        alternativas: list[AlternativaCurada] | None = None
+        if item.alternativas is not None:
+            alternativas = [
+                AlternativaCurada(
+                    letra=bruta.letra, texto=bruta.texto, correta=bruta.letra == valor
+                )
+                for bruta in item.alternativas
+            ]
+
         questoes.append(
             QuestaoCurada(
                 banca=origem_base.banca,
+                tipo_item=tipo_item,
                 numero_item=item.numero_item,
                 comando=item.comando,
                 texto_apoio=item.texto_apoio,
                 texto_apoio_itens=item.texto_apoio_itens,
                 enunciado=item.enunciado,
+                alternativas=alternativas,
                 gabarito_preliminar=valor_preliminar,
                 gabarito=valor,
                 gabarito_status=gabarito_status,

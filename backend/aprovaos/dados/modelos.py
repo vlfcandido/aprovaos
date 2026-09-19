@@ -243,9 +243,9 @@ class Questao(ChaveUuid, Carimbos, Base):
             "gabarito_status IN ('definitivo','preliminar','anulado','alterado','sem_gabarito')",
             name="gabarito_status",
         ),
-        CheckConstraint("gabarito IS NULL OR gabarito IN ('C','E')", name="gabarito"),
+        CheckConstraint("gabarito IS NULL OR gabarito IN ('A','B','C','D','E')", name="gabarito"),
         CheckConstraint(
-            "gabarito_preliminar IS NULL OR gabarito_preliminar IN ('C','E')",
+            "gabarito_preliminar IS NULL OR gabarito_preliminar IN ('A','B','C','D','E')",
             name="gabarito_preliminar",
         ),
         CheckConstraint("topico_confianca IN ('alta','media','baixa')", name="topico_confianca"),
@@ -285,7 +285,13 @@ class Questao(ChaveUuid, Carimbos, Base):
 
 
 class Alternativa(ChaveUuid, Carimbos, Base):
-    """Uma alternativa (A–E) de uma `Questao` de múltipla escolha; fora do escopo da V3."""
+    """Uma alternativa (A–E) de uma `Questao` de múltipla escolha (`tipo_item="multipla_escolha"`).
+
+    Criada vazia na migração 0003 (fora do escopo da V3, só C/E); passa a ser gravada pelo
+    `repositorio_questao.salvar_questoes` a partir do passo 2 da fatia V3b. `justificativa`
+    nasce sempre `None` — quem a preenche é o gerador de inéditas com validador (fatia 5), nunca
+    o curador (mesmo princípio de `Questao.justificativa_certo`/`justificativa_errado`).
+    """
 
     __tablename__ = "alternativa"
     __table_args__ = (UniqueConstraint("questao_id", "letra"),)

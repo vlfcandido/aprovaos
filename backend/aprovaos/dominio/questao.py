@@ -26,7 +26,36 @@ Confianca = Literal["alta", "media", "baixa"]
 #: skill `ingestao-de-provas`, que fala do caso mas não nomeia um status para ele).
 GabaritoStatus = Literal["definitivo", "preliminar", "anulado", "alterado", "sem_gabarito"]
 
+#: Letra de gabarito/alternativa — superconjunto de `dominio.gabarito.EntradaGabarito.valor`
+#: (`"C"`/`"E"`, Cebraspe certo/errado) e de
+#: `dominio.gabarito.EntradaGabaritoAlternativa.valor` (`"A"`–`"E"`, Cebraspe múltipla escolha):
+#: os dois cabem no mesmo tipo porque `"C"` e `"E"` também são letras válidas do alfabeto A–E.
+Letra = Literal["A", "B", "C", "D", "E"]
+
 _ESPACOS = re.compile(r"\s+")
+
+
+class AlternativaCurada(BaseModel):
+    """Uma alternativa (A–E) de uma questão de múltipla escolha, no contrato de saída do curador.
+
+    `justificativa` fica de fora deste contrato (ao contrário da tabela `alternativa`, que a
+    tem): quem explica o gabarito é o gerador de inéditas com validador (fatia 5), nunca o
+    curador — mesmo motivo de `QuestaoCurada.justificativa_certo`/`justificativa_errado`
+    nascerem sempre `None`.
+
+    Attributes:
+        letra: a letra impressa da alternativa.
+        texto: o texto da alternativa, como o caderno imprimiu.
+        correta: `True` só na alternativa cuja letra bate com `QuestaoCurada.gabarito`; `False`
+            nas demais. Quando a questão está anulada ou sem gabarito (`gabarito is None`),
+            nenhuma alternativa é `True` — decidir "qual seria a certa" sem gabarito seria
+            inventar (o mesmo princípio da ADR-0036 para fato extraído, aplicado aqui a fato
+            derivado).
+    """
+
+    letra: Letra
+    texto: str
+    correta: bool
 
 
 class Origem(BaseModel):
@@ -84,20 +113,26 @@ class QuestaoCurada(BaseModel):
     Attributes:
         adapter: adapter de onde a questão veio (`"concursos"` nesta fatia).
         banca: banca examinadora (ex.: `"cebraspe"`).
-        tipo_item: forma do item; só `"certo_errado"` é produzido nesta fatia (decisão J do
-            plano da V3 — Cebraspe A–E e FGV ficam fora).
+        tipo_item: forma do item — `"certo_errado"` (Cebraspe C/E) ou `"multipla_escolha"`
+            (Cebraspe A–E, nível médio); FGV fica fora desta fatia (decisão J do plano da V3).
         numero_item: número do item impresso no caderno.
         comando: a instrução de julgamento vigente para o item, ou `None` se nenhuma foi
-            encontrada antes dele.
-        texto_apoio: o texto-base compartilhado com outros itens, ou `None`.
+            encontrada antes dele — sempre `None` em `"multipla_escolha"` nesta fatia: o único
+            caderno A–E real desta fatia não tem comando compartilhado entre questões (a
+            instrução final está embutida no próprio `enunciado`; ver `dominio/prova.py`).
+        texto_apoio: o texto-base compartilhado com outros itens, ou `None` — sempre `None` em
+            `"multipla_escolha"` nesta fatia, pelo mesmo motivo de `comando`.
         texto_apoio_itens: todos os números do intervalo do texto de apoio (inclui o próprio
-            item), ou lista vazia se não há texto de apoio.
-        enunciado: a afirmação a ser julgada, como a banca imprimiu.
-        alternativas: sempre `None` nesta fatia (Cebraspe C/E não tem alternativas; reservado
-            para quando a segmentação A–E entrar).
-        gabarito_preliminar: o valor anterior ao definitivo, só quando `gabarito_status ==
+            item), ou lista vazia se não há texto de apoio (sempre vazia em `"multipla_escolha"`
+            nesta fatia).
+        enunciado: a afirmação a ser julgada (`"certo_errado"`) ou o enunciado da questão até a
+            primeira alternativa (`"multipla_escolha"`), como a banca imprimiu.
+        alternativas: `None` em `"certo_errado"` (Cebraspe C/E não tem alternativas); as cinco
+            alternativas (`AlternativaCurada`), na ordem A a E, em `"multipla_escolha"`.
+        gabarito_preliminar: a letra anterior à definitiva, só quando `gabarito_status ==
             "alterado"`.
-        gabarito: `"C"`/`"E"` do gabarito definitivo, ou `None` quando anulado ou sem entrada.
+        gabarito: a letra do gabarito definitivo (`"C"`/`"E"` em `"certo_errado"`, `"A"`–`"E"`
+            em `"multipla_escolha"`), ou `None` quando anulado ou sem entrada.
         gabarito_status: ver `GabaritoStatus`.
         publicavel: resultado do gate de publicação (`decidir_publicacao`).
         publicado: sempre `False` na saída do curador.
@@ -115,15 +150,15 @@ class QuestaoCurada(BaseModel):
 
     adapter: Literal["concursos"] = "concursos"
     banca: str
-    tipo_item: Literal["certo_errado"] = "certo_errado"
+    tipo_item: Literal["certo_errado", "multipla_escolha"] = "certo_errado"
     numero_item: int
     comando: str | None
     texto_apoio: str | None
     texto_apoio_itens: list[int]
     enunciado: str
-    alternativas: list[str] | None = None
-    gabarito_preliminar: Literal["C", "E"] | None
-    gabarito: Literal["C", "E"] | None
+    alternativas: list[AlternativaCurada] | None = None
+    gabarito_preliminar: Letra | None
+    gabarito: Letra | None
     gabarito_status: GabaritoStatus
     publicavel: bool
     publicado: Literal[False] = False

@@ -1,7 +1,8 @@
-# O que é: testes do passo 9 da V3 — o curador (`motor/curadoria/curador.py`), que junta
-# segmentação + gabarito + classificação em `QuestaoCurada` e aplica o gate de publicação
-# (`dominio/questao.py`, premissa F / ADR-0033). Quando ler: ao mudar `curar`,
-# `verificar_curadoria`, `decidir_publicacao` ou o contrato de `QuestaoCurada`.
+# O que é: testes do passo 9 da V3 (curadoria C/E) e do passo 2 da V3b (curadoria múltipla
+# escolha A–E) — `motor/curadoria/curador.py`, que junta segmentação + gabarito + classificação
+# em `QuestaoCurada` e aplica o gate de publicação (`dominio/questao.py`, premissa F / ADR-0033).
+# Quando ler: ao mudar `curar`, `verificar_curadoria`, `decidir_publicacao` ou o contrato de
+# `QuestaoCurada`/`AlternativaCurada`.
 from pathlib import Path
 from typing import Literal
 
@@ -10,6 +11,7 @@ import pytest
 from aprovaos.dominio.edital import extrair_conteudo_programatico
 from aprovaos.dominio.pdf import extrair_texto
 from aprovaos.dominio.questao import (
+    AlternativaCurada,
     GabaritoStatus,
     Origem,
     QuestaoCurada,
@@ -34,6 +36,9 @@ RAIZ = Path(__file__).resolve().parents[2]
 FIXTURE_MD = RAIZ / "docs/evidencias/2026-09-17-fase4-skills/fixtures/edital-assessor-gabinete.md"
 _PROVAS = RAIZ / "knowledge/provas/TJ_PA_25_SERVIDOR"
 FIXTURE_PROVA = _PROVAS / "C15F414E0E91EF109220A73BDF53B232C4466F64770A91E715C56DCB94131F41.pdf"
+_PROVAS_TJCE = RAIZ / "knowledge/provas/TJ_CE_23_SERVIDOR"
+FIXTURE_PROVA_ME = _PROVAS_TJCE / "820_TJCE_SERVIDOR_001_01.PDF"
+FIXTURE_GABARITO_ME = _PROVAS_TJCE / "GAB_DEFINITIVO_820_TJCE_SERVIDOR_001_01.PDF"
 FIXTURE_GABARITO = _PROVAS / "EF721EA56FA324A5AE5E9F7A8FD2FE4800E803E772BC6D03E0403D1B61632F72.pdf"
 
 # N e anulados medidos nos passos 6 e 7 (mesmos fixtures, mesmos números — ver
@@ -56,6 +61,27 @@ ORIGEM_BASE_TJ_PA = OrigemBase(
     documento_id="11111111-1111-1111-1111-111111111111",
 )
 REGRA_PROVA_TJ_PA = RegraProva(anula_por_erro=True, fonte="instrução do caderno")
+
+# N e anulados medidos no passo 1 da V3b (mesmo fixture, mesmos números — ver
+# `.superpowers/sdd/V3b-multipla-escolha/passo-1-report.md`,
+# `test_dominio_prova.py`/`test_dominio_gabarito.py`).
+N_QUESTOES_TJCE = 40
+ANULADAS_TJCE = {23, 27, 35, 38, 40}
+
+ORIGEM_BASE_TJCE = OrigemBase(
+    banca="cebraspe",
+    orgao="TJ-CE",
+    cargo="Técnico Judiciário — Área Judiciária",
+    ano=2023,
+    tipo_caderno=None,
+    url_prova="https://www.cebraspe.org.br/concursos/tj_ce_23_servidor",
+    documento_id="22222222-2222-2222-2222-222222222222",
+)
+# Múltipla escolha não anula por erro entre questões (cada uma vale sozinha) — mesma convenção
+# de `motor/curar.py::_REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA`.
+REGRA_PROVA_TJCE = RegraProva(
+    anula_por_erro=False, fonte="convenção Cebraspe A–E — sem par certo/errado para anular"
+)
 
 CAMPOS_OBRIGATORIOS = [
     "adapter",
@@ -157,6 +183,39 @@ async def _curar_tj_pa(
         classificador_ia=None,
         motivo_sem_ia="sem GOOGLE_API_KEY",
         tamanho_lote=100,
+    )
+
+
+@pytest.fixture(scope="module")
+def texto_prova_me() -> str:
+    return extrair_texto(FIXTURE_PROVA_ME.read_bytes())
+
+
+@pytest.fixture(scope="module")
+def texto_gabarito_me() -> str:
+    return extrair_texto(FIXTURE_GABARITO_ME.read_bytes())
+
+
+async def _curar_tjce(
+    texto_prova: str, texto_gabarito: str, vocabulario: list[TopicoVocabulario]
+) -> ResultadoCuradoria:
+    """Cura o caderno A–E real da TJ-CE por regras (sem `GOOGLE_API_KEY` nesta máquina).
+
+    Usa o mesmo vocabulário fictício de nível superior (Direito) do fixture de edital da fatia —
+    a prova real é de nível médio (Técnico Judiciário). É a mesma ressalva do relatório do passo
+    2: os números medem o cano (a curadoria em si), não a pontaria (quão bem o vocabulário casa
+    com o cargo).
+    """
+    return await curar(
+        texto_prova=texto_prova,
+        texto_gabarito=texto_gabarito,
+        vocabulario=vocabulario,
+        origem_base=ORIGEM_BASE_TJCE,
+        regra_prova=REGRA_PROVA_TJCE,
+        classificador_ia=None,
+        motivo_sem_ia="sem GOOGLE_API_KEY",
+        tamanho_lote=100,
+        tipo_item="multipla_escolha",
     )
 
 
@@ -524,3 +583,154 @@ def test_decidir_publicacao_origem_incompleta() -> None:
 
     assert publicavel is False
     assert motivo == "origem incompleta"
+
+
+def test_questao_curada_multipla_escolha_contrato() -> None:
+    """`QuestaoCurada` aceita `tipo_item="multipla_escolha"` com as cinco `AlternativaCurada`."""
+    alternativas = [
+        AlternativaCurada(letra=letra, texto=f"texto da alternativa {letra}", correta=letra == "B")
+        for letra in ("A", "B", "C", "D", "E")
+    ]
+    questao = QuestaoCurada(
+        banca="cebraspe",
+        tipo_item="multipla_escolha",
+        numero_item=21,
+        comando=None,
+        texto_apoio=None,
+        texto_apoio_itens=[],
+        enunciado="Um enunciado qualquer.",
+        alternativas=alternativas,
+        gabarito_preliminar=None,
+        gabarito="B",
+        gabarito_status="definitivo",
+        publicavel=True,
+        motivo_nao_publicavel=None,
+        regra_prova=RegraProva(anula_por_erro=False, fonte="convenção Cebraspe A–E"),
+        topico_slug="dir-adm-01-principios-administracao",
+        topico_confianca="alta",
+        topico_evidencia="evidência qualquer",
+        origem=_origem_valida(numero_item=21),
+        hash_dedup="hash-fixo-me",
+    )
+    assert questao.alternativas is not None
+    assert [a.letra for a in questao.alternativas] == ["A", "B", "C", "D", "E"]
+    assert sum(a.correta for a in questao.alternativas) == 1
+
+
+# --- Passo 2 da fatia V3b: curadoria de múltipla escolha A–E, contra o caderno real da TJ-CE ----
+
+
+@pytest.mark.anyio
+async def test_multipla_escolha_saida_no_contrato_da_skill(
+    texto_prova_me: str, texto_gabarito_me: str, vocabulario: list[TopicoVocabulario]
+) -> None:
+    """`curar(tipo_item="multipla_escolha")` sobre o caderno real devolve as 40 `QuestaoCurada`."""
+    resultado = await _curar_tjce(texto_prova_me, texto_gabarito_me, vocabulario)
+
+    assert resultado.pendente_revisao is False
+    assert resultado.problemas == []
+    assert len(resultado.questoes) == N_QUESTOES_TJCE
+    for questao in resultado.questoes:
+        dados = questao.model_dump()
+        for campo in CAMPOS_OBRIGATORIOS:
+            assert campo in dados, f"campo {campo} ausente em {questao.numero_item}"
+        assert questao.tipo_item == "multipla_escolha"
+        # achado do passo 1: o único caderno A–E real desta fatia não tem comando nem texto de
+        # apoio compartilhado entre questões.
+        assert questao.comando is None
+        assert questao.texto_apoio is None
+        assert questao.texto_apoio_itens == []
+        assert questao.justificativa_certo is None
+        assert questao.justificativa_errado is None
+        assert questao.publicado is False
+
+
+@pytest.mark.anyio
+async def test_multipla_escolha_alternativas_completas_e_em_ordem(
+    texto_prova_me: str, texto_gabarito_me: str, vocabulario: list[TopicoVocabulario]
+) -> None:
+    """Toda questão real tem as cinco alternativas, na ordem A a E, com texto não vazio."""
+    resultado = await _curar_tjce(texto_prova_me, texto_gabarito_me, vocabulario)
+
+    for questao in resultado.questoes:
+        assert questao.alternativas is not None, questao.numero_item
+        letras = [alternativa.letra for alternativa in questao.alternativas]
+        assert letras == ["A", "B", "C", "D", "E"], questao.numero_item
+        for alternativa in questao.alternativas:
+            assert alternativa.texto.strip(), (questao.numero_item, alternativa.letra)
+
+
+@pytest.mark.anyio
+async def test_multipla_escolha_correta_bate_com_gabarito(
+    texto_prova_me: str, texto_gabarito_me: str, vocabulario: list[TopicoVocabulario]
+) -> None:
+    """A única alternativa `correta=True` é a que tem a letra do gabarito definitivo da questão."""
+    resultado = await _curar_tjce(texto_prova_me, texto_gabarito_me, vocabulario)
+
+    for questao in resultado.questoes:
+        assert questao.alternativas is not None
+        corretas = [alternativa for alternativa in questao.alternativas if alternativa.correta]
+        if questao.gabarito is None:
+            assert corretas == [], questao.numero_item
+        else:
+            assert len(corretas) == 1, questao.numero_item
+            assert corretas[0].letra == questao.gabarito, questao.numero_item
+
+
+@pytest.mark.anyio
+async def test_multipla_escolha_anuladas_sem_gabarito_nem_alternativa_correta(
+    texto_prova_me: str, texto_gabarito_me: str, vocabulario: list[TopicoVocabulario]
+) -> None:
+    """As 5 questões anuladas do caderno real ficam sem gabarito e sem nenhuma `correta=True`."""
+    resultado = await _curar_tjce(texto_prova_me, texto_gabarito_me, vocabulario)
+    por_numero = {questao.numero_item: questao for questao in resultado.questoes}
+
+    for numero in ANULADAS_TJCE:
+        questao = por_numero[numero]
+        assert questao.gabarito is None
+        assert questao.gabarito_status == "anulado"
+        assert questao.publicavel is False
+        assert questao.motivo_nao_publicavel is not None
+        assert questao.motivo_nao_publicavel.startswith("anulado")
+        assert questao.alternativas is not None
+        assert all(not alternativa.correta for alternativa in questao.alternativas)
+
+
+@pytest.mark.anyio
+async def test_multipla_escolha_contagem_divergente_para_tudo(
+    vocabulario: list[TopicoVocabulario],
+) -> None:
+    """Mesma regra de ouro do C/E: contagem de questões ≠ contagem do gabarito → tudo pendente."""
+    texto_prova = (
+        "Questão 1\n"
+        "Assinale a opção correta.\n"
+        "A primeira alternativa.\n"
+        "B segunda alternativa.\n"
+        "C terceira alternativa.\n"
+        "D quarta alternativa.\n"
+        "E quinta alternativa.\n"
+        "Questão 2\n"
+        "Assinale a opção correta.\n"
+        "A primeira alternativa.\n"
+        "B segunda alternativa.\n"
+        "C terceira alternativa.\n"
+        "D quarta alternativa.\n"
+        "E quinta alternativa.\n"
+    )
+    texto_gabarito = "GABARITOS OFICIAIS DEFINITIVOS\n1\nA\n"  # só 1 entrada para 2 questões
+
+    resultado = await curar(
+        texto_prova=texto_prova,
+        texto_gabarito=texto_gabarito,
+        vocabulario=vocabulario,
+        origem_base=ORIGEM_BASE_TJCE,
+        regra_prova=REGRA_PROVA_TJCE,
+        classificador_ia=None,
+        motivo_sem_ia="sem GOOGLE_API_KEY",
+        tamanho_lote=100,
+        tipo_item="multipla_escolha",
+    )
+
+    assert resultado.pendente_revisao is True
+    assert resultado.questoes == []
+    assert any("itens (2) ≠ gabarito (1)" in problema for problema in resultado.problemas)

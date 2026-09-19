@@ -1,9 +1,10 @@
 """Repositório de questões: grava o que o curador produziu e serve as consultas de estudo.
 
 O que é: `salvar_questoes` (dedup por `hash_dedup`, sem depender de `IntegrityError` para
-funcionar), `atualizar_classificacao` (passo 12b — reclassifica uma questão já gravada sem
-duplicar nem tocar texto/gabarito/origem), `contagem_por_topico` (quantas publicáveis por tópico
-de um edital, para o "0 de 36" da V2 virar contagem real), `proxima_questao` (a próxima
+funcionar; grava também as `Alternativa` de uma `QuestaoCurada` de múltipla escolha — passo 2 da
+V3b), `atualizar_classificacao` (passo 12b — reclassifica uma questão já gravada sem duplicar
+nem tocar texto/gabarito/origem/alternativas), `contagem_por_topico` (quantas publicáveis por
+tópico de um edital, para o "0 de 36" da V2 virar contagem real), `proxima_questao` (a próxima
 publicável de um tópico que o usuário nunca respondeu nem reportou — premissa H do plano da V3),
 `registrar_resposta`/`registrar_reporte` (gravam `evento_estudo`, nunca alteram `questao`) e
 `topicos_vistos` (premissa N: tópicos com pelo menos uma resposta do usuário naquele edital).
@@ -19,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
+    Alternativa,
     EventoEstudo,
     Questao,
     ReporteErro,
@@ -35,7 +37,11 @@ def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, in
     Consulta os hashes já gravados antes de inserir — a função não depende de capturar
     `IntegrityError` para funcionar; a `UNIQUE` de `questao.hash_dedup` é só a rede de segurança
     contra corrida. Rodar a mesma lista duas vezes não cria linha nova: a segunda chamada
-    devolve `(0, N)`. Faz `add`/`flush`; quem commita é a rota/comando.
+    devolve `(0, N)`. Quando `questao.alternativas` não é `None` (múltipla escolha), grava
+    também as cinco linhas de `alternativa` (letra, texto, `correta`, `justificativa=None` — quem
+    a preenche é o gerador de inéditas com validador, fatia 5, nunca o curador); uma questão que
+    já existe não grava alternativa nenhuma de novo — elas acompanham a questão, nunca duplicam
+    sozinhas. Faz `add`/`flush`; quem commita é a rota/comando.
 
     Args:
         db: sessão do request/comando.
@@ -66,29 +72,39 @@ def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, in
         topico: Topico | None = (
             topicos_por_slug.get(questao.topico_slug) if questao.topico_slug else None
         )
-        db.add(
-            Questao(
-                adapter=questao.adapter,
-                banca=questao.banca,
-                tipo_item=questao.tipo_item,
-                comando=questao.comando,
-                texto_apoio=questao.texto_apoio,
-                texto_apoio_itens=questao.texto_apoio_itens,
-                enunciado=questao.enunciado,
-                gabarito_preliminar=questao.gabarito_preliminar,
-                gabarito=questao.gabarito,
-                gabarito_status=questao.gabarito_status,
-                publicavel=questao.publicavel,
-                motivo_nao_publicavel=questao.motivo_nao_publicavel,
-                regra_prova=questao.regra_prova.model_dump(mode="json"),
-                topico=topico,
-                topico_confianca=questao.topico_confianca,
-                topico_evidencia=questao.topico_evidencia,
-                origem=questao.origem.model_dump(mode="json"),
-                documento_id=UUID(questao.origem.documento_id),
-                hash_dedup=questao.hash_dedup,
-            )
+        nova_questao = Questao(
+            adapter=questao.adapter,
+            banca=questao.banca,
+            tipo_item=questao.tipo_item,
+            comando=questao.comando,
+            texto_apoio=questao.texto_apoio,
+            texto_apoio_itens=questao.texto_apoio_itens,
+            enunciado=questao.enunciado,
+            gabarito_preliminar=questao.gabarito_preliminar,
+            gabarito=questao.gabarito,
+            gabarito_status=questao.gabarito_status,
+            publicavel=questao.publicavel,
+            motivo_nao_publicavel=questao.motivo_nao_publicavel,
+            regra_prova=questao.regra_prova.model_dump(mode="json"),
+            topico=topico,
+            topico_confianca=questao.topico_confianca,
+            topico_evidencia=questao.topico_evidencia,
+            origem=questao.origem.model_dump(mode="json"),
+            documento_id=UUID(questao.origem.documento_id),
+            hash_dedup=questao.hash_dedup,
         )
+        db.add(nova_questao)
+        if questao.alternativas is not None:
+            for alternativa in questao.alternativas:
+                db.add(
+                    Alternativa(
+                        questao=nova_questao,
+                        letra=alternativa.letra,
+                        texto=alternativa.texto,
+                        correta=alternativa.correta,
+                        justificativa=None,
+                    )
+                )
         existentes.add(questao.hash_dedup)  # evita duplicar dentro da própria lista de entrada
         novas += 1
     db.flush()

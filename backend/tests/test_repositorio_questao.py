@@ -1,7 +1,9 @@
 # O que é: testes do passo 11 da V3 — repositório de questões (grava o que o curador produziu,
-# conta por tópico, serve a próxima questão, registra resposta e reporte) — e do passo 12b
-# (`atualizar_classificacao`, para reclassificar sem duplicar). Quando ler: ao mexer em
-# `dados/repositorio_questao.py` ou nas tabelas `questao`/`evento_estudo`/`reporte_erro`.
+# conta por tópico, serve a próxima questão, registra resposta e reporte) —, do passo 12b
+# (`atualizar_classificacao`, para reclassificar sem duplicar) e do passo 2 da V3b
+# (`salvar_questoes` grava também `alternativa` para múltipla escolha). Quando ler: ao mexer em
+# `dados/repositorio_questao.py` ou nas tabelas `questao`/`alternativa`/`evento_estudo`/
+# `reporte_erro`.
 from datetime import timedelta
 from typing import Literal
 from uuid import UUID, uuid4
@@ -11,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
+    Alternativa,
     Concurso,
     Documento,
     Edital,
@@ -31,7 +34,13 @@ from aprovaos.dados.repositorio_questao import (
     topicos_vistos,
 )
 from aprovaos.dominio.conta import DadosCadastro
-from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
+from aprovaos.dominio.questao import (
+    AlternativaCurada,
+    Origem,
+    QuestaoCurada,
+    RegraProva,
+    hash_dedup,
+)
 
 
 def _usuario(db: Session, email: str) -> Usuario:
@@ -105,6 +114,54 @@ def _questao_curada(
     )
 
 
+def _questao_curada_multipla_escolha(
+    numero_item: int,
+    enunciado: str,
+    topico_slug: str | None,
+    documento_id: UUID,
+    *,
+    gabarito: Literal["A", "B", "C", "D", "E"] = "B",
+) -> QuestaoCurada:
+    """Mesmo espírito de `_questao_curada`, para `tipo_item="multipla_escolha"` (passo 2 da V3b)."""
+    origem = Origem(
+        banca="cebraspe",
+        orgao="TJ-CE",
+        cargo="Técnico Judiciário",
+        ano=2023,
+        numero_item=numero_item,
+        tipo_caderno=None,
+        url_prova="https://cdn.cebraspe.org.br/prova.pdf",
+        documento_id=str(documento_id),
+    )
+    alternativas = [
+        AlternativaCurada(
+            letra=letra, texto=f"texto da alternativa {letra}", correta=letra == gabarito
+        )
+        for letra in ("A", "B", "C", "D", "E")
+    ]
+    return QuestaoCurada(
+        banca="cebraspe",
+        tipo_item="multipla_escolha",
+        numero_item=numero_item,
+        comando=None,
+        texto_apoio=None,
+        texto_apoio_itens=[],
+        enunciado=enunciado,
+        alternativas=alternativas,
+        gabarito_preliminar=None,
+        gabarito=gabarito,
+        gabarito_status="definitivo",
+        publicavel=True,
+        motivo_nao_publicavel=None,
+        regra_prova=RegraProva(anula_por_erro=False, fonte="convenção Cebraspe A–E"),
+        topico_slug=topico_slug,
+        topico_confianca="alta" if topico_slug else "baixa",
+        topico_evidencia="menciona prescrição",
+        origem=origem,
+        hash_dedup=hash_dedup(enunciado),
+    )
+
+
 def test_salvar_questoes_dedup(db: Session) -> None:
     documento = _documento(db, "d1")
     topico = _topico(db, "dir-civ-01-prescricao")
@@ -140,6 +197,56 @@ def test_salvar_questoes_dedup_dentro_do_mesmo_lote(db: Session) -> None:
 
     assert (novas, repetidas) == (1, 1)
     assert db.scalar(select(func.count()).select_from(Questao)) == 1
+
+
+def test_salvar_questoes_grava_alternativas(db: Session) -> None:
+    """Múltipla escolha: `salvar_questoes` grava as cinco `alternativa` junto com a `questao`."""
+    documento = _documento(db, "d-me-1")
+    topico = _topico(db, "dir-civ-01-prescricao")
+    questao = _questao_curada_multipla_escolha(
+        21, "Enunciado de múltipla escolha.", topico.slug, documento.id, gabarito="D"
+    )
+
+    novas, repetidas = salvar_questoes(db, [questao])
+    db.commit()
+
+    assert (novas, repetidas) == (1, 0)
+    questao_salva = db.scalars(select(Questao)).one()
+    assert questao_salva.tipo_item == "multipla_escolha"
+    assert questao_salva.gabarito == "D"
+
+    alternativas = list(
+        db.scalars(
+            select(Alternativa)
+            .where(Alternativa.questao_id == questao_salva.id)
+            .order_by(Alternativa.letra)
+        ).all()
+    )
+    assert [a.letra for a in alternativas] == ["A", "B", "C", "D", "E"]
+    assert all(a.justificativa is None for a in alternativas)
+    corretas = [a for a in alternativas if a.correta]
+    assert len(corretas) == 1
+    assert corretas[0].letra == "D"
+
+
+def test_salvar_questoes_nao_duplica_alternativas_de_questao_ja_existente(db: Session) -> None:
+    """Rodar a mesma lista duas vezes não duplica `alternativa` (mesmo espírito da dedup de
+    `questao` — a segunda chamada nem tenta gravar de novo).
+    """
+    documento = _documento(db, "d-me-2")
+    topico = _topico(db, "dir-civ-01-prescricao")
+    questao = _questao_curada_multipla_escolha(
+        22, "Outro enunciado de múltipla escolha.", topico.slug, documento.id
+    )
+
+    salvar_questoes(db, [questao])
+    db.commit()
+    novas2, repetidas2 = salvar_questoes(db, [questao])
+    db.commit()
+
+    assert (novas2, repetidas2) == (0, 1)
+    assert db.scalar(select(func.count()).select_from(Questao)) == 1
+    assert db.scalar(select(func.count()).select_from(Alternativa)) == 5
 
 
 def test_contagem_por_topico(db: Session) -> None:

@@ -6,10 +6,11 @@ o pipeline completo de um caderno já coletado (passo 5): lê os dois PDFs do di
 `GOOGLE_API_KEY` e teto diário, senão `ClassificadorPorRegras` — mesmo desenho de
 `agentes.classificador.escolher_classificador`, mas sem usuário autenticado: este é um comando,
 não uma rota, e a linha de `traco` de cada chamada fica com `usuario_id=None`), roda `curar`
-(passo 9) e grava com `salvar_questoes` (passo 11). `RelatorioCuradoria` é o que volta para quem
-chama e para o diário da fatia (`docs/fatias/V3-execucao.md`): total, publicáveis, anuladas, sem
-tópico e — quando a segmentação ou o gabarito não bateram — os problemas, sem gravar nenhuma
-linha (decisão do dono, passo 12: `pendente_revisao` não grava nada).
+(passo 9; `--tipo-item` escolhe C/E ou múltipla escolha A–E — passo 2 da V3b) e grava com
+`salvar_questoes` (passo 11). `RelatorioCuradoria` é o que volta para quem chama e para o diário
+da fatia (`docs/fatias/V3-execucao.md`): total, publicáveis, anuladas, sem tópico e — quando a
+segmentação ou o gabarito não bateram — os problemas, sem gravar nenhuma linha (decisão do dono,
+passo 12: `pendente_revisao` não grava nada).
 
 `main()` é o `argparse` que resolve o par prova+gabarito a partir de `--evento`/`--cargo` (mesma
 filtragem do passo 5, `motor.coletar.arquivos_do_cargo`, sobre o que já está em `documento`) e
@@ -46,12 +47,12 @@ from aprovaos.dominio.pdf import extrair_texto
 from aprovaos.dominio.questao import RegraProva
 from aprovaos.motor.coletar import resolver_documentos_dir
 from aprovaos.motor.curadoria.classificacao import ClassificadorDeTopico, TopicoVocabulario
-from aprovaos.motor.curadoria.curador import OrigemBase, curar, verificar_curadoria
+from aprovaos.motor.curadoria.curador import OrigemBase, TipoItem, curar, verificar_curadoria
 from aprovaos.roteador.custo import ChamadaLlm
 from aprovaos.roteador.teto import TetoDiario
 
 BANCA = "cebraspe"
-"""Única banca que este comando cura (decisão J do plano da V3 — Cebraspe C/E)."""
+"""Única banca que este comando cura (decisão J do plano da V3 — C/E e A–E, nunca FGV)."""
 
 _PADRAO_CARGO_NA_DESCRICAO = re.compile(r"CARGO\s+(\d+)\s*$", re.IGNORECASE)
 _PADRAO_TOKEN_DE_ANO = re.compile(r"^\d{2}$")
@@ -65,6 +66,18 @@ _PADRAO_TOKEN_DE_ANO = re.compile(r"^\d{2}$")
 _REGRA_PROVA_PADRAO = RegraProva(
     anula_por_erro=True,
     fonte="convenção Cebraspe C/E — edital do concurso de origem não lido nesta fatia",
+)
+
+# Múltipla escolha não tem o mecanismo "resposta errada anula uma certa" do C/E — cada questão
+# vale sozinha; não é suposição, é a forma do item (uma única resposta por questão, sem par
+# certo/errado para anular). Mesmo motivo de fonte "não verificada" da constante acima: o edital
+# do concurso de origem não foi lido nesta fatia.
+_REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA = RegraProva(
+    anula_por_erro=False,
+    fonte=(
+        "convenção Cebraspe A–E — múltipla escolha não tem par certo/errado para anular; "
+        "edital do concurso de origem não lido nesta fatia"
+    ),
 )
 
 
@@ -281,16 +294,18 @@ async def curar_documento(
     edital_id: UUID,
     *,
     reclassificar: bool = False,
+    tipo_item: TipoItem = "certo_errado",
 ) -> RelatorioCuradoria:
-    """Cura um caderno já coletado e grava as questões publicáveis (passo 12 da V3).
+    """Cura um caderno já coletado e grava as questões publicáveis (passo 12 da V3; passo 2 da V3b).
 
     Lê os dois PDFs do disco (`resolver_documentos_dir(config) / documento.caminho`), monta a
     `OrigemBase` a partir do `Documento` da prova, classifica cada item no vocabulário de
     `edital_id` (IA quando há `GOOGLE_API_KEY` e teto, senão `ClassificadorPorRegras`) e grava
-    com `salvar_questoes` (dedup por `hash_dedup`) — ou, com `reclassificar=True`, atualiza as
-    linhas já gravadas por `atualizar_classificacao` (passo 12b) em vez de gravar de novo: é o
-    caminho para rodar `curar` outra vez sobre o mesmo par, agora com um classificador melhor
-    (ex.: a chave chegou depois da primeira rodada por regras), sem duplicar nada.
+    com `salvar_questoes` (dedup por `hash_dedup`; grava também as alternativas quando
+    `tipo_item="multipla_escolha"`) — ou, com `reclassificar=True`, atualiza as linhas já
+    gravadas por `atualizar_classificacao` (passo 12b) em vez de gravar de novo: é o caminho para
+    rodar `curar` outra vez sobre o mesmo par, agora com um classificador melhor (ex.: a chave
+    chegou depois da primeira rodada por regras), sem duplicar nada.
     `pendente_revisao=True` não grava/atualiza nenhuma linha em `questao` — o motivo vai em
     `problemas`. Faz `add`/`flush`; o `commit` é de quem chama (`main()`, ou o teste).
 
@@ -308,6 +323,9 @@ async def curar_documento(
             `topico_id`/`topico_confianca`/`topico_evidencia`/`publicavel`/
             `motivo_nao_publicavel` mudam, o texto/gabarito/origem gravados na curadoria
             original continuam os mesmos.
+        tipo_item: `"certo_errado"` (padrão, Cebraspe C/E) ou `"multipla_escolha"` (Cebraspe
+            A–E, nível médio) — decide a segmentação, a leitura do gabarito e a regra de prova
+            padrão (`_REGRA_PROVA_PADRAO`/`_REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA`).
 
     Returns:
         `RelatorioCuradoria` com as contagens e, quando algo deu errado, os problemas.
@@ -331,15 +349,19 @@ async def curar_documento(
     vocabulario = _vocabulario_do_edital(db, edital_id)
     origem_base = _origem_base(documento_prova)
     classificador_ia, motivo_sem_ia = _escolher_classificador(db, config)
+    regra_prova = (
+        _REGRA_PROVA_PADRAO if tipo_item == "certo_errado" else _REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA
+    )
 
     resultado = await curar(
         texto_prova=texto_prova,
         texto_gabarito=texto_gabarito,
         vocabulario=vocabulario,
         origem_base=origem_base,
-        regra_prova=_REGRA_PROVA_PADRAO,
+        regra_prova=regra_prova,
         classificador_ia=classificador_ia,
         motivo_sem_ia=motivo_sem_ia,
+        tipo_item=tipo_item,
         tamanho_lote=config.lote_classificacao,
     )
 
@@ -409,8 +431,9 @@ def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
     """Define e interpreta os argumentos de `main()`."""
     parser = argparse.ArgumentParser(
         description=(
-            "Cura um caderno Cebraspe certo/errado já coletado: segmenta, lê o gabarito, "
-            "classifica no vocabulário do edital dado e grava as questões publicáveis."
+            "Cura um caderno Cebraspe já coletado (C/E ou múltipla escolha A–E): segmenta, lê "
+            "o gabarito, classifica no vocabulário do edital dado e grava as questões "
+            "publicáveis."
         )
     )
     parser.add_argument("--evento", required=True, help="eventoURL (ex.: TJ_PA_25_SERVIDOR)")
@@ -419,6 +442,15 @@ def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--edital", required=True, type=UUID, help="id do edital cujo vocabulário classifica"
+    )
+    parser.add_argument(
+        "--tipo-item",
+        choices=("certo_errado", "multipla_escolha"),
+        default="certo_errado",
+        help=(
+            "certo_errado (padrão, Cebraspe C/E) ou multipla_escolha (Cebraspe A–E, nível "
+            "médio) — passo 2 da fatia V3b"
+        ),
     )
     parser.add_argument(
         "--reclassificar",
@@ -479,6 +511,7 @@ def main(argv: list[str] | None = None, config: Configuracoes | None = None) -> 
                 documento_gabarito.id,
                 argumentos.edital,
                 reclassificar=argumentos.reclassificar,
+                tipo_item=argumentos.tipo_item,
             )
         )
         db.commit()

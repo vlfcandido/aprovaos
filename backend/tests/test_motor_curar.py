@@ -1,7 +1,8 @@
 # O que é: testes do passo 12 da V3 — o comando `curar` (motor/curar.py), que liga o coletor
 # (passo 5), a classificação (passo 8), o curador (passo 9) e o repositório de questões (passo
-# 11) num único `curar_documento`. Quando ler: ao mudar `curar_documento`, `_origem_base` ou a
-# resolução do vocabulário/documentos a partir do banco.
+# 11) num único `curar_documento` — e do passo 2 da V3b (`--tipo-item multipla_escolha`).
+# Quando ler: ao mudar `curar_documento`, `_origem_base` ou a resolução do vocabulário/
+# documentos a partir do banco.
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -13,7 +14,16 @@ from sqlalchemy.orm import Session
 
 from aprovaos.config import Configuracoes
 from aprovaos.dados.base import agora_utc
-from aprovaos.dados.modelos import Concurso, Documento, Edital, Questao, Topico, TopicoEdital, Traco
+from aprovaos.dados.modelos import (
+    Alternativa,
+    Concurso,
+    Documento,
+    Edital,
+    Questao,
+    Topico,
+    TopicoEdital,
+    Traco,
+)
 from aprovaos.dominio.edital import extrair_conteudo_programatico
 from aprovaos.motor.curadoria.classificacao import (
     Classificacao,
@@ -46,6 +56,26 @@ _TEXTO_PROVA_SINTETICO = (
 )
 # 1 entrada de gabarito para 2 itens do caderno — contagem divergente (pendente_revisao).
 _TEXTO_GABARITO_DIVERGENTE = "GABARITOS OFICIAIS DEFINITIVOS\n1\nC\n"
+
+# Caderno sintético A–E de 2 questões (enunciados diferentes, para não colidir no `hash_dedup`),
+# no mesmo espírito acima, para o passo 2 da V3b.
+_TEXTO_PROVA_SINTETICO_ME = (
+    "Questão 1\n"
+    "Acerca do primeiro assunto sintético, assinale a opção correta.\n"
+    "A primeira alternativa.\n"
+    "B segunda alternativa.\n"
+    "C terceira alternativa.\n"
+    "D quarta alternativa.\n"
+    "E quinta alternativa.\n"
+    "Questão 2\n"
+    "Acerca do segundo assunto sintético, assinale a opção correta.\n"
+    "A primeira alternativa.\n"
+    "B segunda alternativa.\n"
+    "C terceira alternativa.\n"
+    "D quarta alternativa.\n"
+    "E quinta alternativa.\n"
+)
+_TEXTO_GABARITO_SINTETICO_ME = "GABARITOS OFICIAIS DEFINITIVOS\n1 2\nA B\n"
 
 
 @pytest.fixture
@@ -236,6 +266,65 @@ async def test_pendente_revisao_nao_grava_nada(
     assert any("≠ gabarito" in problema for problema in relatorio.problemas)
     assert db.scalar(select(func.count()).select_from(Questao)) == 0
     assert db.scalar(select(func.count()).select_from(Traco)) == 0
+
+
+@pytest.mark.anyio
+async def test_curar_documento_multipla_escolha_grava_tipo_item_e_alternativas(
+    db: Session, config_teste: Configuracoes, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """`tipo_item="multipla_escolha"`: grava `tipo_item`, a letra do gabarito e as `alternativa`.
+
+    Também prova que `curar_documento` escolhe a regra de prova padrão certa para o tipo
+    (`_REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA`, `anula_por_erro=False`) — nunca a de C/E.
+    """
+    pasta = tmp_path / "provas" / "SINTETICO_ME_24"
+    pasta.mkdir(parents=True)
+    (pasta / "prova.pdf").write_bytes(b"conteudo-prova-me-sintetica")
+    (pasta / "gabarito.pdf").write_bytes(b"conteudo-gabarito-me-sintetico")
+    config = config_teste.model_copy(update={"documentos_dir": tmp_path / "provas"})
+
+    documento_prova = _documento_prova(
+        db,
+        caminho="SINTETICO_ME_24/prova.pdf",
+        evento="SINTETICO_ME_24",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 1",
+    )
+    documento_gabarito = _documento_gabarito(
+        db,
+        caminho="SINTETICO_ME_24/gabarito.pdf",
+        evento="SINTETICO_ME_24",
+        descricao="GABARITO DEFINITIVO – CONHECIMENTOS ESPECÍFICOS – CARGO 1",
+    )
+    edital = _edital_vazio(db)
+    db.commit()
+
+    def extrair_texto_falso(conteudo: bytes) -> str:
+        if conteudo == b"conteudo-prova-me-sintetica":
+            return _TEXTO_PROVA_SINTETICO_ME
+        return _TEXTO_GABARITO_SINTETICO_ME
+
+    monkeypatch.setattr("aprovaos.motor.curar.extrair_texto", extrair_texto_falso)
+
+    relatorio = await curar_documento(
+        db,
+        config,
+        documento_prova.id,
+        documento_gabarito.id,
+        edital.id,
+        tipo_item="multipla_escolha",
+    )
+    db.commit()
+
+    assert relatorio.pendente_revisao is False
+    assert relatorio.total == 2
+    assert relatorio.novas == 2
+    assert relatorio.repetidas == 0
+
+    salvas = list(db.scalars(select(Questao).order_by(Questao.criado_em)).all())
+    assert [salva.tipo_item for salva in salvas] == ["multipla_escolha", "multipla_escolha"]
+    assert [salva.gabarito for salva in salvas] == ["A", "B"]
+    assert all(salva.regra_prova["anula_por_erro"] is False for salva in salvas)
+    assert db.scalar(select(func.count()).select_from(Alternativa)) == 10
 
 
 class _ClassificadorFalso:

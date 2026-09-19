@@ -3,8 +3,10 @@
 O que é: o router da fatia V2 — `POST /editais/subir` roda o pipeline inteiro (validar PDF →
 extrair texto → parser do conteúdo programático → `gerar_dna` por IA ou regras → gravar PDF →
 persistir → commit) e redireciona para a página do concurso; erros esperados voltam na mesma
-página com mensagem e status 200 (premissa N). Quando ler: ao mexer no upload, na página do
-concurso ou na lista "Meus editais".
+página com mensagem e status 200 (premissa N). `processar_conteudo_pdf` é o miolo do pipeline
+extraído para bytes já em mãos — reaproveitado por `api/radar.py::analisar_edital_do_radar`
+(fatia 1b, "Analisar este edital": o PDF vem da URL do detalhe da Cebraspe, não de upload).
+Quando ler: ao mexer no upload, na página do concurso ou na lista "Meus editais".
 """
 
 import hashlib
@@ -21,7 +23,7 @@ from aprovaos.api.templates import renderizar, responder_redirecionamento
 from aprovaos.config import Configuracoes
 from aprovaos.dados.arquivos import guardar_pdf
 from aprovaos.dados.base import agora_utc
-from aprovaos.dados.modelos import Usuario
+from aprovaos.dados.modelos import Concurso, Usuario
 from aprovaos.dados.repositorio_aula import aula_publicada_do_topico_com_origem
 from aprovaos.dados.repositorio_edital import (
     STATUS_NAO_VISTO,
@@ -94,6 +96,57 @@ def _escolher_analista(
     return criar_analista_adk(config, registrar), None
 
 
+async def processar_conteudo_pdf(
+    request: Request,
+    db: Session,
+    usuario: Usuario,
+    conteudo: bytes,
+    nome_original: str,
+) -> Concurso:
+    """Roda o pipeline do edital (validar → DNA → persistir) sobre bytes já em mãos.
+
+    Extraído de `processar_edital` para ser compartilhado com `POST
+    /radar/{evento_url}/analisar` (fatia 1b): lá o PDF chega pela URL do detalhe da Cebraspe, não
+    por upload multipart, mas o resto do pipeline é idêntico. Não faz `commit` nem redireciona —
+    quem chama decide o que fazer com o `Concurso` devolvido (e propaga as exceções de domínio
+    para decidir a mensagem certa na tela de origem).
+
+    Args:
+        request: a requisição atual (`app.state.config`, `app.state.uploads_dir`).
+        db: sessão de banco do request.
+        usuario: o usuário logado.
+        conteudo: bytes do PDF, já confirmados como vindos de uma fonte que promete ser PDF.
+        nome_original: nome de exibição do arquivo (o do upload, ou o `nomeArquivo` da API).
+
+    Returns:
+        O `Concurso` já persistido (`add`/`flush`, sem `commit`).
+
+    Raises:
+        ArquivoInvalido: não é PDF, passa de 10 MB, ou está corrompido.
+        PdfSemTexto: PDF sem texto extraível.
+        ConteudoProgramaticoNaoEncontrado: sem conteúdo programático reconhecível.
+    """
+    config: Configuracoes = request.app.state.config
+    validar_pdf(conteudo, "application/pdf")
+    texto = extrair_texto(conteudo)
+    materias = extrair_conteudo_programatico(texto)
+
+    analista, motivo = _escolher_analista(db, config, usuario)
+    resultado = await gerar_dna(texto, materias, analista, motivo)
+
+    hash_pdf = hashlib.sha256(conteudo).hexdigest()
+    caminho = guardar_pdf(request.app.state.uploads_dir, hash_pdf, conteudo)
+    documento = DadosDocumento(
+        hash=hash_pdf,
+        caminho_relativo=caminho.name,
+        nome_original=nome_original,
+        tamanho=len(conteudo),
+        paginas=contar_paginas(conteudo),
+    )
+    modelo = config.modelo_dna if resultado.origem == "ia" else None
+    return registrar_edital(db, usuario.tenant_id, resultado, materias, documento, modelo)
+
+
 @router.post("/editais/subir")
 async def processar_edital(
     request: Request,
@@ -113,29 +166,14 @@ async def processar_edital(
         Redirecionamento (`HX-Redirect` ou 303) no sucesso; a página com a mensagem (200) para
         arquivo que não é PDF, maior que 10 MB, sem texto ou sem conteúdo programático.
     """
-    config: Configuracoes = request.app.state.config
     conteudo = await arquivo.read(LIMITE_BYTES + 1)
     try:
         validar_pdf(conteudo, arquivo.content_type or "")
-        texto = extrair_texto(conteudo)
-        materias = extrair_conteudo_programatico(texto)
+        concurso = await processar_conteudo_pdf(
+            request, db, usuario, conteudo, arquivo.filename or "edital.pdf"
+        )
     except (ArquivoInvalido, PdfSemTexto, ConteudoProgramaticoNaoEncontrado) as erro:
         return renderizar(request, "editais/subir.html", {"erros": [str(erro)]}, usuario)
-
-    analista, motivo = _escolher_analista(db, config, usuario)
-    resultado = await gerar_dna(texto, materias, analista, motivo)
-
-    hash_pdf = hashlib.sha256(conteudo).hexdigest()
-    caminho = guardar_pdf(request.app.state.uploads_dir, hash_pdf, conteudo)
-    documento = DadosDocumento(
-        hash=hash_pdf,
-        caminho_relativo=caminho.name,
-        nome_original=arquivo.filename or caminho.name,
-        tamanho=len(conteudo),
-        paginas=contar_paginas(conteudo),
-    )
-    modelo = config.modelo_dna if resultado.origem == "ia" else None
-    concurso = registrar_edital(db, usuario.tenant_id, resultado, materias, documento, modelo)
     db.commit()
     return responder_redirecionamento(request, f"/concurso/{concurso.id}")
 

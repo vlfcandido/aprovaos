@@ -12,7 +12,7 @@ respostas válidas e a mensagem de erro mudam conforme o tipo (`RESPOSTAS_VALIDA
 a gravação (`registrar_resposta`) e o critério de acerto (`resposta == questao.gabarito`) são os
 mesmos para os dois, porque `Questao.gabarito` já guarda a letra certa nos dois casos. Quando há
 justificativa gravada (fundação jurídica, passo 5), o resultado mostra as duas faces
-(`_afirmacoes_para_exibir`) marcadas como explicação do AprovaOS, cada frase com o dispositivo
+(`afirmacoes_para_exibir`) marcadas como explicação do AprovaOS, cada frase com o dispositivo
 legal que a sustenta — texto original da banca continua vindo só de `questao`/`Alternativa`, sem
 mistura.
 
@@ -20,7 +20,7 @@ A V4 (F4.3) acrescenta: `responder_questao` grava um `cartao(origem="auto_erro")
 `acertou is False` (`repositorio_cartao.registrar_erro`) — acertar nunca cria cartão. `GET/POST
 /revisar` mostram e respondem os cartões vencidos (`repositorio_cartao.cartoes_vencidos`, `due
 <= agora`, ordem do FSRS); como "a revisão de um cartão de questão é, na prática, a questão de
-novo" (plano V4 §5), as duas rotas reaproveitam `_contexto_questao`/`_contexto_evento` e o
+novo" (plano V4 §5), as duas rotas reaproveitam `contexto_questao`/`contexto_evento` e o
 parcial `questoes/_cartao_questao.html` — só o destino do formulário (`acao_post`) e os campos
 ocultos extras (`cartao_id`) mudam.
 
@@ -35,6 +35,13 @@ outro tópico com o selo "Fio da memória" e o motivo, reaproveitando o mesmo `_
 (`docs/fatias/V5-fio-da-memoria.md` §3/§4). A tela de revisão (`/revisar`) nunca intercala — só os
 cartões vencidos (§5 do plano V5). Quando ler: ao mexer na tela de resolver questão, na tela de
 revisão, no fluxo de reportar erro ou na intercalação do fio da memória.
+
+A fatia 7 promove `contexto_questao`/`contexto_evento`/`alternativas_ordenadas`/
+`mapa_dispositivos_por_chave`/`afirmacoes_para_exibir` de privadas (`_` na frente) a públicas: são
+as mesmas funções, sem mudança de comportamento — só deixam de ter `_` porque `api/diagnostico.py`
+também as usa ("responder no diagnóstico é, na prática, responder a questão de novo", mesmo
+espírito de `/revisar`). Continuam sendo detalhe de implementação da camada `api/`, não parte da
+superfície pública do produto.
 """
 
 from collections.abc import Sequence
@@ -263,7 +270,7 @@ def _questao_pendente(
     return db.scalars(consulta).first()
 
 
-def _alternativas_ordenadas(db: Session, questao_id: UUID) -> list[Alternativa]:
+def alternativas_ordenadas(db: Session, questao_id: UUID) -> list[Alternativa]:
     """As `Alternativa` (A–E) desta questão, na ordem impressa pela banca.
 
     Args:
@@ -280,7 +287,7 @@ def _alternativas_ordenadas(db: Session, questao_id: UUID) -> list[Alternativa]:
     return list(db.scalars(consulta).all())
 
 
-def _contexto_questao(
+def contexto_questao(
     db: Session,
     topico: Topico,
     questao: Questao | None,
@@ -294,7 +301,7 @@ def _contexto_questao(
     O gabarito nunca entra aqui (decisão 4): só o comando, o texto de apoio, o enunciado e a
     origem completa, todos vindos direto da `questao` — nada de reconstruir a partir de outro
     lugar. Em `"multipla_escolha"`, as cinco `alternativas` entram como `{letra, texto}` — sem
-    `correta`, que só aparece depois de responder (`_contexto_evento`): nada no HTML de antes da
+    `correta`, que só aparece depois de responder (`contexto_evento`): nada no HTML de antes da
     resposta pode distinguir qual das cinco é a certa. `acao_post`/`campos_ocultos` (V4) são o
     que faz o mesmo parcial servir `/topico/{slug}/questoes` e `/revisar` — só o destino do
     formulário e um campo oculto a mais (`cartao_id`, na revisão) mudam entre os dois.
@@ -338,14 +345,14 @@ def _contexto_questao(
         if questao.tipo_item == "multipla_escolha":
             questao_contexto["alternativas"] = [
                 {"letra": alternativa.letra, "texto": alternativa.texto}
-                for alternativa in _alternativas_ordenadas(db, questao.id)
+                for alternativa in alternativas_ordenadas(db, questao.id)
             ]
         contexto["questao"] = questao_contexto
         contexto["origem"] = origem
     return contexto
 
 
-def _dispositivos_por_chave(db: Session, questao_id: UUID) -> dict[str, DispositivoLegal]:
+def mapa_dispositivos_por_chave(db: Session, questao_id: UUID) -> dict[str, DispositivoLegal]:
     """Os `DispositivoLegal` já ligados a esta questão, por citação normalizada.
 
     São exatamente os dispositivos que o `gerador-de-justificativa` recebeu como única fonte
@@ -369,20 +376,20 @@ def _dispositivos_por_chave(db: Session, questao_id: UUID) -> dict[str, Disposit
     }
 
 
-def _afirmacoes_para_exibir(
+def afirmacoes_para_exibir(
     texto: str | None, dispositivos_por_chave: dict[str, DispositivoLegal]
 ) -> list[dict[str, object]]:
     """Separa `texto` (formato de `dominio.justificativa.montar_texto`) em frases exibíveis.
 
-    Cada frase vem com o dispositivo que a sustenta — o trecho literal e a URL da fonte, quando
-    o dispositivo citado está entre os já ligados à questão (`_dispositivos_por_chave`); a citação
-    aparece mesmo sem o trecho (defensivo: nunca deveria faltar, mas a tela não esconde a fonte
-    citada só porque não achou o texto).
+    Cada frase vem com o dispositivo que a sustenta — o trecho literal e a URL da fonte, quando o
+    dispositivo citado está entre os já ligados à questão (`mapa_dispositivos_por_chave`); a
+    citação aparece mesmo sem o trecho (defensivo: nunca deveria faltar, mas a tela não esconde a
+    fonte citada só porque não achou o texto).
 
     Args:
         texto: `Questao.justificativa_certo`/`_errado` ou `Alternativa.justificativa`; `None`
             quando a questão/alternativa ainda não tem justificativa.
-        dispositivos_por_chave: de `_dispositivos_por_chave`, para achar o texto literal.
+        dispositivos_por_chave: de `mapa_dispositivos_por_chave`, para achar o texto literal.
 
     Returns:
         Uma entrada por frase (`texto`, `dispositivo_rotulo`, `dispositivo_texto`,
@@ -407,7 +414,7 @@ def _afirmacoes_para_exibir(
     return resultado
 
 
-def _contexto_evento(
+def contexto_evento(
     db: Session, questao: Questao, resposta: str, acertou: bool | None
 ) -> dict[str, object]:
     """Monta o `evento` do template `questoes/_resultado.html` — só depois de já ter gravado.
@@ -416,7 +423,7 @@ def _contexto_evento(
     `justificativa_errado`, não só o que bate com `acertou`) — o aluno aprende com os dois,
     mesmo o que não escolheu (mesmo princípio de `dominio.justificativa.Afirmacao`). Em
     `"multipla_escolha"`, é a lista das cinco alternativas com `correta`/`marcada` e a própria
-    justificativa de cada uma. As duas vias passam por `_afirmacoes_para_exibir`, que nasce lista
+    justificativa de cada uma. As duas vias passam por `afirmacoes_para_exibir`, que nasce lista
     vazia sem justificativa gravada (a maioria das questões hoje) — ausente é mostrado como
     ausente, nunca com um texto inventado no lugar.
 
@@ -430,7 +437,7 @@ def _contexto_evento(
     Returns:
         O dicionário `evento` do contexto de `_resultado.html`.
     """
-    dispositivos_por_chave = _dispositivos_por_chave(db, questao.id)
+    dispositivos_por_chave = mapa_dispositivos_por_chave(db, questao.id)
     if questao.tipo_item == "multipla_escolha":
         alternativas = [
             {
@@ -438,11 +445,11 @@ def _contexto_evento(
                 "texto": alternativa.texto,
                 "correta": alternativa.correta,
                 "marcada": alternativa.letra == resposta,
-                "justificativa": _afirmacoes_para_exibir(
+                "justificativa": afirmacoes_para_exibir(
                     alternativa.justificativa, dispositivos_por_chave
                 ),
             }
-            for alternativa in _alternativas_ordenadas(db, questao.id)
+            for alternativa in alternativas_ordenadas(db, questao.id)
         ]
         return {
             "acertou": acertou,
@@ -453,10 +460,10 @@ def _contexto_evento(
         "acertou": acertou,
         "resposta_texto": RESPOSTA_TEXTO.get(resposta, resposta),
         "gabarito_texto": RESPOSTA_TEXTO.get(questao.gabarito or "", questao.gabarito),
-        "justificativa_certo": _afirmacoes_para_exibir(
+        "justificativa_certo": afirmacoes_para_exibir(
             questao.justificativa_certo, dispositivos_por_chave
         ),
-        "justificativa_errado": _afirmacoes_para_exibir(
+        "justificativa_errado": afirmacoes_para_exibir(
             questao.justificativa_errado, dispositivos_por_chave
         ),
     }
@@ -524,7 +531,7 @@ def obter_questao(
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     item, questao_intercalada = _proximo_item_intercalado(db, usuario, topico)
     if item is not None and questao_intercalada is not None:
-        contexto = _contexto_questao(
+        contexto = contexto_questao(
             db,
             topico,
             questao_intercalada,
@@ -538,7 +545,7 @@ def obter_questao(
         return renderizar(request, "questoes/topico.html", contexto, usuario)
 
     questao = proxima_questao(db, usuario.id, topico.id)
-    contexto = _contexto_questao(db, topico, questao, acao_post=f"/topico/{topico.slug}/questoes")
+    contexto = contexto_questao(db, topico, questao, acao_post=f"/topico/{topico.slug}/questoes")
     return renderizar(request, "questoes/topico.html", contexto, usuario)
 
 
@@ -610,7 +617,7 @@ def responder_questao(
         # JSON cru fora do htmx e não faz swap nenhum dentro dele (htmx 2 não troca em erro),
         # exatamente o cenário que o `questao_id` obrigatório existe para proteger (duas abas,
         # back/refresh). 200 com fragmento e um link de saída avisa a aluna de verdade.
-        contexto = _contexto_questao(db, topico, None)
+        contexto = contexto_questao(db, topico, None)
         contexto["aviso"] = MENSAGEM_QUESTAO_INDISPONIVEL
         contexto["proximo_url"] = f"/topico/{topico.slug}/questoes"
         contexto["proximo_rotulo"] = "Próxima questão"
@@ -639,8 +646,8 @@ def responder_questao(
         registrar_erro(db, usuario, questao, cast(Confianca, confianca), agora)
     db.commit()
 
-    contexto = _contexto_questao(db, topico, questao, fio_da_memoria=fio_da_memoria)
-    contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
+    contexto = contexto_questao(db, topico, questao, fio_da_memoria=fio_da_memoria)
+    contexto["evento"] = contexto_evento(db, questao, resposta, evento.acertou)
     contexto["proximo_url"] = f"/topico/{topico.slug}/questoes"
     contexto["proximo_rotulo"] = "Próxima questão"
     return renderizar(request, "questoes/_resultado.html", contexto, usuario)
@@ -743,7 +750,7 @@ def obter_revisao(
         # mas a tela não quebra se um aparecer: mesma resposta de "nada para revisar".
         return renderizar(request, "questoes/revisao.html", {"questao": None}, usuario)
 
-    contexto = _contexto_questao(
+    contexto = contexto_questao(
         db, topico, questao, acao_post="/revisar", campos_ocultos=[("cartao_id", str(cartao.id))]
     )
     return renderizar(request, "questoes/revisao.html", contexto, usuario)
@@ -815,8 +822,8 @@ def responder_revisao(
     )
     db.commit()
 
-    contexto = _contexto_questao(db, cartao.topico, questao)
-    contexto["evento"] = _contexto_evento(db, questao, resposta, evento.acertou)
+    contexto = contexto_questao(db, cartao.topico, questao)
+    contexto["evento"] = contexto_evento(db, questao, resposta, evento.acertou)
     contexto["proximo_url"] = "/revisar"
     contexto["proximo_rotulo"] = "Próxima revisão"
     return renderizar(request, "questoes/_resultado.html", contexto, usuario)

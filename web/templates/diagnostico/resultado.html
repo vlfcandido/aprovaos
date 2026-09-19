@@ -1,0 +1,69 @@
+{# O que é: resultado do diagnóstico adaptativo (fatia 7, F2.1) — proficiência ± margem por
+   matéria, o porquê da parada e o sinal de domínio por tópico (o que o plano do dia, fatia 8,
+   vai consumir). Cada matéria fechada tem "Insistir" — o "discordar" desta fatia (§6 do plano):
+   um item a mais, mesmo com a margem já fechada, sempre respeitando o teto de 30. Quando ler: ao
+   mudar o que aparece quando o diagnóstico termina. -#}
+{% extends "base.html" %}
+{% block titulo %}Resultado do diagnóstico — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Diagnóstico concluído</h1>
+  <div class="mensagem mensagem--porque">
+    <h3>Por quê</h3>
+    <p>{{ motivo }}</p>
+  </div>
+
+  <section aria-labelledby="titulo-materias">
+    <h2 id="titulo-materias">Proficiência por matéria</h2>
+    <table class="tabela-pesos">
+      <thead>
+        <tr><th scope="col">Matéria</th><th scope="col">Estimativa</th><th scope="col">Itens</th><th scope="col"></th></tr>
+      </thead>
+      <tbody>
+        {% for m in materias %}
+          <tr>
+            <th scope="row">{{ m.materia }}</th>
+            <td>
+              {% if not m.tem_questao %}
+                <span class="status status--nao-visto">sem questão na base</span>
+              {% elif m.estimativa_pct is none %}
+                <span class="status status--nao-visto">sem dado ainda</span>
+              {% else %}
+                {{ m.estimativa_pct }}% <span class="fonte">± {{ m.margem }}</span>
+              {% endif %}
+            </td>
+            <td>{{ m.n_itens }}</td>
+            <td>
+              {% if m.fechado %}
+                <a class="botao sm botao--secundario" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="titulo-topicos">
+    <h2 id="titulo-topicos">Estado por tópico</h2>
+    <p class="nota">É este estado, tópico a tópico, que o plano do dia vai usar para decidir o que
+      entra no seu dia.</p>
+    <ul class="lista-limpa">
+      {% for t in topicos %}
+        <li>
+          <strong>{{ t.nome }}</strong> ({{ t.materia }}) —
+          <span class="status status--{{ 'visto' if t.situacao == 'dominado' else 'nao-visto' }}">
+            {% if t.situacao == "dominado" %}dominado
+            {% elif t.situacao == "a_estudar" %}a estudar
+            {% elif t.situacao == "sem_dado" %}sem dado ainda
+            {% else %}sem questão na base{% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <div class="acoes">
+    <a class="botao" href="/rotina">Ir para a rotina</a>
+    <a class="botao botao--secundario" href="/editais">Meus editais</a>
+  </div>
+{% endblock %}

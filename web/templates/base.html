@@ -23,6 +23,8 @@
         <a href="/" {% if request.url.path == "/" %}aria-current="page"{% endif %}>Início</a>
         {% if usuario_email %}
           <a href="/editais" {% if request.url.path.startswith("/editais") or request.url.path.startswith("/concurso") %}aria-current="page"{% endif %}>Meus editais</a>
+          <a href="/diagnostico" {% if request.url.path == "/diagnostico" %}aria-current="page"{% endif %}>Diagnóstico</a>
+          <a href="/rotina" {% if request.url.path == "/rotina" %}aria-current="page"{% endif %}>Rotina</a>
           <a href="/revisar" {% if request.url.path == "/revisar" %}aria-current="page"{% endif %}>Revisar hoje</a>
           <a href="/conta" {% if request.url.path == "/conta" %}aria-current="page"{% endif %}>Minha conta</a>
         {% else %}

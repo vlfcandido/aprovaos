@@ -1,7 +1,8 @@
 """Repositório de edital: persiste o resultado do pipeline da V2 e consulta o que as páginas usam.
 
 O que é: `registrar_edital` (concurso + edital + documento + tópicos por slug + `dna_concurso`),
-`listar_concursos_do_tenant`/`concurso_principal` (premissa A: principal = o último subido),
+`listar_concursos_do_tenant`/`concurso_principal` (fatia 7, P-23: prefere a escolha em
+`perfil_estudo`; sem perfil, cai na heurística "o último subido" da premissa A da V2),
 `buscar_concurso`, `edital_atual`, `dna_atual` e `verticalizado` (matérias → tópicos, todos
 "não visto" na V2). Quando ler: ao escrever a rota de upload ou a página do concurso. Faz
 `add`/`flush`; o `commit` é sempre da rota (convenção transversal).
@@ -23,8 +24,10 @@ from aprovaos.dados.modelos import (
     DnaConcursoRegistro,
     Documento,
     Edital,
+    PerfilEstudo,
     Topico,
     TopicoEdital,
+    Usuario,
 )
 from aprovaos.dominio.edital import DESCONHECIDO, MateriaExtraida, slug_materia
 
@@ -209,15 +212,34 @@ def listar_concursos_do_tenant(db: Session, tenant_id: UUID) -> list[Concurso]:
 
 
 def concurso_principal(db: Session, tenant_id: UUID) -> Concurso | None:
-    """O concurso principal do tenant: o último subido (premissa A da V2; P-23 para o perfil).
+    """O concurso principal do tenant: a escolha da `perfil_estudo` (fatia 7), ou heurística.
+
+    **P-23 resolvida na fatia 7:** antes de cair na heurística "o último edital subido" (premissa
+    A da V2), procura a `perfil_estudo` mais recente de um usuário deste tenant — tenant PF tem um
+    usuário só (ADR de escopo da Fase 3) — e usa o `concurso_principal_id` gravado lá, **desde
+    que** esse concurso ainda pertença a este tenant (defensivo: um `perfil_estudo` não pode
+    "vazar" concurso de outro tenant mesmo que o dado esteja errado). Sem perfil, ou com
+    `concurso_principal_id` nulo/inválido, cai na heurística de sempre.
 
     Args:
         db: sessão do request.
         tenant_id: dono dos concursos.
 
     Returns:
-        O `Concurso` mais recente, ou `None` sem nenhum.
+        O `Concurso` escolhido pela rotina, ou o mais recente por heurística; `None` sem nenhum.
     """
+    usuario_id = db.scalars(select(Usuario.id).where(Usuario.tenant_id == tenant_id)).first()
+    if usuario_id is not None:
+        perfil = db.scalars(
+            select(PerfilEstudo)
+            .where(PerfilEstudo.usuario_id == usuario_id)
+            .order_by(PerfilEstudo.versao.desc())
+        ).first()
+        if perfil is not None and perfil.concurso_principal_id is not None:
+            escolhido = db.get(Concurso, perfil.concurso_principal_id)
+            if escolhido is not None and escolhido.tenant_id == tenant_id:
+                return escolhido
+
     lista = listar_concursos_do_tenant(db, tenant_id)
     return lista[0] if lista else None
 

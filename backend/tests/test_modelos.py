@@ -24,6 +24,7 @@ from aprovaos.dados.modelos import (
     Edital,
     EventoEstudo,
     Fonte,
+    PerfilEstudo,
     Questao,
     ReporteErro,
     Sessao,
@@ -79,6 +80,7 @@ def test_tabelas() -> None:
         "cartao",
         "aula",
         "topico_relacao",
+        "perfil_estudo",
     }
 
 
@@ -556,6 +558,73 @@ def test_versao_do_dossie_topico_e_unica_por_topico(db: Session) -> None:
             fontes=[],
             bibliografia=[],
             log_buscas=[],
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def _horas_da_semana() -> dict[str, float]:
+    return {dia: 2.0 for dia in ("seg", "ter", "qua", "qui", "sex", "sab", "dom")}
+
+
+def test_insere_perfil_estudo(db: Session) -> None:
+    """`PerfilEstudo` grava rotina + concurso principal; consentimento fica no `usuario`."""
+    _, usuario, _ = _conta(db)
+    usuario.consentimento_dados_rotina = True
+    usuario.consentimento_dados_rotina_em = datetime.now(UTC)
+    usuario.consentimento_dados_rotina_versao = "v1"
+    concurso = Concurso(orgao="TJ-PR", cargo="Técnico", banca="AOCP")
+    perfil = PerfilEstudo(
+        usuario=usuario,
+        versao=1,
+        horas_por_dia_semana=_horas_da_semana(),
+        horario_preferido="manha",
+        energia_tipica="media",
+        concurso_principal=concurso,
+    )
+    db.add_all([concurso, perfil])
+    db.commit()
+    assert perfil.concursos_acompanhados == []
+    assert usuario.consentimento_dados_rotina is True
+
+
+def test_energia_tipica_do_perfil_estudo_restrita(db: Session) -> None:
+    """`energia_tipica` fora de `alta`/`media`/`baixa` viola o `CheckConstraint`."""
+    _, usuario, _ = _conta(db)
+    db.add(
+        PerfilEstudo(
+            usuario=usuario,
+            versao=1,
+            horas_por_dia_semana=_horas_da_semana(),
+            horario_preferido="manha",
+            energia_tipica="excelente",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        db.commit()
+
+
+def test_versao_do_perfil_estudo_e_unica_por_usuario(db: Session) -> None:
+    """Duas linhas com o mesmo `(usuario_id, versao)` não podem coexistir."""
+    _, usuario, _ = _conta(db)
+    db.add(
+        PerfilEstudo(
+            usuario=usuario,
+            versao=1,
+            horas_por_dia_semana=_horas_da_semana(),
+            horario_preferido="manha",
+            energia_tipica="media",
+        )
+    )
+    db.commit()
+    db.add(
+        PerfilEstudo(
+            usuario=usuario,
+            versao=1,
+            horas_por_dia_semana=_horas_da_semana(),
+            horario_preferido="noite",
+            energia_tipica="baixa",
         )
     )
     with pytest.raises(IntegrityError):

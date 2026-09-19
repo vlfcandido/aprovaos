@@ -14,7 +14,11 @@ guarda o estado do `fsrs.Card` — ver o docstring da classe `Cartao` para o ade
 acrescenta `evento_estudo.dados` (JSON, nullable) — o campo que `docs/04-modelo-de-dados.md` §2
 já previa desde a Fase 3 e nenhuma fatia anterior tinha precisado criar; o fio da memória o usa
 para marcar `bloco_topico_id` (e, quando o item é intercalado, `fio_motivo`/
-`fio_origem_topico_id`) sem inventar coluna nova.
+`fio_origem_topico_id`) sem inventar coluna nova. A fatia 7 acrescenta `usuario.
+consentimento_dados_rotina*` (três colunas para o campo lógico único do modelo de dados — ver o
+docstring de `Usuario`) e a tabela `perfil_estudo` (rotina + concurso principal, P-23); o
+diagnóstico adaptativo da mesma fatia não ganha tabela nova — ele lê `evento_estudo` marcado com
+`dados={"diagnostico": True}`, o mesmo padrão de `bloco_topico_id`.
 """
 
 from datetime import date, datetime
@@ -52,7 +56,16 @@ class Tenant(ChaveUuid, Carimbos, Base):
 
 
 class Usuario(ChaveUuid, Carimbos, Base):
-    """Conta de acesso por e-mail+senha (argon2); `excluido_em` marca pedido de exclusão."""
+    """Conta de acesso por e-mail+senha (argon2); `excluido_em` marca pedido de exclusão.
+
+    `consentimento_dados_rotina*` (fatia 7) são as três colunas que
+    `docs/04-modelo-de-dados.md` §2 nomeia como um único campo lógico ("bool, data, versão do
+    texto") — energia/sono é dado sensível por cautela (RISCOS R-01) e `perfil_estudo.
+    energia_tipica` só pode ser gravado depois do aceite. `_em`/`_versao` ficam `None` até o
+    primeiro aceite; um novo aceite (a cada `POST /rotina`, decisão do plano §7) sobrescreve os
+    três, nunca acumula histórico à parte — quem quer saber "quando ela aceitou pela primeira
+    vez" o fará quando essa necessidade aparecer, não antes.
+    """
 
     __tablename__ = "usuario"
 
@@ -60,6 +73,11 @@ class Usuario(ChaveUuid, Carimbos, Base):
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)
     senha_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     excluido_em: Mapped[datetime | None] = mapped_column(DataHoraUtc, nullable=True)
+    consentimento_dados_rotina: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    consentimento_dados_rotina_em: Mapped[datetime | None] = mapped_column(
+        DataHoraUtc, nullable=True
+    )
+    consentimento_dados_rotina_versao: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     tenant: Mapped[Tenant] = relationship()
 
@@ -589,3 +607,38 @@ class Aula(ChaveUuid, Carimbos, Base):
 
     dossie: Mapped[DossieTopico] = relationship()
     topico: Mapped[Topico] = relationship()
+
+
+class PerfilEstudo(ChaveUuid, Base):
+    """Rotina do aluno (fatia 7, F2.2): horas por dia, horário, energia, data-alvo e o principal.
+
+    Append-only por `versao` (modelo de dados §2) — por isso não herda `Carimbos`: não há
+    `atualizado_em`/`ON UPDATE` porque uma mudança de rotina nunca atualiza a linha anterior, cria
+    uma nova (mesmo motivo de `EventoEstudo` não usar o mixin). `dados/repositorio_perfil.py` lê
+    sempre a de maior `versao`. `concurso_principal_id` resolve a P-23 (`docs/PENDENCIAS.md`): a
+    escolha explícita da aluna, que `repositorio_edital.concurso_principal` passa a preferir à
+    heurística "o último edital subido". `concursos_acompanhados` nasce sempre `[]` nesta fatia —
+    a UI de "principal + acompanhando" é F1.3, fatia 1b; a coluna só evita uma migração nova
+    quando essa fatia chegar.
+    """
+
+    __tablename__ = "perfil_estudo"
+    __table_args__ = (
+        UniqueConstraint("usuario_id", "versao"),
+        CheckConstraint("energia_tipica IN ('alta','media','baixa')", name="energia_tipica"),
+    )
+
+    usuario_id: Mapped[UUID] = mapped_column(ForeignKey("usuario.id"), index=True, nullable=False)
+    versao: Mapped[int] = mapped_column(Integer, nullable=False)
+    horas_por_dia_semana: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    horario_preferido: Mapped[str] = mapped_column(String(16), nullable=False)
+    energia_tipica: Mapped[str] = mapped_column(String(8), nullable=False)
+    data_alvo: Mapped[date | None] = mapped_column(Date, nullable=True)
+    concurso_principal_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("concurso.id"), nullable=True
+    )
+    concursos_acompanhados: Mapped[list[Any]] = mapped_column(JSON, default=list, nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(DataHoraUtc, default=agora_utc, nullable=False)
+
+    usuario: Mapped[Usuario] = relationship()
+    concurso_principal: Mapped[Concurso | None] = relationship()

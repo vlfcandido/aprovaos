@@ -1,0 +1,28 @@
+{# O que é: tela do diagnóstico em andamento (`GET/POST /diagnostico`, fatia 7, F2.1) — até 30
+   itens, escolhidos pelo que ainda está incerto sobre a aluna. Reaproveita o parcial
+   `questoes/_cartao_questao.html` ("responder no diagnóstico é, na prática, responder a questão
+   de novo"). `sem_concurso=True` quando o tenant ainda não tem concurso principal resolvível.
+   Quando ler: ao mudar o que aparece antes de responder um item do diagnóstico. -#}
+{% extends "base.html" %}
+{% block titulo %}Diagnóstico — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Trinta questões, no máximo. O agente para quando já sabe.</h1>
+  {% if sem_concurso %}
+    <p class="frase">Você ainda não tem um concurso principal — suba um edital para começar o
+      diagnóstico.</p>
+    <p><a class="botao" href="/editais/subir">Subir edital</a></p>
+  {% elif questao %}
+    <p class="cobertura">Item <strong>{{ progresso.atual }}</strong> de no máximo
+      <strong>{{ progresso.maximo }}</strong> — <span class="chip">{{ questao.tipo_item == "certo_errado" and "certo ou errado" or "múltipla escolha" }}</span></p>
+    <div class="mensagem mensagem--porque">
+      <h3>Por que este item</h3>
+      <p>{{ motivo_item }}</p>
+    </div>
+    <div id="questao">
+      {% include "questoes/_cartao_questao.html" %}
+    </div>
+  {% else %}
+    <p class="frase">Ainda não temos questão nenhuma para o seu concurso principal — sem
+      diagnóstico possível por enquanto. <a href="/editais">Veja seus editais</a>.</p>
+  {% endif %}
+{% endblock %}

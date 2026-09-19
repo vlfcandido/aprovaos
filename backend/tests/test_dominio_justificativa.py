@@ -5,11 +5,13 @@
 # foi reprovada.
 from aprovaos.dominio.justificativa import (
     Afirmacao,
+    AfirmacaoExibicao,
     DispositivoParaJustificar,
     JustificativaCertoErrado,
     JustificativaMultiplaEscolha,
     JustificativaPorAlternativa,
     montar_texto,
+    separar_afirmacoes,
     verificar_justificativa_certo_errado,
     verificar_justificativa_multipla_escolha,
 )
@@ -37,6 +39,22 @@ def _afirmacao(
         dispositivo=dispositivo,
         trecho_que_decide=trecho or "serão punidos na forma desta lei",
     )
+
+
+def test_aprova_citacao_do_modelo_com_ordinal_que_o_gravado_nao_tem() -> None:
+    """Caso real: o modelo citou "art. 1º"; o `dispositivo_legal` estava gravado como "art. 1" —
+    mesmo dispositivo, grafia diferente; o validador não pode recusar por isso."""
+    dispositivo_gravado = DispositivoParaJustificar(
+        citacao_canonica="Lei 8.429/1992 art. 1", texto=DISPOSITIVO.texto
+    )
+    afirmacao_do_modelo = _afirmacao(dispositivo="Lei 8.429/1992 art. 1º")
+
+    justificativa = JustificativaCertoErrado(
+        afirmacoes_certo=[afirmacao_do_modelo], afirmacoes_errado=[_afirmacao()]
+    )
+    veredito = verificar_justificativa_certo_errado(justificativa, [dispositivo_gravado])
+    assert veredito.aprovado is True
+    assert veredito.motivos == []
 
 
 def test_afirmacao_aprovada_quando_dispositivo_e_trecho_existem() -> None:
@@ -130,6 +148,43 @@ def test_multipla_escolha_reprova_dispositivo_nao_ligado_em_uma_alternativa() ->
     )
     assert veredito.aprovado is False
     assert any("alt C" in motivo for motivo in veredito.motivos)
+
+
+def test_separar_afirmacoes_de_texto_vazio_ou_none_e_lista_vazia() -> None:
+    """Sem justificativa (a maioria das questões hoje), a tela não recebe nada para mostrar."""
+    assert separar_afirmacoes(None) == []
+    assert separar_afirmacoes("") == []
+
+
+def test_separar_afirmacoes_desfaz_montar_texto() -> None:
+    """`separar_afirmacoes` é o inverso de `montar_texto`: cada frase volta com seu dispositivo."""
+    texto = montar_texto(
+        [
+            Afirmacao(
+                texto="O TCU aprecia mediante parecer prévio",
+                dispositivo="CF/88 art. 71 I",
+                trecho_que_decide="apreciar as contas",
+            ),
+            Afirmacao(
+                texto="Quem julga é o Congresso",
+                dispositivo="CF/88 art. 49 IX",
+                trecho_que_decide="julgar anualmente",
+            ),
+        ]
+    )
+    assert separar_afirmacoes(texto) == [
+        AfirmacaoExibicao(
+            texto="O TCU aprecia mediante parecer prévio", dispositivo="CF/88 art. 71 I"
+        ),
+        AfirmacaoExibicao(texto="Quem julga é o Congresso", dispositivo="CF/88 art. 49 IX"),
+    ]
+
+
+def test_separar_afirmacoes_texto_sem_colchete_reconhecivel_nao_quebra() -> None:
+    """Texto fora do formato de `montar_texto` (não deveria acontecer) não derruba a tela."""
+    assert separar_afirmacoes("um texto qualquer, sem citação nenhuma") == [
+        AfirmacaoExibicao(texto="um texto qualquer, sem citação nenhuma", dispositivo=None)
+    ]
 
 
 def test_montar_texto_concatena_afirmacoes_com_a_citacao() -> None:

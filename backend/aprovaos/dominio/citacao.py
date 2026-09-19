@@ -243,6 +243,45 @@ def extrair_citacoes(texto: str) -> list[ReferenciaLegal]:
     return referencias
 
 
+_ORDINAL_APOS_DIGITO = re.compile(r"(?<=\d)[ºª°]")
+"""`º`/`ª`/`°` logo depois de um dígito — descartado na comparação (identidade do dispositivo)."""
+
+_LETRA_ORDINAL_APOS_DIGITO = re.compile(r"(?<=\d)o\b", re.IGNORECASE)
+"""O `"o"` sem acento que também serve de ordinal (`"1o"`) — só quando cola no dígito e termina
+a palavra ali (não é a letra de outra coisa)."""
+
+_PONTO_FINAL_APOS_DIGITO = re.compile(r"(?<=\d)\.(?=\s|$)")
+"""O ponto final depois do número (`"art. 1."`) — só quando não é separador de milhar
+(`"8.429"`, onde o ponto é seguido de outro dígito, nunca casa aqui)."""
+
+
+def normalizar_citacao_para_comparacao(citacao: str) -> str:
+    """Normaliza uma `citacao_canonica` para comparar identidade de dispositivo, não string.
+
+    A banca e o modelo escrevem o mesmo dispositivo de formas diferentes — `"art. 1º"`,
+    `"art. 1o"`, `"art. 1"`, `"art. 1."` — que são, para qualquer leitor, o mesmo artigo. Nenhuma
+    dessas variações pode fazer o validador mecânico (`verificar_justificativa_certo_errado`/
+    `_multipla_escolha`, em `dominio.justificativa`) recusar uma citação correta só por causa da
+    grafia; foi exatamente isso que aconteceu numa rodada real (`"art. 1º"` do modelo contra
+    `"art. 1"` gravado). Ordinal, ponto final e espaço não fazem parte da identidade do
+    dispositivo — só o número em si. Aplica-se dos dois lados de toda comparação: ao ler o
+    `citacao_canonica` já gravado em `dispositivo_legal` e ao ler a citação que veio do modelo.
+
+    **Não colapsa números diferentes**: `"art. 1"` e `"art. 10"` continuam distintos (dígitos
+    diferentes); `"art. 1"` e `"art. 1-A"` também (o `"-A"` não é ordinal, não é removido).
+
+    Args:
+        citacao: a `citacao_canonica` a normalizar, em qualquer uma das grafias equivalentes.
+
+    Returns:
+        A forma normalizada — nunca gravada em lugar nenhum, só usada como chave de comparação.
+    """
+    sem_ordinal = _ORDINAL_APOS_DIGITO.sub("", citacao)
+    sem_ordinal = _LETRA_ORDINAL_APOS_DIGITO.sub("", sem_ordinal)
+    sem_ponto = _PONTO_FINAL_APOS_DIGITO.sub("", sem_ordinal)
+    return re.sub(r"\s+", " ", sem_ponto).strip()
+
+
 def citacao_canonica(
     norma: str, artigo: str, *, inciso: str | None = None, paragrafo: str | None = None
 ) -> str:

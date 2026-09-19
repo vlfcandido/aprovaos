@@ -10,8 +10,11 @@ tela decide pelo `Questao.tipo_item` (passo 3 da V3b): `"certo_errado"` julga C/
 `"multipla_escolha"` escolhe entre as cinco `Alternativa` A–E gravadas pelo curador — as
 respostas válidas e a mensagem de erro mudam conforme o tipo (`RESPOSTAS_VALIDAS_POR_TIPO`), mas
 a gravação (`registrar_resposta`) e o critério de acerto (`resposta == questao.gabarito`) são os
-mesmos para os dois, porque `Questao.gabarito` já guarda a letra certa nos dois casos. Quando
-ler: ao mexer na tela de resolver questão ou no fluxo de reportar erro.
+mesmos para os dois, porque `Questao.gabarito` já guarda a letra certa nos dois casos. Quando há
+justificativa gravada (fundação jurídica, passo 5), o resultado mostra as duas faces
+(`_afirmacoes_para_exibir`) marcadas como explicação do AprovaOS, cada frase com o dispositivo
+legal que a sustenta — texto original da banca continua vindo só de `questao`/`Alternativa`, sem
+mistura. Quando ler: ao mexer na tela de resolver questão ou no fluxo de reportar erro.
 """
 
 from typing import Annotated
@@ -27,6 +30,7 @@ from aprovaos.api.templates import renderizar
 from aprovaos.dados.modelos import (
     Alternativa,
     Concurso,
+    DispositivoLegal,
     Edital,
     EventoEstudo,
     Questao,
@@ -35,11 +39,14 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
+from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
 from aprovaos.dados.repositorio_questao import (
     proxima_questao,
     registrar_reporte,
     registrar_resposta,
 )
+from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
+from aprovaos.dominio.justificativa import separar_afirmacoes
 
 router = APIRouter(include_in_schema=False)
 
@@ -248,19 +255,84 @@ def _contexto_questao(db: Session, topico: Topico, questao: Questao | None) -> d
     return contexto
 
 
+def _dispositivos_por_chave(db: Session, questao_id: UUID) -> dict[str, DispositivoLegal]:
+    """Os `DispositivoLegal` já ligados a esta questão, por citação normalizada.
+
+    São exatamente os dispositivos que o `gerador-de-justificativa` recebeu como única fonte
+    permitida (`motor.justificar`) — por isso servem tanto para achar o dispositivo que uma
+    afirmação cita quanto para exibir o trecho literal na tela, sem outra consulta. A chave é
+    `dominio.citacao.normalizar_citacao_para_comparacao` do `citacao_canonica`: o mesmo ajuste que
+    corrige o validador (ordinal/ponto final não mudam a identidade do dispositivo) evita que a
+    tela deixe de casar uma citação por causa da grafia (`"art. 1º"` do gerador x `"art. 1"`
+    gravado).
+
+    Args:
+        db: sessão do request.
+        questao_id: chave da questão.
+
+    Returns:
+        `{chave_normalizada: DispositivoLegal}`; vazio se a questão não tem nenhum ligado ainda.
+    """
+    return {
+        normalizar_citacao_para_comparacao(d.citacao_canonica): d
+        for d in dispositivos_da_questao(db, questao_id)
+    }
+
+
+def _afirmacoes_para_exibir(
+    texto: str | None, dispositivos_por_chave: dict[str, DispositivoLegal]
+) -> list[dict[str, object]]:
+    """Separa `texto` (formato de `dominio.justificativa.montar_texto`) em frases exibíveis.
+
+    Cada frase vem com o dispositivo que a sustenta — o trecho literal e a URL da fonte, quando
+    o dispositivo citado está entre os já ligados à questão (`_dispositivos_por_chave`); a citação
+    aparece mesmo sem o trecho (defensivo: nunca deveria faltar, mas a tela não esconde a fonte
+    citada só porque não achou o texto).
+
+    Args:
+        texto: `Questao.justificativa_certo`/`_errado` ou `Alternativa.justificativa`; `None`
+            quando a questão/alternativa ainda não tem justificativa.
+        dispositivos_por_chave: de `_dispositivos_por_chave`, para achar o texto literal.
+
+    Returns:
+        Uma entrada por frase (`texto`, `dispositivo_rotulo`, `dispositivo_texto`,
+        `dispositivo_url`); lista vazia quando `texto` é `None` — é o que faz a tela não mostrar
+        nada, silenciosamente, na maioria das questões (ainda sem justificativa).
+    """
+    resultado: list[dict[str, object]] = []
+    for afirmacao in separar_afirmacoes(texto):
+        dispositivo = None
+        if afirmacao.dispositivo:
+            dispositivo = dispositivos_por_chave.get(
+                normalizar_citacao_para_comparacao(afirmacao.dispositivo)
+            )
+        resultado.append(
+            {
+                "texto": afirmacao.texto,
+                "dispositivo_rotulo": afirmacao.dispositivo,
+                "dispositivo_texto": dispositivo.texto if dispositivo else None,
+                "dispositivo_url": dispositivo.fonte_url if dispositivo else None,
+            }
+        )
+    return resultado
+
+
 def _contexto_evento(
     db: Session, questao: Questao, resposta: str, acertou: bool | None
 ) -> dict[str, object]:
     """Monta o `evento` do template `questoes/_resultado.html` — só depois de já ter gravado.
 
-    Em `"certo_errado"`, é a mesma dupla de textos e a `justificativa` única de sempre
-    (`Questao.justificativa_certo`/`justificativa_errado`). Em `"multipla_escolha"`, é a lista
-    das cinco alternativas com `correta`/`marcada` e a `justificativa` de cada uma — que nasce
-    sempre `None` nesta fatia (o validador da fatia 5 é quem a preenche); ausente é mostrado como
+    Em `"certo_errado"`, mostra os dois lados sempre (`Questao.justificativa_certo` **e**
+    `justificativa_errado`, não só o que bate com `acertou`) — o aluno aprende com os dois,
+    mesmo o que não escolheu (mesmo princípio de `dominio.justificativa.Afirmacao`). Em
+    `"multipla_escolha"`, é a lista das cinco alternativas com `correta`/`marcada` e a própria
+    justificativa de cada uma. As duas vias passam por `_afirmacoes_para_exibir`, que nasce lista
+    vazia sem justificativa gravada (a maioria das questões hoje) — ausente é mostrado como
     ausente, nunca com um texto inventado no lugar.
 
     Args:
-        db: sessão do request (só para buscar as alternativas de múltipla escolha).
+        db: sessão do request (busca as alternativas de múltipla escolha e os dispositivos já
+            ligados à questão).
         questao: a questão respondida.
         resposta: a letra que o aluno marcou.
         acertou: se `resposta == questao.gabarito`.
@@ -268,25 +340,35 @@ def _contexto_evento(
     Returns:
         O dicionário `evento` do contexto de `_resultado.html`.
     """
+    dispositivos_por_chave = _dispositivos_por_chave(db, questao.id)
     if questao.tipo_item == "multipla_escolha":
+        alternativas = [
+            {
+                "letra": alternativa.letra,
+                "texto": alternativa.texto,
+                "correta": alternativa.correta,
+                "marcada": alternativa.letra == resposta,
+                "justificativa": _afirmacoes_para_exibir(
+                    alternativa.justificativa, dispositivos_por_chave
+                ),
+            }
+            for alternativa in _alternativas_ordenadas(db, questao.id)
+        ]
         return {
             "acertou": acertou,
-            "alternativas": [
-                {
-                    "letra": alternativa.letra,
-                    "texto": alternativa.texto,
-                    "correta": alternativa.correta,
-                    "marcada": alternativa.letra == resposta,
-                    "justificativa": alternativa.justificativa,
-                }
-                for alternativa in _alternativas_ordenadas(db, questao.id)
-            ],
+            "alternativas": alternativas,
+            "tem_justificativa": any(a["justificativa"] for a in alternativas),
         }
     return {
         "acertou": acertou,
         "resposta_texto": RESPOSTA_TEXTO.get(resposta, resposta),
         "gabarito_texto": RESPOSTA_TEXTO.get(questao.gabarito or "", questao.gabarito),
-        "justificativa": (questao.justificativa_certo if acertou else questao.justificativa_errado),
+        "justificativa_certo": _afirmacoes_para_exibir(
+            questao.justificativa_certo, dispositivos_por_chave
+        ),
+        "justificativa_errado": _afirmacoes_para_exibir(
+            questao.justificativa_errado, dispositivos_por_chave
+        ),
     }
 
 

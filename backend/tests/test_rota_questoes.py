@@ -27,6 +27,7 @@ from aprovaos.dados.modelos import (
     TopicoEdital,
     Usuario,
 )
+from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo, registrar_citacao
 from aprovaos.dados.repositorio_questao import salvar_questoes
 from aprovaos.dominio.questao import (
     AlternativaCurada,
@@ -169,6 +170,31 @@ def _criar_questao_multipla_escolha(
         texto_apoio=None,
         alternativas=_alternativas_padrao(gabarito),
     )
+
+
+def _ligar_dispositivo(
+    db: Session, questao: Questao, *, citacao_canonica: str, texto: str, posicao: int = 1
+) -> None:
+    """Cria (ou reaproveita) um `DispositivoLegal` e liga à `questao` — fixture de justificativa."""
+    dispositivo = buscar_ou_criar_dispositivo(
+        db,
+        citacao_canonica=citacao_canonica,
+        norma="lei-8429-1992",
+        artigo="1",
+        inciso=None,
+        paragrafo=None,
+        texto=texto,
+        vigente=True,
+        fonte_url="https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+    )
+    registrar_citacao(
+        db,
+        conteudo_tipo="questao",
+        conteudo_id=questao.id,
+        dispositivo_id=dispositivo.id,
+        posicao=posicao,
+    )
+    db.flush()
 
 
 def test_get_topico_exige_login(cliente: TestClient) -> None:
@@ -603,6 +629,131 @@ def test_certo_errado_continua_sem_alternativas_de_multipla_escolha(
     assert 'class="alternativas"' not in corpo
     assert 'data-atalho="certo"' in corpo
     assert 'data-atalho="errado"' in corpo
+
+
+# ---- Justificativa no resultado (defeito do ordinal corrigido + exibição na tela) --------
+
+
+def test_resultado_certo_errado_mostra_justificativa_com_fonte_legal(
+    logado: TestClient, db: Session
+) -> None:
+    """A justificativa aparece marcada como do AprovaOS, com os dois lados (certo/errado) e o
+    trecho literal do dispositivo — nunca o texto cru com colchetes.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-just-1")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+    _ligar_dispositivo(
+        db,
+        questao,
+        citacao_canonica="Lei 8.429/1992 art. 1",
+        texto="Art. 1º O sistema de responsabilização tutela a probidade na organização do Estado.",
+    )
+    questao.justificativa_certo = "É a redação literal do art. 1º. [Lei 8.429/1992 art. 1]"
+    questao.justificativa_errado = "Confunde com outro dispositivo da lei. [Lei 8.429/1992 art. 1]"
+    db.commit()
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "Explicação do AprovaOS" in corpo
+    assert "Se marcou Certo" in corpo
+    assert "Se marcou Errado" in corpo
+    assert "É a redação literal do art. 1º." in corpo
+    assert "Confunde com outro dispositivo da lei." in corpo
+    assert "tutela a probidade na organização do Estado" in corpo
+    assert "[Lei 8.429/1992 art. 1]" not in corpo
+
+
+def test_resultado_certo_errado_sem_justificativa_nao_mostra_nada(
+    logado: TestClient, db: Session
+) -> None:
+    """Sem justificativa gravada (a maioria hoje), a tela não mostra rótulo nem tabela nenhuma."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-just-2")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "Explicação do AprovaOS" not in corpo
+    assert "Se marcou Certo" not in corpo
+    assert "Se marcou Errado" not in corpo
+    assert "em breve" not in corpo.lower()
+
+
+def test_resultado_justificativa_com_citacao_de_ordinal_diferente_ainda_casa_com_a_fonte(
+    logado: TestClient, db: Session
+) -> None:
+    """O mesmo defeito do validador (ordinal do modelo x gravado) não pode se repetir na tela:
+    a citação com "º" ainda tem de casar com o `DispositivoLegal` gravado sem ordinal.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-just-3")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+    _ligar_dispositivo(
+        db,
+        questao,
+        citacao_canonica="Lei 8.429/1992 art. 1",
+        texto="Texto literal do artigo primeiro da lei de improbidade.",
+    )
+    questao.justificativa_certo = "Frase apoiada na fonte. [Lei 8.429/1992 art. 1º]"
+    questao.justificativa_errado = "Outra frase. [Lei 8.429/1992 art. 1º]"
+    db.commit()
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert "Texto literal do artigo primeiro da lei de improbidade." in corpo
+
+
+def test_multipla_escolha_resultado_mostra_justificativa_das_cinco_alternativas(
+    logado: TestClient, db: Session
+) -> None:
+    """As cinco alternativas mostram a própria justificativa — a da correta e a dos distratores,
+    onde mora o aprendizado.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-me-just-1")
+    questao = _criar_questao_multipla_escolha(db, topico, documento.id, gabarito="C")
+    _ligar_dispositivo(
+        db,
+        questao,
+        citacao_canonica="Lei 8.429/1992 art. 1",
+        texto="Texto literal do artigo primeiro da lei de improbidade.",
+    )
+    alternativas = list(
+        db.scalars(select(Alternativa).where(Alternativa.questao_id == questao.id)).all()
+    )
+    for alternativa in alternativas:
+        alternativa.justificativa = (
+            f"Explicação da alternativa {alternativa.letra}. [Lei 8.429/1992 art. 1]"
+        )
+    db.commit()
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "A", "confianca": "duvida", "questao_id": str(questao.id)},
+    )
+    assert resposta.status_code == 200
+    corpo = resposta.text
+    assert corpo.count("Explicação do AprovaOS") == 1
+    for letra in "ABCDE":
+        assert f"Explicação da alternativa {letra}." in corpo
+    assert "[Lei 8.429/1992 art. 1]" not in corpo
 
 
 def test_multipla_escolha_sem_alternativa_correta_nao_quebra_tela(

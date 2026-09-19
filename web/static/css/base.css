@@ -774,10 +774,77 @@ kbd {
   color: var(--cor-erro);
 }
 
-.resultado__justificativa {
-  margin: var(--espaco-2) 0 0;
+/* Justificativa do resultado (fundação jurídica, passo 6) — sempre marcada como explicação do
+   AprovaOS (`.selo--porque`, mesmo âmbar do "por quê" das outras telas), nunca confundida com o
+   item original da banca (`.questao__origem`, que continua como estava). Ausência é silenciosa:
+   sem `evento.justificativa_certo`/`_errado`/`alternativa.justificativa`, nenhum destes elementos
+   é impresso — não há CSS de placeholder porque não há elemento nenhum para estilizar. */
+.selo--porque {
+  background: var(--cor-porque-suave);
+  color: var(--cor-porque);
+}
+
+.justificativa {
+  margin-top: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+}
+
+.justificativa--alternativa {
+  margin: 0 0 var(--espaco-3) var(--espaco-4);
+}
+
+.tabela-justificativa {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela-justificativa th,
+.tabela-justificativa td {
+  padding: var(--espaco-2) var(--espaco-3);
+  border-bottom: 1px solid var(--cor-linha);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela-justificativa th[scope="row"] {
+  width: 8rem;
   color: var(--cor-texto-2);
-  font-weight: 400;
+  font-size: var(--texto-pequeno);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabela-justificativa td p {
+  margin: 0 0 var(--espaco-2);
+}
+
+/* A citação legal de cada afirmação — um `<details>` nativo (sem JS) que expande o trecho
+   literal do dispositivo: o popover resolvível de toda referência legal (ADR-0019). Sem o
+   trecho gravado ainda (`dispositivo_texto` ausente), vira só um `<span>` com a citação, sem
+   expandir — nunca esconde a fonte citada, só o que ela diz. */
+.citacao-legal {
+  display: inline-block;
+  margin: 0 0 var(--espaco-2);
+  padding: var(--espaco-1) var(--espaco-2);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-pequeno);
+}
+
+.citacao-legal summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.citacao-legal p {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-texto);
+}
+
+.citacao-legal--sem-texto {
+  font-weight: 600;
 }
 
 .form-reportar {

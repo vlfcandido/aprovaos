@@ -3,7 +3,11 @@
 # norma) sem adivinhar. Casos vêm dos exemplos da skill `dna-do-concurso`/da tarefa e de trechos
 # reais medidos em `dev.db` (ver `.superpowers/sdd/V3b-multipla-escolha/juridico-passo-2-report.md`,
 # passo 2). Quando ler: ao mudar a gramática reconhecida, ou por que uma citação não foi achada.
-from aprovaos.dominio.citacao import ReferenciaLegal, extrair_citacoes
+from aprovaos.dominio.citacao import (
+    ReferenciaLegal,
+    extrair_citacoes,
+    normalizar_citacao_para_comparacao,
+)
 
 
 def test_artigo_simples_da_cf_e_caput_implicito() -> None:
@@ -194,3 +198,36 @@ def test_abreviacao_academica_cf_ponto_nao_e_confundida_com_constituicao() -> No
     referencias = extrair_citacoes("Nesse sentido, cf. STF, RE 123.456, o entendimento é outro.")
 
     assert referencias == []
+
+
+def test_normalizar_citacao_caso_real_que_falhou_ordinal_do_modelo_contra_gravado() -> None:
+    """O caso real: o modelo citou "art. 1º"; o gravado era "art. 1" — mesmo dispositivo."""
+    assert normalizar_citacao_para_comparacao(
+        "Lei 8.429/1992 art. 1º"
+    ) == normalizar_citacao_para_comparacao("Lei 8.429/1992 art. 1")
+
+
+def test_normalizar_citacao_ordinal_letra_o_e_ponto_final_sao_o_mesmo_dispositivo() -> None:
+    """ "art. 1º", "art. 1o", "art. 1" e "art. 1." normalizam para a mesma chave."""
+    formas = [
+        "Lei 8.429/1992 art. 1º",
+        "Lei 8.429/1992 art. 1o",
+        "Lei 8.429/1992 art. 1",
+        "Lei 8.429/1992 art. 1.",
+    ]
+    normalizadas = {normalizar_citacao_para_comparacao(forma) for forma in formas}
+    assert len(normalizadas) == 1
+
+
+def test_normalizar_citacao_nao_confunde_artigo_1_com_artigo_1a() -> None:
+    """ "art. 1" e "art. 1-A" são artigos distintos — a normalização não pode colidir os dois."""
+    assert normalizar_citacao_para_comparacao(
+        "Lei 8.429/1992 art. 1"
+    ) != normalizar_citacao_para_comparacao("Lei 8.429/1992 art. 1-A")
+
+
+def test_normalizar_citacao_nao_confunde_artigo_1_com_artigo_10() -> None:
+    """ "art. 1" e "art. 10" são artigos distintos — a normalização não pode colidir os dois."""
+    assert normalizar_citacao_para_comparacao(
+        "Lei 8.429/1992 art. 1"
+    ) != normalizar_citacao_para_comparacao("Lei 8.429/1992 art. 10")

@@ -13,11 +13,20 @@ cita um dispositivo que está entre os oferecidos (os que já estão ligados àq
 dispositivo. Zero invenção de fonte: o gerador só pode citar o que recebeu; o validador reprova
 qualquer citação fora disso. Reprovou, não grava — melhor faltar do que mentir.
 
+A comparação do dispositivo citado contra os oferecidos passa por
+`dominio.citacao.normalizar_citacao_para_comparacao` dos dois lados: ordinal, "o" e ponto final
+não mudam a identidade do dispositivo (`"art. 1º"` do modelo é o mesmo `"art. 1"` gravado) — só o
+número importa.
+
 Quando ler: antes de mudar o prompt do `gerador-de-justificativa`; ao investigar por que uma
 justificativa boa (ou ruim) foi aprovada/reprovada.
 """
 
+import re
+
 from pydantic import BaseModel, Field
+
+from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
 
 
 class DispositivoParaJustificar(BaseModel):
@@ -147,7 +156,9 @@ def _motivos_da_afirmacao(
     if not afirmacao.texto.strip():
         motivos.append(f"{rotulo}: afirmação sem texto")
 
-    texto_dispositivo = dispositivos_por_citacao.get(afirmacao.dispositivo)
+    texto_dispositivo = dispositivos_por_citacao.get(
+        normalizar_citacao_para_comparacao(afirmacao.dispositivo)
+    )
     if texto_dispositivo is None:
         motivos.append(
             f"{rotulo}: dispositivo {afirmacao.dispositivo!r} não está entre os ligados à questão"
@@ -181,7 +192,9 @@ def verificar_justificativa_certo_errado(
     Returns:
         `Veredito` com `aprovado=True` só quando nenhum motivo de reprovação foi encontrado.
     """
-    dispositivos_por_citacao = {d.citacao_canonica: d.texto for d in dispositivos}
+    dispositivos_por_citacao = {
+        normalizar_citacao_para_comparacao(d.citacao_canonica): d.texto for d in dispositivos
+    }
     motivos: list[str] = []
     if not justificativa.afirmacoes_certo:
         motivos.append("faltou justificativa_certo (as duas são obrigatórias)")
@@ -214,7 +227,9 @@ def verificar_justificativa_multipla_escolha(
     Returns:
         `Veredito` com `aprovado=True` só quando nenhum motivo de reprovação foi encontrado.
     """
-    dispositivos_por_citacao = {d.citacao_canonica: d.texto for d in dispositivos}
+    dispositivos_por_citacao = {
+        normalizar_citacao_para_comparacao(d.citacao_canonica): d.texto for d in dispositivos
+    }
     motivos: list[str] = []
     por_letra = {alternativa.letra: alternativa for alternativa in justificativa.alternativas}
 
@@ -244,3 +259,60 @@ def montar_texto(afirmacoes: list[Afirmacao]) -> str:
         As frases separadas por espaço, cada uma seguida de `"[<dispositivo>]"`.
     """
     return " ".join(f"{afirmacao.texto} [{afirmacao.dispositivo}]" for afirmacao in afirmacoes)
+
+
+class AfirmacaoExibicao(BaseModel):
+    """Uma frase de `montar_texto` já separada da citação que a encerra, pronta para a tela.
+
+    Attributes:
+        texto: a frase, sem o `"[dispositivo]"` que a encerrava.
+        dispositivo: a citação exatamente como o gerador escreveu (ex.: `"Lei 8.429/1992 art.
+            1"`) — quem exibe é que decide se casa com um `DispositivoLegal` (normalizando com
+            `dominio.citacao.normalizar_citacao_para_comparacao`) para mostrar o trecho literal.
+            `None` só quando `texto` não seguia o formato de `montar_texto` (defensivo: nunca
+            deveria acontecer com texto gravado por ela, mas a tela não quebra se acontecer —
+            aparece sem citação, em vez de sumir a frase inteira).
+    """
+
+    texto: str
+    dispositivo: str | None
+
+
+_AFIRMACAO_COM_CITACAO = re.compile(r"(.*?)\s*\[([^\]]+)\]")
+"""Casa `"<frase> [<dispositivo>]"` — não-guloso, para parar no primeiro `]` de cada afirmação
+quando várias estão concatenadas por espaço (formato de `montar_texto`)."""
+
+
+def separar_afirmacoes(texto: str | None) -> list[AfirmacaoExibicao]:
+    """Desfaz `montar_texto`: separa cada frase da citação `"[dispositivo]"` que a encerra.
+
+    Usado pela tela de resultado (`api.questoes`) para renderizar cada afirmação da
+    justificativa com a fonte legal ao lado, em vez do texto cru com colchetes. Ausência (`texto`
+    `None`/vazio — a maioria das questões hoje, sem justificativa gerada ainda) devolve lista
+    vazia, não um item vazio: é o que permite a tela não mostrar nada, silenciosamente, quando
+    não há justificativa (regra de exibição do passo 6 — "ausência é silenciosa").
+
+    Args:
+        texto: o texto gravado em `Questao.justificativa_certo`/`_errado` ou
+            `Alternativa.justificativa` (formato de `montar_texto`); `None` quando a questão
+            ainda não tem justificativa.
+
+    Returns:
+        Uma `AfirmacaoExibicao` por frase, na ordem em que aparecem; lista vazia se `texto` é
+        `None`/vazio. Se o texto não tiver nenhum `"[...]"` reconhecível (não deveria acontecer
+        com texto de `montar_texto`, mas texto de outra origem não pode quebrar a tela), devolve
+        uma única `AfirmacaoExibicao` com o texto inteiro e `dispositivo=None`.
+    """
+    if not texto:
+        return []
+    encontradas = [
+        (frase.strip(), dispositivo.strip())
+        for frase, dispositivo in _AFIRMACAO_COM_CITACAO.findall(texto)
+        if frase.strip()
+    ]
+    if not encontradas:
+        return [AfirmacaoExibicao(texto=texto.strip(), dispositivo=None)]
+    return [
+        AfirmacaoExibicao(texto=frase, dispositivo=dispositivo)
+        for frase, dispositivo in encontradas
+    ]

@@ -6,11 +6,26 @@
    com a troca. Em `"certo_errado"`, o bloco do gabarito usa as cores semânticas
    (`--cor-ok-suave`/`--cor-erro-suave`) numa única faixa. Em `"multipla_escolha"`
    (`questao.tipo_item`), cada uma das cinco `evento.alternativas` aparece com a marca de
-   `correta`/`marcada` (mesmas cores semânticas, por alternativa) e a `justificativa` dela, só
-   quando existe — vazia nesta fatia (o validador da fatia 5 é quem a preenche), por isso nunca
-   um placeholder tipo "explicação em breve" no lugar. O link "Próxima questão" recarrega a mesma
-   rota via `GET`, que já traz a próxima pendente. Quando ler: ao mudar o que aparece depois de
-   responder. -#}
+   `correta`/`marcada` (mesmas cores semânticas, por alternativa) e a `justificativa` dela.
+   A justificativa (`evento.justificativa_certo`/`justificativa_errado`, ou
+   `alternativa.justificativa` — sempre a lista de `api/questoes.py::_afirmacoes_para_exibir`) só
+   aparece quando existe — a maioria das questões ainda não tem, e nesse caso não sobra
+   `<div class="justificativa">` nenhuma, nunca um placeholder tipo "explicação em breve". O selo
+   `.selo--porque` marca que a explicação é do AprovaOS, nunca da banca; a citação de cada frase
+   vira um `<details>` (popover sem JS) com o trecho literal do dispositivo, quando achado. O
+   link "Próxima questão" recarrega a mesma rota via `GET`, que já traz a próxima pendente. Quando
+   ler: ao mudar o que aparece depois de responder. -#}
+{% macro citacao(af) %}
+  {% if af.dispositivo_texto %}
+    <details class="citacao-legal">
+      <summary>{{ af.dispositivo_rotulo }}</summary>
+      <p>{{ af.dispositivo_texto }}</p>
+      {% if af.dispositivo_url %}<p><a href="{{ af.dispositivo_url }}" target="_blank" rel="noopener">ver na fonte</a></p>{% endif %}
+    </details>
+  {% elif af.dispositivo_rotulo %}
+    <span class="citacao-legal citacao-legal--sem-texto">{{ af.dispositivo_rotulo }}</span>
+  {% endif %}
+{% endmacro %}
 {% if evento %}
   <div class="cartao cartao--elevado questao">
     {% if questao.comando %}
@@ -18,6 +33,7 @@
     {% endif %}
     <p class="questao__enunciado">{{ questao.enunciado }}</p>
     {% if questao.tipo_item == "multipla_escolha" %}
+      {% if evento.tem_justificativa %}<p class="selo selo--porque">Explicação do AprovaOS</p>{% endif %}
       <div class="alternativas alternativas--resultado">
         {% for alternativa in evento.alternativas %}
           <div class="alternativa{% if alternativa.correta %} alternativa--correta{% elif alternativa.marcada %} alternativa--marcada-errada{% endif %}">
@@ -29,7 +45,12 @@
             </span>
           </div>
           {% if alternativa.justificativa %}
-            <p class="alternativa__justificativa">{{ alternativa.justificativa }}</p>
+            <div class="justificativa justificativa--alternativa">
+              {% for af in alternativa.justificativa %}
+                <p class="alternativa__justificativa">{{ af.texto }}</p>
+                {{ citacao(af) }}
+              {% endfor %}
+            </div>
           {% endif %}
         {% endfor %}
       </div>
@@ -41,10 +62,38 @@
       <div class="resultado__gabarito {{ 'resultado__gabarito--certo' if evento.acertou else 'resultado__gabarito--errado' }}">
         <p>Gabarito: <strong>{{ evento.gabarito_texto }}</strong> —
           {% if evento.acertou %}Você acertou!{% else %}Você errou.{% endif %}</p>
-        {% if evento.justificativa %}
-          <p class="resultado__justificativa">{{ evento.justificativa }}</p>
-        {% endif %}
       </div>
+      {% if evento.justificativa_certo or evento.justificativa_errado %}
+        <div class="justificativa">
+          <p class="selo selo--porque">Explicação do AprovaOS</p>
+          <table class="tabela-justificativa">
+            <tbody>
+              {% if evento.justificativa_certo %}
+                <tr>
+                  <th scope="row">Se marcou Certo</th>
+                  <td>
+                    {% for af in evento.justificativa_certo %}
+                      <p>{{ af.texto }}</p>
+                      {{ citacao(af) }}
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endif %}
+              {% if evento.justificativa_errado %}
+                <tr>
+                  <th scope="row">Se marcou Errado</th>
+                  <td>
+                    {% for af in evento.justificativa_errado %}
+                      <p>{{ af.texto }}</p>
+                      {{ citacao(af) }}
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
     {% endif %}
     <p class="questao__origem">
       {{ origem.banca }} — {{ origem.orgao }} — {{ origem.cargo }} — {{ origem.ano }} —

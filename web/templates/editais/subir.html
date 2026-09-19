@@ -1,13 +1,18 @@
 {# O que é: formulário de subir edital (`GET/POST /editais/subir`) — um campo de arquivo PDF, envio
    multipart por htmx com troca só do formulário e funcionando sem JS; erros esperados voltam aqui.
-   Quando ler: ao mudar o que o upload aceita ou as mensagens do pipeline. -#}
+   Porte visual (fatia 14): biblioteca de componentes do protótipo (`card`, `btn`, `entrada`) no
+   lugar dos antigos `formulario`/`campo`/`botao`. Quando ler: ao mudar o que o upload aceita ou
+   as mensagens do pipeline. -#}
 {% extends "base.html" %}
 {% block titulo %}Subir edital — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Subir edital</h1>
-  <p class="frase">Envie o edital em PDF. Eu leio o conteúdo programático, monto o DNA do concurso
-    e o seu edital verticalizado.</p>
-  <form id="form-edital" class="formulario" method="post" action="/editais/subir" enctype="multipart/form-data"
+  <div class="stack">
+    <span class="eyebrow">Concurso e DNA</span>
+    <h1>Subir edital</h1>
+    <p class="prosa muted">Envie o edital em PDF. Eu leio o conteúdo programático, monto o DNA do
+      concurso e o seu edital verticalizado.</p>
+  </div>
+  <form id="form-edital" class="card stack" method="post" action="/editais/subir" enctype="multipart/form-data"
         hx-post="/editais/subir" hx-encoding="multipart/form-data"
         hx-select="#form-edital" hx-target="#form-edital" hx-swap="outerHTML">
     {% if erros %}
@@ -15,12 +20,12 @@
         {% for erro in erros %}<p>{{ erro }}</p>{% endfor %}
       </div>
     {% endif %}
-    <div class="campo">
-      <label for="arquivo">Edital (PDF de até 10 MB com o conteúdo programático)</label>
-      <input id="arquivo" type="file" name="arquivo" accept="application/pdf" required>
-    </div>
-    <div class="acoes">
-      <button class="botao" type="submit">Subir e montar o DNA</button>
+    <label class="stack" style="gap:var(--espaco-2)">
+      <span class="campo-rotulo">Edital (PDF de até 10 MB com o conteúdo programático)</span>
+      <input class="entrada" id="arquivo" type="file" name="arquivo" accept="application/pdf" required>
+    </label>
+    <div class="row">
+      <button class="btn primary" type="submit">Subir e montar o DNA</button>
       <a href="/editais">Meus editais</a>
     </div>
   </form>

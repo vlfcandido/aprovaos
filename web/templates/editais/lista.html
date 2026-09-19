@@ -1,27 +1,40 @@
 {# O que é: lista "Meus editais" (`GET /editais`) — os concursos do tenant, o mais recente primeiro e
    marcado como principal (premissa A da V2: principal = o último que a pessoa subiu), com o botão de
-   subir outro. Quando ler: ao ligar o concurso principal ao `perfil_estudo` (fatia 7, P-23). -#}
+   subir outro. Porte visual (fatia 14): `card`/`grid-2`/`chip` da biblioteca do protótipo no lugar
+   dos antigos `concursos`/`concurso`/`selo`. Quando ler: ao ligar o concurso principal ao
+   `perfil_estudo` (fatia 7, P-23). -#}
 {% extends "base.html" %}
 {% block titulo %}Meus editais — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Meus editais</h1>
+  <div class="stack">
+    <span class="eyebrow">Concurso e DNA</span>
+    <h1>Meus editais</h1>
+  </div>
   {% if concursos %}
-    <p class="nota">O concurso principal é o último que você subiu.</p>
-    <ul class="concursos">
+    <p class="small muted">O concurso principal é o último que você subiu.</p>
+    <div class="grid-2">
       {% for c in concursos %}
-        <li class="concurso{% if c.principal %} concurso--principal{% endif %}">
-          <a href="/concurso/{{ c.id }}">{{ c.cargo }}</a>
-          {% if c.principal %}<span class="selo selo--ia">principal</span>{% endif %}
-          <p class="concurso__orgao">{{ c.orgao }}</p>
-          <p class="fonte">Banca: {% if c.banca == "desconhecido" %}não informada{% else %}{{ c.banca }}{% endif %} · subido em {{ c.criado_em }}</p>
-        </li>
+        <div class="card stack">
+          <div class="row between">
+            <a href="/concurso/{{ c.id }}"><b>{{ c.cargo }}</b></a>
+            {% if c.principal %}<span class="chip accent">principal</span>{% endif %}
+          </div>
+          <p class="small" style="margin:0">{{ c.orgao }}</p>
+          <p class="small muted" style="margin:0">
+            Banca: {% if c.banca == "desconhecido" %}não informada{% else %}{{ c.banca }}{% endif %}
+            · subido em {{ c.criado_em }}
+          </p>
+        </div>
       {% endfor %}
-    </ul>
+    </div>
   {% else %}
-    <p class="frase">Você ainda não subiu nenhum edital. Suba o PDF do seu concurso para ver o DNA
-      reduzido e o edital verticalizado.</p>
+    <div class="vazio">
+      <p>Você ainda não subiu nenhum edital.</p>
+      <p class="small">Suba o PDF do seu concurso para ver o DNA reduzido e o edital
+        verticalizado.</p>
+    </div>
   {% endif %}
-  <div class="acoes">
-    <a class="botao" href="/editais/subir">Subir edital</a>
+  <div class="row acoes">
+    <a class="btn primary" href="/editais/subir">Subir edital</a>
   </div>
 {% endblock %}

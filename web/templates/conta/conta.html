@@ -1,47 +1,60 @@
 {# O que é: página protegida da conta (`GET /conta`) — e-mail, sair, o bloco de assinatura (fatia
    12, RF-22 — só com o gateway configurado, Ruling 46) e os botões de LGPD (RF-23: exportar em
-   JSON, excluir com confirmação explícita), que aparecem sempre. Quando ler: ao mexer no que a
-   conta mostra sobre plano ou dados pessoais. -#}
+   JSON, excluir com confirmação explícita), que aparecem sempre. O protótipo validado não tem
+   tela de conta própria — porte visual (fatia 14): montado só com componentes da biblioteca
+   (`card`/`chip`/`btn`), no tom das outras telas de conta. Quando ler: ao mexer no que a conta
+   mostra sobre plano ou dados pessoais. -#}
 {% extends "base.html" %}
 {% block titulo %}Minha conta — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Minha conta</h1>
-  <p>Você entrou como <strong>{{ email }}</strong>.</p>
-  <p><a href="/editais">Meus editais</a> — suba o edital do seu concurso para ver o DNA e o edital
-    verticalizado.</p>
-  <p><a href="/diagnostico">Diagnóstico adaptativo</a> e <a href="/rotina">sua rotina</a> — até 30
-    itens para saber onde você está, e horas/energia/data-alvo para o plano.</p>
-  <p class="frase">A previsão e o check-in chegam nas próximas fatias do piloto.</p>
+  <div class="stack">
+    <span class="eyebrow">Conta</span>
+    <h1>Minha conta</h1>
+    <p>Você entrou como <strong>{{ email }}</strong>.</p>
+  </div>
+
+  <div class="card stack">
+    <h2 style="margin:0">Seu estudo</h2>
+    <p style="margin:0"><a href="/editais">Meus editais</a> — suba o edital do seu concurso para
+      ver o DNA e o edital verticalizado.</p>
+    <p style="margin:0"><a href="/diagnostico">Diagnóstico adaptativo</a> e
+      <a href="/rotina">sua rotina</a> — até 30 itens para saber onde você está, e
+      horas/energia/data-alvo para o plano.</p>
+  </div>
 
   {% if billing_disponivel %}
-    <section class="mensagem">
-      <h2>Plano</h2>
-      <p>Você está no plano <strong>{{ "Pro" if tier == "pro" else "Free" }}</strong>{% if assinatura and assinatura.status == "cancelada" %} (cancelado, vale até {{ assinatura.fim }}){% endif %}.</p>
+    <div class="card stack">
+      <h2 style="margin:0">Plano</h2>
+      <p style="margin:0">Você está no plano
+        <span class="chip {{ 'accent' if tier == 'pro' else '' }}">{{ "Pro" if tier == "pro" else "Free" }}</span>
+        {% if assinatura and assinatura.status == "cancelada" %}(cancelado, vale até {{ assinatura.fim }}){% endif %}.
+      </p>
       {% if tier == "pro" %}
         <form method="post" action="/assinatura/cancelar">
-          <button class="botao botao--secundario" type="submit">Cancelar assinatura</button>
+          <button class="btn" type="submit">Cancelar assinatura</button>
         </form>
       {% else %}
-        <p><a class="botao" href="/assinar">Assinar o Pro</a></p>
+        <a class="btn primary" href="/assinar" style="align-self:start">Assinar o Pro</a>
       {% endif %}
-    </section>
+    </div>
   {% endif %}
 
-  <section class="mensagem">
-    <h2>Seus dados (LGPD)</h2>
+  <div class="card stack">
+    <h2 style="margin:0">Seus dados (LGPD)</h2>
     {% if aviso_exclusao %}
       <p class="mensagem mensagem--erro" role="alert">{{ aviso_exclusao }}</p>
     {% endif %}
-    <p><a class="botao botao--secundario" href="/conta/exportar">Exportar meus dados (JSON)</a></p>
-    <form method="post" action="/conta/excluir" class="formulario">
-      <div class="campo">
-        <label><input type="checkbox" name="confirmar" value="sim"> Confirmo que quero excluir minha conta e todos os meus dados.</label>
-      </div>
-      <button class="botao botao--secundario" type="submit">Excluir minha conta</button>
+    <a class="btn" href="/conta/exportar" style="align-self:start">Exportar meus dados (JSON)</a>
+    <form method="post" action="/conta/excluir" class="stack">
+      <label class="row">
+        <input type="checkbox" name="confirmar" value="sim">
+        Confirmo que quero excluir minha conta e todos os meus dados.
+      </label>
+      <button class="btn" type="submit" style="align-self:start">Excluir minha conta</button>
     </form>
-  </section>
+  </div>
 
   <form method="post" action="/sair">
-    <button class="botao botao--secundario" type="submit">Sair</button>
+    <button class="btn" type="submit">Sair</button>
   </form>
 {% endblock %}

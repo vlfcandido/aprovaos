@@ -2,13 +2,19 @@
    por matéria em % de pontos, regra de correção, etapas, lacunas) e o edital verticalizado
    (grupo com acento acima da matéria quando o edital tem um — P-26; tópico com questão vira link
    para `/topico/{slug}/questoes` e mostra a contagem; cobertura "N de N" pelas respostas reais do
-   aluno). Quando ler: ao mudar o que a aluna vê do DNA ou o verticalizado (passo 14 da V3). -#}
+   aluno). Porte visual (fatia 14): cabeçalho, selos e ações na biblioteca do protótipo
+   (`card`/`chip`/`btn`); o grid `.edital`/`.weights` de `s-concurso.html` ainda não existe na
+   biblioteca — o verticalizado continua com `materia`/`topicos`/`status` (relatado no porte).
+   Quando ler: ao mudar o que a aluna vê do DNA ou o verticalizado (passo 14 da V3). -#}
 {% extends "base.html" %}
 {% block titulo %}{{ concurso.cargo }} — {{ concurso.orgao }} — AprovaOS{% endblock %}
 {% block conteudo %}
   <p class="migalha"><a href="/editais">Meus editais</a></p>
-  <h1>{{ concurso.cargo }}</h1>
-  <p class="frase">{{ concurso.orgao }}</p>
+  <div class="stack">
+    <span class="eyebrow">Concurso e DNA</span>
+    <h1>{{ concurso.cargo }}</h1>
+    <p class="small muted" style="margin:0">{{ concurso.orgao }}</p>
+  </div>
 
   <dl class="ficha">
     <div><dt>Banca</dt><dd>{% if concurso.banca == "desconhecido" %}não informada no edital{% else %}{{ concurso.banca }}{% endif %}</dd></div>
@@ -17,14 +23,15 @@
   </dl>
 
   {% if origem.tipo == "ia" %}
-    <p class="selo selo--ia">Gerado por IA ({{ origem.modelo }})</p>
+    <p class="chip accent">Gerado por IA ({{ origem.modelo }})</p>
   {% else %}
-    <p class="selo selo--regras">Gerado por regras{% if origem.motivo %} — {{ origem.motivo }}{% endif %}</p>
+    <p class="chip">Gerado por regras{% if origem.motivo %} — {{ origem.motivo }}{% endif %}</p>
   {% endif %}
 
-  <section aria-labelledby="titulo-dna">
-    <h2 id="titulo-dna">DNA reduzido</h2>
-    <p class="nota">Peso real é por pontos, não por número de questões. Fonte de cada linha: o edital.</p>
+  <section class="card stack" aria-labelledby="titulo-dna">
+    <h2 id="titulo-dna" style="margin:0">DNA reduzido</h2>
+    <p class="small muted" style="margin:0">Peso real é por pontos, não por número de questões.
+      Fonte de cada linha: o edital.</p>
     <table class="tabela-pesos">
       <thead>
         <tr><th scope="col">Matéria de prova</th><th scope="col">Peso</th><th scope="col">Questões</th></tr>
@@ -35,7 +42,7 @@
             <th scope="row">{{ m.nome }}<span class="barra" aria-hidden="true"></span></th>
             <td>{{ m.pct_pontos | pct }}</td>
             <td>{% if m.questoes == "desconhecido" %}desconhecido{% else %}{{ m.questoes }} × {{ m.peso_questao }} = {{ m.pontos }} pt{% endif %}
-              <small class="fonte">{{ m.fonte }}</small></td>
+              <small class="small muted">{{ m.fonte }}</small></td>
           </tr>
         {% endfor %}
       </tbody>
@@ -47,12 +54,12 @@
       <li>Erros: {{ regra.anula }}.</li>
       <li>Mínimos: {{ regra.minimo_global }}; por matéria, {{ regra.minimo_por_materia }}.</li>
     </ul>
-    <p class="fonte">Fonte: {{ regra.fonte }}</p>
+    <p class="small muted">Fonte: {{ regra.fonte }}</p>
 
     <h3>Etapas</h3>
     <ul class="lista-limpa">
       {% for e in etapas %}
-        <li>{{ e.nome | capitalize }}: {% if e.pontos == "desconhecido" %}pontos não informados{% else %}{{ e.pontos }} pontos{% endif %}{% if e.quem_faz %} — {{ e.quem_faz }}{% endif %} <small class="fonte">{{ e.fonte }}</small></li>
+        <li>{{ e.nome | capitalize }}: {% if e.pontos == "desconhecido" %}pontos não informados{% else %}{{ e.pontos }} pontos{% endif %}{% if e.quem_faz %} — {{ e.quem_faz }}{% endif %} <small class="small muted">{{ e.fonte }}</small></li>
       {% endfor %}
     </ul>
 
@@ -65,11 +72,11 @@
     </div>
   </section>
 
-  <p><a class="botao botao--secundario" href="/concurso/{{ concurso.id }}/trilha">Ver trilha de estudo</a></p>
+  <p><a class="btn" href="/concurso/{{ concurso.id }}/trilha">Ver trilha de estudo</a></p>
 
-  <section aria-labelledby="titulo-vertical">
-    <h2 id="titulo-vertical">Edital verticalizado</h2>
-    <p class="cobertura">Cobertura: <strong>{{ topicos_vistos }} de {{ total_topicos }}</strong> tópicos vistos.</p>
+  <section class="card stack" aria-labelledby="titulo-vertical">
+    <h2 id="titulo-vertical" style="margin:0">Edital verticalizado</h2>
+    <p class="small muted" style="margin:0">Cobertura: <strong>{{ topicos_vistos }} de {{ total_topicos }}</strong> tópicos vistos.</p>
     {% set ns = namespace(grupo_atual=None) %}
     {% for m in materias %}
       {% if m.grupo and m.grupo != ns.grupo_atual %}

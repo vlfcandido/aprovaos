@@ -1,17 +1,53 @@
-{# O que é: landing mínima (`GET /`) — nome, uma frase e o botão de criar conta.
-   Quando ler: ao mudar a primeira impressão do produto; a landing definitiva com SEO é da Fase 6. -#}
+{# O que é: landing mínima (`GET /`) — nome, uma frase e o botão de criar conta. Markup guiado
+   por `docs/evidencias/mockups/telas/s-inicio.html` ("Um agente que assume a responsabilidade
+   pela sua aprovação."), fatia 14: a ilustração (`art-hero`, SVG grande desenhado à mão) fica
+   fora de escopo por decisão do plano (`docs/fatias/14-ui.md` §4); o "tour" de 10 botões do
+   protótipo (uma SPA de demonstração) vira navegação real para as telas que já existem no
+   produto — `.tour`/`.hero`/`.principles` do protótipo ainda não existem na biblioteca
+   (`web/static/css/componentes.css`); esta tela usa `card`/`grid-3`/`row` no lugar (relatado no
+   porte). A landing definitiva com SEO é da Fase 6. Quando ler: ao mudar a primeira impressão do
+   produto. -#}
 {% extends "base.html" %}
 {% block titulo %}AprovaOS — quem assume a sua aprovação{% endblock %}
 {% block conteudo %}
-  <h1>AprovaOS</h1>
-  <p class="frase">Um agente que assume a responsabilidade pela sua aprovação: planeja, ensina,
-    cobra e ajusta a rota — sempre explicando o porquê.</p>
-  <div class="acoes">
-    {% if usuario_email %}
-      <a class="botao" href="/conta">Ir para minha conta</a>
-    {% else %}
-      <a class="botao" href="/cadastro">Criar conta</a>
-      <a href="/entrar">Já tenho conta — entrar</a>
-    {% endif %}
+  <div class="grid-sb">
+    <div class="stack">
+      <span class="eyebrow">O que é</span>
+      <h1>Um agente que assume a responsabilidade pela sua aprovação.</h1>
+      <p class="prosa muted">Não é mais um banco de questões. O agente monta o seu estudo, executa
+        com você todo dia, mede se está funcionando e reajusta — e explica cada decisão que toma.</p>
+      <div class="row">
+        {% if usuario_email %}
+          <a class="btn primary" href="/conta">Ir para minha conta</a>
+        {% else %}
+          <a class="btn primary" href="/cadastro">Criar conta</a>
+          <a href="/entrar">Já tenho conta — entrar</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card lift stack">
+      <span class="eyebrow">Regras que o produto não quebra</span>
+      <ol class="lista-limpa stack" style="gap:8px">
+        <li><span class="mono small muted">01</span> O agente decide; você discorda em um toque. Ele nunca esconde o porquê.</li>
+        <li><span class="mono small muted">02</span> Nada gerado chega a você sem validação. Toda afirmação de lei tem fonte.</li>
+        <li><span class="mono small muted">03</span> Previsão sempre com intervalo e nível de confiança. Nunca promete o que não mede.</li>
+        <li><span class="mono small muted">04</span> Descansar é uma recomendação válida.</li>
+        <li><span class="mono small muted">05</span> Questões no padrão real da banca, não "no estilo de".</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="stack">
+    <span class="eyebrow">Para onde ir</span>
+    <div class="grid-3">
+      <a class="card stack" href="/radar"><b>Editais e radar</b><span class="small muted">os editais chegam sozinhos; escolha o que estudar</span></a>
+      {% if usuario_email %}
+        <a class="card stack" href="/editais"><b>Concurso e DNA</b><span class="small muted">o que cai, com que peso, como a banca pergunta</span></a>
+        <a class="card stack" href="/diagnostico"><b>Diagnóstico</b><span class="small muted">até 30 questões e um questionário de rotina</span></a>
+        <a class="card stack" href="/hoje"><b>Plano de hoje</b><span class="small muted">blocos com justificativa; pode pular</span></a>
+        <a class="card stack" href="/revisar"><b>Questões e revisão</b><span class="small muted">certo/errado Cebraspe + flashcards</span></a>
+        <a class="card stack" href="/painel"><b>Painel e previsão</b><span class="small muted">curva atual × necessária</span></a>
+      {% endif %}
+    </div>
   </div>
 {% endblock %}

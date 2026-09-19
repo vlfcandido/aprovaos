@@ -1,35 +1,38 @@
 {# O que é: formulário de criar conta (`GET/POST /cadastro`) — e-mail + senha, envio por htmx com
-   troca só do formulário (`hx-select`/`hx-target`) e funcionando sem JS. Quando ler: ao mudar campos,
-   mensagens ou o fluxo de cadastro. -#}
+   troca só do formulário (`hx-select`/`hx-target`) e funcionando sem JS. O protótipo validado não
+   tem uma tela de cadastro própria — porte visual (fatia 14): montado só com componentes da
+   biblioteca (`card`/`entrada`/`btn`), mesmo tom de `conta/entrar.html`. Quando ler: ao mudar
+   campos, mensagens ou o fluxo de cadastro. -#}
 {% extends "base.html" %}
 {% block titulo %}Criar conta — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Criar conta</h1>
-  <form id="form-cadastro" class="formulario" method="post" action="/cadastro"
-        hx-post="/cadastro" hx-select="#form-cadastro" hx-target="#form-cadastro" hx-swap="outerHTML">
-    {% if erros %}
-      <div class="mensagem mensagem--erro" role="alert">
-        {% for erro in erros %}<p>{{ erro }}</p>{% endfor %}
+  <div class="stack" style="max-width:28rem">
+    <span class="eyebrow">Conta</span>
+    <h1>Criar conta</h1>
+    <form id="form-cadastro" class="card stack" method="post" action="/cadastro"
+          hx-post="/cadastro" hx-select="#form-cadastro" hx-target="#form-cadastro" hx-swap="outerHTML">
+      {% if erros %}
+        <div class="mensagem mensagem--erro" role="alert">
+          {% for erro in erros %}<p>{{ erro }}</p>{% endfor %}
+        </div>
+      {% endif %}
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">E-mail</span>
+        <input class="entrada" id="email" name="email" type="email" autocomplete="email" required
+               value="{{ email }}" inputmode="email">
+      </label>
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">Senha (8 a 128 caracteres)</span>
+        <input class="entrada" id="senha" name="senha" type="password" autocomplete="new-password" required
+               minlength="8" maxlength="128">
+      </label>
+      <div class="row between">
+        <button class="btn primary" type="submit">Criar conta</button>
+        <a href="/entrar">Já tenho conta — entrar</a>
       </div>
+    </form>
+    {% if google_oauth_disponivel %}
+      <a class="btn" href="/entrar/google">Continuar com o Google</a>
     {% endif %}
-    <div class="campo">
-      <label for="email">E-mail</label>
-      <input id="email" name="email" type="email" autocomplete="email" required
-             value="{{ email }}" inputmode="email">
-    </div>
-    <div class="campo">
-      <label for="senha">Senha (8 a 128 caracteres)</label>
-      <input id="senha" name="senha" type="password" autocomplete="new-password" required
-             minlength="8" maxlength="128">
-    </div>
-    <div class="acoes">
-      <button class="botao" type="submit">Criar conta</button>
-      <a href="/entrar">Já tenho conta — entrar</a>
-    </div>
-  </form>
-  {% if google_oauth_disponivel %}
-    <div class="acoes">
-      <a class="botao botao--secundario" href="/entrar/google">Continuar com o Google</a>
-    </div>
-  {% endif %}
+  </div>
 {% endblock %}

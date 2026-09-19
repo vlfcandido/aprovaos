@@ -2,15 +2,20 @@
    horário preferido, energia típica, data-alvo, o concurso principal (P-23) e o consentimento de
    dados de rotina/energia (R-01, LGPD). A caixa de consentimento nunca nasce marcada (I8,
    19/09/2026, mesmo para quem já autorizou antes) — a data/versão do aceite anterior aparece em
-   texto ao lado dela. Erros esperados voltam aqui, 200. Quando ler: ao mudar os campos da rotina
-   ou o texto do consentimento. -#}
+   texto ao lado dela. Erros esperados voltam aqui, 200. O protótipo validado não tem uma tela de
+   rotina própria — porte visual (fatia 14): montado só com componentes da biblioteca
+   (`card`/`entrada`/`grid-3`/`btn`). Quando ler: ao mudar os campos da rotina ou o texto do
+   consentimento. -#}
 {% extends "base.html" %}
 {% block titulo %}Sua rotina — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Sua rotina</h1>
-  <p class="frase">Horas por dia, horário preferido e energia típica — editável quando quiser;
-    muda o plano do dia seguinte.</p>
-  <form class="formulario" method="post" action="/rotina"
+  <div class="stack">
+    <span class="eyebrow">Rotina</span>
+    <h1>Sua rotina</h1>
+    <p class="prosa muted">Horas por dia, horário preferido e energia típica — editável quando
+      quiser; muda o plano do dia seguinte.</p>
+  </div>
+  <form class="card stack" method="post" action="/rotina"
         hx-post="/rotina" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
     {% if erros %}
       <div class="mensagem mensagem--erro" role="alert">
@@ -18,72 +23,74 @@
       </div>
     {% endif %}
 
-    <fieldset class="campo">
-      <legend>Horas por dia da semana</legend>
+    <fieldset class="stack">
+      <legend class="campo-rotulo">Horas por dia da semana</legend>
       <div class="grid-3">
         {% for dia in dias %}
-          <div class="campo">
-            <label for="hora_{{ dia.chave }}">{{ dia.rotulo }}</label>
-            <input id="hora_{{ dia.chave }}" name="hora_{{ dia.chave }}" type="number"
+          <label class="stack" style="gap:var(--espaco-2)">
+            <span class="small muted">{{ dia.rotulo }}</span>
+            <input class="entrada" id="hora_{{ dia.chave }}" name="hora_{{ dia.chave }}" type="number"
                    min="0" max="16" step="0.5" value="{{ dia.horas }}" required>
-          </div>
+          </label>
         {% endfor %}
       </div>
     </fieldset>
 
     <div class="grid-3">
-      <div class="campo">
-        <label for="horario_preferido">Horário preferido</label>
-        <select id="horario_preferido" name="horario_preferido">
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">Horário preferido</span>
+        <select class="entrada" id="horario_preferido" name="horario_preferido">
           {% for valor, rotulo in opcoes_horario %}
             <option value="{{ valor }}" {% if valor == horario_preferido %}selected{% endif %}>{{ rotulo }}</option>
           {% endfor %}
         </select>
-      </div>
-      <div class="campo">
-        <label for="energia_tipica">Energia típica</label>
-        <select id="energia_tipica" name="energia_tipica">
+      </label>
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">Energia típica</span>
+        <select class="entrada" id="energia_tipica" name="energia_tipica">
           {% for valor in opcoes_energia %}
             <option value="{{ valor }}" {% if valor == energia_tipica %}selected{% endif %}>{{ valor|capitalize }}</option>
           {% endfor %}
         </select>
-      </div>
-      <div class="campo">
-        <label for="data_alvo">Data-alvo (opcional)</label>
-        <input id="data_alvo" name="data_alvo" type="date" value="{{ data_alvo }}">
-      </div>
+      </label>
+      <label class="stack" style="gap:var(--espaco-2)">
+        <span class="campo-rotulo">Data-alvo (opcional)</span>
+        <input class="entrada" id="data_alvo" name="data_alvo" type="date" value="{{ data_alvo }}">
+      </label>
     </div>
 
-    <div class="campo">
-      <label for="concurso_principal_id">Concurso principal</label>
+    <label class="stack" style="gap:var(--espaco-2)">
+      <span class="campo-rotulo">Concurso principal</span>
       {% if concursos %}
-        <select id="concurso_principal_id" name="concurso_principal_id">
+        <select class="entrada" id="concurso_principal_id" name="concurso_principal_id">
           <option value="">Manter a escolha automática (o último edital subido)</option>
           {% for c in concursos %}
             <option value="{{ c.id }}" {% if c.selecionado %}selected{% endif %}>{{ c.rotulo }}</option>
           {% endfor %}
         </select>
       {% else %}
-        <p class="nota">Nenhum concurso ainda — <a href="/editais/subir">suba um edital</a> primeiro.</p>
+        <p class="small muted" style="margin:0">Nenhum concurso ainda —
+          <a href="/editais/subir">suba um edital</a> primeiro.</p>
         <input type="hidden" name="concurso_principal_id" value="">
       {% endif %}
-    </div>
+    </label>
 
-    <div class="campo">
-      <label>
+    <div class="stack">
+      <label class="row row-topo">
         <input type="checkbox" name="consentimento">
-        Autorizo o uso da minha energia típica para ajustar o plano — dado tratado como sensível
-        por cautela (LGPD); usado só para o meu próprio plano, nunca em ranking nem repassado a
-        terceiros. Posso exportar ou excluir meus dados a qualquer momento em <a href="/conta">Minha conta</a>.
+        <span class="small">Autorizo o uso da minha energia típica para ajustar o plano — dado
+          tratado como sensível por cautela (LGPD); usado só para o meu próprio plano, nunca em
+          ranking nem repassado a terceiros. Posso exportar ou excluir meus dados a qualquer
+          momento em <a href="/conta">Minha conta</a>.</span>
       </label>
       {% if consentimento_anterior_em %}
-        <p class="nota">Você autorizou em {{ consentimento_anterior_em }} (versão
+        <p class="small muted">Você autorizou em {{ consentimento_anterior_em }} (versão
           {{ consentimento_anterior_versao }}). Marque de novo para confirmar e salvar.</p>
       {% endif %}
     </div>
 
-    <div class="acoes">
-      <button class="botao" type="submit">Salvar rotina</button>
+    <div class="row between">
+      <button class="btn primary" type="submit">Salvar rotina</button>
       <a href="/diagnostico">Ir para o diagnóstico</a>
     </div>
   </form>

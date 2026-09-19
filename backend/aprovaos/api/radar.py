@@ -35,17 +35,40 @@ from aprovaos.dominio.erros import (
     PdfSemTexto,
     SemConcursoPrincipal,
 )
-from aprovaos.dominio.radar import Casamento, ConcursoDoRadar, PreferenciaRadar, casar_com_perfil
+from aprovaos.dominio.radar import (
+    LACUNA_DATA_PROVA,
+    Casamento,
+    ConcursoDoRadar,
+    PreferenciaRadar,
+    casar_com_perfil,
+)
 from aprovaos.motor.fontes.base import FonteIndisponivel, Novidade
 from aprovaos.motor.fontes.cebraspe import URL_ARQUIVO, FonteCebraspe
 
 router = APIRouter(include_in_schema=False)
 
 #: Ruling 38: a FGV aparece no radar como fonte vetada, dita na tela — nunca ausência silenciosa.
+#: Porte visual (fatia 14, §2.2): sem o código interno de pendência (era "(P-13)") — só o fato.
 NOTA_FGV_VETADA = (
-    "FGV Conhecimento: fonte vetada por ora — os termos de uso vedam automação (P-13). O radar "
+    "FGV Conhecimento: fonte vetada por ora — os termos de uso dela vedam automação. O radar "
     "mostra só a Cebraspe até a autorização ser pedida ao titular do produto."
 )
+
+#: Defeito do radar (fatia 14, §2.2): a lacuna "data da prova não publicada na API" repetia em
+#: todos os cartões — a data não existe em nenhuma fonte ainda (só sai no PDF do edital), então o
+#: aviso entra uma vez no cabeçalho da lista; as outras lacunas (mais raras) continuam por linha.
+NOTA_DATA_PROVA = (
+    "Nenhuma fonte do radar publica a data da prova — ela só sai no PDF do edital, depois que sai."
+)
+
+#: `ConcursoDoRadar.fase` → rótulo em pt-BR, sem o valor cru do enum na tela (defeito
+#: `inscricoes_abertas`, fatia 14 §2.2).
+FASE_LABEL: dict[str, str] = {
+    "novos": "Novo",
+    "inscricoes_abertas": "Inscrições abertas",
+    "em_andamento": "Em andamento",
+    "encerrado": "Encerrado",
+}
 
 MENSAGEM_CONCURSO_NAO_ENCONTRADO = "Este concurso não está (mais) no radar."
 MENSAGEM_ANALISE_SEM_PDF = "Este concurso ainda não tem edital em PDF publicado na fonte."
@@ -77,17 +100,23 @@ def _preferencia_da_query(uf: str | None, salario_min: str | None, area: str) ->
 def _linha_do_catalogo(
     concurso: ConcursoRadar, casamento: Casamento, agora: datetime
 ) -> dict[str, Any]:
-    """Monta o dicionário de exibição de uma linha do catálogo."""
+    """Monta o dicionário de exibição de uma linha do catálogo.
+
+    `lacunas_linha` tira a lacuna da data da prova (mostrada uma vez só, no cabeçalho da lista —
+    fatia 14, §2.2) e mantém as demais, mais raras (vagas, salário, formato de período).
+    """
     novo_para_voce = casamento.combina and (agora - concurso.primeiro_visto_em) < timedelta(days=1)
     return {
         "evento_url": concurso.evento_url,
         "nome": concurso.nome,
         "ano": concurso.ano,
         "fase": concurso.fase,
+        "fase_label": FASE_LABEL.get(concurso.fase, concurso.fase),
         "uf": concurso.uf,
         "vagas": concurso.vagas,
         "salario_max_brl": concurso.salario_max_brl,
         "lacunas": concurso.lacunas,
+        "lacunas_linha": [lacuna for lacuna in concurso.lacunas if lacuna != LACUNA_DATA_PROVA],
         "combina": casamento.combina,
         "motivos": casamento.motivos,
         "novo_para_voce": novo_para_voce,
@@ -168,16 +197,25 @@ def radar(
         _linha_do_catalogo(c, casar_com_perfil(_para_dominio(c), preferencia, cargos=[]), agora)
         for c in concursos
     ]
+    # Defeito do radar (fatia 14, §2.2): sem a chave de "encerrado", o desempate por
+    # `inscricao_fim` (quase sempre ausente) deixava a ordem alfabética do banco aparecer por
+    # trás — e como 424 dos 495 concursos medidos em 19/09/2026 estão encerrados, o resultado
+    # observado era "423 encerrados no topo, em ordem alfabética". Agora encerrado sempre afunda,
+    # não importa o resto.
+    longe_no_futuro = agora.date().replace(year=agora.year + 100)
     linhas.sort(
         key=lambda linha: (
+            linha["fase"] == "encerrado",
             not linha["combina"],
-            linha["inscricao_fim"] or agora.date().replace(year=agora.year + 100),
+            linha["inscricao_fim"] or longe_no_futuro,
         )
     )
     contexto: dict[str, Any] = {
         "linhas": linhas,
         "filtros": {"fase": fase, "uf": uf, "salario_min": salario_min, "area": area},
         "nota_fgv_vetada": NOTA_FGV_VETADA,
+        "nota_data_prova": NOTA_DATA_PROVA,
+        "fase_opcoes": list(FASE_LABEL.items()),
     }
     if usuario is not None:
         contexto["meus_concursos"] = _meus_concursos(db, usuario)
@@ -262,6 +300,7 @@ def detalhe(
             "nome": concurso.nome,
             "ano": concurso.ano,
             "fase": concurso.fase,
+            "fase_label": FASE_LABEL.get(concurso.fase, concurso.fase),
             "uf": concurso.uf,
             "vagas": concurso.vagas,
             "salario_max_brl": concurso.salario_max_brl,

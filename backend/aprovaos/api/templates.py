@@ -31,6 +31,7 @@ def criar_templates(web_dir: Path) -> Jinja2Templates:
     """
     templates = Jinja2Templates(directory=web_dir / "templates")
     templates.env.filters["pct"] = formatar_pct
+    templates.env.filters["brl"] = formatar_brl
     return templates
 
 
@@ -48,6 +49,24 @@ def formatar_pct(valor: float | str) -> str:
     arredondado = Decimal(str(valor)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
     texto = f"{arredondado:f}".removesuffix(".0").replace(".", ",")
     return f"{texto} %"
+
+
+def formatar_brl(valor: Decimal) -> str:
+    """Formata um valor monetário em pt-BR: milhar com ponto, centavos com vírgula, prefixo `R$`.
+
+    Defeito do radar (fatia 14, §2.2): o template mostrava o `Decimal` cru (`R$ 16620.00`) — este
+    filtro é o que falta para "formato brasileiro" sem depender do texto pré-formatado que a API
+    da Cebraspe devolve (`strEventoSalarioMaximo`), que o domínio do radar ainda não persiste.
+
+    Args:
+        valor: o valor em reais (ex.: `Decimal("16620.00")`).
+
+    Returns:
+        `"R$ 16.620,00"`.
+    """
+    arredondado = valor.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    texto = f"{arredondado:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    return f"R$ {texto}"
 
 
 def renderizar(

@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from aprovaos.api.templates import formatar_brl
 from aprovaos.dados.modelos import Concurso, Usuario
 from aprovaos.dados.repositorio_perfil import salvar_perfil
 from aprovaos.dados.repositorio_radar import obter_ou_criar_fonte, sincronizar
@@ -273,3 +274,57 @@ def test_analisar_edital_do_radar_roda_o_pipeline_e_cria_concurso_real(
 
 def test_nav_tem_link_radar_com_ou_sem_login(cliente: TestClient) -> None:
     assert 'href="/radar"' in cliente.get("/").text
+
+
+# --- porte visual (fatia 14, §2.2): defeitos reproduzidos com os 495 concursos reais no banco ---
+
+
+def test_formatar_brl() -> None:
+    assert formatar_brl(Decimal("16620.00")) == "R$ 16.620,00"
+    assert formatar_brl(Decimal("9975")) == "R$ 9.975,00"
+
+
+def test_radar_nao_mostra_valor_cru_de_enum_nem_codigo_interno(
+    cliente: TestClient, db: Session
+) -> None:
+    _semear_catalogo(db, _concurso(salario_max_brl=Decimal("16620.00")))
+    corpo = cliente.get("/radar", params={"fase": "inscricoes_abertas"}).text
+    # `inscricoes_abertas` só pode aparecer como `value` de `<option>` (controle de formulário),
+    # nunca como texto visível — o defeito era o valor cru do enum aparecer no cartão do concurso.
+    assert ">inscricoes_abertas<" not in corpo
+    assert "Inscrições abertas" in corpo
+    assert "P-13" not in corpo
+
+
+def test_radar_mostra_salario_em_formato_brasileiro(cliente: TestClient, db: Session) -> None:
+    _semear_catalogo(db, _concurso(salario_max_brl=Decimal("16620.00")))
+    corpo = cliente.get("/radar").text
+    assert "R$ 16.620,00" in corpo
+    assert "16620.00" not in corpo
+
+
+def test_radar_lacuna_da_data_da_prova_aparece_uma_vez_no_cabecalho(
+    cliente: TestClient, db: Session
+) -> None:
+    _semear_catalogo(
+        db,
+        _concurso("AGEPAR_PR_26"),
+        _concurso("SEFAZ_AL_26", nome="SEFAZ AL 26", uf="AL"),
+    )
+    corpo = cliente.get("/radar").text
+    assert corpo.count("data da prova") == 1
+
+
+def test_radar_afunda_encerrado_mesmo_com_ordem_alfabetica_favoravel(
+    cliente: TestClient, db: Session
+) -> None:
+    """Fatia 14, §2.2: antes desta correção, 423 dos 495 concursos reais (todos encerrados)
+    apareciam no topo, em ordem alfabética — o desempate por `inscricao_fim` (quase sempre
+    ausente) deixava a ordem crua do banco (alfabética) aparecer por trás."""
+    _semear_catalogo(
+        db,
+        _concurso("AAA_ENCERRADO", nome="AAA CONCURSO ENCERRADO", fase="encerrado"),
+        _concurso("ZZZ_ABERTO", nome="ZZZ CONCURSO ABERTO", fase="inscricoes_abertas"),
+    )
+    corpo = cliente.get("/radar").text
+    assert corpo.index("ZZZ CONCURSO ABERTO") < corpo.index("AAA CONCURSO ENCERRADO")

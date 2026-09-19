@@ -71,11 +71,13 @@ def test_editais_lista_e_marca_principal(logado: TestClient, db: Session) -> Non
     assert links == [segundo, primeiro]
     assert "ASSESSOR DE GABINETE" in corpo
     assert "CÂMARA MUNICIPAL DE CASCAVEL" in corpo
-    itens = re.findall(r"<li[^>]*class=\"concurso[^\"]*\"", corpo)
-    assert len(itens) == 2
-    assert 'class="concurso concurso--principal"' in itens[0]
-    assert "principal" not in itens[1]
-    assert corpo.count("principal") >= 1
+    # Só o cartão mais recente (`segundo`) leva o selo de principal — entre o link dele e o do
+    # próximo cartão (`primeiro`).
+    assert corpo.count('chip accent">principal<') == 1
+    indice_segundo = corpo.index(f'href="{segundo}"')
+    indice_selo = corpo.index('chip accent">principal<')
+    indice_primeiro = corpo.index(f'href="{primeiro}"')
+    assert indice_segundo < indice_selo < indice_primeiro
     assert "o último que você subiu" in corpo
 
 

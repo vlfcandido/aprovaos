@@ -3,32 +3,39 @@
    medido), dominado ao final. Cada item mostra o `motivo` (números reais, nunca "parece
    difícil") e um link para a aula (quando publicada, direta ou por `topico_relacao` — I2) e
    para as questões; quando a aula vem de cobertura parcial (`subconjunto_curado`, I1), mostra o
-   aviso "cobre parte deste item". Quando ler: ao mudar o critério de ordenação ou o que a
-   trilha mostra por tópico. #}
+   aviso "cobre parte deste item". Porte visual (fatia 14): `card`/`chip` da biblioteca do
+   protótipo no lugar dos antigos `botao`/`nota` soltos. Quando ler: ao mudar o critério de
+   ordenação ou o que a trilha mostra por tópico. #}
 {% extends "base.html" %}
 {% block titulo %}Trilha de estudo — {{ concurso.cargo }} — AprovaOS{% endblock %}
 {% block conteudo %}
   <p class="migalha"><a href="/concurso/{{ concurso.id }}">Voltar ao concurso</a></p>
-  <h1>Trilha de estudo</h1>
-  <p class="frase">Ordem por peso medido (questões publicáveis na base) e pelo que você já viu ou errou.</p>
+  <div class="stack">
+    <span class="eyebrow">Concurso e DNA</span>
+    <h1>Trilha de estudo</h1>
+    <p class="prosa muted">Ordem por peso medido (questões publicáveis na base) e pelo que você já
+      viu ou errou.</p>
+  </div>
 
-  <ol class="topicos">
+  <div class="stack" data-lista-trilha>
     {% for item in trilha %}
-      <li data-slug="{{ item.slug }}">
-        <span class="topico__texto">{{ item.nome }}</span>
-        <span class="status status--{{ 'visto' if item.status == 'dominado' else 'nao-visto' }}">{{ item.status }}</span>
-        <p class="nota">{{ item.motivo }}</p>
-        <p>
+      <div data-slug="{{ item.slug }}" class="card stack">
+        <div class="row between">
+          <span class="topico__texto"><b>{{ item.nome }}</b></span>
+          <span class="chip {{ 'good' if item.status == 'dominado' else '' }}">{{ item.status }}</span>
+        </div>
+        <p class="small muted" style="margin:0">{{ item.motivo }}</p>
+        <div class="row">
           {% if item.tem_aula %}
-            <a href="/topico/{{ item.slug }}/aula">Ver aula</a> ·
+            <a href="/topico/{{ item.slug }}/aula">Ver aula</a>
           {% endif %}
           <a href="/topico/{{ item.slug }}/questoes">Responder questões</a>
-        </p>
+        </div>
         {% if item.cobertura_parcial %}
-          <p class="nota">Esta aula vem de um dossiê de outro edital que cobre parte deste item,
-            não o item inteiro.</p>
+          <p class="small muted" style="margin:0">Esta aula vem de um dossiê de outro edital que
+            cobre parte deste item, não o item inteiro.</p>
         {% endif %}
-      </li>
+      </div>
     {% endfor %}
-  </ol>
+  </div>
 {% endblock %}

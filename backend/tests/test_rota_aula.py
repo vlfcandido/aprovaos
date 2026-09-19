@@ -82,14 +82,21 @@ def _dossie(db: Session, topico: Topico) -> DossieTopico:
     return dossie
 
 
-def _aula(db: Session, topico: Topico, dossie: DossieTopico) -> Aula:
+def _aula(
+    db: Session,
+    topico: Topico,
+    dossie: DossieTopico,
+    *,
+    texto_denso: str = "A improbidade administrativa tutela a probidade {{Lei 8.429/1992 art. 1}}.",
+    texto_leigo: str = "A lei pune improbidade {{Lei 8.429/1992 art. 1}}.",
+) -> Aula:
     aula = Aula(
         dossie_id=dossie.id,
         dossie_versao=dossie.versao,
         topico_id=topico.id,
         versao=1,
-        texto_denso=("A improbidade administrativa tutela a probidade {{Lei 8.429/1992 art. 1}}."),
-        texto_leigo="A lei pune improbidade.",
+        texto_denso=texto_denso,
+        texto_leigo=texto_leigo,
         audio_url=None,
         citacoes=[
             {
@@ -147,6 +154,45 @@ def test_aula_publicada_aparece_sem_marcador_cru(logado: TestClient, db: Session
     assert "Isso conversa com o que você viu." in resposta.text
     assert "cebraspe 2024 tj-pa item 57" in resposta.text
     assert "Lei 8.429/1992 art. 2" in resposta.text
+
+
+def test_notas_da_versao_leiga_aparecem_com_id_proprio(logado: TestClient, db: Session) -> None:
+    """I9: `notas_leigo` era calculado e nunca mostrado — a aluna via `[1]` sem nota nenhuma."""
+    usuario = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, usuario.tenant_id, SLUG)
+    dossie = _dossie(db, topico)
+    _aula(db, topico, dossie)
+    db.commit()
+
+    resposta = logado.get(f"/topico/{SLUG}/aula")
+
+    assert resposta.status_code == 200
+    assert 'id="citacao-leigo-1"' in resposta.text
+    # a mesma citação aparece nos dois `<details>` (denso e leigo), sem colidir de `id`.
+    assert 'id="citacao-1"' in resposta.text
+
+
+def test_tag_html_no_texto_da_aula_sai_escapada(logado: TestClient, db: Session) -> None:
+    """C3: texto de LLM nunca é `| safe` — uma tag que escapasse do validador não executa."""
+    usuario = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, usuario.tenant_id, SLUG)
+    dossie = _dossie(db, topico)
+    _aula(
+        db,
+        topico,
+        dossie,
+        texto_denso=(
+            "A improbidade administrativa tutela a probidade {{Lei 8.429/1992 art. 1}}. "
+            "<script>alert(1)</script>"
+        ),
+    )
+    db.commit()
+
+    resposta = logado.get(f"/topico/{SLUG}/aula")
+
+    assert resposta.status_code == 200
+    assert "<script>" not in resposta.text
+    assert "&lt;script&gt;" in resposta.text
 
 
 def test_topico_de_outro_tenant_e_404(logado: TestClient, db: Session) -> None:

@@ -342,6 +342,131 @@ def test_mnemonico_com_trecho_que_nao_existe_na_fonte_reprova() -> None:
     assert any("mnemônico" in m for m in veredito.motivos)
 
 
+def test_marcador_inexistente_no_texto_leigo_reprova() -> None:
+    """C1 (correção crítica 19/09/2026): o leigo é validado com o mesmo rigor do denso — um
+    marcador que não existe em `citacoes` reprova mesmo aparecendo só no `texto_leigo`."""
+    conteudo = _conteudo(
+        texto_leigo=(
+            "A lei pune quem comete improbidade {{Lei 8.429/1992 art. 12}}. A demissão não "
+            "depende de condenação judicial antes."
+        ),
+    )
+    veredito = verificar_aula(
+        conteudo,
+        fontes=FONTES,
+        relacionados_permitidos=set(),
+        origens_permitidas=set(),
+        tempo_alvo_min=1,
+    )
+    assert not veredito.aprovado
+    assert any("marcador" in m and "art. 12" in m for m in veredito.motivos)
+
+
+def test_lacuna_declarada_e_citada_no_texto_leigo_reprova() -> None:
+    """C1: a regra de lacuna também vale para o `texto_leigo`, não só para o denso."""
+    conteudo = _conteudo(
+        texto_leigo=(
+            "A lei pune quem comete improbidade. O particular responde nos termos "
+            "{{Lei 8.429/1992 art. 3}}."
+        ),
+        lacunas_declaradas=["Lei 8.429/1992 art. 3"],
+    )
+    veredito = verificar_aula(
+        conteudo,
+        fontes=FONTES,
+        relacionados_permitidos=set(),
+        origens_permitidas=set(),
+        tempo_alvo_min=1,
+    )
+    assert not veredito.aprovado
+    assert any("lacuna" in m for m in veredito.motivos)
+
+
+def test_frase_afirmativa_sem_citacao_reprova() -> None:
+    """C2 (decisão registrada na correção crítica de 19/09/2026): gate léxico — frase com
+    gatilho normativo (aqui, "compete") sem `{{citação}}` reprova, mesmo com `citacoes=[]`. É
+    a troca consciente entre honestidade e falso positivo ocasional."""
+    conteudo = _conteudo(
+        citacoes=[],
+        texto_denso=(
+            "Compete ao Tribunal de Contas da União fiscalizar as contas dos administradores "
+            "públicos responsáveis por dinheiro, bens e valores da União."
+        ),
+        texto_leigo="O tribunal fiscaliza o dinheiro público.",
+    )
+    veredito = verificar_aula(
+        conteudo,
+        fontes=FONTES,
+        relacionados_permitidos=set(),
+        origens_permitidas=set(),
+        tempo_alvo_min=1,
+    )
+    assert not veredito.aprovado
+    assert any("Compete ao Tribunal" in m for m in veredito.motivos)
+
+
+def test_frase_com_gatilho_normativo_e_citacao_aprova() -> None:
+    """C2: a mesma frase, com `{{citação}}` dentro dela, não reprova pelo gate léxico."""
+    conteudo = _conteudo(
+        texto_denso=(
+            "Compete a todos observar a lei, pois os atos de improbidade serão punidos na "
+            "forma desta lei {{Lei 8.429/1992 art. 1}}. A demissão do agente público "
+            "independe de condenação judicial prévia, segundo o entendimento consolidado do "
+            "tribunal {{STJ Súmula 651}}."
+        ),
+        texto_leigo=(
+            "A lei pune quem faz isso errado. A demissão não depende de decisão da justiça antes."
+        ),
+        citacoes=[
+            CitacaoAula(
+                canonica="Lei 8.429/1992 art. 1",
+                fonte="F1",
+                trecho="serão punidos na forma desta lei",
+                frase_da_aula=(
+                    "Compete a todos observar a lei, pois os atos de improbidade serão "
+                    "punidos na forma desta lei"
+                ),
+            ),
+            CitacaoAula(
+                canonica="STJ Súmula 651",
+                fonte="F2",
+                trecho="A demissão do agente público não depende de condenação judicial.",
+                frase_da_aula=(
+                    "A demissão do agente público independe de condenação judicial prévia"
+                ),
+            ),
+        ],
+    )
+    veredito = verificar_aula(
+        conteudo,
+        fontes=FONTES,
+        relacionados_permitidos=set(),
+        origens_permitidas=set(),
+        tempo_alvo_min=1,
+    )
+    assert veredito.aprovado, veredito.motivos
+
+
+def test_tag_html_no_texto_reprova() -> None:
+    """C3: nenhuma tag HTML deveria sair do gerador — a tela agora escapa, mas o validador
+    também reprova para não deixar passar o hábito."""
+    conteudo = _conteudo(
+        texto_denso=(
+            "A improbidade administrativa é punida na forma da lei {{Lei 8.429/1992 art. 1}}. "
+            "<img src=x onerror=roubar()> tentativa de estilizar o texto da aula."
+        ),
+    )
+    veredito = verificar_aula(
+        conteudo,
+        fontes=FONTES,
+        relacionados_permitidos=set(),
+        origens_permitidas=set(),
+        tempo_alvo_min=1,
+    )
+    assert not veredito.aprovado
+    assert any("tag" in m.lower() for m in veredito.motivos)
+
+
 def test_mnemonico_com_trecho_real_aprova() -> None:
     conteudo = _conteudo(
         mnemonico=MnemonicoAula(

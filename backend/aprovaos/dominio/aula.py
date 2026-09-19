@@ -10,6 +10,18 @@ jurisprudência aponta uma fonte do dossiê e o trecho citado existe **literalme
 `{{citação}}` do texto por notas numeradas para a tela (o popover de lei, mesmo princípio de
 `dominio.justificativa.separar_afirmacoes`).
 
+**Correção crítica de 19/09/2026** (revisão independente do caminho de conteúdo gerado, visão
+§4 "nada gerado existe para o aluno sem validação"): três defeitos deste validador deixavam
+metade do conteúdo da aula sem checagem nenhuma. `verificar_aula` agora trata `texto_denso` e
+`texto_leigo` **simetricamente** (o conjunto de marcadores verificado é a união dos dois; a regra
+de lacuna vale para os dois — antes só o denso era conferido, e o leigo podia citar dispositivo
+inexistente ou afirmar o que a aula declarou como lacuna sem ser pego); aplica um **gate léxico**
+que reprova qualquer frase com palavra de competência/vedação/prazo/quórum ou número sem
+`{{citação}}` própria — decisão consciente do dono (mais falso positivo, nunca afirmação sem
+fonte; ver `.claude/skills/gerador-de-aula/SKILL.md`); e reprova qualquer `<letra` nos dois
+textos (não deveria haver tag alguma vindo do gerador — a tela também parou de confiar nesse
+texto com `| safe`, `web/templates/aula/ver.html`).
+
 Nenhuma chamada de rede, banco ou LLM acontece aqui — só validação de texto e uma função pura de
 ranking. Quando ler: antes de mudar o prompt do `gerador-de-aula`; ao investigar por que uma aula
 boa (ou ruim) foi aprovada/reprovada; ao mexer no fio da memória (a) ou no popover da tela de
@@ -24,6 +36,7 @@ from pydantic import BaseModel, Field
 
 from aprovaos.dominio.citacao import normalizar_citacao_para_comparacao
 from aprovaos.dominio.dossie import FonteDossie
+from aprovaos.dominio.edital import sem_acento
 from aprovaos.dominio.fio_memoria import EstatisticaTopicoVisto, escolher_para_intercalar
 
 
@@ -186,6 +199,48 @@ def _marcadores(texto: str) -> list[str]:
     return [m.strip() for m in _MARCADOR.findall(texto)]
 
 
+_FIM_DE_FRASE = re.compile(r"[.!?](?!\d)(?=\s+[A-ZÀ-Ú]|\s*$)")
+"""Mesmo critério de `dominio.edital._itens_por_sentenca`: `.`/`!`/`?` só fecha frase quando não
+separa dígitos (`8.429`, `art. 1`, dentro de um marcador) e o que vem depois começa por
+maiúscula ou é o fim do texto — não há lista de abreviação aqui porque o texto da aula não tem
+"cap."/"inc." soltos fora de marcador (e um marcador nunca é quebrado por este padrão, já que
+`"art. 1"` dentro dele é seguido de dígito ou `}}`, nunca de espaço + maiúscula)."""
+
+
+def _frases(texto: str) -> list[str]:
+    """Fatia `texto` em frases, para o gate léxico avaliar cada uma isoladamente."""
+    frases: list[str] = []
+    inicio = 0
+    for candidato in _FIM_DE_FRASE.finditer(texto):
+        fim = candidato.start() + 1
+        frase = texto[inicio:fim].strip()
+        if frase:
+            frases.append(frase)
+        inicio = fim
+    resto = texto[inicio:].strip()
+    if resto:
+        frases.append(resto)
+    return frases
+
+
+_GATILHO_NORMATIVO = re.compile(r"\b(compete|vedado|vedada|somente|apenas|so|prazo|quorum)\b")
+"""Palavras que, segundo a skill `gerador-de-aula` (SKILL.md, regra "toda frase com 'compete',
+'é vedado', 'só', 'prazo', número, quórum ou verbo de competência tem `{{citação}}`"), marcam uma
+frase normativa — comparada sem acento e em minúsculas (`sem_acento`), por isso "só" vira "so" e
+"quórum" vira "quorum" aqui."""
+
+_TEM_DIGITO = re.compile(r"\d")
+
+_TAG_HTML = re.compile(r"<[A-Za-zÀ-ÿ]")
+"""`<` seguido de letra — o gerador não tem motivo para emitir marcação; texto com isso não é
+markdown legítimo (C3 da correção crítica de 19/09/2026)."""
+
+
+def _frase_exige_citacao(frase: str) -> bool:
+    """`True` quando `frase` bate o gatilho léxico normativo (gate léxico, C2)."""
+    return bool(_GATILHO_NORMATIVO.search(sem_acento(frase).lower()) or _TEM_DIGITO.search(frase))
+
+
 def verificar_aula(
     conteudo: ConteudoAula,
     *,
@@ -195,10 +250,13 @@ def verificar_aula(
     tempo_alvo_min: int,
     trechos_relacionados_esperados: dict[str, str] | None = None,
     margem_tamanho: float = 0.2,
+    frases_excecao_gate_lexico: frozenset[str] = frozenset(),
 ) -> VeredictoAula:
     """Valida mecanicamente uma `ConteudoAula` contra o dossiê e o que foi oferecido ao gerador.
 
-    Ver `docs/fatias/6-trilha-e-aulas.md` §1 para a lista comentada de cada regra.
+    Ver `docs/fatias/6-trilha-e-aulas.md` §1 para a lista comentada de cada regra e o cabeçalho
+    do módulo para a correção crítica de 19/09/2026 (texto_leigo simétrico ao denso, gate
+    léxico, rejeição de tag HTML).
 
     Args:
         conteudo: a saída do agente `gerador-de-aula`.
@@ -210,6 +268,9 @@ def verificar_aula(
             para conferir que `RelacionadoAula.trecho` não foi inventado; `None` não confere
             (usado só quando o chamador não tem esse dado à mão).
         margem_tamanho: tolerância (fração) da faixa de tamanho do `texto_denso`.
+        frases_excecao_gate_lexico: frases inteiras (match exato, após `_frases`) dispensadas do
+            gate léxico — só para falso positivo óbvio e explícito; **vazio por padrão**, porque
+            o padrão desta regra é reprovar (decisão do dono, correção crítica de 19/09/2026).
 
     Returns:
         `VeredictoAula` com `aprovado=True` só quando nenhum motivo de reprovação foi encontrado.
@@ -247,17 +308,21 @@ def verificar_aula(
                 "no texto_denso"
             )
 
+    # C1 (correção crítica de 19/09/2026): união dos marcadores do denso e do leigo — antes só o
+    # denso entrava aqui, e o leigo podia citar dispositivo inexistente sem ser pego.
     marcadores_no_texto = {
         normalizar_citacao_para_comparacao(marcador)
-        for marcador in _marcadores(conteudo.texto_denso)
+        for marcador in _marcadores(conteudo.texto_denso) + _marcadores(conteudo.texto_leigo)
     }
     orfaos = marcadores_no_texto - canonicas_das_citacoes
     for orfao in orfaos:
-        motivos.append(f"marcador {{{{{orfao}}}}} no texto_denso sem citação correspondente")
+        motivos.append(f"marcador {{{{{orfao}}}}} sem citação correspondente em citacoes")
 
+    # C1: a regra de lacuna também usa a união denso+leigo — antes só pegava lacuna citada no
+    # denso; o leigo podia afirmar o que a aula declarou como lacuna sem ser pego.
     for lacuna in conteudo.lacunas_declaradas:
         if normalizar_citacao_para_comparacao(lacuna) in marcadores_no_texto:
-            motivos.append(f"lacuna declarada {lacuna!r} aparece como citação no texto_denso")
+            motivos.append(f"lacuna declarada {lacuna!r} aparece como citação na aula")
 
     for relacionado in conteudo.relacionados:
         if relacionado.topico_slug not in relacionados_permitidos:
@@ -305,6 +370,29 @@ def verificar_aula(
             motivos.append(f"mnemônico cita dispositivo {mnemonico.dispositivo!r} fora do dossiê")
         elif mnemonico.trecho_que_decide not in fonte_mnemonico.trecho:
             motivos.append("mnemônico: trecho_que_decide não existe literalmente na fonte citada")
+
+    # C3 (correção crítica de 19/09/2026): o gerador não tem motivo para emitir tag — a tela
+    # também parou de confiar nesse texto com `| safe` (`web/templates/aula/ver.html`).
+    campos_e_textos = (
+        ("texto_denso", conteudo.texto_denso),
+        ("texto_leigo", conteudo.texto_leigo),
+    )
+    for campo, texto in campos_e_textos:
+        casamento = _TAG_HTML.search(texto)
+        if casamento is not None:
+            trecho = texto[casamento.start() : casamento.start() + 20]
+            motivos.append(f"{campo} contém possível tag HTML: {trecho!r}")
+
+    # C2, gate léxico (correção crítica de 19/09/2026, decisão do dono): toda frase com gatilho
+    # normativo (compete/vedado/somente/apenas/só/prazo/quórum/número) tem de trazer sua própria
+    # `{{citação}}` — sem isso, reprova, mesmo que `citacoes` esteja vazio. Regras primeiro,
+    # aceitando falso positivo ocasional; nunca afirmação sem fonte.
+    for campo, texto in campos_e_textos:
+        for frase in _frases(texto):
+            if frase in frases_excecao_gate_lexico:
+                continue
+            if _frase_exige_citacao(frase) and not _MARCADOR.search(frase):
+                motivos.append(f"{campo}: frase com conteúdo normativo sem citação — {frase!r}")
 
     return VeredictoAula(aprovado=not motivos, motivos=motivos)
 

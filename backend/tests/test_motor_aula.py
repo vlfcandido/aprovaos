@@ -197,12 +197,16 @@ def _preparar_base(db: Session) -> tuple[Usuario, UUID, Questao]:
 def _resposta_valida(questao_aula: Questao) -> ConteudoAula:
     # O marcador {{...}} só existe para citação do dossiê **deste** tópico (resolve contra as
     # fontes de `dossie.fontes`); a relação com outro tópico é texto corrido, sustentado por
-    # `relacionados[i].trecho` (conferido à parte pelo validador), nunca por um marcador.
+    # `relacionados[i].trecho` (conferido à parte pelo validador), nunca por um marcador. Por
+    # isso a frase de fio da memória evita palavra de gatilho do gate léxico
+    # (`dominio.aula._GATILHO_NORMATIVO`, correção crítica de 19/09/2026) — ela não tem como
+    # trazer `{{citação}}` própria (a fonte é de outro tópico) e não deveria precisar: quem a
+    # sustenta é o `trecho`, conferido à parte.
     return ConteudoAula(
         texto_denso=(
             "Os atos de improbidade administrativa tutelam a probidade na organização do "
             "Estado {{Lei 8.429/1992 art. 1}}. Isso conversa com o que você viu em atos "
-            "processuais, cujos prazos só correm em dias úteis."
+            "processuais, que também têm regra própria de contagem de dias."
         ),
         texto_leigo="A lei pune improbidade.",
         citacoes=[

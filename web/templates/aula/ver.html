@@ -5,8 +5,12 @@
    `[n]` no texto referencia a nota correspondente logo abaixo, com o mesmo popover
    `<details>`/`<summary>` do resultado de questão (`_macros.html`). Alterna denso/leigo sem JS
    (dois `<details>`, um aberto por padrão). `relacionados` é o fio da memória (a); `mnemonico`
-   só aparece quando o gerador conseguiu ancorar um em fonte real. Quando ler: ao mudar o que a
-   aluna vê na aula. #}
+   só aparece quando o gerador conseguiu ancorar um em fonte real.
+   Correção crítica de 19/09/2026 (C3): texto_denso/texto_leigo vêm de LLM — nunca `| safe`
+   (desligava o escape do Jinja; um `<script>` do modelo executaria no navegador da aluna). Cada
+   parágrafo (`\n\n`) vira um `<p>` escapado. `notas_leigo` (I9) agora aparece no `<details>` da
+   versão leiga, com `id` próprio (`citacao-leigo-N`) para não colidir com os da versão densa
+   (`citacao-N`). Quando ler: ao mudar o que a aluna vê na aula. #}
 {% extends "base.html" %}
 {% block titulo %}{{ topico.nome }} — Aula — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -22,7 +26,9 @@
 
     <details open class="aula-modo">
       <summary>Versão completa</summary>
-      <div class="aula-texto">{{ texto_denso | replace("\n\n", "</p><p>") | safe }}</div>
+      <div class="aula-texto">
+        {% for paragrafo in texto_denso.split("\n\n") %}<p>{{ paragrafo }}</p>{% endfor %}
+      </div>
       {% if notas_denso %}
         <ol class="aula-notas">
           {% for nota in notas_denso %}
@@ -39,7 +45,21 @@
 
     <details class="aula-modo">
       <summary>Versão leiga</summary>
-      <div class="aula-texto">{{ texto_leigo | replace("\n\n", "</p><p>") | safe }}</div>
+      <div class="aula-texto">
+        {% for paragrafo in texto_leigo.split("\n\n") %}<p>{{ paragrafo }}</p>{% endfor %}
+      </div>
+      {% if notas_leigo %}
+        <ol class="aula-notas">
+          {% for nota in notas_leigo %}
+            <li id="citacao-leigo-{{ nota.numero }}">
+              <details class="citacao-legal">
+                <summary>{{ nota.rotulo }}</summary>
+                <p>{{ nota.texto }}</p>
+              </details>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
     </details>
 
     {% if mnemonico %}

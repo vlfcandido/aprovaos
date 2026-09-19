@@ -182,3 +182,50 @@ pipeline inteiro — geração, validação, persistência — funciona e a aula
   fatia 8 (ainda não existe).
 - `dominio/legislacao.py` e sua correção concorrente ficaram fora desta fatia por instrução
   explícita; `bash scripts/checar.sh` completo só volta a passar quando essa edição fechar.
+
+## Correção crítica de 19/09/2026 — `verificar_aula` não validava metade do conteúdo
+Uma revisão independente achou três defeitos no caminho "conteúdo gerado → aluna" (visão §4,
+"nada gerado existe para o aluno sem validação"), todos em `dominio/aula.py::verificar_aula`:
+
+- **C1 — `texto_leigo` sem checagem própria.** `marcadores_no_texto` só olhava `texto_denso`; a
+  regra de lacuna também. O leigo podia citar `{{dispositivo inexistente}}` ou afirmar o que a
+  aula declarou como lacuna e ser aprovado. Corrigido: o conjunto de marcadores verificado é
+  agora a união de `texto_denso` + `texto_leigo`, e a regra de lacuna usa essa união. Testes
+  vermelho→verde: `test_marcador_inexistente_no_texto_leigo_reprova`,
+  `test_lacuna_declarada_e_citada_no_texto_leigo_reprova`.
+- **C2 — nenhuma regra exigia fonte para uma afirmação.** Os laços do validador só iteravam
+  sobre o que o modelo decidiu declarar em `citacoes`; uma `ConteudoAula` com `citacoes=[]` e
+  prosa afirmativa passava. Implementado o **gate léxico** (`_frases`/`_frase_exige_citacao`,
+  gatilhos `compete`, `vedado(a)`, `somente`, `apenas`, `só`, `prazo`, `quórum` ou um número):
+  toda frase de `texto_denso`/`texto_leigo` que casa um gatilho precisa de `{{citação}}` própria,
+  senão reprova com o texto da frase no motivo — **decisão do dono, default é reprovar**, aceita
+  falso positivo ocasional. Escopo: só os gatilhos lexicais explícitos da correção; "verbo de
+  competência" genérico (citado na `SKILL.md`) não é detectável mecanicamente sem NLP e ficou de
+  fora — registrado como pendência (`docs/PENDENCIAS.md` P-60). Sentenças do fio da memória (a)
+  são sustentadas por `RelacionadoAula.trecho` (conferido à parte, nunca por marcador) — a
+  correção não as isenta por regra especial; o teste `test_motor_aula.py::_resposta_valida` foi
+  reescrito para não usar palavra de gatilho nessa frase, mesma resposta que o dono aceitou
+  (regenerar/reescrever em vez de criar exceção). Testes:
+  `test_frase_afirmativa_sem_citacao_reprova`, `test_frase_com_gatilho_normativo_e_citacao_aprova`.
+- **C3 — `| safe` no template com texto de LLM.** `web/templates/aula/ver.html` desligava o
+  escape do Jinja em `texto_denso`/`texto_leigo` com `| replace(...) | safe`; qualquer `<script>`
+  emitido pelo modelo executaria no navegador da aluna, e o `replace` gerava HTML malformado.
+  Trocado por `{% for parágrafo in texto.split("\n\n") %}<p>{{ parágrafo }}</p>{% endfor %}`
+  (escapado, bem formado — `Jinja2Templates` já usa `select_autoescape()` para `.html`,
+  `starlette` 1.6.0). Acrescentada reprovação mecânica quando `texto_denso`/`texto_leigo` contêm
+  `<` seguido de letra (`test_tag_html_no_texto_reprova`).
+- **I9 — `notas_leigo` calculado e nunca mostrado.** `api/questoes.py::_contexto_aula` já
+  montava `notas_leigo`; o template não renderizava. Acrescentado o mesmo `<ol>`/`<details>` da
+  versão densa dentro do `<details>` da versão leiga, com `id="citacao-leigo-N"` (a versão densa
+  usa `id="citacao-N"`, para não colidir). Testes:
+  `test_notas_da_versao_leiga_aparecem_com_id_proprio`, `test_tag_html_no_texto_da_aula_sai_escapada`.
+
+**Reverificação das 2 aulas publicadas no `dev.db`** (`dir-adm-06-improbidade-administrativa` e
+`dir-con-02-direitos-garantias`, script pontual carregando `Aula`+`DossieTopico` reais e rodando
+`verificar_aula` com `tempo_alvo_min=12`, o mesmo usado na geração): **as duas continuam
+aprovadas** pelo validador novo — nenhuma reprovação, nenhuma despublicação necessária.
+
+Suíte: `769 testes verdes, 6 skipped` (`bash scripts/checar.sh` completo, ruff+mypy+import+
+pytest). Arquivos tocados: `backend/aprovaos/dominio/aula.py`,
+`backend/tests/test_dominio_aula.py`, `backend/tests/test_motor_aula.py` (fixture reescrita, sem
+mudar o que o teste prova), `backend/tests/test_rota_aula.py`, `web/templates/aula/ver.html`.

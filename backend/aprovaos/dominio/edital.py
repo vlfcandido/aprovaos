@@ -25,8 +25,32 @@ _MARCADOR_INICIO = re.compile(
 )
 _MARCADOR_FIM = re.compile(r"^ANEXO\s", re.MULTILINE)
 _MAIUSCULAS = "A-ZÁÀÂÃÉÊÍÓÔÕÚÇ"
-_CABECALHO_COM_DOIS_PONTOS = re.compile(rf"^([{_MAIUSCULAS}][{_MAIUSCULAS}\s]{{2,}}?)\s*:\s*(.*)$")
+# Hífen só entra na classe do CABEÇALHO (nunca no vocabulário de slug): achado real na FCC —
+# "MATEMÁTICA E RACIOCÍNIO-LÓGICO:" não casava com o cabeçalho caixa-alta porque o hífen não
+# estava na classe de caracteres, e o bloco inteiro vazava para dentro da matéria anterior
+# (LÍNGUA PORTUGUESA absorvia Matemática e Raciocínio Lógico inteiros).
+_MAIUSCULAS_CABECALHO = _MAIUSCULAS + "-"
+_CABECALHO_COM_DOIS_PONTOS = re.compile(
+    rf"^([{_MAIUSCULAS_CABECALHO}][{_MAIUSCULAS}\s-]{{2,}}?)\s*:\s*(.*)$"
+)
 _CABECALHO_SEM_DOIS_PONTOS = re.compile(rf"^([{_MAIUSCULAS}][{_MAIUSCULAS}\s]{{2,}}?)\s+(1\.\s.*)$")
+# Cabeçalho de matéria em Título Caso (achado real na AOCP: "Língua Portuguesa:",
+# "Matemática/Raciocínio Lógico:", "Noções de Direito Administrativo:"). A prova de que é
+# cabeçalho de matéria — e não uma frase comum terminada em dois-pontos, como "Observação:" na
+# FCC (achado real, §anexo III) — é o que vem *logo* depois dos dois-pontos: um item numerado
+# (`1.` ou `1 `) abrindo o bloco. Sem essa prova, a linha não casa (mesmo princípio da
+# ADR-0036: termo-âncora sozinho — aqui, "Palavra: ") não basta, precisa do segundo sinal.
+_CONECTIVO_TITULO_CASO = r"(?:d[ae]s?|e|à|em|para|no|na)"
+_CABECALHO_TITULO_CASO_COM_DOIS_PONTOS = re.compile(
+    rf"^([A-ZÀ-Ú][a-zà-ú]+(?:[ /](?:{_CONECTIVO_TITULO_CASO}|[A-ZÀ-Ú][a-zà-ú]+))*)"
+    r"\s*:\s*(\d+\.?\s.*)$"
+)
+# Linha que delimita seção/cargo, sem ser matéria nenhuma (achados reais na FCC): "CONHECIMENTOS
+# ESPECÍFICOS" solto, sem dois-pontos, e o código do cargo entre uma seção e outra ("A01 –
+# Analista Judiciário – Área JUDICIÁRIA - sem especialidade"). Sem reconhecer a linha, ela vira
+# continuação do bloco anterior — rabo de "matéria" que não é conteúdo nenhum (ex.: "B02 –
+# Analista Judiciário [...]" colado no fim de DIREITO ADMINISTRATIVO).
+_MARCADOR_SECAO = re.compile(r"^(?:CONHECIMENTOS\b.*|[A-Z]\d{2}\s*[–-]\s+.*)$")
 _NUMERO_DO_ITEM = re.compile(r"^\d+\.\s*")
 _ANEXO = re.compile(r"ANEXO\s+([IVXLC]+|\d+)\b", re.IGNORECASE)
 
@@ -201,11 +225,15 @@ def _blocos(recorte: str) -> list[_Bloco]:
             linha = linha.lstrip(" :—–-")
         if not linha:
             continue
-        cabecalho = _CABECALHO_COM_DOIS_PONTOS.match(linha) or _CABECALHO_SEM_DOIS_PONTOS.match(
-            linha
+        cabecalho = (
+            _CABECALHO_COM_DOIS_PONTOS.match(linha)
+            or _CABECALHO_SEM_DOIS_PONTOS.match(linha)
+            or _CABECALHO_TITULO_CASO_COM_DOIS_PONTOS.match(linha)
         )
         if cabecalho is not None:
             blocos.append(_Bloco(cabecalho.group(1).strip(), cabecalho.group(2)))
+        elif _MARCADOR_SECAO.match(linha):
+            continue
         elif blocos:
             blocos[-1].acrescentar(linha)
     return blocos
@@ -214,19 +242,26 @@ def _blocos(recorte: str) -> list[_Bloco]:
 def _itens_numerados(texto: str) -> list[tuple[int, str]]:
     """Fatia o texto de uma matéria em itens pela numeração sequencial (`1.`, `2.`, `3.`…).
 
-    Procura o número N seguido de ponto e espaço sempre a partir do fim do item anterior, com N
-    crescente; por isso `14.133/2021` dentro do item 4 não vira item novo. Cada item vai até o
-    começo do seguinte. O item `1.` tem de abrir o próprio bloco (posição 0): se o primeiro
-    "1. " só aparece no meio do texto, não é uma lista numerada de topo — é numeração decimal
-    hierárquica (`1.1.1.1.`) coincidindo por acaso com o padrão, e a função devolve lista vazia
-    em vez de itens que começam no meio do bloco, com o conteúdo anterior descartado.
+    Procura o número N marcando um item — `N.` (com ponto, o formato mais comum) ou `N ` (sem
+    ponto, achado real na AOCP e na FCC: "1 Regime jurídico-administrativo [...]", "2 Poderes e
+    deveres [...]") — sempre a partir do fim do item anterior, com N crescente; por isso
+    `14.133/2021` dentro do item 4 não vira item novo (depois do ponto vem outro dígito, nunca
+    espaço nem letra). O número não pode estar colado a um ponto decimal anterior:
+    sem essa guarda, o subitem "4.5" de uma matéria sem ponto no item de topo (`4.1`, `4.2`...)
+    seria lido como se fosse o item de topo "5" — achado real na AOCP, Direito Constitucional,
+    onde os itens de topo (`4`, `5`, `6`) e os subitens (`4.1`...`4.5`) usam o mesmo formato sem
+    ponto. Cada item vai até o começo do seguinte. O item `1` tem de abrir o próprio bloco
+    (posição 0): se o primeiro marcador só aparece no meio do texto, não é uma lista numerada de
+    topo — é numeração decimal hierárquica (`1.1.1.1.`) coincidindo por acaso com o padrão, e a
+    função devolve lista vazia em vez de itens que começam no meio do bloco, com o conteúdo
+    anterior descartado.
     """
     itens: list[tuple[int, str]] = []
     numero = 1
     posicao = 0
     inicio_anterior: int | None = None
     while True:
-        encontrado = re.compile(rf"\b{numero}\.\s").search(texto, posicao)
+        encontrado = re.compile(rf"(?<!\.)\b{numero}(?:\.(?!\d)|\s)").search(texto, posicao)
         if encontrado is None:
             break
         if numero == 1 and encontrado.start() != 0:
@@ -246,6 +281,67 @@ def _itens_numerados(texto: str) -> list[tuple[int, str]]:
     return itens
 
 
+# Abreviações que terminam em ponto sem fechar frase (achado real na FCC, DIREITO CIVIL:
+# "Empreitada (cap. VIII do Título VI do CC)." — sem esta lista, "cap." + maiúscula seguinte
+# ("VIII") cortaria o tópico ao meio). Lista pequena e literal, ampliada só quando um edital
+# real mostrar outro caso — nunca por suposição do que "poderia" aparecer.
+_ABREVIACOES_SEM_PONTO_FINAL = frozenset(
+    {"cap", "art", "arts", "inc", "incs", "tit", "par", "sr", "sra", "dr", "dra", "prof", "profa"}
+)
+# Ponto que pode ser fim de frase: não é ponto decimal (não tem dígito logo depois — `14.133`,
+# `8.112/1990` continuam colados; já um ano ou artigo no fim de frase, como "2021.", tem espaço
+# ou maiúscula depois, não dígito) e é seguido de espaço + maiúscula (frase seguinte) ou do fim
+# do bloco.
+_FIM_DE_FRASE_CANDIDATO = re.compile(r"\.(?!\d)(?=\s+[A-ZÀ-Ú]|\s*$)")
+_ULTIMA_PALAVRA = re.compile(r"([A-Za-zÀ-ÿ]+)$")
+
+
+def _e_abreviacao(trecho_ate_o_ponto: str) -> bool:
+    """A última palavra antes do ponto candidato é uma abreviação conhecida (sem acento)."""
+    ultima = _ULTIMA_PALAVRA.search(trecho_ate_o_ponto)
+    if ultima is None:
+        return False
+    return sem_acento(ultima.group(1)).lower() in _ABREVIACOES_SEM_PONTO_FINAL
+
+
+def _itens_por_sentenca(texto: str) -> list[str]:
+    """Fatia um bloco sem numeração em frases — cada uma um tópico (achado real na FCC).
+
+    A FCC não numera o conteúdo programático: os itens são frases separadas por ponto final
+    ("Domínio da ortografia oficial. Emprego da acentuação gráfica. [...]"). Formato totalmente
+    diferente do numerado (`_itens_numerados`) — não é remendo do mesmo caminho. Um ponto vira
+    fronteira de frase só quando não separa dígitos de um número/data e o que vem depois começa
+    por maiúscula (ou é o fim do bloco); ponto depois de abreviação conhecida (`cap.`, `art.`...)
+    nunca fecha frase, mesmo seguido de maiúscula (numeral romano incluso: "cap. VIII").
+
+    Args:
+        texto: o texto do bloco (matéria), já com as linhas do PDF reunidas.
+
+    Returns:
+        As frases na ordem do bloco, sem pontas vazias.
+    """
+    frases: list[str] = []
+    inicio = 0
+    for candidato in _FIM_DE_FRASE_CANDIDATO.finditer(texto):
+        posicao = candidato.start()
+        if _e_abreviacao(texto[inicio:posicao]):
+            continue
+        frase = texto[inicio : posicao + 1].strip()
+        if frase:
+            frases.append(frase)
+        inicio = posicao + 1
+    resto = texto[inicio:].strip()
+    if resto:
+        frases.append(resto)
+    return frases
+
+
+# Uma matéria sem numeração precisa de pelo menos 2 frases para virar matéria por sentença —
+# um bloco de frase única é mais provável de ser um resíduo (rótulo curto, rabo de seção) do que
+# conteúdo programático de verdade; com 1 frase só, vira `grupo` como antes.
+_MINIMO_FRASES_PARA_MATERIA = 2
+
+
 def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
     """Extrai matérias e itens do conteúdo programático do texto de um edital, sem LLM.
 
@@ -257,14 +353,20 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
            linha inteira evita casar uma referência cruzada em prosa antes do anexo de verdade
            (ex.: "Os conteúdos programáticos [...] encontram-se no Anexo II deste Edital.").
         2. Percorre as linhas do recorte. Linha que começa em caixa alta seguida de `:`
-           (`DIREITO CIVIL: …`) ou seguida do item `1.` (`DIREITO TRIBUTÁRIO 1. …`) abre um
-           bloco; qualquer outra linha é continuação do bloco aberto e é unida a ele com um
-           espaço (ou sem espaço, quando a linha anterior termina em hífen e a nova começa em
-           minúscula — palavra partida pela quebra de linha do PDF). Assim, um item cujo
-           número ficou no fim de uma linha e o texto na seguinte volta a ser um só.
-        3. Bloco sem item `1.` é um **grupo** (`CONHECIMENTOS ESPECÍFICOS:`) e passa a valer
-           como `grupo` das matérias seguintes. Bloco com itens é uma matéria; os itens são
-           fatiados pela numeração sequencial (`1.`, depois `2.` a partir do fim do `1.`, e
+           (`DIREITO CIVIL: …`) ou seguida do item `1.` (`DIREITO TRIBUTÁRIO 1. …`), ou em
+           Título Caso seguida de `:` e de um item logo depois (`Língua Portuguesa: 1. …`,
+           achado real na AOCP), abre um bloco. Linha que só delimita seção/cargo sem ser
+           matéria (`CONHECIMENTOS ESPECÍFICOS`, código de cargo — achados reais na FCC) é
+           descartada, não vira continuação de bloco nenhum. Qualquer outra linha é continuação
+           do bloco aberto e é unida a ele com um espaço (ou sem espaço, quando a linha anterior
+           termina em hífen e a nova começa em minúscula — palavra partida pela quebra de linha
+           do PDF). Assim, um item cujo número ficou no fim de uma linha e o texto na seguinte
+           volta a ser um só.
+        3. Bloco sem item numerado (`1.`/`1 `) tenta o formato por frase (achado real na FCC —
+           itens sem numeração, separados por ponto); com frases de menos, vira **grupo**
+           (`CONHECIMENTOS ESPECÍFICOS:`) e passa a valer como `grupo` das matérias seguintes.
+           Bloco com itens (numerados ou por frase) é uma matéria; itens numerados são fatiados
+           pela numeração sequencial (`1.`/`1 `, depois `2.`/`2 ` a partir do fim do anterior, e
            assim por diante), o que impede que `14.133/2021` seja lido como item.
         4. Cada item vira `TopicoExtraido` com `slug_topico`; cada matéria, `MateriaExtraida`
            com `slug_materia`.
@@ -277,20 +379,27 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
 
     Raises:
         ConteudoProgramaticoNaoEncontrado: sem o marcador; ou com o marcador encontrado mas
-            nenhum cabeçalho de matéria reconhecido (nomes fora de `NOME EM CAIXA ALTA:`); ou
-            com matérias reconhecidas mas nenhuma com itens numerados — cada caso com uma
-            mensagem própria, para a página de upload apontar o motivo certo.
+            nenhum cabeçalho de matéria reconhecido (nomes fora de `NOME EM CAIXA ALTA:`/
+            `Título Caso:`); ou com matérias reconhecidas mas nenhuma com itens separáveis
+            (nem numerados, nem por frase com conteúdo suficiente) — cada caso com uma mensagem
+            própria, para a página de upload apontar o motivo certo.
     """
     blocos = _blocos(_recortar_conteudo(texto))
     materias: list[MateriaExtraida] = []
     grupo: str | None = None
-    algum_bloco_tem_itens = False
+    algum_bloco_deu_topico = False
     for bloco in blocos:
         itens = _itens_numerados(bloco.texto)
         if not itens:
-            grupo = bloco.nome
-            continue
-        algum_bloco_tem_itens = True
+            # Sem numeração: tenta o formato por frase (achado real na FCC) antes de desistir e
+            # virar `grupo` — mas só com frases suficientes para não confundir resíduo (rótulo
+            # curto, rabo de seção) com conteúdo programático de verdade.
+            frases = _itens_por_sentenca(bloco.texto)
+            if len(frases) < _MINIMO_FRASES_PARA_MATERIA:
+                grupo = bloco.nome
+                continue
+            itens = list(enumerate(frases, start=1))
+        algum_bloco_deu_topico = True
         topicos = [
             TopicoExtraido(
                 numero=numero, texto_original=item, slug=slug_topico(bloco.nome, numero, item)
@@ -306,14 +415,15 @@ def extrair_conteudo_programatico(texto: str) -> list[MateriaExtraida]:
         if not blocos:
             raise ConteudoProgramaticoNaoEncontrado(
                 "Encontrei o anexo do conteúdo programático, mas não reconheci nenhuma matéria "
-                "nele — o parser espera o nome em CAIXA ALTA seguido de dois-pontos (ex.: "
-                "'DIREITO CONSTITUCIONAL: 1. ...'). Peça para o suporte olhar este edital."
+                "nele — o parser espera o nome em CAIXA ALTA ou Título Caso seguido de "
+                "dois-pontos (ex.: 'DIREITO CONSTITUCIONAL: 1. ...' ou 'Direito Constitucional: "
+                "1. ...'). Peça para o suporte olhar este edital."
             )
-        assert not algum_bloco_tem_itens  # "not materias" e blocos não vazios só coexistem aqui.
+        assert not algum_bloco_deu_topico  # "not materias" e blocos não vazios só coexistem aqui.
         raise ConteudoProgramaticoNaoEncontrado(
-            "Encontrei o anexo do conteúdo programático e as matérias, mas os itens não estão "
-            "numerados (1., 2., 3., ...) — este parser ainda não lê listas sem numeração. Peça "
-            "para o suporte olhar este edital."
+            "Encontrei o anexo do conteúdo programático e as matérias, mas não consegui separar "
+            "os itens — nem numerados (1., 2., 3., ...) nem em frases separadas por ponto com "
+            "conteúdo suficiente. Peça para o suporte olhar este edital."
         )
     return materias
 

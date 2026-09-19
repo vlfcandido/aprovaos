@@ -476,16 +476,50 @@ def test_fonte_aponta_o_anexo_certo_no_edital_real_aocp() -> None:
     assert fonte_conteudo_programatico(texto) == "edital Anexo II"
 
 
-def test_edital_real_aocp_marcador_encontrado_mas_sem_materia_reconhecida() -> None:
-    # A AOCP nomeia as matérias em Título Caso ("Língua Portuguesa:", "Noções de Direito
-    # Administrativo:") — o parser só reconhece cabeçalho em CAIXA ALTA. O marcador (corrigido
-    # para aceitar o plural) já acha o Anexo II certo; o parser falha de forma honesta e
-    # específica na estrutura do cabeçalho, não com o erro genérico de marcador ausente.
+def test_edital_real_aocp_titulo_caso_reconhecido_como_cabecalho_de_materia() -> None:
+    # A AOCP nomeia as matérias em Título Caso ("Língua Portuguesa:", "Matemática/Raciocínio
+    # Lógico:", "Noções de Direito Administrativo:") — a prova de que é cabeçalho (e não uma
+    # frase qualquer terminada em dois-pontos) é o item numerado logo depois dos dois-pontos.
+    # 9 matérias, 99 tópicos — medido contra o PDF real (18/09/2026).
     pdf = pytest.importorskip("aprovaos.dominio.pdf")
     texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
-    with pytest.raises(ConteudoProgramaticoNaoEncontrado) as erro:
-        extrair_conteudo_programatico(texto)
-    assert "não reconheci nenhuma matéria" in str(erro.value)
+    materias = extrair_conteudo_programatico(texto)
+    assert [m.nome for m in materias] == [
+        "Língua Portuguesa",
+        "Matemática/Raciocínio Lógico",
+        "Noções de Informática",
+        "Noções de Direito Constitucional",
+        "Noções de Direito Administrativo",
+        "Noções de Direito Civil",
+        "Noções de Direito Processual Civil",
+        "Noções de Direito Penal",
+        "Noções de Direito Processual Penal",
+    ]
+    assert [len(m.topicos) for m in materias] == [22, 17, 8, 6, 9, 8, 9, 8, 12]
+    assert sum(len(m.topicos) for m in materias) == 99
+    lingua_portuguesa = materias[0]
+    assert lingua_portuguesa.slug == "lingua-portuguesa"
+    assert lingua_portuguesa.topicos[0].texto_original == "1. Compreensão e interpretação de texto."
+    assert lingua_portuguesa.topicos[0].slug == "lin-por-01-compreensao-interpretacao"
+    for materia in materias:
+        for topico in materia.topicos:
+            assert REGEX_SLUG.match(topico.slug), topico.slug
+            assert "\n" not in topico.texto_original
+
+
+def test_edital_real_aocp_matematica_nao_vaza_para_lingua_portuguesa() -> None:
+    # Achado real ao medir: "Matemática/Raciocínio Lógico:" tem "/" no meio do nome — a prova de
+    # Título Caso (item numerado logo após os dois-pontos) tem de aceitar isso sem confundir com
+    # o cabeçalho anterior. Regressão: antes desta fatia, cabeçalhos não reconhecidos viravam
+    # continuação do bloco aberto — Matemática inteira apareceria dentro de Língua Portuguesa.
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_AOCP.read_bytes())
+    materias = extrair_conteudo_programatico(texto)
+    lingua_portuguesa = next(m for m in materias if m.nome == "Língua Portuguesa")
+    assert all("Matemática" not in t.texto_original for t in lingua_portuguesa.topicos)
+    assert lingua_portuguesa.topicos[-1].texto_original == (
+        "22. Redação oficial(Manual da Presidência da República/2018)."
+    )
 
 
 def test_fonte_aponta_o_anexo_certo_no_edital_real_fcc() -> None:
@@ -494,13 +528,109 @@ def test_fonte_aponta_o_anexo_certo_no_edital_real_fcc() -> None:
     assert fonte_conteudo_programatico(texto) == "edital Anexo III"
 
 
-def test_edital_real_fcc_marcador_encontrado_mas_itens_sem_numeracao() -> None:
+def test_edital_real_fcc_itens_sem_numeracao_viram_topicos_por_sentenca() -> None:
     # A FCC nomeia a matéria em CAIXA ALTA ("LÍNGUA PORTUGUESA:"), mas não numera os itens —
-    # são frases separadas por ponto. O marcador acha o Anexo III certo (não a primeira das três
-    # menções em prosa, antes dele); o parser reconhece as 24 matérias como cabeçalho, mas
-    # nenhuma tem item numerado a partir do próprio início do bloco, então nenhuma vira matéria.
+    # são frases separadas por ponto ("Domínio da ortografia oficial. Emprego da acentuação
+    # gráfica. [...]"). 25 matérias (a mesma matéria se repete por cargo — a FCC lista o
+    # conteúdo de cada disciplina uma vez por cargo que a cobra), 580 tópicos — medido contra o
+    # PDF real (18/09/2026). "MATEMÁTICA E RACIOCÍNIO-LÓGICO" é uma matéria à parte, não mais
+    # absorvida por LÍNGUA PORTUGUESA (achado do hífen no nome — ver
+    # `test_edital_real_fcc_hifen_no_nome_da_materia_nao_vaza_para_a_anterior`).
     pdf = pytest.importorskip("aprovaos.dominio.pdf")
     texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
-    with pytest.raises(ConteudoProgramaticoNaoEncontrado) as erro:
-        extrair_conteudo_programatico(texto)
-    assert "itens não estão numerados" in str(erro.value)
+    materias = extrair_conteudo_programatico(texto)
+    assert len(materias) == 25
+    assert sum(len(m.topicos) for m in materias) == 580
+    lingua_portuguesa = materias[0]
+    assert lingua_portuguesa.nome == "LÍNGUA PORTUGUESA"
+    assert len(lingua_portuguesa.topicos) == 21
+    assert lingua_portuguesa.topicos[0].texto_original == "Domínio da ortografia oficial."
+    assert lingua_portuguesa.topicos[1].texto_original == "Emprego da acentuação gráfica."
+    for materia in materias:
+        for topico in materia.topicos:
+            assert REGEX_SLUG.match(topico.slug), topico.slug
+            assert "\n" not in topico.texto_original
+
+
+def test_edital_real_fcc_hifen_no_nome_da_materia_nao_vaza_para_a_anterior() -> None:
+    # Achado real ao medir: "MATEMÁTICA E RACIOCÍNIO-LÓGICO:" não casava com o cabeçalho
+    # caixa-alta porque o hífen não estava na classe de caracteres — o bloco inteiro (a matéria
+    # toda) vazava como continuação de "LÍNGUA PORTUGUESA:", a matéria anterior.
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    materias = extrair_conteudo_programatico(texto)
+    matematica = next(m for m in materias if m.nome == "MATEMÁTICA E RACIOCÍNIO-LÓGICO")
+    assert len(matematica.topicos) == 6
+    lingua_portuguesa = materias[0]
+    assert all(
+        "MATEMÁTICA" not in t.texto_original and "RACIOCÍNIO" not in t.texto_original
+        for t in lingua_portuguesa.topicos
+    )
+    assert lingua_portuguesa.topicos[-1].texto_original == (
+        "Processos de coordenação e subordinação."
+    )
+
+
+def test_edital_real_fcc_codigo_de_cargo_nao_vaza_para_a_materia_anterior() -> None:
+    # Achado real ao medir: a linha "A01 – Analista Judiciário – Área JUDICIÁRIA - sem
+    # especialidade" (o código do cargo, entre uma seção de conteúdo específico e outra) não é
+    # matéria nem cabeçalho — sem reconhecê-la, ela vazava como último "tópico" de DIREITO
+    # ADMINISTRATIVO (a matéria imediatamente anterior no PDF).
+    pdf = pytest.importorskip("aprovaos.dominio.pdf")
+    texto = pdf.extrair_texto(FIXTURE_PDF_FCC.read_bytes())
+    materias = extrair_conteudo_programatico(texto)
+    for materia in materias:
+        for topico in materia.topicos:
+            assert "Analista Judiciário" not in topico.texto_original
+            assert "Especialidade:" not in topico.texto_original
+
+
+def test_titulo_caso_exige_item_logo_apos_dois_pontos_senao_nao_e_cabecalho() -> None:
+    # "Observação:" (achado real na FCC, antes do Anexo III) é Título Caso e termina em
+    # dois-pontos, igual a um cabeçalho de matéria de verdade — mas não é seguida de item
+    # numerado, só de prosa. Sem a prova do item, não pode virar matéria (mesmo princípio da
+    # ADR-0036: termo-âncora sozinho não basta).
+    texto = (
+        "CONTEÚDO PROGRAMÁTICO\n"
+        "Observação: Considerar-se-á a legislação vigente até a data da publicação do Edital.\n"
+        "Direito Civil: 1. Lei de Introdução às Normas do Direito Brasileiro."
+    )
+    materias = extrair_conteudo_programatico(texto)
+    assert [m.nome for m in materias] == ["Direito Civil"]
+
+
+def test_itens_por_sentenca_nao_corta_abreviacao_com_ponto() -> None:
+    # "cap." (achado real na FCC, DIREITO CIVIL) não pode virar fim de frase mesmo seguida de
+    # maiúscula (numeral romano "VIII") — cortaria o tópico ao meio.
+    texto = (
+        "CONTEÚDO PROGRAMÁTICO\n"
+        "DIREITO CIVIL: Lei. Empreitada (cap. VIII do Título VI do CC). Da Responsabilidade Civil."
+    )
+    materias = extrair_conteudo_programatico(texto)
+    assert [t.texto_original for t in materias[0].topicos] == [
+        "Lei.",
+        "Empreitada (cap. VIII do Título VI do CC).",
+        "Da Responsabilidade Civil.",
+    ]
+
+
+def test_itens_por_sentenca_nao_corta_numero_decimal() -> None:
+    texto = (
+        "CONTEÚDO PROGRAMÁTICO\n"
+        "DIREITO ADMINISTRATIVO: Lei nº 14.133/2021. Improbidade (Lei nº 8.429/1992)."
+    )
+    materias = extrair_conteudo_programatico(texto)
+    assert [t.texto_original for t in materias[0].topicos] == [
+        "Lei nº 14.133/2021.",
+        "Improbidade (Lei nº 8.429/1992).",
+    ]
+
+
+def test_bloco_sem_numeracao_com_uma_frase_so_vira_grupo_nao_materia() -> None:
+    # Frase única demais para virar matéria por sentença — mais provável ser resíduo (rótulo
+    # curto) do que conteúdo programático de verdade; comportamento igual ao de antes desta
+    # fatia (bloco sem item numerado virava `grupo`).
+    texto = "CONTEÚDO PROGRAMÁTICO\nAVISO: Leia o edital com atenção.\nDIREITO CIVIL: 1. Bens."
+    materias = extrair_conteudo_programatico(texto)
+    assert len(materias) == 1
+    assert materias[0].grupo == "AVISO"

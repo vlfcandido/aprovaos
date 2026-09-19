@@ -278,3 +278,65 @@ ferramenta de fetch sem controle de header (descartada pelo achado acima — fal
 **Por quê (resumo):** o formato híbrido é o único, entre os testados, que satisfaz as duas
 exigências ao mesmo tempo — passar no filtro de borda **e** se identificar de verdade — sem
 recorrer a navegador automatizado para fontes que não exigem desafio de JavaScript.
+
+## ADR-0038 — Parser do conteúdo programático lê Título Caso e itens sem numeração, com a mesma régua da ADR-0036 · 2026-09-19 · aceita
+
+**Decisão:** `dominio/edital.extrair_conteudo_programatico` passa a reconhecer três formas de
+cabeçalho de matéria (CAIXA ALTA com dois-pontos — já existia; CAIXA ALTA seguida direto de `1.`
+sem dois-pontos — já existia; e agora **Título Caso** com dois-pontos, achado real na AOCP:
+`"Língua Portuguesa: 1. ..."`) e duas formas de item (numerado `1.`/`1 ` — já existia, agora
+também sem ponto obrigatório; e, quando nenhuma numeração é encontrada, **por frase** — achado
+real na FCC: itens separados só por ponto final, sem número nenhum). A prova de que uma linha em
+Título Caso é cabeçalho de matéria — não uma frase qualquer terminada em dois-pontos, como
+`"Observação:"` no mesmo edital da FCC — é a mesma da ADR-0036: um segundo sinal perto da âncora,
+aqui um item numerado abrindo logo depois dos dois-pontos. Sem esse segundo sinal, a linha não
+vira cabeçalho.
+
+**Dois achados adicionais, medidos, corrigidos na mesma fatia por serem pré-requisito para as
+contagens não saírem erradas:**
+- **Cabeçalho com hífen no nome não casava** — `"MATEMÁTICA E RACIOCÍNIO-LÓGICO:"` (FCC) tem um
+  hífen dentro do nome da matéria; a classe de caracteres do cabeçalho caixa-alta não incluía
+  hífen, e o bloco inteiro (a matéria toda) virava continuação de `LÍNGUA PORTUGUESA:`, a matéria
+  anterior. Corrigido incluindo hífen só na classe do cabeçalho (nunca na de slug/vocabulário).
+- **Linha de seção/cargo sem ser matéria vazava para dentro da matéria anterior** — `"CONHECIMENTOS
+  ESPECÍFICOS"` solto (sem dois-pontos) e o código do cargo entre uma seção e outra (`"A01 –
+  Analista Judiciário – Área JUDICIÁRIA - sem especialidade"`, achado real na FCC, repetido para
+  cada um dos 4 cargos do edital) não casavam com cabeçalho nenhum e viravam continuação do bloco
+  aberto — sem corrigir, cada matéria ganharia um "tópico" fabricado com o código do próximo
+  cargo. Corrigido com um marcador de seção reconhecido e descartado (nem abre bloco, nem vira
+  continuação).
+
+**Resultado medido (18–19/09/2026, os dois editais reais desta fatia):** AOCP/TJ-PR passa de
+**0 matérias / 0 tópicos** para **9 matérias / 99 tópicos**; FCC/TRT9 passa de **24 matérias / 0
+tópicos** para **25 matérias / 580 tópicos** (a matéria a mais é justamente
+`MATEMÁTICA E RACIOCÍNIO-LÓGICO`, separada de `LÍNGUA PORTUGUESA` pela correção do hífen). O
+fixture fictício da Fase 4 continua em **7 matérias / 36 tópicos**, sem regressão. Amostra de
+qualidade (5 primeiros tópicos de cada matéria, os dois editais reais) conferida à mão — sem
+tópico picotado; itens numerados sem ponto (`"5 Organização do Estado."`) e frases da FCC
+(`"Domínio da ortografia oficial."`) saem inteiros.
+
+**Degradações honestas, não corrigidas — registradas em `docs/PENDENCIAS.md` em vez de
+remendadas** (mesmo princípio da ADR-0036: não inventar heurística nova sem prova de um terceiro
+edital): AOCP perde o item 10 (`"Bens Públicos"`) de Direito Administrativo, fundido no item 9,
+porque o PDF cola o número do item seguinte no ponto final do anterior sem espaço
+(`"[...] agentes públicos.10 Bens Públicos"`) — a mesma forma textual de um subitem decimal
+genuíno (`"4.5"` dentro de item sem ponto, que a guarda `(?<!\.)` existe para não confundir com o
+item de topo `"5"`), sem contexto para diferenciar os dois casos com regex (P-42). Número de
+página solto dentro do texto de alguns tópicos da FCC (P-43). Peso por matéria da prova objetiva
+continua `desconhecido` nos dois — a AOCP tem uma tabela real (TABELA 11.1) que dá para ler num
+parser de tabela dedicado; a FCC só dá granularidade "Conhecimentos Gerais/Específicos", nem um
+parser perfeito devolveria peso por matéria dela com este edital (atualização da P-39).
+
+**Alternativas:** aceitar qualquer linha terminada em dois-pontos como cabeçalho de matéria em
+Título Caso, sem a prova do item seguinte (rejeitada — é exatamente o defeito que a ADR-0036
+existe para evitar, e `"Observação:"` no mesmo edital prova o risco); tratar itens sem numeração
+como erro fatal, exigindo edital manualmente anotado (rejeitada — inutilizaria o produto para
+qualquer edital de banca que não numere, e a FCC é uma banca do Top 5 do mercado); tentar também
+corrigir a tabela de distribuição de questões nesta mesma fatia (rejeitada — é parser de tabela,
+escopo bem maior que os dois achados pedidos, registrado como P-39/P-42/P-43 para fatia própria).
+
+**Por quê:** a promessa central do produto (a aluna sobe o edital dela e o sistema entende) só
+está provada contra um fixture escrito por um modelo para o próprio parser ler; os dois achados
+corrigidos aqui (mais os dois adicionais, hífen e marcador de seção) são o que faltava para ela
+valer contra edital de banca real, sem inventar tópico nem matéria — o mesmo padrão de disciplina
+da ADR-0036, agora aplicado à extração de matérias/tópicos, não só aos fatos avulsos do edital.

@@ -1,5 +1,10 @@
 # O que é: origem e propósito dos PDFs de edital usados pelo parser (`aprovaos/dominio/edital.py`).
-> Quando ler: antes de reusar, regenerar ou entender por que dois destes editais não produzem nenhuma matéria.
+> Quando ler: antes de reusar, regenerar ou entender o que cada edital real ensinou ao parser.
+
+**Atualização 19/09/2026 (ADR-0038, `docs/DECISOES.md`):** os dois editais reais abaixo, que até
+18/09/2026 não produziam nenhuma matéria, agora produzem — AOCP: **9 matérias / 99 tópicos**;
+FCC: **25 matérias / 580 tópicos**. Os parágrafos "Este edital não produz nenhuma matéria" abaixo
+ficam como registro histórico do que foi encontrado e corrigido, não do estado atual.
 
 ## `edital-assessor-gabinete.pdf` — sintético, não é edital real
 Gerado por `scripts/gerar_fixture_pdf.py` a partir de

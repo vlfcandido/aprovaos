@@ -105,7 +105,13 @@ _PADRAO_ANOTACAO = re.compile(
 # parênteses é o que distingue esse marcador da palavra comum "vigência" em minúsculo, que
 # aparece dezenas de vezes em frases de verdade (ex.: "a data de vigência desta Lei") e não pode
 # ser removida — por isso este padrão é sensível a maiúscula/minúscula (sem `re.IGNORECASE`).
-_PADRAO_VIGENCIA_SEM_PARENTESES = re.compile(r"\bVig[eê]ncia\b")
+# Uma segunda forma do mesmo marcador junta um segundo link "encerrada" logo depois (medido em
+# `clt_planalto_compilada.htm`, art. 477, § 8º incluído pela MPV 905/2019 e revogado pela MPV
+# 955/2020: sobra, fora do `<strike>`, só "Vigência\nencerrada" — P-40, achado 2) — a palavra
+# some junto, senão o parágrafo inteiro (que era só essa anotação) vira "sem forma reconhecida"
+# em vez de desaparecer como as demais anotações. O `(?<!\()` evita reprocessar a variante já
+# coberta por `_PADRAO_ANOTACAO` (`"(Vigência encerrada)"`, com parênteses).
+_PADRAO_VIGENCIA_SEM_PARENTESES = re.compile(r"(?<!\()\bVig[eê]ncia\b(?:\s+encerrada\b)?")
 _NUMERO_ARTIGO_COM_MILHAR = r"\d{1,3}(?:\.\d{3})*"
 """Um número de artigo como o Planalto grafa, inclusive com ponto de milhar a partir de 1.000
 (medido: `lei13105_planalto_compilada.htm` — CPC/2015 — escreve `"Art. 1.009."`, nunca `"Art.

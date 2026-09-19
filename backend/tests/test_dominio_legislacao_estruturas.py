@@ -24,6 +24,7 @@ HTML_LEI_8429 = _ler("lei8429_planalto_compilada.htm")
 HTML_LEI_11340 = _ler("lei11340_planalto_compilada.htm")
 HTML_LEI_6404 = _ler("lei6404_planalto_compilada.htm")
 HTML_LEI_11101 = _ler("lei11101_planalto_compilada.htm")
+HTML_CLT = _ler("clt_planalto_compilada.htm")
 
 
 # --- (a) título de Seção/Capítulo em Title Case entre artigos --------------------------------
@@ -130,3 +131,16 @@ def test_artigo_116_da_lei_6404_tem_alineas_direto_no_caput() -> None:
     assert [p.identificador for p in artigo.paragrafos] == ["Parágrafo único."]
 
 
+# --- (d) anotação "Vigência\nencerrada" órfã (sem parênteses) ----------------------------------
+
+
+def test_artigo_477_da_clt_engole_a_anotacao_vigencia_encerrada_orfa() -> None:
+    """Depois de um parágrafo revogado (MPV 905/2019, revogada pela MPV 955/2020) sobra, fora do
+    `<strike>`, só a anotação em duas palavras `"Vigência\\nencerrada"` — sem parênteses, então
+    o padrão de anotação existente (que exige `(...)`) não a reconhece. Ela precisa sumir junto
+    com o parágrafo todo revogado, não virar um "parágrafo sem forma reconhecida"."""
+    artigo = extrair_artigo(HTML_CLT, "477")
+
+    assert artigo.caput.texto.startswith("Art. 477.")
+    textos = [artigo.caput.texto, *(p.texto for p in artigo.paragrafos)]
+    assert not any(t.strip() in {"encerrada", "Vigência encerrada", "Vigência"} for t in textos)

@@ -61,6 +61,11 @@ MAXIMO_BLOCOS: Final = 5
 #: caberiam em nenhum `tempo_min` realista do piloto.
 TOPICOS_CANDIDATOS_MAX: Final = 6
 
+#: Janela da "semana da prova" (RF-19, fatia 10 §7, fecha a P-55): `dias_para_prova` dentro de
+#: `[0, DIAS_JANELA_SEMANA_PROVA]` liga o regime de revisão cirúrgica — sem tópico novo, sem
+#: aula nova, só cartão vencido e tópico já visto e fraco.
+DIAS_JANELA_SEMANA_PROVA: Final = 7
+
 #: As quatro opções fixas de motivo do "discordar" (F3.3 CA) — chave gravada no evento, rótulo
 #: para o formulário. Mesmo padrão de `dominio.rotina.OPCOES_HORARIO`.
 MOTIVOS_DISCORDAR: Final[tuple[tuple[str, str], ...]] = (
@@ -147,8 +152,10 @@ class ResultadoPlano(BaseModel):
     """O que `montar_plano` devolve — o que `PlanoDia`/`Bloco` (ORM) gravam.
 
     Attributes:
-        modo: `"normal"` ou `"descanso"` nesta fatia (`"semana_prova"` é comportamento da fatia
-            10 — plano §8; o valor nunca é produzido aqui).
+        modo: `"normal"`, `"descanso"` ou `"semana_prova"` (RF-19, fatia 10 §7, fecha a P-55) —
+            `"semana_prova"` sai quando `dias_para_prova` cai na janela de
+            `DIAS_JANELA_SEMANA_PROVA` e o dia não é de descanso (descansar continua vencendo:
+            regra de saúde, visão §4).
         tempo_min: o orçamento de tempo usado para montar este plano.
         porque_geral: a explicação final — nunca vazia, mesmo com `blocos=[]`.
         blocos: os blocos do dia, na ordem; vazio quando o regime é restrito sem cartão vencido,
@@ -171,8 +178,28 @@ def _plural(quantidade: int, singular: str, plural: str) -> str:
     return singular if quantidade == 1 else plural
 
 
+def _em_semana_prova(dias_para_prova: int | None) -> bool:
+    """`True` quando `dias_para_prova` cai na janela da semana da prova (RF-19)."""
+    return dias_para_prova is not None and 0 <= dias_para_prova <= DIAS_JANELA_SEMANA_PROVA
+
+
+def _frase_dias_para_prova(dias_para_prova: int) -> str:
+    """Monta "Faltam N dias para a prova" (ou "Falta 1 dia") — cabeçalho da semana da prova.
+
+    Args:
+        dias_para_prova: sempre `>= 0` neste ponto (`_em_semana_prova` já garantiu a janela).
+    """
+    verbo = _plural(dias_para_prova, "Falta", "Faltam")
+    dia = _plural(dias_para_prova, "dia", "dias")
+    return f"{verbo} {dias_para_prova} {dia} para a prova"
+
+
 def montar_candidatos(
-    topicos: list[TopicoParaPlano], cartoes_vencidos_qtd: int, restrito: bool
+    topicos: list[TopicoParaPlano],
+    cartoes_vencidos_qtd: int,
+    restrito: bool,
+    *,
+    dias_para_prova: int | None = None,
 ) -> list[CandidatoBloco]:
     """Monta a lista ordenada de candidatos, antes de cortar pelo tempo disponível.
 
@@ -183,13 +210,21 @@ def montar_candidatos(
             vencidos agora.
         restrito: `True` quando o regime do dia (energia baixa, sono baixo, ou pedido explícito
             de descanso) permite só revisão — nenhum candidato de conteúdo novo entra.
+        dias_para_prova: dias até `perfil_estudo.data_alvo`, ou `None` sem data marcada (RF-19,
+            fatia 10 §7). Dentro de `[0, DIAS_JANELA_SEMANA_PROVA]` liga a revisão cirúrgica: nem
+            tópico nunca visto nem aula nova entram, só cartão vencido e tópico já visto e fraco
+            (`status == "fraco"`) — `restrito` continua tendo prioridade (já é mais restritivo:
+            nenhum tópico entra de jeito nenhum).
 
     Returns:
-        Um candidato de revisão primeiro (se houver cartão vencido), seguido — quando não
-        restrito — de um candidato `"aula"` (se o tópico tem aula publicada) e um `"questoes"`
-        (se o tópico tem questão publicável) para cada tópico não-dominado, na ordem da trilha.
-        Tópico sem aula e sem questão nenhuma nunca gera candidato.
+        Um candidato de revisão primeiro (se houver cartão vencido). Em regime restrito, só ele.
+        Na semana da prova (e não restrito), um candidato `"questoes"` por tópico `"fraco"` com
+        questão publicável — nunca `"aula"`, nunca tópico `"nao_visto"`. Fora da semana da prova
+        e não restrito, o comportamento de sempre: `"aula"` (se publicada) e `"questoes"` (se
+        houver questão) para cada tópico não-dominado, na ordem da trilha. Tópico sem aula e sem
+        questão nenhuma nunca gera candidato.
     """
+    em_semana_prova = _em_semana_prova(dias_para_prova)
     candidatos: list[CandidatoBloco] = []
     if cartoes_vencidos_qtd > 0:
         duracao = _clamp(
@@ -198,19 +233,39 @@ def montar_candidatos(
             DURACAO_REVISAO_MAX_MIN,
         )
         plural = _plural(cartoes_vencidos_qtd, "cartão venceu", "cartões venceram")
-        candidatos.append(
-            CandidatoBloco(
-                tipo="revisao",
-                topico_id=None,
-                duracao_min=duracao,
-                porque=(
-                    f"{cartoes_vencidos_qtd} {plural} hoje — é o que está prestes a escapar "
-                    "da memória."
-                ),
+        porque = (
+            f"{cartoes_vencidos_qtd} {plural} hoje — é o que está prestes a escapar da memória."
+        )
+        if em_semana_prova:
+            assert dias_para_prova is not None  # `_em_semana_prova` já garantiu isto
+            porque = (
+                f"{porque} {_frase_dias_para_prova(dias_para_prova)} — revisão cirúrgica, "
+                "sem assunto novo."
             )
+        candidatos.append(
+            CandidatoBloco(tipo="revisao", topico_id=None, duracao_min=duracao, porque=porque)
         )
 
     if restrito:
+        return candidatos
+
+    if em_semana_prova:
+        assert dias_para_prova is not None  # `_em_semana_prova` já garantiu isto
+        frase = _frase_dias_para_prova(dias_para_prova)
+        for topico in topicos[:TOPICOS_CANDIDATOS_MAX]:
+            if topico.status != "fraco" or topico.questoes_publicaveis <= 0:
+                continue
+            candidatos.append(
+                CandidatoBloco(
+                    tipo="questoes",
+                    topico_id=topico.topico_id,
+                    duracao_min=DURACAO_QUESTOES_MIN,
+                    porque=(
+                        f"{frase} — revisão cirúrgica, sem assunto novo. Questões de "
+                        f"{topico.nome} ({topico.materia}): {topico.motivo_trilha}."
+                    ),
+                )
+            )
         return candidatos
 
     for topico in topicos[:TOPICOS_CANDIDATOS_MAX]:
@@ -310,6 +365,8 @@ def motivo_geral_do_plano(
     blocos: list[BlocoPlanejado],
     tempo_min: int,
     topicos: list[TopicoParaPlano],
+    *,
+    dias_para_prova: int | None = None,
 ) -> str:
     """Monta o `porque_geral` — nunca vazio, mesmo sem bloco nenhum.
 
@@ -319,25 +376,41 @@ def motivo_geral_do_plano(
         blocos: os blocos já posicionados (`_atribuir_ordem_e_hora`).
         tempo_min: o orçamento de tempo do dia.
         topicos: todos os tópicos considerados (para explicar a escassez quando é o caso).
+        dias_para_prova: mesmo parâmetro de `montar_candidatos` (RF-19) — dentro da janela, o
+            texto cita os dias que faltam, mesmo quando não há bloco nenhum para revisar.
 
     Returns:
-        Uma frase pt-BR: com blocos, cita quantos e o tempo total; sem blocos, explica se foi
-        pedido de descanso, regime restrito sem cartão vencido, ou falta de conteúdo — citando
-        os tópicos sem aula nem questão, nunca escondendo a causa.
+        Uma frase pt-BR: com blocos, cita quantos e o tempo total (e os dias até a prova, na
+        semana da prova); sem blocos, explica se foi pedido de descanso, regime restrito sem
+        cartão vencido, semana da prova sem nada para revisar agora, ou falta de conteúdo —
+        citando os tópicos sem aula nem questão, nunca escondendo a causa.
     """
+    em_semana_prova = _em_semana_prova(dias_para_prova)
     if blocos:
         total = sum(b.duracao_min for b in blocos)
         plural_blocos = _plural(len(blocos), "bloco", "blocos")
-        return (
+        base = (
             f"Hoje: {len(blocos)} {plural_blocos}, {total} min no total, "
             f"dentro dos {tempo_min} min que você tem."
         )
+        if em_semana_prova:
+            assert dias_para_prova is not None  # `_em_semana_prova` já garantiu isto
+            frase = _frase_dias_para_prova(dias_para_prova)
+            return f"{frase} — revisão cirúrgica, sem assunto novo. {base}"
+        return base
     if pediu_descanso:
         return "Você pediu para descansar hoje — sem bloco nenhum, é a recomendação certa."
     if restrito:
         return (
             "Hoje é dia de descansar: sua energia ou seu sono não pedem item novo, e não há "
             "cartão vencido para revisar."
+        )
+    if em_semana_prova:
+        assert dias_para_prova is not None  # `_em_semana_prova` já garantiu isto
+        frase = _frase_dias_para_prova(dias_para_prova)
+        return (
+            f"{frase} — revisão cirúrgica, sem assunto novo, mas não há cartão vencido nem "
+            "tópico fraco para revisar agora."
         )
     sem_conteudo = sorted(
         {
@@ -360,6 +433,7 @@ def montar_plano(
     sono_h: float | None,
     pediu_descanso: bool,
     horario_preferido: str,
+    dias_para_prova: int | None = None,
 ) -> ResultadoPlano:
     """A função pública: regime → candidatos → seleção → posição → porquê geral.
 
@@ -373,11 +447,15 @@ def montar_plano(
         pediu_descanso: `True` quando a aluna pediu descanso explicitamente (botão "Hoje quero
             descansar" do check-in).
         horario_preferido: `perfil_estudo.horario_preferido`.
+        dias_para_prova: `(perfil_estudo.data_alvo - hoje).days`, ou `None` sem `data_alvo`
+            (RF-19, fatia 10 §7, fecha a P-55). Quem calcula a subtração é o chamador
+            (`dados.repositorio_plano`) — este módulo não lê relógio nem data.
 
     Returns:
-        O `ResultadoPlano` completo — `modo="descanso"` quando `pediu_descanso` ou quando o
-        regime restrito não deixou nenhum bloco (nem revisão); `"normal"` nos demais casos desta
-        fatia.
+        O `ResultadoPlano` completo. Precedência de `modo`: `"descanso"` (pedido explícito, ou
+        regime restrito por energia/sono sem nenhum bloco — regra de saúde, sempre vence) >
+        `"semana_prova"` (`dias_para_prova` na janela) > `"normal"` (demais casos, inclui o
+        regime restrito que ainda gerou um bloco de revisão).
     """
     restrito = (
         pediu_descanso
@@ -390,12 +468,23 @@ def montar_plano(
         # deixa a revisão entrar, este caminho não deixa nada.
         blocos: list[BlocoPlanejado] = []
     else:
-        candidatos = montar_candidatos(topicos, cartoes_vencidos_qtd, restrito)
+        candidatos = montar_candidatos(
+            topicos, cartoes_vencidos_qtd, restrito, dias_para_prova=dias_para_prova
+        )
         selecionados = selecionar_blocos(candidatos, tempo_min)
         blocos = _atribuir_ordem_e_hora(selecionados, horario_preferido)
 
-    modo: Modo = "descanso" if (pediu_descanso or (restrito and not blocos)) else "normal"
-    porque_geral = motivo_geral_do_plano(restrito, pediu_descanso, blocos, tempo_min, topicos)
+    descanso_forcado = pediu_descanso or (restrito and not blocos)
+    modo: Modo
+    if descanso_forcado:
+        modo = "descanso"
+    elif _em_semana_prova(dias_para_prova):
+        modo = "semana_prova"
+    else:
+        modo = "normal"
+    porque_geral = motivo_geral_do_plano(
+        restrito, pediu_descanso, blocos, tempo_min, topicos, dias_para_prova=dias_para_prova
+    )
     return ResultadoPlano(modo=modo, tempo_min=tempo_min, porque_geral=porque_geral, blocos=blocos)
 
 

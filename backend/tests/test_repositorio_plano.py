@@ -18,6 +18,7 @@ from aprovaos.dados.repositorio_edital import DadosDocumento, registrar_edital
 from aprovaos.dados.repositorio_perfil import salvar_perfil
 from aprovaos.dados.repositorio_plano import (
     concluir_bloco,
+    dias_para_prova_do_dia,
     discordar_bloco,
     gerar_ou_obter_plano_noturno,
     iniciar_bloco,
@@ -63,7 +64,12 @@ def materias() -> tuple[str, list[MateriaExtraida]]:
     return texto, extrair_conteudo_programatico(texto)
 
 
-def _com_edital(db: Session, usuario: Usuario, materias: tuple[str, list[MateriaExtraida]]) -> UUID:
+def _com_edital(
+    db: Session,
+    usuario: Usuario,
+    materias: tuple[str, list[MateriaExtraida]],
+    data_alvo: date | None = None,
+) -> UUID:
     """Sobe o edital fixture e devolve o `edital_id`; `salvar_perfil` já aponta pra ele."""
     texto, lista_materias = materias
     resultado = ResultadoDna(
@@ -78,7 +84,10 @@ def _com_edital(db: Session, usuario: Usuario, materias: tuple[str, list[Materia
     )
     concurso = registrar_edital(db, usuario.tenant_id, resultado, lista_materias, documento)
     db.commit()
-    salvar_perfil(db, usuario, _rotina().model_copy(update={"concurso_principal_id": concurso.id}))
+    rotina = _rotina().model_copy(
+        update={"concurso_principal_id": concurso.id, "data_alvo": data_alvo}
+    )
+    salvar_perfil(db, usuario, rotina)
     db.commit()
     from aprovaos.dados.repositorio_edital import edital_atual
 
@@ -376,3 +385,61 @@ def test_discordar_sem_alternativa_mantem_o_bloco(
     assert evento.dados is not None
     assert evento.dados["substituto_tipo"] is None
     assert bloco_atual.status != "trocado"
+
+
+# ---------------------------------------------------------------------------
+# semana da prova (RF-19, fatia 10 §7, fecha a P-55) — `perfil_estudo.data_alvo` até
+# `montar_plano(dias_para_prova=...)`
+# ---------------------------------------------------------------------------
+
+
+def test_geracao_noturna_liga_semana_da_prova_com_data_alvo_proxima(
+    db: Session, materias: tuple[str, list[MateriaExtraida]]
+) -> None:
+    usuario = _usuario(db, "s@exemplo.com")
+    _com_edital(db, usuario, materias, data_alvo=UMA_SEGUNDA + timedelta(days=3))
+
+    plano = gerar_ou_obter_plano_noturno(db, usuario, UMA_SEGUNDA)
+    db.commit()
+
+    assert plano.modo == "semana_prova"
+    assert "3 dias" in plano.porque_geral
+
+
+def test_geracao_noturna_sem_data_alvo_nao_liga_semana_da_prova(
+    db: Session, materias: tuple[str, list[MateriaExtraida]]
+) -> None:
+    usuario = _usuario(db, "t@exemplo.com")
+    _com_edital(db, usuario, materias, data_alvo=None)
+
+    plano = gerar_ou_obter_plano_noturno(db, usuario, UMA_SEGUNDA)
+    db.commit()
+
+    assert plano.modo != "semana_prova"
+
+
+def test_checkin_liga_semana_da_prova_com_data_alvo_proxima(
+    db: Session, materias: tuple[str, list[MateriaExtraida]]
+) -> None:
+    usuario = _usuario(db, "u@exemplo.com")
+    _com_edital(db, usuario, materias, data_alvo=UMA_SEGUNDA)  # 0 dias — ainda dentro da janela
+
+    plano = registrar_checkin(
+        db, usuario, UMA_SEGUNDA, energia=4, sono_h=7.0, tempo_min=60, pediu_descanso=False
+    )
+    db.commit()
+
+    assert plano.modo == "semana_prova"
+
+
+def test_dias_para_prova_do_dia_calcula_a_partir_do_perfil(
+    db: Session, materias: tuple[str, list[MateriaExtraida]]
+) -> None:
+    usuario = _usuario(db, "v@exemplo.com")
+    _com_edital(db, usuario, materias, data_alvo=UMA_SEGUNDA + timedelta(days=10))
+    assert dias_para_prova_do_dia(db, usuario.id, UMA_SEGUNDA) == 10
+
+
+def test_dias_para_prova_do_dia_sem_perfil_e_none(db: Session) -> None:
+    usuario = _usuario(db, "w@exemplo.com")
+    assert dias_para_prova_do_dia(db, usuario.id, UMA_SEGUNDA) is None

@@ -5,6 +5,7 @@
 from uuid import UUID, uuid4
 
 from aprovaos.dominio.plano import (
+    DIAS_JANELA_SEMANA_PROVA,
     DURACAO_AULA_MIN,
     DURACAO_QUESTOES_MIN,
     DURACAO_REVISAO_MAX_MIN,
@@ -336,3 +337,178 @@ def test_escolher_substituto_none_sem_alternativa() -> None:
     candidatos = montar_candidatos(topicos, cartoes_vencidos_qtd=0, restrito=False)
     substituto = escolher_substituto(candidatos, bloco_atual, resultado.blocos, tempo_restante=0)
     assert substituto is None
+
+
+# ---------------------------------------------------------------------------
+# semana da prova (RF-19, fatia 10 §7, fecha a P-55)
+# ---------------------------------------------------------------------------
+
+
+def test_oito_dias_nao_e_semana_da_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=60,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=DIAS_JANELA_SEMANA_PROVA + 1,
+    )
+    assert resultado.modo == "normal"
+
+
+def test_sete_e_zero_dias_sao_semana_da_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    for dias in (DIAS_JANELA_SEMANA_PROVA, 0):
+        resultado = montar_plano(
+            topicos,
+            cartoes_vencidos_qtd=0,
+            tempo_min=60,
+            energia=4,
+            sono_h=7.0,
+            pediu_descanso=False,
+            horario_preferido="manha",
+            dias_para_prova=dias,
+        )
+        assert resultado.modo == "semana_prova"
+
+
+def test_data_no_passado_nao_e_semana_da_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=60,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=-1,
+    )
+    assert resultado.modo == "normal"
+
+
+def test_pedido_de_descanso_vence_semana_da_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=5,
+        tempo_min=60,
+        energia=5,
+        sono_h=8.0,
+        pediu_descanso=True,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert resultado.modo == "descanso"
+    assert resultado.blocos == []
+
+
+def test_energia_baixa_sem_cartao_vence_semana_da_prova() -> None:
+    # Tópico fraco sem questão nem aula: não gera candidato nenhum mesmo fora do regime
+    # restrito — junto com energia baixa (restrito) e sem cartão vencido, o dia vira descanso
+    # mesmo estando na janela da semana da prova (regra de saúde vence, visão §4).
+    topicos = [_topico(status="fraco", questoes=0, tem_aula=False)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=60,
+        energia=1,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert resultado.modo == "descanso"
+    assert resultado.blocos == []
+
+
+def test_semana_da_prova_nunca_oferece_topico_nao_visto() -> None:
+    topicos = [_topico(status="nao_visto", tem_aula=True, questoes=10)]
+    candidatos = montar_candidatos(
+        topicos, cartoes_vencidos_qtd=0, restrito=False, dias_para_prova=3
+    )
+    assert candidatos == []
+
+
+def test_semana_da_prova_ignora_topico_dominado() -> None:
+    topicos = [_topico(status="dominado", tem_aula=True, questoes=10)]
+    candidatos = montar_candidatos(
+        topicos, cartoes_vencidos_qtd=0, restrito=False, dias_para_prova=3
+    )
+    assert candidatos == []
+
+
+def test_semana_da_prova_oferece_so_questoes_do_topico_fraco_nunca_aula() -> None:
+    topicos = [_topico(status="fraco", tem_aula=True, questoes=10)]
+    candidatos = montar_candidatos(
+        topicos, cartoes_vencidos_qtd=0, restrito=False, dias_para_prova=3
+    )
+    assert [c.tipo for c in candidatos] == ["questoes"]
+
+
+def test_restrito_vence_semana_da_prova_na_geracao_de_candidatos() -> None:
+    # Restrito (energia/sono) já é mais restritivo que a semana da prova — nenhum tópico entra,
+    # nem mesmo o fraco; só a revisão, se houver cartão vencido.
+    topicos = [_topico(status="fraco", tem_aula=True, questoes=10)]
+    candidatos = montar_candidatos(
+        topicos, cartoes_vencidos_qtd=2, restrito=True, dias_para_prova=3
+    )
+    assert [c.tipo for c in candidatos] == ["revisao"]
+
+
+def test_porque_da_revisao_cita_os_dias_para_a_prova() -> None:
+    candidatos = montar_candidatos([], cartoes_vencidos_qtd=2, restrito=False, dias_para_prova=3)
+    assert "3 dias" in candidatos[0].porque
+    assert "revisão cirúrgica" in candidatos[0].porque
+
+
+def test_porque_das_questoes_cita_os_dias_para_a_prova() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    candidatos = montar_candidatos(
+        topicos, cartoes_vencidos_qtd=0, restrito=False, dias_para_prova=3
+    )
+    assert "3 dias" in candidatos[0].porque
+    assert "revisão cirúrgica" in candidatos[0].porque
+
+
+def test_frase_dos_dias_no_singular() -> None:
+    candidatos = montar_candidatos([], cartoes_vencidos_qtd=1, restrito=False, dias_para_prova=1)
+    assert "Falta 1 dia " in candidatos[0].porque
+    assert "1 dias" not in candidatos[0].porque
+
+
+def test_porque_geral_cita_os_dias_com_blocos() -> None:
+    topicos = [_topico(status="fraco", questoes=5)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=60,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert "3 dias" in resultado.porque_geral
+
+
+def test_porque_geral_cita_os_dias_sem_bloco_nenhum() -> None:
+    # Semana da prova, mas nada de conteúdo elegível (só um tópico nunca visto) — sem bloco,
+    # ainda assim explica a semana da prova, não a escassez genérica.
+    topicos = [_topico(status="nao_visto", tem_aula=True, questoes=10)]
+    resultado = montar_plano(
+        topicos,
+        cartoes_vencidos_qtd=0,
+        tempo_min=60,
+        energia=4,
+        sono_h=7.0,
+        pediu_descanso=False,
+        horario_preferido="manha",
+        dias_para_prova=3,
+    )
+    assert resultado.blocos == []
+    assert resultado.modo == "semana_prova"
+    assert "3 dias" in resultado.porque_geral

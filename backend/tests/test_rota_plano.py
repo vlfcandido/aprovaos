@@ -1,5 +1,7 @@
 # O que é: testes de contrato de `GET /hoje`, `POST /hoje/checkin` e das ações de bloco
-# (iniciar/concluir/pular/discordar) — fatia 8, F3.x. Quando ler: ao mexer na tela "Hoje".
+# (iniciar/concluir/pular/discordar) — fatia 8, F3.x — e o selo de "semana da prova" (RF-19,
+# fatia 10 §7). Quando ler: ao mexer na tela "Hoje".
+from datetime import date, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -63,7 +65,9 @@ def _questao(topico: Topico, documento_id: object, numero: int) -> QuestaoCurada
     )
 
 
-def _preparar_conta_com_conteudo(cliente: TestClient, db: Session, email: str) -> Usuario:
+def _preparar_conta_com_conteudo(
+    cliente: TestClient, db: Session, email: str, data_alvo: date | None = None
+) -> Usuario:
     """Cadastra, sobe o edital fixture, define rotina (2h/dia todo dia) e grava uma questão."""
     _entrar(cliente, email)
     usuario = _usuario_por_email(db, email)
@@ -91,7 +95,7 @@ def _preparar_conta_com_conteudo(cliente: TestClient, db: Session, email: str) -
             horas_por_dia_semana=horas,
             horario_preferido="manha",
             energia_tipica="media",
-            data_alvo=None,
+            data_alvo=data_alvo,
             concurso_principal_id=concurso.id,
         ),
     )
@@ -268,3 +272,23 @@ def test_bloco_inexistente_e_404(cliente: TestClient) -> None:
     resposta = cliente.post(f"/hoje/bloco/{uuid4()}/iniciar")
     assert resposta.status_code == 404
     assert set(resposta.json()) == {"codigo", "mensagem", "acao"}
+
+
+def test_hoje_mostra_selo_de_semana_da_prova(cliente: TestClient, db: Session) -> None:
+    hoje = agora_utc().date()
+    _preparar_conta_com_conteudo(
+        cliente, db, "semanadaprova@exemplo.com", data_alvo=hoje + timedelta(days=3)
+    )
+    resposta = cliente.get("/hoje")
+    assert resposta.status_code == 200
+    assert "Semana da prova" in resposta.text
+    assert "Faltam 3 dias para a prova" in resposta.text
+
+
+def test_hoje_sem_data_alvo_nao_mostra_selo_de_semana_da_prova(
+    cliente: TestClient, db: Session
+) -> None:
+    _preparar_conta_com_conteudo(cliente, db, "semdataalvo@exemplo.com", data_alvo=None)
+    resposta = cliente.get("/hoje")
+    assert resposta.status_code == 200
+    assert "Semana da prova" not in resposta.text

@@ -8,8 +8,10 @@ F3.4), sempre respondendo com o impacto em uma frase. Mesmo padrão de `api/roti
 rota devolve a página inteira (`hoje/pagina.html`), e os formulários usam `hx-select="#conteudo"`
 para o htmx trocar só o miolo — nenhuma rota de fragmento separada. Sem rotina configurada ou sem
 concurso principal/edital (`SemConcursoPrincipal`), a página mostra a mensagem com o link certo
-(`/rotina` ou `/editais/subir`), 200, nunca uma exceção estourada. Quando ler: ao mexer na tela
-"Hoje" ou no fluxo de check-in/discordar.
+(`/rotina` ou `/editais/subir`), 200, nunca uma exceção estourada. `plano.dias_para_prova`
+(RF-19, fatia 10 §7) é recalculado a cada exibição a partir de `perfil_estudo.data_alvo` — nunca
+gravado — e liga o selo "Semana da prova" no template quando `plano.modo == "semana_prova"`.
+Quando ler: ao mexer na tela "Hoje" ou no fluxo de check-in/discordar.
 """
 
 from typing import Annotated
@@ -26,6 +28,7 @@ from aprovaos.dados.modelos import Bloco, PlanoDia, Topico, Usuario
 from aprovaos.dados.repositorio_plano import (
     buscar_bloco_do_usuario,
     concluir_bloco,
+    dias_para_prova_do_dia,
     discordar_bloco,
     gerar_ou_obter_plano_noturno,
     iniciar_bloco,
@@ -98,6 +101,9 @@ def _contexto_pagina(db: Session, plano: PlanoDia) -> dict[str, object]:
             "porque_geral": plano.porque_geral,
             "energia": plano.energia,
             "sono_h": plano.sono_h,
+            # De exibição (RF-19, fatia 10 §7) — o selo "Semana da prova" some quando não há
+            # `data_alvo`; recalculado aqui, não gravado em `plano_dia` (P-55: sem tabela nova).
+            "dias_para_prova": dias_para_prova_do_dia(db, plano.usuario_id, plano.data),
         },
         "blocos": [_contexto_bloco(db, b) for b in blocos_ativos],
         "motivos_discordar": MOTIVOS_DISCORDAR,

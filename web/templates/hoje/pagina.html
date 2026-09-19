@@ -3,7 +3,9 @@
    cada bloco (iniciar/concluir/pular/discordar). Mesmo padrão de `rotina/formulario.html`: todo
    formulário usa `hx-select="#conteudo"` para o htmx trocar só o miolo da página — sem rota de
    fragmento separada. `sem_rotina=True` quando `SemConcursoPrincipal` impede montar o plano.
-   Quando ler: ao mudar o que aparece na tela "Hoje" ou o texto do check-in/discordar. -#}
+   `plano.modo == "semana_prova"` (RF-19, fatia 10 §7) mostra o selo "Semana da prova" e, com
+   `plano.dias_para_prova`, os dias restantes. Quando ler: ao mudar o que aparece na tela "Hoje"
+   ou o texto do check-in/discordar. -#}
 {% extends "base.html" %}
 {% block titulo %}Hoje — AprovaOS{% endblock %}
 {% block conteudo %}
@@ -19,8 +21,18 @@
       <span class="selo">{{ plano.data }}</span>
       <span class="selo">{{ plano.tempo_min }} min disponíveis</span>
       <span class="selo {{ 'selo--regras' if plano.modo == 'descanso' else 'selo--ia' }}">
-        {{ "Descanso" if plano.modo == "descanso" else "Normal" }}
+        {% if plano.modo == "descanso" %}Descanso
+        {% elif plano.modo == "semana_prova" %}Semana da prova
+        {% else %}Normal
+        {% endif %}
       </span>
+      {% if plano.modo == "semana_prova" and plano.dias_para_prova is not none %}
+        <span class="selo selo--regras">
+          {% if plano.dias_para_prova == 1 %}Falta 1 dia para a prova
+          {% else %}Faltam {{ plano.dias_para_prova }} dias para a prova
+          {% endif %}
+        </span>
+      {% endif %}
       {% if plano.energia %}<span class="selo">Energia {{ plano.energia }}/5</span>{% endif %}
     </p>
 

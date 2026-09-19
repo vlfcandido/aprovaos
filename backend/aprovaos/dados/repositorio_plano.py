@@ -3,9 +3,14 @@
 O que é: `usuarios_ativos` (quem o job noturno processa), `gerar_ou_obter_plano_noturno`
 (idempotente — versão 1 do dia, geração noturna sem check-in), `registrar_checkin` (a reescrita —
 versão N+1 do mesmo dia, nunca um plano novo), `iniciar_bloco`/`concluir_bloco`/`pular_bloco`
-(ação sobre um bloco existente) e `discordar_bloco` (troca um bloco por outra alternativa, F3.3/
-F3.4). Todas fazem `add`/`flush`; o `commit` é sempre da rota ou do comando (convenção
-transversal dos outros repositórios). Quando ler: ao ligar `api/plano.py` ou `motor/plano.py`.
+(ação sobre um bloco existente), `discordar_bloco` (troca um bloco por outra alternativa, F3.3/
+F3.4) e `dias_para_prova_do_dia` (de exibição, para a tela mostrar "faltam N dias" — RF-19, fatia
+10 §7). `_dias_para_prova` (privada) resolve `perfil.data_alvo - dia` para `dominio.plano.
+montar_plano` nas duas funções que geram plano de verdade — nem `motor/plano.py` nem
+`api/plano.py` precisam saber disso, já chegam até aqui via `gerar_ou_obter_plano_noturno`/
+`registrar_checkin`. Todas fazem `add`/`flush`; o `commit` é sempre da rota ou do comando
+(convenção transversal dos outros repositórios). Quando ler: ao ligar `api/plano.py` ou
+`motor/plano.py`.
 """
 
 from datetime import date, datetime
@@ -162,6 +167,38 @@ def _tempo_min_do_dia(perfil: PerfilEstudo, dia: date) -> int:
     return round(horas * 60)
 
 
+def _dias_para_prova(perfil: PerfilEstudo, dia: date) -> int | None:
+    """`(perfil.data_alvo - dia).days`, ou `None` sem `data_alvo` (RF-19, fatia 10 §7).
+
+    A origem real de `dominio.plano.montar_plano(dias_para_prova=...)` — sem `data_alvo`, o
+    regime de semana da prova nunca liga (`dominio.plano._em_semana_prova` trata `None` como
+    "fora da janela").
+    """
+    if perfil.data_alvo is None:
+        return None
+    return (perfil.data_alvo - dia).days
+
+
+def dias_para_prova_do_dia(db: Session, usuario_id: UUID, dia: date) -> int | None:
+    """`dias_para_prova` de exibição (`web/templates/hoje/pagina.html`), fora do plano.
+
+    Usa o `perfil_estudo` mais recente, mesmo raciocínio de `_dias_para_prova`, mas sem exigir
+    um `PlanoDia` já gravado — a tela chama isto direto para mostrar "faltam N dias".
+
+    Args:
+        db: sessão do request.
+        usuario_id: dono do perfil.
+        dia: o dia mostrado na tela (`plano.data`).
+
+    Returns:
+        `(perfil.data_alvo - dia).days`, ou `None` sem perfil ou sem `data_alvo`.
+    """
+    perfil = perfil_atual(db, usuario_id)
+    if perfil is None:
+        return None
+    return _dias_para_prova(perfil, dia)
+
+
 def _buscar_versao(db: Session, usuario_id: UUID, dia: date, versao: int) -> PlanoDia | None:
     """A linha exata `(usuario_id, dia, versao)`, ou `None`."""
     consulta = select(PlanoDia).where(
@@ -264,6 +301,7 @@ def gerar_ou_obter_plano_noturno(
         sono_h=None,
         pediu_descanso=False,
         horario_preferido=perfil.horario_preferido,
+        dias_para_prova=_dias_para_prova(perfil, dia),
     )
     return _gravar_plano(db, usuario.id, dia, 1, None, None, resultado, instante)
 
@@ -315,6 +353,7 @@ def registrar_checkin(
         sono_h=sono_h,
         pediu_descanso=pediu_descanso,
         horario_preferido=perfil.horario_preferido,
+        dias_para_prova=_dias_para_prova(perfil, dia),
     )
     ultima = plano_mais_recente(db, usuario.id, dia)
     proxima_versao = (ultima.versao if ultima is not None else 0) + 1

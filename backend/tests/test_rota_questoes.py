@@ -158,31 +158,95 @@ def test_post_resposta_sem_confianca_400(logado: TestClient, db: Session) -> Non
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
     documento = _documento(db, "prova-3")
-    _criar_questao(db, topico, documento.id)
+    questao = _criar_questao(db, topico, documento.id)
 
-    resposta = logado.post(f"/topico/{topico.slug}/questoes", data={"resposta": "C"})
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "questao_id": str(questao.id)},
+    )
     assert resposta.status_code == 400
     corpo = resposta.json()
+    assert corpo["codigo"] == "dados_invalidos"
     assert "certeza ou dúvida" in corpo["mensagem"].lower()
     assert set(corpo) == {"codigo", "mensagem", "acao"}
+
+    eventos = list(db.scalars(select(EventoEstudo)).all())
+    assert eventos == []
 
 
 def test_post_resposta_grava_evento_e_devolve_fragmento(logado: TestClient, db: Session) -> None:
     dona = _usuario_por_email(db, CADASTRO["email"])
     _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
     documento = _documento(db, "prova-4")
-    _criar_questao(db, topico, documento.id, gabarito="C")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
 
     resposta = logado.post(
-        f"/topico/{topico.slug}/questoes", data={"resposta": "C", "confianca": "certeza"}
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
     )
     assert resposta.status_code == 200
     assert "Certo" in resposta.text
 
     eventos = list(db.scalars(select(EventoEstudo).where(EventoEstudo.tipo == "resposta")).all())
     assert len(eventos) == 1
+    assert eventos[0].questao_id == questao.id
     assert eventos[0].acertou is True
     assert eventos[0].confianca_declarada == "certeza"
+
+
+def test_post_resposta_questao_de_outro_topico_erro(logado: TestClient, db: Session) -> None:
+    """`questao_id` de uma questão de outro tópico não pode ser aceito — sem isso, um `id`
+    adulterado no formulário gravaria a resposta contra uma questão que a tela nunca mostrou.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    _edital_b, topico_b = _edital_com_topico(db, dona.tenant_id, "dir-adm-05-contratos")
+    documento = _documento(db, "prova-6")
+    _criar_questao(db, topico, documento.id)
+    questao_de_outro_topico = _criar_questao(db, topico_b, documento.id, numero_item=59)
+
+    resposta = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={
+            "resposta": "C",
+            "confianca": "certeza",
+            "questao_id": str(questao_de_outro_topico.id),
+        },
+    )
+    assert resposta.status_code == 404
+    corpo = resposta.json()
+    assert set(corpo) == {"codigo", "mensagem", "acao"}
+
+    eventos = list(db.scalars(select(EventoEstudo)).all())
+    assert eventos == []
+
+
+def test_post_resposta_questao_ja_respondida_erro(logado: TestClient, db: Session) -> None:
+    """`questao_id` de uma questão que este usuário já respondeu não pode gravar de novo —
+    `evento_estudo` é append-only e é matéria-prima do FSRS, um evento errado não tem conserto.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "prova-7")
+    questao = _criar_questao(db, topico, documento.id, gabarito="C")
+
+    primeira = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "C", "confianca": "certeza", "questao_id": str(questao.id)},
+    )
+    assert primeira.status_code == 200
+
+    segunda = logado.post(
+        f"/topico/{topico.slug}/questoes",
+        data={"resposta": "E", "confianca": "duvida", "questao_id": str(questao.id)},
+    )
+    assert segunda.status_code == 404
+    corpo = segunda.json()
+    assert set(corpo) == {"codigo", "mensagem", "acao"}
+
+    eventos = list(db.scalars(select(EventoEstudo).where(EventoEstudo.tipo == "resposta")).all())
+    assert len(eventos) == 1
+    assert eventos[0].resposta == "C"
 
 
 def test_post_reporte(logado: TestClient, db: Session) -> None:

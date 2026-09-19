@@ -21,6 +21,7 @@
       </p>
       <form id="form-resposta" method="post" action="/topico/{{ topico.slug }}/questoes"
             hx-post="/topico/{{ topico.slug }}/questoes" hx-target="#questao" hx-swap="innerHTML">
+        <input type="hidden" name="questao_id" value="{{ questao.id }}">
         <fieldset>
           <legend>Julgue o item</legend>
           <label><input type="radio" name="resposta" value="C" required> Certo</label>

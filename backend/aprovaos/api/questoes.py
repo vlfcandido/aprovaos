@@ -19,7 +19,16 @@ from sqlalchemy.orm import Session
 from aprovaos.api.db import obter_db
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
-from aprovaos.dados.modelos import Concurso, Edital, Questao, Topico, TopicoEdital, Usuario
+from aprovaos.dados.modelos import (
+    Concurso,
+    Edital,
+    EventoEstudo,
+    Questao,
+    ReporteErro,
+    Topico,
+    TopicoEdital,
+    Usuario,
+)
 from aprovaos.dados.repositorio_questao import (
     proxima_questao,
     registrar_reporte,
@@ -34,6 +43,9 @@ CONFIANCAS_VALIDAS = ("certeza", "duvida")
 MENSAGEM_TOPICO_NAO_ENCONTRADO = "Tópico não encontrado nesta conta."
 MENSAGEM_CONFIANCA_OBRIGATORIA = "Diga se você tem certeza ou dúvida antes de responder."
 MENSAGEM_QUESTAO_NAO_ENCONTRADA = "Questão não encontrada."
+MENSAGEM_QUESTAO_INDISPONIVEL = (
+    "Esta questão não está mais disponível para responder — atualize a página e tente de novo."
+)
 
 RESPOSTA_TEXTO = {"C": "Certo", "E": "Errado"}
 
@@ -70,6 +82,43 @@ def _exigir_topico_do_tenant(db: Session, slug: str, usuario: Usuario) -> Topico
     if topico is None:
         raise HTTPException(status_code=404, detail=MENSAGEM_TOPICO_NAO_ENCONTRADO)
     return topico
+
+
+def _questao_pendente(
+    db: Session, usuario_id: UUID, topico_id: UUID, questao_id: UUID
+) -> Questao | None:
+    """A `questao_id` só é aceita se ainda está pendente para este usuário neste tópico.
+
+    Existe para a rota nunca gravar `registrar_resposta` contra uma questão que não é a que a
+    tela mostrou — um `questao_id` de outro tópico, de uma questão já respondida (corrida entre
+    abas, back/refresh) ou já reportada é rejeitado aqui, antes de qualquer gravação.
+    `evento_estudo` é append-only e alimenta o FSRS da V5: um evento gravado contra a questão
+    errada não tem conserto depois.
+
+    Args:
+        db: sessão do request.
+        usuario_id: quem está respondendo.
+        topico_id: tópico já resolvido para o tenant (da URL).
+        questao_id: `questao_id` que veio do formulário.
+
+    Returns:
+        A `Questao`, ou `None` se ela não existir, não for deste tópico, não for publicável, ou
+        já tiver resposta/reporte deste usuário.
+    """
+    respondidas = select(EventoEstudo.questao_id).where(
+        EventoEstudo.usuario_id == usuario_id, EventoEstudo.tipo == "resposta"
+    )
+    reportadas = select(ReporteErro.conteudo_id).where(
+        ReporteErro.usuario_id == usuario_id, ReporteErro.conteudo_tipo == "questao"
+    )
+    consulta = select(Questao).where(
+        Questao.id == questao_id,
+        Questao.topico_id == topico_id,
+        Questao.publicavel.is_(True),
+        Questao.id.not_in(respondidas),
+        Questao.id.not_in(reportadas),
+    )
+    return db.scalars(consulta).first()
 
 
 def _contexto_questao(topico: Topico, questao: Questao | None) -> dict[str, object]:
@@ -137,13 +186,18 @@ def responder_questao(
     usuario: Annotated[Usuario, Depends(exigir_usuario)],
     slug: str,
     resposta: Annotated[str, Form()],
+    questao_id: Annotated[UUID, Form()],
     confianca: Annotated[str | None, Form()] = None,
     tempo_ms: Annotated[int, Form()] = 0,
 ) -> Response:
-    """Registra a resposta à próxima questão do tópico e devolve o fragmento do resultado.
+    """Registra a resposta à questão indicada e devolve o fragmento do resultado.
 
-    A questão respondida é sempre a que `proxima_questao` devolveria neste momento — a mesma
-    que o `GET` anterior mostrou, já que nenhum evento novo foi gravado entre as duas chamadas.
+    O `questao_id` é obrigatório e vem de um campo oculto do formulário — a página só o
+    preenche com o `id` da questão que ela de fato mostrou. A rota confere de novo que essa
+    questão ainda está pendente para este usuário (`_questao_pendente`) antes de gravar
+    qualquer coisa: sem essa checagem, duas abas abertas, um back/refresh ou qualquer corrida
+    gravariam a resposta contra outra questão, e `evento_estudo` é append-only — não tem
+    conserto depois.
 
     Args:
         request: a requisição atual.
@@ -151,6 +205,7 @@ def responder_questao(
         usuario: o usuário logado.
         slug: slug global do tópico.
         resposta: `"C"`/`"E"`, o que o aluno julgou.
+        questao_id: `id` da questão respondida, do campo oculto do formulário.
         confianca: `"certeza"`/`"duvida"`; `None` (campo ausente) é erro (decisão 3).
         tempo_ms: tempo gasto na questão, em milissegundos; `0` quando o cliente não manda.
 
@@ -158,17 +213,17 @@ def responder_questao(
         O fragmento `questoes/_resultado.html` com o gabarito, o acerto e a origem (200).
 
     Raises:
-        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant; 400 sem
+        HTTPException: 404 se o tópico não pertencer a nenhum edital do tenant, ou se
+            `questao_id` não for uma questão pendente deste tópico para este usuário; 400 sem
             `confianca` ou com um valor fora de `CONFIANCAS_VALIDAS`.
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
     if confianca not in CONFIANCAS_VALIDAS:
         raise HTTPException(status_code=400, detail=MENSAGEM_CONFIANCA_OBRIGATORIA)
 
-    questao = proxima_questao(db, usuario.id, topico.id)
+    questao = _questao_pendente(db, usuario.id, topico.id, questao_id)
     if questao is None:
-        contexto = _contexto_questao(topico, None)
-        return renderizar(request, "questoes/_resultado.html", contexto, usuario)
+        raise HTTPException(status_code=404, detail=MENSAGEM_QUESTAO_INDISPONIVEL)
 
     evento = registrar_resposta(db, usuario, questao, resposta, confianca, tempo_ms)
     db.commit()

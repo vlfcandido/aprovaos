@@ -19,6 +19,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from aprovaos.api.sessao import RedirecionarParaEntrar
 
 CODIGO_POR_STATUS: dict[int, str] = {
+    400: "dados_invalidos",
     401: "nao_autenticado",
     403: "proibido",
     404: "nao_encontrado",

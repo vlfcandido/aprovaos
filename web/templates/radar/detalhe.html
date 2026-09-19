@@ -1,0 +1,56 @@
+{# O que é: detalhe de um concurso do radar (`GET /radar/{evento_url}`, F1.1) — cargos e
+   arquivos de edital consultados ao vivo na Cebraspe, botão "Acompanhar" e "Analisar este
+   edital" (reaproveita o pipeline da V2). Quando ler: ao mexer no detalhe do radar. -#}
+{% extends "base.html" %}
+{% block titulo %}{{ concurso.nome }} — Radar — AprovaOS{% endblock %}
+{% block conteudo %}
+  <p class="migalha"><a href="/radar">Radar</a> / {{ concurso.nome }}</p>
+  <h1>{{ concurso.nome }}</h1>
+  <dl class="ficha">
+    <div><dt>Fase</dt><dd>{{ concurso.fase }}</dd></div>
+    {% if concurso.uf %}<div><dt>UF</dt><dd>{{ concurso.uf }}</dd></div>{% endif %}
+    {% if concurso.vagas %}<div><dt>Vagas</dt><dd>{{ concurso.vagas }}</dd></div>{% endif %}
+    {% if concurso.salario_max_brl %}<div><dt>Salário até</dt><dd>R$ {{ concurso.salario_max_brl }}</dd></div>{% endif %}
+    {% if concurso.periodo_inscricao_texto %}
+      <div><dt>Inscrição</dt><dd>{{ concurso.periodo_inscricao_texto }}</dd></div>
+    {% endif %}
+  </dl>
+  {% if concurso.lacunas %}
+    <p class="fonte">Não informado pela fonte: {{ concurso.lacunas | join(" · ") }}</p>
+  {% endif %}
+
+  {% if erro_detalhe %}
+    <p class="mensagem mensagem--erro" role="alert">{{ erro_detalhe }}</p>
+  {% else %}
+    {% if cargos %}
+      <h2>Cargos</h2>
+      <ul class="lista-limpa">
+        {% for cargo in cargos %}<li>{{ cargo }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if arquivos_edital %}
+      <h2>Edital</h2>
+      <ul class="lista-limpa">
+        {% for a in arquivos_edital %}<li>{{ a.descricao }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  <div class="acoes">
+    {% if usuario_email %}
+      <form method="post" action="/radar/{{ concurso.evento_url }}/acompanhar">
+        <button class="botao" type="submit">
+          {% if acompanhando %}Deixar de acompanhar{% else %}Acompanhar{% endif %}
+        </button>
+      </form>
+      {% if arquivos_edital %}
+        <form method="post" action="/radar/{{ concurso.evento_url }}/analisar">
+          <button class="botao botao--secundario" type="submit">Analisar este edital</button>
+        </form>
+      {% endif %}
+    {% else %}
+      <a class="botao" href="/entrar">Entre para acompanhar</a>
+    {% endif %}
+    <a href="{{ concurso.url_evento }}" class="fonte">Ver na fonte (API da Cebraspe)</a>
+  </div>
+{% endblock %}

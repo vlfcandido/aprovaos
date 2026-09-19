@@ -1,0 +1,10 @@
+{# O que é: mensagem de erro esperado de `POST /radar/{evento_url}/analisar` (sem PDF, PDF sem
+   conteúdo programático reconhecível, ou fonte fora do ar) — status 200, premissa N da V2.
+   Quando ler: ao mexer nas mensagens de "Analisar este edital". -#}
+{% extends "base.html" %}
+{% block titulo %}Não foi possível analisar — AprovaOS{% endblock %}
+{% block conteudo %}
+  <h1>Não foi possível analisar este edital</h1>
+  <p class="mensagem mensagem--erro" role="alert">{{ mensagem }}</p>
+  <a class="botao" href="/radar">Voltar ao radar</a>
+{% endblock %}

@@ -21,6 +21,7 @@
       <a class="marca" href="/">AprovaOS</a>
       <div class="lateral__links">
         <a href="/" {% if request.url.path == "/" %}aria-current="page"{% endif %}>Início</a>
+        <a href="/radar" {% if request.url.path.startswith("/radar") %}aria-current="page"{% endif %}>Radar</a>
         {% if usuario_email %}
           <a href="/hoje" {% if request.url.path == "/hoje" %}aria-current="page"{% endif %}>Hoje</a>
           <a href="/painel" {% if request.url.path.startswith("/painel") %}aria-current="page"{% endif %}>Painel</a>

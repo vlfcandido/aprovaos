@@ -21,6 +21,7 @@ from aprovaos.api import (
     plano,
     publico,
     questoes,
+    radar,
     rotina,
     saude,
 )
@@ -28,6 +29,7 @@ from aprovaos.api.erros import registrar_tratadores
 from aprovaos.api.templates import criar_templates
 from aprovaos.config import Configuracoes, obter_configuracoes
 from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
+from aprovaos.motor.fontes.cebraspe import criar_fonte_cebraspe
 
 
 def criar_app(config: Configuracoes | None = None, engine: Engine | None = None) -> FastAPI:
@@ -39,9 +41,11 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
             `config.database_url`.
 
     Returns:
-        A app com `app.state.config`, `app.state.fabrica_sessao`, `app.state.templates` e
+        A app com `app.state.config`, `app.state.fabrica_sessao`, `app.state.templates`,
         `app.state.uploads_dir` (padrão: `data/uploads` na raiz; a pasta só nasce no primeiro
-        upload) preenchidos e `/static` montado a partir de `config.web_dir` (padrão: `web/`).
+        upload) e `app.state.fonte_cebraspe` (fatia 1b — cliente HTTP real da Cebraspe, para o
+        detalhe ao vivo do radar; testes substituem por um dublê) preenchidos e `/static`
+        montado a partir de `config.web_dir` (padrão: `web/`).
     """
     config = config or obter_configuracoes()
     engine = engine or criar_engine(config.database_url)
@@ -53,6 +57,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.state.fabrica_sessao = criar_fabrica_sessao(engine)
     app.state.templates = criar_templates(web_dir)
     app.state.uploads_dir = config.uploads_dir or raiz / "data" / "uploads"
+    app.state.fonte_cebraspe = criar_fonte_cebraspe(config)
 
     app.mount("/static", StaticFiles(directory=web_dir / "static"), name="static")
     app.include_router(inicio.router)
@@ -65,6 +70,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.include_router(painel.router)
     app.include_router(eventos.router)
     app.include_router(publico.router)
+    app.include_router(radar.router)
     app.include_router(saude.router)
     registrar_tratadores(app)
     return app

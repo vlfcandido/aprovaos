@@ -1,0 +1,19 @@
+{# O que é: página pública da família C — uma dúvida de formato, respondida a partir do
+   `dna_concurso.regra_correcao` medido (`/duvidas/{pergunta}`). A resposta direta fica acima da
+   dobra (busca de featured snippet, playbook §5). Quando ler: ao acrescentar uma pergunta nova
+   ao catálogo (`dados/repositorio_publico.py::candidatas_familia_c`). -#}
+{% extends "publico/_base_publico.html" %}
+{% block trilha %}
+  <a href="/">AprovaOS</a> ›
+  <a href="/duvidas">Dúvidas</a> ›
+  <span aria-current="page">{{ pagina.banca }}</span>
+{% endblock %}
+{% block conteudo %}
+  <p class="frase">{{ pagina.resposta }}</p>
+  <p><small>Fonte: {{ pagina.fonte }}.</small></p>
+
+  <div class="publico__cta">
+    <p>Suba o edital do seu concurso e receba o verticalizado com o que já está coberto.</p>
+    <a class="botao" href="/editais/subir">Subir meu edital</a>
+  </div>
+{% endblock %}

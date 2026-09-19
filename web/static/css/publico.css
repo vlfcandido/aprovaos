@@ -1,0 +1,66 @@
+/* O que é: layout das páginas públicas (fatia 13) — sem a barra lateral do app logado, um
+   cabeçalho simples e o conteúdo em largura de leitura. Por tokens, como `base.css` (teste
+   `test_publico_estatico.py`). Quando ler: ao criar uma página pública nova. */
+
+.publico {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.publico__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-linha);
+}
+
+.publico__cabecalho nav {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.publico__conteudo {
+  margin: 0 auto;
+  width: 100%;
+}
+
+.publico__trilha {
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-3);
+  margin-bottom: var(--espaco-4);
+}
+
+.publico__trilha a {
+  color: var(--cor-texto-3);
+}
+
+.publico__lista-questoes {
+  display: grid;
+  gap: var(--espaco-4);
+  padding: 0;
+  list-style: none;
+}
+
+.publico__questao {
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.publico__origem {
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+  margin-bottom: var(--espaco-2);
+}
+
+.publico__cta {
+  margin-top: var(--espaco-8);
+  padding: var(--espaco-6);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-2);
+}

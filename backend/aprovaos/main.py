@@ -18,6 +18,7 @@ from aprovaos.api import (
     eventos,
     inicio,
     plano,
+    publico,
     questoes,
     rotina,
     saude,
@@ -61,6 +62,7 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.include_router(rotina.router)
     app.include_router(plano.router)
     app.include_router(eventos.router)
+    app.include_router(publico.router)
     app.include_router(saude.router)
     registrar_tratadores(app)
     return app

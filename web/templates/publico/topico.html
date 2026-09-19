@@ -1,0 +1,54 @@
+{# O que é: página pública da família A — o que cai de um tópico, para uma banca
+   (`/o-que-cai/{banca}/{materia}/{topico}`). Quando ler: ao mudar o conteúdo desta família
+   (plano `docs/fatias/13-landing.md` §3/§4). -#}
+{% extends "publico/_base_publico.html" %}
+{% import "_macros.html" as macros %}
+{% block trilha %}
+  <a href="/">AprovaOS</a> ›
+  <span>{{ pagina.materia }}</span> ›
+  <span aria-current="page">{{ pagina.h1 }}</span>
+{% endblock %}
+{% block conteudo %}
+  <p class="frase">
+    {{ pagina.n_questoes }} questão{{ "ões" if pagina.n_questoes != 1 else "" }} classificada{{ "s" if pagina.n_questoes != 1 else "" }}
+    de {{ pagina.materia }}
+    {% if pagina.banca and pagina.banca != "desconhecido" %}da banca {{ pagina.banca }}{% endif %}.
+  </p>
+
+  {% if pagina.tem_dossie %}
+    <section aria-labelledby="dossie-titulo">
+      <h2 id="dossie-titulo">O que a lei diz sobre este assunto</h2>
+      {% for paragrafo in pagina.dossie_paragrafos %}
+        <p>{{ paragrafo }}</p>
+      {% endfor %}
+      {% if pagina.dossie_fontes %}
+        <h3>Fontes citadas</h3>
+        {% for fonte in pagina.dossie_fontes %}
+          {{ macros.citacao_legal(fonte) }}
+        {% endfor %}
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if pagina.questoes %}
+    <section aria-labelledby="questoes-titulo">
+      <h2 id="questoes-titulo">Questões originais deste tópico</h2>
+      <ul class="publico__lista-questoes">
+        {% for questao in pagina.questoes %}
+          <li class="publico__questao">
+            <p class="publico__origem">
+              Questão original — {{ questao.banca }}, {{ questao.orgao }}, {{ questao.ano }}, item {{ questao.numero_item }}.
+            </p>
+            <p>{{ questao.enunciado }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <div class="publico__cta">
+    <p>Crie sua conta gratuita para responder estas {{ pagina.n_questoes }} questões com a
+      explicação ancorada na lei, item por item.</p>
+    <a class="botao" href="/cadastro">Criar conta grátis</a>
+  </div>
+{% endblock %}

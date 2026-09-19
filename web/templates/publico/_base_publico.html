@@ -1,0 +1,43 @@
+{# O que é: layout das páginas públicas (fatia 13) — sem HTMX, sem sessão, sem a barra lateral do
+   app logado (ADR-0019 vale só para dentro do produto). Usa os mesmos tokens/CSS do resto do
+   AprovaOS para a marca ficar consistente. Blocos: `jsonld` (schema.org, um `<script>` por
+   bloco de `pagina`), `trilha` (breadcrumb visível) e `conteudo`. Quando ler: ao criar uma
+   página pública nova (`{% extends "publico/_base_publico.html" %}`). -#}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="{{ pagina.descricao }}">
+  {% if pagina.canonica %}<link rel="canonical" href="{{ pagina.canonica }}">{% endif %}
+  <title>{{ pagina.titulo }}</title>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/publico.css">
+  {% for bloco in jsonld %}
+    {# `bloco` é sempre JSON montado em `api/publico.py::_bloco_jsonld` — nunca texto de LLM;
+       o `| safe` aqui não reabre o defeito C3 da fatia 6 (ver docstring do módulo). -#}
+    <script type="application/ld+json">{{ bloco | safe }}</script>
+  {% endfor %}
+</head>
+<body>
+  <div class="publico">
+    <header class="publico__cabecalho">
+      <a class="marca" href="/">AprovaOS</a>
+      <nav aria-label="Conta">
+        <a href="/entrar">Entrar</a>
+        <a class="botao" href="/cadastro">Criar conta grátis</a>
+      </nav>
+    </header>
+    <main id="conteudo" class="conteudo publico__conteudo">
+      <nav aria-label="Trilha" class="publico__trilha">{% block trilha %}{% endblock %}</nav>
+      <h1>{{ pagina.h1 }}</h1>
+      {% block conteudo %}{% endblock %}
+    </main>
+    <footer class="rodape">
+      <p>AprovaOS — piloto. Nada gerado chega a você sem validação.</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{# O que é: página pública da família D — o edital verticalizado de um concurso, público
+   (`/verticalizado/{orgao}-{ano}`), o mesmo parser da V2. Quando ler: ao mudar como o
+   verticalizado é mostrado (plano `docs/fatias/13-landing.md` §3/§4). -#}
+{% extends "publico/_base_publico.html" %}
+{% block trilha %}
+  <a href="/">AprovaOS</a> ›
+  <a href="/verticalizado">Verticalizado</a> ›
+  <span aria-current="page">{{ pagina.orgao }} ({{ pagina.ano }})</span>
+{% endblock %}
+{% block conteudo %}
+  <p class="frase">
+    {{ pagina.cargo }} — banca {{ pagina.banca }}. Conteúdo programático direto do edital,
+    organizado por matéria e tópico.
+  </p>
+
+  {% for materia in pagina.materias %}
+    <details {% if loop.index <= 7 %}open{% endif %}>
+      <summary>{{ materia.nome }} ({{ materia.topicos | length }})</summary>
+      <ul>
+        {% for topico in materia.topicos %}
+          <li>{{ topico.texto_original }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endfor %}
+
+  <div class="publico__cta">
+    <p>Suba o edital do seu concurso e receba o verticalizado com o que já está coberto.</p>
+    <a class="botao" href="/editais/subir">Subir meu edital</a>
+  </div>
+{% endblock %}

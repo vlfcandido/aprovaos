@@ -465,35 +465,48 @@ Tocados: `backend/aprovaos/motor/curar.py` (`ParDivergente`, `_conferir_par`),
 Executado em 18/09/2026. Sem código de produção — só docs, decisões e pendências (ADR-0033,
 0034, 0035; `docs/RISCOS.md` R-21; `docs/PENDENCIAS.md`; `docs/02-produto.md` §6; `CLAUDE.md`).
 
-### Achado que muda a leitura de tudo acima: a banca da Linda não é a Cebraspe
-Conferindo a tela do concurso no fechamento da fatia, apareceu — **literal no PDF do edital dela**
-desde a V2 (`knowledge/fixtures/editais/edital-assessor-gabinete.pdf`), não é suposição — o que a
-P-17 pedia desde a abertura da V2: §1.1 diz que a banca organizadora é a **Fundação de Apoio à
-Unioeste (COGEPS)**; §6.1 diz que a prova objetiva tem **50 questões de múltipla escolha com 5
-alternativas (A a E)**, só uma correta, **sem desconto por questão errada**. O DNA já extraía e
-exibia essa informação na página do concurso desde a V2 — ninguém tinha lido com atenção até agora.
-A skill `monitor-de-fontes` (Fase 4) já continha essa banca como exemplo de ficha (`id:
-unioeste-cogeps` no `SKILL.md`, com snapshot real salvo em
-`docs/evidencias/2026-09-17-fase4-skills/fixtures/unioeste-cogeps-correntes-2026-09-17.html`): a
-fonte certa já estava mapeada, faltou ligar o ponto ao edital da piloto. P-17 fechada com ✅ e a
-data de hoje em `docs/PENDENCIAS.md`, sem apagar o texto original.
+### Erro cometido e corrigido no próprio fechamento: o edital usado na curadoria é fictício
+Conferindo a tela do concurso no fechamento da fatia, um rascunho deste passo leu
+`knowledge/fixtures/editais/edital-assessor-gabinete.pdf` (o mesmo PDF cujo `edital_id` foi usado
+em toda a execução real do passo 12/12b/12c) como se fosse o edital **real** da Linda: §1.1 diz
+banca "Fundação de Apoio à Unioeste"; §6.1 diz "50 questões de múltipla escolha com 5 alternativas
+(A a E), sem desconto". Com base nisso, a P-17 chegou a ser marcada como fechada e três outros
+arquivos (`docs/DECISOES.md`, `docs/02-produto.md` §6, `CLAUDE.md`) chegaram a afirmar que a banca
+real da Linda é a Unioeste/COGEPS com prova A–E — **está errado, e o erro é meu**. O arquivo é
+**fictício**: gerado por `scripts/gerar_fixture_pdf.py` a partir de
+`docs/evidencias/2026-09-17-fase4-skills/fixtures/edital-assessor-gabinete.md`, cujo próprio
+cabeçalho diz "Fixture — trecho de edital (**fictício**, no formato usual de câmaras municipais do
+PR)… **Não é um edital real; os números e datas são inventados para o teste**". Eu li o texto do
+PDF e não li o cabeçalho da fonte que o gera. Corrigido no mesmo dia: P-17 **reaberta** em
+`docs/PENDENCIAS.md` (com o relato do engano registrado nela, para não se repetir); as três
+afirmações erradas removidas de `docs/DECISOES.md` (adendo da ADR-0035), `docs/02-produto.md` §6 e
+`CLAUDE.md`. O que se sabe de verdade sobre a banca da Linda continua sendo só o da Fase 4: ela
+presta concursos locais em Cascavel-PR, cargo de assessor de gabinete, área de Direito — **banca
+desconhecida**.
 
-**O limite honesto do que a V3 entregou, dito com todas as letras:** as **210 questões** da base
-(63 publicáveis) são **certo/errado da Cebraspe** — úteis como **conteúdo** de Direito, porque as
-matérias do edital dela se sobrepõem às que a Cebraspe cobra (ADR-0027) —, mas **não treinam o
-formato de prova que a Linda vai encontrar de verdade**, que é múltipla escolha A–E sem desconto,
-da Unioeste/COGEPS. Isso não é demérito da fatia: o cano inteiro (coletor → curador → gate de
-publicação → telas) é agnóstico de banca e de formato de item — é exatamente esse desenho que
-permite a V3b (segmentador A–E + fonte Unioeste/COGEPS) ser uma fatia pequena, reaproveitando tudo
-que a V3 construiu, em vez de recomeçar do zero. Mas quem ler este diário daqui a um mês precisa
-saber, sem precisar garimpar: **a V3 valida o cano; a V3b entrega o formato certo**.
+**O limite honesto do que a V3 entregou, dito com todas as letras (agora corrigido):** a curadoria
+real (passos 12/12b/12c) rodou contra o `edital_id` gerado a partir desse **edital de teste
+fictício**, não contra o edital real da Linda — os 36 tópicos e a cobertura de 63/210 publicáveis
+valem para esse edital de teste, e ainda não sabemos se valem para o dela. As **210 questões** em
+si são reais (prova e gabarito de verdade, baixados da API da Cebraspe); o que é fictício é o
+edital contra o qual elas foram classificadas. Além disso, as 210 questões são **certo/errado da
+Cebraspe** — úteis como **conteúdo** de Direito, matéria que provavelmente se sobrepõe à do
+concurso real dela (ADR-0027) —, mas não necessariamente no **formato** que ela vai encontrar de
+verdade, que continua desconhecido (P-17). Isso não é demérito da fatia: o cano inteiro (coletor →
+curador → gate de publicação → telas) é agnóstico de banca e de formato de item — é esse desenho
+que permite a V3b ser uma fatia pequena quando a banca real for conhecida, reaproveitando tudo que
+a V3 construiu em vez de recomeçar do zero. Mas quem ler este diário daqui a um mês precisa saber,
+sem precisar garimpar: **a V3 valida o cano com conteúdo real da Cebraspe, sobre um edital de
+teste; falta plugar o edital real da Linda quando ele chegar (P-17)**.
 
 ### Consequência para a V3b (registrada em P-30, `docs/PENDENCIAS.md`)
-Não é "acrescentar suporte A–E genérico" — é **coletar provas anteriores da Unioeste/COGEPS** (a
-fonte já mapeada na skill desde a Fase 4) e servir questões no formato real dela. O caderno e o
-gabarito do `TJ_CE_23_SERVIDOR` (A–E, coletado no passo 5 desta fatia e fora do escopo por decisão
-J do plano) continuam úteis como **primeiro fixture** para testar o segmentador A–E antes de mapear
-o formato exato da Unioeste — mas deixam de ser o alvo final.
+A V3b (múltipla escolha A–E) é decisão do dono de 18/09/2026 pelo formato **dominante no mercado
+de concursos brasileiro** (certo/errado é marca da Cebraspe, a exceção) — **não** porque se
+conheça o formato do concurso real da Linda, que continua indefinido (P-17). O caderno e o
+gabarito do `TJ_CE_23_SERVIDOR` (A–E, real, coletado no passo 5 desta fatia e fora do escopo por
+decisão J do plano) são o **primeiro fixture** para o segmentador A–E. Quando o edital real dela
+chegar e a banca for identificada, mapear essa fonte específica com a skill `monitor-de-fontes`
+antes de coletar dela — isso ainda não aconteceu.
 
 ### Números finais da V3, para não garimpar em outro lugar
 4 concursos coletados (`TJ_PA_25_SERVIDOR`, `STJ_24`, `TRT10_24` com 2 cargos, mais
@@ -509,11 +522,14 @@ fechamento documental não altera nem depende desse redesenho, que segue em anda
 agente.
 
 ### O que este passo fechou, abriu e não tentou fechar
-Fechadas: **P-26** (grupo com acento) e **P-17** (banca e formato da Linda). Abertas:
-**P-30** (V3b — Unioeste/COGEPS, A–E), **P-31** (cobertura de tópicos e reclassificação com IA
-quando houver cota), **P-32** (`fonte.politica`/`ultima_varredura`/`proxima` sem consumidor),
-**P-33** (`questoes/topico.html` não renomeado para `resolver.html`, divergência nominal com o
-plano). Confirmada, não fechada: **P-29** (item 96 do TRT10_24) — caso isolado, nada novo desde o
+Fechada: **P-26** (grupo com acento). **P-17** (banca e formato da Linda) **continua aberta** — um
+rascunho deste passo chegou a marcá-la como fechada com base num fixture fictício lido por engano
+como edital real; corrigido no mesmo dia (ver "Erro cometido e corrigido…" acima). Abertas:
+**P-30** (V3b — A–E, pelo formato dominante no mercado, não pela banca real dela), **P-31**
+(cobertura de tópicos e reclassificação com IA quando houver cota), **P-32**
+(`fonte.politica`/`ultima_varredura`/`proxima` sem consumidor), **P-33**
+(`questoes/topico.html` não renomeado para `resolver.html`, divergência nominal com o plano).
+Confirmada, não fechada: **P-29** (item 96 do TRT10_24) — caso isolado, nada novo desde o
 passo 12c. ADR-0033 (gate de publicação sem validador para original; `questao` é pool global),
 ADR-0034 (dependências: `httpx2` em runtime, `pyyaml`/`types-pyyaml` em dev) e ADR-0035 (política
 de coleta da Cebraspe, identidade `{eventoURL}/{nomeArquivo}`, com o adendo de que a Cebraspe é

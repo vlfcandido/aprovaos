@@ -552,6 +552,23 @@ def test_topico_sem_questao(logado: TestClient, db: Session) -> None:
     assert "Ainda não temos questões deste tópico." in resposta.text
 
 
+def test_questao_despublicada_pelo_calibrador_some_da_tela(logado: TestClient, db: Session) -> None:
+    """P-34 (`docs/PENDENCIAS.md`, fecha nesta fatia): uma questão com `despublicada_em`
+    preenchido não aparece mais em `GET /topico/{slug}/questoes`, mesmo continuando `publicavel`.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    documento = _documento(db, "hash-p34")
+    questao = _criar_questao(db, topico, documento.id)
+
+    questao.despublicada_em = agora_utc()
+    db.commit()
+
+    resposta = logado.get(f"/topico/{SLUG}/questoes")
+    assert resposta.status_code == 200
+    assert "Ainda não temos questões deste tópico." in resposta.text
+
+
 # ---- Passo 3 da V3b: tela de múltipla escolha A–E ----------------------------------------
 
 

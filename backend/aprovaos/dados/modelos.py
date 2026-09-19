@@ -22,7 +22,12 @@ diagnóstico adaptativo da mesma fatia não ganha tabela nova — ele lê `event
 `plano_dia`/`bloco` (plano do dia, job noturno, check-in — ver os docstrings das duas classes) e
 os cinco tipos de `evento_estudo` que ainda não tinham produtor (`checkin`, `bloco_iniciado`,
 `bloco_concluido`, `bloco_pulado`, `discordou`, `distracao` — seis, na verdade; o `CheckConstraint`
-de `tipo` já os continha desde a V3).
+de `tipo` já os continha desde a V3). A fatia 11 acrescenta a tabela `Calibracao` (ver o docstring
+da classe) e fecha a P-34 (`docs/PENDENCIAS.md`): `Questao.publicada` continua sem consumidor
+direto (bookkeeping do calibrador), mas `Questao.despublicada_em` passa a ser o que toda consulta
+de servir conteúdo filtra além de `publicavel` — uma questão despublicada some da tela na hora,
+sem precisar reescrever `publicavel` (o veredito estrutural do curador, que o calibrador nunca
+toca).
 """
 
 from datetime import date, datetime, time
@@ -305,12 +310,16 @@ class Questao(ChaveUuid, Carimbos, Base):
     comodidade de quem lê o JSON inteiro sem dar join; nunca o inverso. `publicavel` é o veredito
     determinístico do gate (`dominio.questao.decidir_publicacao`) e é o que toda consulta da
     tela hoje filtra (`repositorio_questao.proxima_questao`/`contagem_por_topico`,
-    `api/questoes.py`). `publicada`/`despublicada_em` **não são lidas nem escritas por ninguém
-    nesta fatia** — estão reservadas para o calibrador (fatia 8, despublicação por reporte
-    confirmado); quando ele existir, a consulta da tela **terá de passar a filtrar também**
-    `publicada`, ou uma questão despublicada continuaria aparecendo para o aluno (P-34,
-    `docs/PENDENCIAS.md`). `dificuldade_est`/`discriminacao_est` ficam para a calibração (fatia
-    futura).
+    `api/questoes.py`). **Fatia 11 (fecha a P-34, `docs/PENDENCIAS.md`):** o calibrador
+    (`dados.repositorio_calibracao.gravar_calibracao`) grava `despublicada_em` (carimbo) e
+    `publicada=False` quando decide despublicar uma questão; toda consulta que serve conteúdo
+    (`repositorio_questao.proxima_questao`/`contagem_por_topico`/`questoes_publicaveis_do_topico`,
+    `api/questoes.py::questao_valida_para_responder`, `api/diagnostico.py`, `motor/dossie.py`,
+    `motor/ligar_por_topico.py`) passa a exigir `despublicada_em IS NULL` além de
+    `publicavel=True` — `publicavel` continua sendo só o veredito estrutural do curador,
+    nunca reescrito pelo calibrador. `dificuldade_est`/`discriminacao_est` agora têm produtor
+    (`dominio.calibracao.avaliar_questao`, regras R-4/R-5/R-6/R-7), gravados pelo mesmo
+    repositório.
     """
 
     __tablename__ = "questao"
@@ -755,3 +764,36 @@ class Bloco(ChaveUuid, Base):
 
     topico: Mapped[Topico | None] = relationship()
     aula: Mapped[Aula | None] = relationship()
+
+
+class Calibracao(ChaveUuid, Base):
+    """Uma linha do relatório diário do calibrador (fatia 11) para uma questão.
+
+    Espelha `dominio.calibracao.AjusteCalibracao`: uma linha por questão avaliada, por dia de
+    execução — histórico, nunca sobrescrito (`data` + `questao_id` não é único de propósito: rodar
+    o calibrador todo dia acumula uma série temporal de `dificuldade_real`/`discriminacao`/`acao`
+    por questão, o que o painel de curva/previsão da fatia 10 pode reaproveitar depois).
+    `discriminacao` é `NULL` quando `AjusteCalibracao.discriminacao == "desconhecido"` — nunca um
+    número fabricado para caber na coluna `Float`. **Nota de escopo:** `docs/04-modelo-de-dados.md`
+    §6 lista `acao` com três valores (`manter`/`sinalizar`/`despublicar`); a skill
+    `calibracao-de-questoes` (fase 4, posterior a esse rascunho) define quatro
+    (`manter`/`ajustar`/`sinalizar`/`despublicar`) — `ajustar` é o que atualiza
+    `questao.dificuldade_est`/`discriminacao_est` sem sinalizar nem despublicar (R-4/R-6/R-7).
+    Esta tabela segue a skill (fonte de verdade do contrato, CLAUDE.md "Contratos vêm das
+    skills"); documentado aqui em vez de reescrever o modelo de dados nesta fatia.
+    """
+
+    __tablename__ = "calibracao"
+    __table_args__ = (
+        CheckConstraint("acao IN ('manter','ajustar','sinalizar','despublicar')", name="acao"),
+        Index("ix_calibracao_questao_data", "questao_id", "data"),
+    )
+
+    questao_id: Mapped[UUID] = mapped_column(ForeignKey("questao.id"), nullable=False)
+    data: Mapped[date] = mapped_column(Date, nullable=False)
+    dificuldade_real: Mapped[float] = mapped_column(Float, nullable=False)
+    discriminacao: Mapped[float | None] = mapped_column(Float, nullable=True)
+    n: Mapped[int] = mapped_column(Integer, nullable=False)
+    acao: Mapped[str] = mapped_column(String(16), nullable=False)
+
+    questao: Mapped[Questao] = relationship()

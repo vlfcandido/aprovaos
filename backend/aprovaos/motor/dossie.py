@@ -251,7 +251,7 @@ def topicos_de_maior_peso(db: Session, edital_id: UUID, limite: int) -> list[Top
     """
     contagem = (
         select(Questao.topico_id.label("topico_id"), func.count(Questao.id).label("n"))
-        .where(Questao.publicavel.is_(True))
+        .where(Questao.publicavel.is_(True), Questao.despublicada_em.is_(None))  # P-34
         .group_by(Questao.topico_id)
         .subquery()
     )

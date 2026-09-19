@@ -12,6 +12,12 @@ publicável de um tópico que o usuário nunca respondeu nem reportou — premis
 Quando ler: ao ligar o comando de curadoria (passo 12) ou as rotas de questão (passo 13). Como o
 repositório da V2 (`repositorio_edital.py`): funções soltas recebendo `Session` como primeiro
 parâmetro, fazem `add`/`flush`; o `commit` é sempre da rota/comando.
+
+**Fatia 11 (fecha a P-34):** toda consulta que serve conteúdo aqui (`contagem_por_topico`,
+`proxima_questao`, `questoes_publicaveis_do_topico`) passa a filtrar também
+`Questao.despublicada_em.is_(None)` — é o carimbo que `dados.repositorio_calibracao.
+gravar_calibracao` grava quando o calibrador decide despublicar; sem este filtro, a decisão do
+calibrador nunca refletiria na fila da aluna.
 """
 
 from uuid import UUID
@@ -186,7 +192,11 @@ def contagem_por_topico(db: Session, edital_id: UUID) -> dict[UUID, int]:
     consulta = (
         select(TopicoEdital.topico_id, Questao.id)
         .join(Questao, Questao.topico_id == TopicoEdital.topico_id)
-        .where(TopicoEdital.edital_id == edital_id, Questao.publicavel.is_(True))
+        .where(
+            TopicoEdital.edital_id == edital_id,
+            Questao.publicavel.is_(True),
+            Questao.despublicada_em.is_(None),  # P-34: calibrador despublica por aqui
+        )
     )
     contagem: dict[UUID, int] = {}
     for topico_id, _questao_id in db.execute(consulta).all():
@@ -221,6 +231,7 @@ def proxima_questao(db: Session, usuario_id: UUID, topico_id: UUID) -> Questao |
         .where(
             Questao.topico_id == topico_id,
             Questao.publicavel.is_(True),
+            Questao.despublicada_em.is_(None),  # P-34: calibrador despublica por aqui
             Questao.id.not_in(respondidas),
             Questao.id.not_in(reportadas),
         )
@@ -327,7 +338,11 @@ def questoes_publicaveis_do_topico(db: Session, topico_slug: str) -> list[Questa
     consulta = (
         select(Questao)
         .join(Topico, Questao.topico_id == Topico.id)
-        .where(Topico.slug == topico_slug, Questao.publicavel.is_(True))
+        .where(
+            Topico.slug == topico_slug,
+            Questao.publicavel.is_(True),
+            Questao.despublicada_em.is_(None),  # P-34: calibrador despublica por aqui
+        )
         .order_by(Questao.criado_em, Questao.id)
     )
     return list(db.scalars(consulta).all())

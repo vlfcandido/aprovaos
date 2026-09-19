@@ -264,6 +264,7 @@ def _questao_pendente(
         Questao.id == questao_id,
         Questao.topico_id == topico_id,
         Questao.publicavel.is_(True),
+        Questao.despublicada_em.is_(None),  # P-34: calibrador despublica por aqui
         Questao.id.not_in(respondidas),
         Questao.id.not_in(reportadas),
     )

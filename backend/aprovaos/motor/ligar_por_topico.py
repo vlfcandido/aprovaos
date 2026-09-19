@@ -115,7 +115,9 @@ def ligar_por_topico(db: Session) -> RelatorioLigacaoPorTopico:
         topicos_elegiveis = {dossie.topico_id, *topicos_equivalentes(db, dossie.topico_id)}
         questoes = db.scalars(
             select(Questao).where(
-                Questao.topico_id.in_(topicos_elegiveis), Questao.publicavel.is_(True)
+                Questao.topico_id.in_(topicos_elegiveis),
+                Questao.publicavel.is_(True),
+                Questao.despublicada_em.is_(None),  # P-34: calibrador despublica por aqui
             )
         ).all()
 

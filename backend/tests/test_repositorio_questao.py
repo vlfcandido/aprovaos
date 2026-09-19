@@ -308,6 +308,65 @@ def test_proxima_questao_ignora_respondidas_e_reportadas(db: Session) -> None:
     assert proxima_questao(db, usuario.id, topico.id) is None
 
 
+def test_proxima_questao_ignora_despublicada_pelo_calibrador(db: Session) -> None:
+    """P-34 (`docs/PENDENCIAS.md`, fecha nesta fatia): uma questão com `despublicada_em`
+    preenchido some de `proxima_questao` para qualquer usuário, mesmo continuando `publicavel`.
+    """
+    usuario = _usuario(db, "a@exemplo.com")
+    topico = _topico(db, "dir-civ-01-prescricao")
+    documento = _documento(db, "d-p34-1")
+    salvar_questoes(db, [_questao_curada(1, "Única do tópico.", topico.slug, documento.id)])
+    db.commit()
+    questao = db.scalars(select(Questao)).one()
+    assert proxima_questao(db, usuario.id, topico.id) is not None
+
+    questao.despublicada_em = agora_utc()
+    questao.publicavel = True  # o gate estrutural do curador não muda — só a coluna do calibrador
+    db.commit()
+
+    assert proxima_questao(db, usuario.id, topico.id) is None
+
+
+def test_contagem_por_topico_ignora_despublicada_pelo_calibrador(db: Session) -> None:
+    """P-34: `contagem_por_topico` não conta a questão despublicada, mesmo `publicavel=True`."""
+    tenant_id = _usuario(db, "b@exemplo.com").tenant_id
+    topico = _topico(db, "dir-civ-01-prescricao")
+    edital = _edital_com_topico(db, tenant_id, topico)
+    documento = _documento(db, "d-p34-2")
+    salvar_questoes(
+        db,
+        [
+            _questao_curada(1, "Fica.", topico.slug, documento.id),
+            _questao_curada(2, "Some.", topico.slug, documento.id),
+        ],
+    )
+    db.commit()
+    assert contagem_por_topico(db, edital.id) == {topico.id: 2}
+
+    despublicada = db.scalars(select(Questao).where(Questao.enunciado == "Some.")).one()
+    despublicada.despublicada_em = agora_utc()
+    db.commit()
+
+    assert contagem_por_topico(db, edital.id) == {topico.id: 1}
+
+
+def test_questoes_publicaveis_do_topico_ignora_despublicada_pelo_calibrador(db: Session) -> None:
+    """P-34: `questoes_publicaveis_do_topico` (usada por `motor.justificar`) também respeita a
+    despublicação do calibrador.
+    """
+    topico = _topico(db, "dir-adm-06-improbidade-administrativa")
+    documento = _documento(db, "d-p34-3")
+    salvar_questoes(db, [_questao_curada(1, "Vai sumir.", topico.slug, documento.id)])
+    db.commit()
+    questao = db.scalars(select(Questao)).one()
+    assert questoes_publicaveis_do_topico(db, topico.slug) == [questao]
+
+    questao.despublicada_em = agora_utc()
+    db.commit()
+
+    assert questoes_publicaveis_do_topico(db, topico.slug) == []
+
+
 def test_registrar_resposta_grava_evento(db: Session) -> None:
     usuario = _usuario(db, "a@exemplo.com")
     topico = _topico(db, "dir-civ-01-prescricao")

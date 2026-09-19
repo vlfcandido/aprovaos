@@ -536,3 +536,79 @@ ADR-0034 (dependências: `httpx2` em runtime, `pyyaml`/`types-pyyaml` em dev) e 
 de coleta da Cebraspe, identidade `{eventoURL}/{nomeArquivo}`, com o adendo de que a Cebraspe é
 fonte de conteúdo, não de formato, para o piloto) entram em `docs/DECISOES.md`. `docs/RISCOS.md`
 ganha R-21 (política de dados do free tier do Gemini).
+
+## Passo 16 — Reclassificação das 250 questões contra o edital real do TJ-PR (P-31, avanço)
+
+Executado em 19/09/2026, na mesma máquina (`backend/dev.db`, sem Docker). Só execução — nenhum
+código de produção mudou; os dois comandos usados já existiam (`registrar_edital`/`gerar_dna` da
+V2, `curar_documento(..., reclassificar=True)` da V3/passo 12b). Objetivo: testar a hipótese de
+que a baixa cobertura do passo 12 vinha do **vocabulário fictício** (fixture da Fase 4, 36
+tópicos), não da classificação em si — agora que dois editais **reais** estão no repositório desde
+18/09 (ADR-0038): `edital-tjpr-tecnico-judiciario-2025.pdf` (Instituto AOCP, 9 matérias/99
+tópicos) e `edital-trt9-fcc-2022.pdf` (FCC, 25 matérias/580 tópicos).
+
+**Passo 1 — subir o edital do TJ-PR pelo pipeline de verdade.** Script de uma vez
+(`validar_pdf` → `extrair_texto` → `extrair_conteudo_programatico` → `gerar_dna` →
+`registrar_edital` → commit — as mesmas funções de `api/editais.py::processar_edital`, sem
+servidor HTTP) para a conta de `linda.piloto@exemplo.com`, já existente desde a V1. Parser
+confirmou os 9 matérias/99 tópicos já medidos na V2 (ADR-0038). O DNA por IA (`gemini-3.6-flash`)
+falhou com `503 UNAVAILABLE` (modelo sobrecarregado — a cota diária desse modelo já estava perto
+do fim por outro trabalho em paralelo na fatia 6, 25 erros antes deste) e caiu para
+`AnalistaPorRegras` (`gerar_dna` nunca bloqueia, arquitetura §8) — sem efeito na cobertura de
+tópicos, que vem do parser/`registrar_edital`, não do DNA. Segundo concurso na base: "TRIBUNAL DE
+JUSTIÇA DO ESTADO DO PARANÁ" / cargo `desconhecido` (o parser por regras não confirma o cargo sem
+prova de conceito na cláusula, ADR-0036) / banca "Instituto AOCP" — o fictício (`edital-assessor-
+gabinete.pdf`) continua na base, intocado (P-17 segue aberta; o TJ-PR **não** é o edital real da
+Linda, é o primeiro edital real disponível para testar o vocabulário contra as 250 questões).
+
+**Passo 2 — reclassificar as 250 questões.** `curar_documento(db, config, prova_id, gabarito_id,
+edital_id=<TJ-PR>, reclassificar=True, tipo_item=...)` para os 4 pares já curados no passo 12
+(`TJ_PA_25_SERVIDOR` cargo 9, `STJ_24` cargo 19, `TRT10_24` cargo 12 — C/E — e `TJ_CE_23_SERVIDOR`
+cargo 1 — múltipla escolha); `atualizar_classificacao` troca só `topico_id`/`topico_confianca`/
+`topico_evidencia`/`publicavel`/`motivo_nao_publicavel` de cada linha (por `hash_dedup`), nunca o
+texto/gabarito/origem — a classificação contra o edital fictício foi **sobrescrita** (é o mesmo
+campo `Questao.topico_id`, e o vocabulário `Topico` é global por slug, premissa D da V2); a medição
+"antes" abaixo foi tirada por SQL direto no `dev.db` **antes** de rodar, para a comparação não
+depender de memória. Modelo: `gemini-3.5-flash-lite` (o mesmo do passo 12c) — 14 chamadas, **0
+erros**, todo o lote em lotes de 20 (`config.lote_classificacao`); a evidência de cada
+classificação (`topico_evidencia`) é texto livre do modelo ("trata de recurso especial e tese
+jurídica em IRDR, do tópico de recursos"), não léxico por regras — confirma que a reclassificação
+saiu da IA, não do fallback. **Cota do dia consumida por completo**: `gemini-3.5-flash-lite` já
+tinha 6 chamadas de outro agente (fatia 6, `gerador-de-justificativa` testando com esse modelo)
+antes deste passo; 6 + 14 = **20/20**, o teto diário do free tier medido no passo 12b — não sobrou
+cota para reclassificar o TRT9 hoje (fica para P-31, próxima rodada, com o vocabulário de 580
+tópicos, o mais amplo que a base tem).
+
+### Antes × depois, por tipo de item (250 questões, mesmas linhas, mesmos textos/gabaritos)
+
+| tipo de item | vocabulário fictício (36 tópicos, passo 12) | vocabulário real TJ-PR/AOCP (99 tópicos) |
+|---|---|---|
+| certo/errado (210) | 63 publicáveis · 141 sem tópico | **106 publicáveis · 96 sem tópico** |
+| múltipla escolha A–E (40) | 2 publicáveis · 38 sem tópico | **31 publicáveis · 7 sem tópico** |
+| **total (250)** | **65 publicáveis (26 %) · 179 sem tópico** | **137 publicáveis (55 %) · 103 sem tópico** |
+
+Tópicos do edital do TJ-PR com pelo menos uma questão publicável: **38 de 99** (38 %) — zero antes
+desta rodada, porque nenhuma questão apontava para o vocabulário dele. A `Questao` continua sendo
+um pool global (ADR-0033): o `topico_id` de cada linha agora resolve contra o TJ-PR; consultar
+`contagem_por_topico` para o edital fictício depois deste passo dá zero em quase todos os tópicos
+dele — a base não foi apagada (concurso, edital, DNA e as 250 linhas de `questao` continuam
+intactos), só a classificação de tópico, que é um campo só por linha, migrou de vocabulário.
+
+**O que este número não prova, dito com todas as letras (pedido explícito do dono):** o vocabulário
+do TJ-PR é de **nível médio** (Técnico Judiciário); várias das 250 questões vêm de cadernos de
+nível **superior** (ex.: `STJ_24` cargo 19, `TRT10_24` — analista/cargos técnicos especializados).
+Bater o tópico ("Licitações", "Recursos") não significa que a questão está no nível certo para
+quem presta um cargo de nível médio — o classificador decide **assunto**, não **dificuldade nem
+adequação ao cargo**; `dificuldade_est`/o gate de publicação não filtram por isso hoje. Tratar
+55 % como "cobertura pronta para o TJ-PR" seria vender o número além do que ele mede.
+
+### O que não foi feito e por quê
+TRT9/FCC (580 tópicos, o vocabulário mais amplo da base) **não** foi reclassificado: a cota diária
+de `gemini-3.5-flash-lite` (o único modelo com folga suficiente hoje — `gemini-3.6-flash` já
+estava com 25+1 erros no dia, de outro trabalho em paralelo) chegou a 20/20 com as 14 chamadas
+deste passo. Fica como próximo passo de P-31, com prioridade sobre reclassificar de novo o mesmo
+TJ-PR: o TRT9 é o teste mais forte da hipótese "vocabulário largo cobre mais questão", por ter
+quase 6× mais tópicos. Rodar assim que a cota renovar (reset diário do free tier, `docs/06-
+custos.md` §7) ou com outro modelo do catálogo (`gemini-2.5-flash-lite`/`gemini-3.1-flash-lite`,
+`docs/06-custos.md` §1) se a chave aceitar chamada nova a esses modelos — não testado nesta rodada
+por já ter alcançado o objetivo (TJ-PR) com o modelo padrão.

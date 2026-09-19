@@ -13,6 +13,14 @@ por `(conteudo_tipo, conteudo_id, dispositivo_id)`; `posicao` continua de onde a
 já gravada para aquela questão parou (`maior_posicao`), então rodar depois de `motor.ancorar`
 (ou de novo) nunca colide nem duplica.
 
+Desde a correção estrutural de 19/09/2026 (ADR-0041, fecha a P-52), as questões elegíveis de cada
+dossiê não são só as do próprio `dossie.topico_id` — são as do `topico_id` **e** de cada tópico
+equivalente a ele (`dados.repositorio_topico_relacao.topicos_equivalentes`, origem
+`equivalencia_curada`). Sem isso, um dossiê gravado sob o vocabulário de um edital nunca alcança
+as questões publicáveis de outro edital que cobre o mesmo assunto — o defeito que deixava
+`ligar_por_topico` sem nenhuma ligação real no `dev.db` (0 tópicos com dossiê **e** questão sob o
+mesmo `topico_id`).
+
 Nenhuma execução acontece em import; `main()` é o `argparse` que abre o banco, roda o comando,
 comita (salvo `--dry-run`) e imprime o relatório.
 
@@ -34,6 +42,7 @@ from aprovaos.dados.repositorio_citacao import (
     maior_posicao,
     registrar_citacao,
 )
+from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes
 
 
 class RelatorioLigacaoPorTopico(BaseModel):
@@ -103,9 +112,10 @@ def ligar_por_topico(db: Session) -> RelatorioLigacaoPorTopico:
         if not dispositivos_do_dossie:
             continue
 
+        topicos_elegiveis = {dossie.topico_id, *topicos_equivalentes(db, dossie.topico_id)}
         questoes = db.scalars(
             select(Questao).where(
-                Questao.topico_id == dossie.topico_id, Questao.publicavel.is_(True)
+                Questao.topico_id.in_(topicos_elegiveis), Questao.publicavel.is_(True)
             )
         ).all()
 

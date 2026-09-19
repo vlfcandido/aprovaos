@@ -6,15 +6,20 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.modelos import DispositivoLegal, DossieTopico, Topico
-from aprovaos.dados.repositorio_dossie import proxima_versao, salvar_dossie
+from aprovaos.dados.repositorio_dossie import (
+    dossie_mais_recente_do_topico,
+    proxima_versao,
+    salvar_dossie,
+)
+from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
 from aprovaos.dominio.dossie import ConteudoDossie, EntradaLogBusca, FonteDossie
 
 
-def _topico(db: Session) -> Topico:
+def _topico(db: Session, slug: str = "dir-adm-06-improbidade-administrativa") -> Topico:
     topico = Topico(
         materia="direito-administrativo",
         nome="Improbidade administrativa",
-        slug="dir-adm-06-improbidade-administrativa",
+        slug=slug,
     )
     db.add(topico)
     db.flush()
@@ -99,6 +104,52 @@ def test_salvar_dossie_nao_duplica_dispositivo_ja_existente(db: Session) -> None
 def test_proxima_versao_e_1_quando_nao_ha_dossie_do_topico(db: Session) -> None:
     topico = _topico(db)
     assert proxima_versao(db, topico.id) == 1
+
+
+def test_dossie_mais_recente_do_topico_acha_a_maior_versao_direta(db: Session) -> None:
+    topico = _topico(db)
+    salvar_dossie(db, topico_id=topico.id, conteudo=_conteudo())
+    segunda = salvar_dossie(db, topico_id=topico.id, conteudo=_conteudo("nova redação [...]"))
+    db.flush()
+
+    encontrada = dossie_mais_recente_do_topico(db, topico.id)
+    assert encontrada is not None
+    assert encontrada.id == segunda.id
+
+
+def test_dossie_mais_recente_do_topico_sem_dossie_devolve_none(db: Session) -> None:
+    topico = _topico(db)
+    assert dossie_mais_recente_do_topico(db, topico.id) is None
+
+
+def test_dossie_mais_recente_do_topico_segue_relacao_de_equivalencia(db: Session) -> None:
+    """`dossie_mais_recente_do_topico` fecha a P-52 (ADR-0041): um tópico sem dossiê próprio,
+
+    mas equivalente a outro que tem, encontra o dossiê do equivalente."""
+    ficticio = _topico(db, "dir-adm-06-improbidade-administrativa")
+    real = _topico(db, "noc-dir-adm-06-6-improbidade")
+    dossie = salvar_dossie(db, topico_id=ficticio.id, conteudo=_conteudo())
+    criar_relacao_equivalente(
+        db, de_id=ficticio.id, para_id=real.id, evidencia="ambos citam a Lei nº 8.429/1992"
+    )
+    db.flush()
+
+    encontrada = dossie_mais_recente_do_topico(db, real.id)
+    assert encontrada is not None
+    assert encontrada.id == dossie.id
+
+
+def test_dossie_mais_recente_do_topico_prefere_o_direto_ao_equivalente(db: Session) -> None:
+    ficticio = _topico(db, "dir-adm-06-improbidade-administrativa")
+    real = _topico(db, "noc-dir-adm-06-6-improbidade")
+    salvar_dossie(db, topico_id=ficticio.id, conteudo=_conteudo())
+    dossie_proprio = salvar_dossie(db, topico_id=real.id, conteudo=_conteudo("versão própria"))
+    criar_relacao_equivalente(db, de_id=ficticio.id, para_id=real.id, evidencia="mesma lei")
+    db.flush()
+
+    encontrada = dossie_mais_recente_do_topico(db, real.id)
+    assert encontrada is not None
+    assert encontrada.id == dossie_proprio.id
 
 
 def _conteudo_com_sumula() -> ConteudoDossie:

@@ -23,6 +23,7 @@ from aprovaos.dados.modelos import (
 )
 from aprovaos.dados.repositorio_conta import criar_conta
 from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
 from aprovaos.dominio.aula import CitacaoAula, ComoABancaCobra, ConteudoAula, RelacionadoAula
 from aprovaos.dominio.conta import DadosCadastro
 from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
@@ -301,6 +302,83 @@ async def test_sem_dossie_reporta_sem_derrubar(db: Session) -> None:
         db, "dir-civ-sem-dossie", GeradorQueEstoura(), usuario.id, usuario.tenant_id
     )
     assert relatorio.status == "sem_dossie"
+
+
+@pytest.mark.anyio
+async def test_topico_sem_dossie_proprio_usa_dossie_do_equivalente(db: Session) -> None:
+    """Fecha a P-52 (ADR-0041): um tópico sem `DossieTopico` próprio, mas equivalente a um que
+
+    tem, gera e publica a aula usando o dossiê do equivalente — o mesmo bug que deixava o
+    conteúdo caro da fatia 4/6 pendurado no vocabulário do edital fictício."""
+    topico_ficticio = Topico(
+        materia="direito-administrativo", nome="Improbidade", slug=SLUG_IMPROBIDADE
+    )
+    db.add(topico_ficticio)
+    db.flush()
+    construir_dossie_improbidade(db, hoje=date(2026, 9, 19))
+    db.flush()
+
+    topico_real = Topico(
+        materia="Noções de Direito Administrativo",
+        nome="6 Improbidade administrativa (Lei nº 8.429/1992).",
+        slug="noc-dir-adm-06-6-improbidade",
+    )
+    db.add(topico_real)
+    db.flush()
+    criar_relacao_equivalente(
+        db,
+        de_id=topico_ficticio.id,
+        para_id=topico_real.id,
+        evidencia="ambos citam a Lei nº 8.429/1992",
+    )
+    db.flush()
+
+    usuario = _usuario(db, "linda2@exemplo.com")
+    edital = _edital_com_topicos(db, usuario.tenant_id, [topico_real])
+    documento = _documento(db, "doc-real")
+    questao_real = _questao(db, topico_real, documento.id, numero_item=1)
+
+    resposta = ConteudoAula(
+        texto_denso=(
+            "Os atos de improbidade administrativa tutelam a probidade na organização do "
+            "Estado {{Lei 8.429/1992 art. 1}}. A banca cobra a distinção entre o agente "
+            "público e o particular beneficiado pelo ato."
+        ),
+        texto_leigo="A lei pune improbidade.",
+        citacoes=[
+            CitacaoAula(
+                canonica="Lei 8.429/1992 art. 1",
+                fonte="F1",
+                trecho="atos de improbidade administrativa tutelará a probidade",
+                frase_da_aula=(
+                    "Os atos de improbidade administrativa tutelam a probidade na "
+                    "organização do Estado"
+                ),
+            ),
+        ],
+        relacionados=[],
+        como_a_banca_cobra=[],
+        lacunas_declaradas=[],
+    )
+    gerador = GeradorFalso(resposta)
+
+    relatorio = await gerar_aula_topico(
+        db, topico_real.slug, gerador, usuario.id, edital.id, tempo_alvo_min=1
+    )
+    db.commit()
+
+    assert relatorio.status == "gerada", relatorio.motivos
+
+    from aprovaos.dados.repositorio_aula import aula_publicada_do_topico
+
+    aula = aula_publicada_do_topico(db, topico_real.id)
+    assert aula is not None
+    assert aula.topico_id == topico_real.id  # a aula é do tópico real pedido, não do fictício
+    dossie_ficticio = db.scalars(
+        select(DossieTopico).where(DossieTopico.topico_id == topico_ficticio.id)
+    ).one()
+    assert aula.dossie_id == dossie_ficticio.id  # mas o dossiê usado foi o do equivalente
+    assert questao_real.id is not None  # a questão real do tópico segue independente do dossiê
 
 
 @pytest.mark.anyio

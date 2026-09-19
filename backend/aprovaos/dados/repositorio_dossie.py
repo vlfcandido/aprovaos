@@ -12,6 +12,12 @@ para cada `FonteDossie` de `tipo="norma"`, reaproveita
 .md` §1.3). Quem chama decide o `commit`; aqui só há `add`/`flush`, como o resto dos
 repositórios.
 
+`dossie_mais_recente_do_topico` (ADR-0041, fecha a P-52) generaliza a leitura: quando `topico_id`
+não tem `DossieTopico` nenhum, tenta os tópicos equivalentes a ele
+(`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`) antes de
+devolver `None` — é o que faz o dossiê gerado sob o vocabulário de um edital aparecer também para
+o tópico equivalente de outro edital, sem duplicar o dossiê nem migrar `topico_id`.
+
 Quando ler: ao ligar o comando `motor/dossie.py`, ou ao investigar uma versão de dossiê que não
 incrementou.
 """
@@ -24,6 +30,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import DossieTopico
 from aprovaos.dados.repositorio_citacao import buscar_ou_criar_dispositivo
+from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes
 from aprovaos.dominio.dossie import ConteudoDossie
 
 
@@ -86,3 +93,40 @@ def salvar_dossie(db: Session, *, topico_id: UUID, conteudo: ConteudoDossie) -> 
         db.flush()
 
     return dossie
+
+
+def _dossie_direto_mais_recente(db: Session, topico_id: UUID) -> DossieTopico | None:
+    """A versão mais recente de `dossie_topico` gravada diretamente sob `topico_id`."""
+    return db.scalars(
+        select(DossieTopico)
+        .where(DossieTopico.topico_id == topico_id)
+        .order_by(DossieTopico.versao.desc())
+        .limit(1)
+    ).first()
+
+
+def dossie_mais_recente_do_topico(db: Session, topico_id: UUID) -> DossieTopico | None:
+    """A versão mais recente do dossiê de `topico_id`, direto ou por equivalência (ADR-0041).
+
+    Primeiro tenta `topico_id` diretamente; sem nenhum dossiê ali, tenta cada tópico equivalente
+    (`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`), na ordem
+    em que a relação foi criada, e devolve o primeiro que tiver dossiê. Fecha a P-52: o dossiê
+    gerado sob o vocabulário de um edital passa a ser encontrado também pelo tópico equivalente
+    de outro edital, sem duplicar conteúdo nem migrar `topico_id`.
+
+    Args:
+        db: sessão de banco (só leitura).
+        topico_id: o tópico cujo dossiê se quer.
+
+    Returns:
+        A `DossieTopico` de maior `versao` encontrada; `None` se nem `topico_id` nem nenhum
+        equivalente tiver dossiê.
+    """
+    direto = _dossie_direto_mais_recente(db, topico_id)
+    if direto is not None:
+        return direto
+    for equivalente_id in topicos_equivalentes(db, topico_id):
+        encontrado = _dossie_direto_mais_recente(db, equivalente_id)
+        if encontrado is not None:
+            return encontrado
+    return None

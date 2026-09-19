@@ -4,8 +4,12 @@ O que é: `proxima_versao` (mesmo desenho de `dados.repositorio_dossie.proxima_v
 `salvar_aula`, que grava uma `dominio.aula.ConteudoAula` já aprovada pelo validador
 (`dominio.aula.verificar_aula`) como a próxima versão da aula do tópico — **nunca chamado com
 uma aula reprovada**; quem decide isso é o comando (`motor/aula.py`), não este módulo.
-`aula_publicada_do_topico` é a leitura que a tela usa para servir a aula à aluna. Quem chama
-decide o `commit`; aqui só há `add`/`flush`, como o resto dos repositórios.
+`aula_publicada_do_topico` é a leitura que a tela usa para servir a aula à aluna — desde a
+correção estrutural de 19/09/2026 (ADR-0041, fecha a P-52), sem aula própria de `topico_id` ela
+tenta os tópicos equivalentes (`repositorio_topico_relacao.topicos_equivalentes`, origem
+`equivalencia_curada`) antes de devolver `None`, para a aula gerada sob o vocabulário de um
+edital aparecer também no tópico equivalente de outro edital. Quem chama decide o `commit`; aqui
+só há `add`/`flush`, como o resto dos repositórios.
 
 Quando ler: ao ligar o comando `motor/aula.py`, ou ao investigar uma versão de aula que não
 incrementou ou uma aula que não aparece na tela.
@@ -18,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import Aula, DossieTopico
+from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes
 from aprovaos.dominio.aula import ConteudoAula
 
 
@@ -72,19 +77,38 @@ def salvar_aula(
     return aula
 
 
-def aula_publicada_do_topico(db: Session, topico_id: UUID) -> Aula | None:
-    """A última versão publicada da aula de `topico_id`, ou `None` se não houver nenhuma.
-
-    Args:
-        db: sessão do request.
-        topico_id: o tópico cuja aula se quer servir.
-
-    Returns:
-        A `Aula` de maior `versao` com `publicada=True`; `None` sem nenhuma aula.
-    """
+def _aula_publicada_direta(db: Session, topico_id: UUID) -> Aula | None:
+    """A última versão publicada da aula gravada diretamente sob `topico_id`."""
     return db.scalars(
         select(Aula)
         .where(Aula.topico_id == topico_id, Aula.publicada.is_(True))
         .order_by(Aula.versao.desc())
         .limit(1)
     ).first()
+
+
+def aula_publicada_do_topico(db: Session, topico_id: UUID) -> Aula | None:
+    """A última versão publicada da aula de `topico_id`, direta ou por equivalência (ADR-0041).
+
+    Primeiro tenta `topico_id` diretamente; sem aula ali, tenta cada tópico equivalente
+    (`repositorio_topico_relacao.topicos_equivalentes`, origem `equivalencia_curada`), na ordem
+    em que a relação foi criada, e devolve a primeira aula publicada que encontrar. Fecha a
+    P-52: a aula gerada sob o vocabulário de um edital passa a ser encontrada também pelo tópico
+    equivalente de outro edital.
+
+    Args:
+        db: sessão do request.
+        topico_id: o tópico cuja aula se quer servir.
+
+    Returns:
+        A `Aula` de maior `versao` com `publicada=True`; `None` se nem `topico_id` nem nenhum
+        equivalente tiver aula publicada.
+    """
+    direta = _aula_publicada_direta(db, topico_id)
+    if direta is not None:
+        return direta
+    for equivalente_id in topicos_equivalentes(db, topico_id):
+        encontrada = _aula_publicada_direta(db, equivalente_id)
+        if encontrada is not None:
+            return encontrada
+    return None

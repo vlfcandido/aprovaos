@@ -1,7 +1,10 @@
 """O comando que gera e valida a aula de um tópico a partir do dossiê real (fatia 6).
 
 O que é: `gerar_aula_topico(db, topico_slug, gerador, usuario_id, edital_id, ...)` — para o
-tópico dado: busca a versão mais recente do `DossieTopico`; monta o fio da memória (a) a partir
+tópico dado: busca a versão mais recente do `DossieTopico` (direto ou, sem nenhum, por
+equivalência com outro tópico — `dados.repositorio_dossie.dossie_mais_recente_do_topico`,
+ADR-0041/P-52 — a aula nasce presa a `topico_slug`, mesmo quando o dossiê usado veio de um
+equivalente); monta o fio da memória (a) a partir
 do histórico real da aluna (`dados.repositorio_fio_memoria.estatisticas_topicos_vistos`),
 restrito aos tópicos que também têm dossiê (`dominio.aula.escolher_relacionados`); monta
 `como_a_banca_cobra` a partir de questões publicáveis reais do tópico
@@ -37,8 +40,10 @@ from aprovaos.dados.conexao import criar_engine, criar_fabrica_sessao
 from aprovaos.dados.modelos import DossieTopico, Questao, Topico
 from aprovaos.dados.repositorio_aula import salvar_aula
 from aprovaos.dados.repositorio_conta import buscar_por_email
+from aprovaos.dados.repositorio_dossie import dossie_mais_recente_do_topico
 from aprovaos.dados.repositorio_fio_memoria import estatisticas_topicos_vistos
 from aprovaos.dados.repositorio_questao import questoes_publicaveis_do_topico
+from aprovaos.dados.repositorio_topico_relacao import topicos_equivalentes
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.aula import (
     EntradaGeradorAula,
@@ -82,24 +87,15 @@ def _buscar_topico(db: Session, slug: str) -> Topico | None:
     return db.scalars(select(Topico).where(Topico.slug == slug)).first()
 
 
-def _dossie_mais_recente(db: Session, topico_id: UUID) -> DossieTopico | None:
-    """A versão mais recente do dossiê de `topico_id`, ou `None` se ainda não existir nenhuma."""
-    return db.scalars(
-        select(DossieTopico)
-        .where(DossieTopico.topico_id == topico_id)
-        .order_by(DossieTopico.versao.desc())
-        .limit(1)
-    ).first()
-
-
 def _dossies_relacionados(
     db: Session, excluir_topico_id: UUID
 ) -> tuple[dict[UUID, str], dict[UUID, str]]:
     """Trecho representativo (F1 da versão mais recente) e slug de cada tópico com dossiê.
 
-    Só tópicos diferentes de `excluir_topico_id` (o tópico da aula) entram — nunca a aula cita a
-    si mesma como "relacionada". Um dossiê sem nenhuma fonte é ignorado (não há trecho para
-    oferecer).
+    Só tópicos diferentes de `excluir_topico_id` (o tópico da aula) **e** dos equivalentes a ele
+    (ADR-0041) entram — nunca a aula cita a si mesma como "relacionada", nem mesmo travestida no
+    slug de outro edital que cobre o mesmo assunto por `topico_relacao`. Um dossiê sem nenhuma
+    fonte é ignorado (não há trecho para oferecer).
 
     Args:
         db: sessão do comando.
@@ -109,9 +105,10 @@ def _dossies_relacionados(
         `(trechos_por_topico, slugs_por_topico)`, ambos por `topico_id` — a entrada de
         `dominio.aula.escolher_relacionados`.
     """
+    excluidos = {excluir_topico_id, *topicos_equivalentes(db, excluir_topico_id)}
     versao_maxima = (
         select(DossieTopico.topico_id, func.max(DossieTopico.versao).label("versao_max"))
-        .where(DossieTopico.topico_id != excluir_topico_id)
+        .where(DossieTopico.topico_id.not_in(excluidos))
         .group_by(DossieTopico.topico_id)
         .subquery()
     )
@@ -176,7 +173,7 @@ async def gerar_aula_topico(
     if topico is None:
         return RelatorioAula(topico_slug=topico_slug, status="sem_topico")
 
-    dossie = _dossie_mais_recente(db, topico.id)
+    dossie = dossie_mais_recente_do_topico(db, topico.id)
     if dossie is None:
         return RelatorioAula(topico_slug=topico_slug, status="sem_dossie")
 

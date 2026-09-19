@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from aprovaos.dados.modelos import Citacao, DispositivoLegal, Questao, Topico
 from aprovaos.dados.repositorio_citacao import registrar_citacao
 from aprovaos.dados.repositorio_questao import salvar_questoes
+from aprovaos.dados.repositorio_topico_relacao import criar_relacao_equivalente
 from aprovaos.dominio.dossie import ConteudoDossie
 from aprovaos.dominio.questao import Origem, QuestaoCurada, RegraProva, hash_dedup
 from aprovaos.motor.dossie import SLUG_IMPROBIDADE, construir_dossie_improbidade
@@ -156,6 +157,44 @@ def test_questao_que_ja_tinha_citacao_por_texto_nao_conta_como_ganho_novo(db: Se
     assert relatorio.questoes_que_ganharam_dispositivo == 0
     # a fonte "art. 1" já existia (não duplica); as outras fontes de norma são novas:
     assert relatorio.citacoes_novas == _n_fontes_norma(conteudo) - 1
+
+
+def test_questao_de_topico_equivalente_ganha_dispositivo_do_dossie(db: Session) -> None:
+    """Fecha a P-52 (ADR-0041): uma questão de um tópico **sem** dossiê próprio, mas
+
+    equivalente ao tópico do dossiê, ganha os dispositivos dele — o mesmo bug que deixava
+    `ligar_por_topico` sem nenhuma ligação real entre o dossiê da fatia 4 e as questões da V3."""
+    topico_ficticio = _topico_improbidade(db)
+    _dossie, conteudo = construir_dossie_improbidade(db, hoje=date(2026, 9, 19))
+    topico_real = Topico(
+        materia="Noções de Direito Administrativo",
+        nome="Improbidade administrativa",
+        slug="noc-dir-adm-06-6-improbidade",
+    )
+    db.add(topico_real)
+    db.flush()
+    criar_relacao_equivalente(
+        db,
+        de_id=topico_ficticio.id,
+        para_id=topico_real.id,
+        evidencia="ambos citam a Lei nº 8.429/1992",
+    )
+    db.flush()
+
+    salvar_questoes(
+        db,
+        [_questao(1, "Particulares podem responder por ato de improbidade.", topico_real.slug)],
+    )
+    db.flush()
+
+    relatorio = ligar_por_topico(db)
+
+    n_norma = _n_fontes_norma(conteudo)
+    assert relatorio.questoes_no_topico == 1
+    assert relatorio.questoes_que_ganharam_dispositivo == 1
+    assert relatorio.citacoes_novas == n_norma
+    questao_real = db.query(Questao).filter_by(topico_id=topico_real.id).one()
+    assert db.query(Citacao).filter_by(conteudo_id=questao_real.id).count() == n_norma
 
 
 def test_topico_sem_dossie_nao_gera_ligacao(db: Session) -> None:

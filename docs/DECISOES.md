@@ -428,3 +428,71 @@ aceite da F4.6 no PRD — sem isso, não é a feature, é outra coisa com o mesm
 **Por quê:** todas seguem a mesma régua da casa — número real ou lacuna declarada nunca estimativa
 (decisões 1 e 3); custo de cota é recurso do produto, não infra a ignorar (decisão 2); entregar
 menos e honesto é melhor que uma versão capenga com o nome certo (decisão 4).
+
+## ADR-0041 — Dossiê e aula chegam ao tópico do edital real por `topico_relacao` (equivalência curada), não por migração de `topico_id`; fecha a P-52 · 2026-09-19 · aceita (correção estrutural, fora de fatia)
+
+**O problema, medido no `dev.db`:** os 4 dossiês e as 2 aulas da fatia 4/6 foram gravados sob o
+vocabulário do edital da Câmara Municipal de Cascavel/Unioeste (`topico.slug` em `dir-*` —
+`dir-adm-06-improbidade-administrativa`, `dir-con-02-direitos-garantias`,
+`dir-pro-civ-03-atos-processuais`, `dir-pro-civ-05-recursos-apelacao`), enquanto as 137 questões
+publicáveis da V3/V3b reclassificadas em 19/09/2026 (P-31) estão em `topico_id` do edital do
+TJ-PR/Instituto AOCP (`noc-dir-*`). Nenhum tópico do TJ-PR tinha dossiê ou aula própria; nenhum
+tópico de Cascavel tinha questão publicável. Resultado: `GET /topico/{slug}/aula` do TJ-PR sempre
+mostrava "ainda não temos aula" e `motor.ligar_por_topico` (a âncora grosseira que sustenta a
+justificativa de uma questão) não ligava nenhuma questão a nenhum dispositivo — 0 tópicos com
+dossiê **e** questão sob o mesmo `topico_id`. `topico` é vocabulário **por edital** (o slug nasce
+do texto daquele edital); dois editais que cobrem o mesmo assunto sempre vão gerar dois
+`Topico.slug` distintos — não é um bug de um parser, é a consequência do próprio desenho, que já
+era conhecida e registrada como pendência (P-52, aberta na fatia 6).
+
+**Decisão — usar `topico_relacao` (a tabela que `docs/04-modelo-de-dados.md` §3 já reservava para
+isto, "grafo do fio da memória e da propagação") como ponte, nunca implementada até agora.**
+`dados.repositorio_topico_relacao.criar_relacao_equivalente` grava uma aresta com o quarto valor
+de `origem` que a tabela ganhou nesta ADR, `equivalencia_curada` (os três que o modelo de dados já
+prometia — `edital`/`dossie`/`coocorrencia` — continuam sem produtor, essa é a primeira aresta
+real da tabela). Toda leitura por tópico passou a tentar o `topico_id` direto e, sem achar, cada
+equivalente, antes de desistir: `repositorio_dossie.dossie_mais_recente_do_topico`,
+`repositorio_aula.aula_publicada_do_topico` e `motor.ligar_por_topico.ligar_por_topico` (esta
+última generalizando as questões elegíveis de `Questao.topico_id == dossie.topico_id` para
+`topico_id` ∪ equivalentes). `motor.aula._dossies_relacionados` (candidatos ao fio da memória (a))
+passou a excluir também os equivalentes do tópico da aula — sem isso, uma aula citaria como
+"relacionado" o próprio conteúdo de que já é feita, travestido no slug de outro edital. A
+curadoria dos pares é manual e versionada em código (`motor/relacionar_topicos.py::RELACOES`,
+mesmo padrão de `RECEITAS` em `motor/dossie.py`), com `evidencia` obrigatória e rastreável — nunca
+"parecem iguais" (a mesma régua da ADR-0036, aplicada aqui a par de tópicos em vez de cláusula de
+edital): dos tópicos com questão publicável, só 4 pares tinham correspondência honesta (citação
+literal idêntica nos dois editais — Lei nº 8.429/1992, "Direitos e garantias fundamentais", "atos
+processuais"/"prazos", "recursos"); os demais (`noc-dir-con-06-6-organizacao`,
+`noc-dir-pro-pen-06-provas-6`, `noc-dir-adm-09-9-agentes`, entre outros) não têm par do lado de
+Cascavel e ficam **sem relação**, deliberadamente.
+
+**Alternativas:**
+- **(b) Ancorar dossiê/aula num "conceito" canônico novo, com os `topico_id` de cada edital
+  apontando para ele.** Rejeitada: exigiria migrar `dossie_topico`/`aula` para uma chave que hoje
+  não existe, quebrando o versionamento já testado (`UniqueConstraint(topico_id, versao)`) e
+  todo o código que assume `topico_id` como o próprio tópico do edital (verticalizado,
+  `topico_edital`, `Citacao`); mais invasivo para um projeto de poucas horas por semana, sem
+  ganho sobre a aresta — a tabela para isso já existe e está vazia.
+- **(c) Regenerar dossiê e aula sob o `topico_id` de cada edital.** Rejeitada: duplica conteúdo
+  caro (dossiê é offline mas manual por receita; aula custa chamada de LLM) para o mesmo texto de
+  lei, e ainda deixaria o mesmo problema para o próximo par de editais equivalentes — não corrige
+  a causa, só o sintoma desta rodada.
+- **Migrar os 4 dossiês/2 aulas existentes para os `topico_id` do TJ-PR (`UPDATE` direto).**
+  Rejeitada: perde a informação de que o conteúdo também vale para o edital de Cascavel (ela
+  continua sendo aluna dos dois — P-17, banca real dela ainda desconhecida) e contraria a
+  instrução explícita desta correção ("não apague nem renomeie tópicos existentes").
+
+**Custo desta decisão:** toda leitura por tópico ganha uma consulta extra condicional (só corre
+quando a leitura direta falha) e complexidade de mais um salto (`topicos_equivalentes`); a
+curadoria dos pares é manual e não escala sozinha — cada par novo exige alguém (hoje, o modelo)
+ler os dois editais e confirmar a citação literal, o mesmo custo que já existe para `RECEITAS`
+(dossiê) e para o parser de tópico. `motor/dossie.py`/`motor/aula.py` (geração) ainda **não**
+evitam gerar um dossiê/aula duplicado quando um equivalente já existe — só a leitura resolve por
+equivalência; deduplicar a geração fica para quando houver um terceiro edital equivalente de
+verdade (registrado como próxima pendência, ver `docs/PENDENCIAS.md`).
+
+**Por quê:** a régua de sempre — número real ou lacuna declarada nunca estimativa, aplicada aqui a
+relação de tópico ("na dúvida, não relacione", ADR-0036); reaproveitar a tabela que o modelo de
+dados já previu é mais barato e menos arriscado que inventar uma estrutura nova para o mesmo
+grafo; e conteúdo caro que já existe tem de chegar à aluna antes de qualquer fatia nova (CLAUDE.md
+regra 6/9 — poucas horas por semana, automação e MVP pequeno valem mais que ambição).

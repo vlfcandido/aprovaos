@@ -178,6 +178,53 @@ class TopicoEdital(ChaveUuid, Carimbos, Base):
     topico: Mapped[Topico] = relationship()
 
 
+class TopicoRelacao(ChaveUuid, Carimbos, Base):
+    """Aresta do grafo de tópicos (modelo de dados §3): liga dois `topico_id` entre si.
+
+    Existe para o caso descoberto na correção estrutural de 19/09/2026 (ADR-0041, fecha a
+    P-52): `topico` é vocabulário **por edital** — dois editais que cobram o mesmo assunto (ex.:
+    improbidade administrativa, Lei nº 8.429/1992) geram dois `Topico.slug` distintos, e
+    conteúdo caro (`dossie_topico`, `aula`) fica pendurado no slug de um único edital. Em vez de
+    migrar `dossie_topico`/`aula` para um "conceito canônico" novo (mais invasivo, quebraria o
+    versionamento por `topico_id` já testado), a ponte é esta aresta: quem lê dossiê/aula/citação
+    por tópico passa a olhar também os tópicos ligados a ele por `origem="equivalencia_curada"`
+    antes de desistir.
+
+    `origem` guarda os três valores que `docs/04-modelo-de-dados.md` §3 já previa
+    (`edital`/`dossie`/`coocorrencia` — nenhum implementado ainda, ADR-0041 é a primeira aresta
+    real desta tabela) mais o quarto que esta ADR acrescenta, `equivalencia_curada`: uma
+    correspondência decidida à mão, com evidência textual literal (a mesma lei/expressão citada
+    nos dois lados), nunca inferida por similaridade automática (ADR-0036 — "na dúvida, não
+    relacione"). `evidencia` é a extensão desta ADR ao mínimo do modelo de dados (mesmo padrão de
+    `dna_concurso`/`questao`/`aula` — coluna além do que a Fase 3 documentava): sem ela, a
+    relação seria "parecem iguais" sem rastro, o que a tarefa que originou esta tabela proíbe
+    explicitamente. `peso` é sempre `1.000` para `equivalencia_curada` (equivalência plena, não
+    força parcial); os outros `origem` ainda não têm produtor, então o intervalo de `peso` deles
+    continua em aberto. A relação é **simétrica na leitura** (`de_id`/`para_id` não importam
+    quem é quem — `topicos_equivalentes` busca nas duas direções) ainda que gravada como aresta
+    direcionada; `criar_relacao_equivalente` é idempotente nas duas direções, então nunca existem
+    duas linhas para o mesmo par.
+    """
+
+    __tablename__ = "topico_relacao"
+    __table_args__ = (
+        UniqueConstraint("de_id", "para_id", "origem"),
+        CheckConstraint("de_id <> para_id", name="de_id_diferente_de_para_id"),
+        CheckConstraint(
+            "origem IN ('edital','dossie','coocorrencia','equivalencia_curada')", name="origem"
+        ),
+    )
+
+    de_id: Mapped[UUID] = mapped_column(ForeignKey("topico.id"), index=True, nullable=False)
+    para_id: Mapped[UUID] = mapped_column(ForeignKey("topico.id"), index=True, nullable=False)
+    peso: Mapped[Decimal] = mapped_column(Numeric(6, 3), nullable=False)
+    origem: Mapped[str] = mapped_column(String(24), nullable=False)
+    evidencia: Mapped[str] = mapped_column(Text, nullable=False)
+
+    de: Mapped[Topico] = relationship(foreign_keys=[de_id])
+    para: Mapped[Topico] = relationship(foreign_keys=[para_id])
+
+
 class DnaConcursoRegistro(ChaveUuid, Carimbos, Base):
     """Linha de `dna_concurso`: o JSON inteiro do `DnaConcurso` em `conteudo` + origem/versão.
 

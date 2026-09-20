@@ -44,7 +44,12 @@ from aprovaos.dados.repositorio_questao import contagem_por_topico, topicos_vist
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.assinatura import pode_criar_edital
 from aprovaos.dominio.dna import DnaConcurso
-from aprovaos.dominio.edital import DESCONHECIDO, extrair_conteudo_programatico, slug_materia
+from aprovaos.dominio.edital import (
+    DESCONHECIDO,
+    extrair_conteudo_programatico,
+    normalizar_materia,
+    slug_materia,
+)
 from aprovaos.dominio.erros import ArquivoInvalido, ConteudoProgramaticoNaoEncontrado, PdfSemTexto
 from aprovaos.dominio.pdf import LIMITE_BYTES, contar_paginas, extrair_texto, validar_pdf
 from aprovaos.dominio.trilha import TopicoParaTrilha, montar_trilha
@@ -190,8 +195,15 @@ async def processar_edital(
 
 
 def _nome_exibicao(nome: str) -> str:
-    """`LÍNGUA PORTUGUESA` → `Língua Portuguesa` (nomes vêm em caixa alta do edital)."""
-    return nome.title()
+    """`LÍNGUA PORTUGUESA` → `Língua Portuguesa` (nomes vêm em caixa alta do edital).
+
+    Usa `dominio.edital.normalizar_materia`, a **mesma** regra que o banco aplica em
+    `topico.materia`. Antes usava `str.title()`, que capitaliza toda palavra e produzia
+    "Noções De Informática" e "Matemática/raciocínio Lógico" na tabela de pesos. Eram duas
+    implementações da mesma ideia — uma foi corrigida quando a matéria duplicou no painel e a
+    outra ficou para trás. Uma regra só, num lugar só.
+    """
+    return normalizar_materia(nome)
 
 
 def _materias_de_prova(

@@ -7,13 +7,23 @@
    biblioteca — o verticalizado continua com `materia`/`topicos`/`status` (relatado no porte).
    Quando ler: ao mudar o que a aluna vê do DNA ou o verticalizado (passo 14 da V3). -#}
 {% extends "base.html" %}
-{% block titulo %}{{ concurso.cargo }} — {{ concurso.orgao }} — AprovaOS{% endblock %}
+{% block titulo %}{{ concurso.orgao }} — AprovaOS{% endblock %}
 {% block conteudo %}
   <p class="migalha"><a href="/editais">Meus editais</a></p>
   <div class="stack">
     <span class="eyebrow">Concurso e DNA</span>
-    <h1>{{ concurso.cargo }}</h1>
-    <p class="small muted" style="margin:0">{{ concurso.orgao }}</p>
+    {# O título é o **órgão**, que o edital sempre declara. O cargo vem abaixo — e quando o PDF
+       não permite identificá-lo (ADR-0036: lacuna declarada, nunca chute), a página dizia
+       literalmente "desconhecido" em corpo de título. Fato correto, apresentação quebrada. #}
+    <h1>{{ concurso.orgao }}</h1>
+    {% if concurso.cargo == "desconhecido" %}
+      <p class="small muted" style="margin:0">
+        <span class="chip warn">cargo não identificado</span>
+        Este edital tem vários cargos e o PDF não deixa claro qual é o seu.
+      </p>
+    {% else %}
+      <p class="small muted" style="margin:0">{{ concurso.cargo }}</p>
+    {% endif %}
   </div>
 
   <dl class="ficha">

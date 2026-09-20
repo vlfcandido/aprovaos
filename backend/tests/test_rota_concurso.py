@@ -10,6 +10,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
 from aprovaos.api import editais
+from aprovaos.api.editais import _nome_exibicao
 from aprovaos.api.templates import formatar_pct
 from aprovaos.config import Configuracoes
 from aprovaos.dados.modelos import Topico, Usuario
@@ -184,3 +185,17 @@ def test_formatar_pct() -> None:
     assert formatar_pct(3.409) == "3,4 %"
     assert formatar_pct(6.25) == "6,3 %"
     assert formatar_pct("desconhecido") == "desconhecido"
+
+
+def test_nome_de_materia_na_tabela_de_pesos_nao_capitaliza_conectivo() -> None:
+    """`Noções de Informática`, não `Noções De Informática`.
+
+    `_nome_exibicao` usava `str.title()`, que capitaliza toda palavra — inclusive "de", "da",
+    "e" — e quebrava na barra ("Matemática/raciocínio"). A regra correta já existia em
+    `dominio.edital.normalizar_materia`, criada quando a mesma matéria aparecia em duas grafias
+    no painel. Duas implementações da mesma ideia é a armadilha que o HANDOFF chama de "dois
+    nomes para o mesmo conceito": uma foi corrigida e a outra ficou errada.
+    """
+    assert _nome_exibicao("NOÇÕES DE INFORMÁTICA") == "Noções de Informática"
+    assert _nome_exibicao("MATEMÁTICA/RACIOCÍNIO LÓGICO") == "Matemática/Raciocínio Lógico"
+    assert _nome_exibicao("LÍNGUA PORTUGUESA E REDAÇÃO") == "Língua Portuguesa e Redação"

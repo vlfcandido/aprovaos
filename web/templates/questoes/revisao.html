@@ -9,7 +9,10 @@
 {% extends "base.html" %}
 {% block titulo %}Revisar hoje — AprovaOS{% endblock %}
 {% block conteudo %}
-  <h1>Revisar hoje</h1>
+  <div class="stack">
+    <span class="eyebrow">Revisão espaçada</span>
+    <h1>Revisar hoje</h1>
+  </div>
   <div id="questao" aria-live="polite">
     {% if questao %}
       {% include "questoes/_cartao_questao.html" %}

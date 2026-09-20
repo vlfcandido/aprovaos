@@ -264,3 +264,30 @@ select.entrada {
 
 /* Tabela larga não pode empurrar a página: rola dentro do próprio contêiner. */
 .tabela-rolagem { overflow-x: auto; }
+
+/* ---- campo de arquivo ------------------------------------------------------------------- */
+
+/* `.entrada` num `<input type="file">` estiliza a caixa, mas **não** o botão interno, que é
+   desenhado pelo sistema operacional: num tema escuro ele aparece cinza-claro, gritando no meio
+   do resto. `::file-selector-button` é o único jeito de alcançá-lo sem JS. */
+input[type="file"].entrada {
+  padding: 6px;
+  cursor: pointer;
+}
+
+input[type="file"].entrada::file-selector-button {
+  margin-right: var(--espaco-3);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: var(--texto-pequeno);
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+input[type="file"].entrada::file-selector-button:hover {
+  border-color: var(--cor-acao);
+}

@@ -4,7 +4,9 @@
 > o **grupo A** — `.superpowers/sdd/14-ui/grupo-a-questoes.md`, o fluxo de responder questão).
 > Quando ler: para saber por que o código do grupo A ficou como ficou, ou para retomar de onde
 > parou. As outras frentes da fatia 14 (biblioteca em si, grupo C — medida — e as demais telas do
-> protótipo) têm o próprio registro; este arquivo não fala por elas.
+> protótipo) têm o próprio registro; este arquivo não fala por elas. A **§6** é a única exceção:
+> não é da fatia 14, é o defeito de configuração que apareceu ao servir a piloto na rede local
+> (23/09/2026) e não tinha diário próprio onde morar.
 
 **Contexto da sessão:** outro agente trabalhava, em paralelo, em
 `api/{diagnostico,painel}.py`, `dados/repositorio_{diagnostico,painel}.py`,
@@ -137,3 +139,49 @@ certo/errado, tela de múltipla escolha, resposta sem confiança (200, aviso vis
 intacto para tentar de novo), resposta certa e errada nos dois tipos, questão sem justificativa,
 origem com cargo interno omitido. Não subi navegador gráfico — a verificação visual foi por HTML
 renderizado, não por captura de tela.
+
+## 6. Fora do grupo A: o defeito que apareceu ao servir a piloto na rede local (23/09/2026)
+
+Não é trabalho da fatia 14 — está aqui porque apareceu ao pôr o produto no ar para a Linda
+testar do tablet dela (ADR-0030: "a Linda usa o produto na máquina/rede do dono") e não tinha
+diário próprio onde morar.
+
+**O sintoma:** subir o servidor pela raiz do repositório (`uvicorn aprovaos.main:criar_app`,
+`--host 0.0.0.0`, sem Docker) morria no arranque com
+`RuntimeError: Directory 'static' does not exist`.
+
+**A causa:** variável **vazia** no `.env` não é variável **ausente**. O `.env` traz `WEB_DIR=`
+(e `UPLOADS_DIR=`, `DOCUMENTOS_DIR=`, `GOOGLE_API_KEY=`, as duas do OAuth e as duas do Mercado
+Pago), e o pydantic-settings entrega a string vazia — que cada campo opcional converte num valor
+que **parece preenchido**:
+
+- `Path("")` é `Path(".")`, que é *truthy*: `config.web_dir or raiz / "web"` (`main.py:61`) nunca
+  cai no padrão, e o `StaticFiles` recebe `./static`, que não existe.
+- `SecretStr("")` **não é `None`**: os seis agentes passam pelo `if config.google_api_key is
+  None` e montam `genai.Client(api_key="")`. Em vez de degradar para regras — a promessa
+  explícita da ADR-0030, "o roteador degrada em vez de falhar" — eles falhariam com erro de
+  autenticação. Pelo mesmo caminho, `MERCADO_PAGO_ACCESS_TOKEN=` tiraria o billing do estado
+  desligado com um token vazio, e `/assinar` deixaria de devolver 404 (fatia 12, Ruling 46).
+
+Ou seja: os dois campos que mais importam estar desligados eram os que ligavam sozinhos. Cada
+linha do `.env.example` promete "vazio = …" e nenhuma delas era verdade fora do Compose — só não
+tinha aparecido porque o `Dockerfile` passa `WEB_DIR=/web` explícito e ninguém tinha subido pela
+raiz ainda.
+
+**A correção:** um validador só, `Configuracoes._vazio_e_ausente` (`config.py`, `mode="before"`
+sobre os 8 campos opcionais), que trata string vazia ou só de espaços como ausente. Campo
+obrigatório não entra: `DATABASE_URL=` vazio continua sendo erro de validação. Red primeiro —
+o teste parametrizado (`tests/test_config.py`) falhou nos 8 campos antes de existir validador, e
+o par "valor real continua chegando" passou desde o início, provando que a correção não apaga
+valor bom. Suíte: **1228 passed, 6 skipped** (eram 1204), `scripts/checar.sh` verde.
+
+**Como servir a piloto na rede local**, já com isto no lugar (os dados reais estão no
+`backend/dev.db`, não no Postgres do Compose):
+
+```bash
+DATABASE_URL="sqlite:///$PWD/backend/dev.db" \
+  backend/.venv/bin/uvicorn aprovaos.main:criar_app --factory --host 0.0.0.0 --port 8000
+```
+O `.env` já traz `COOKIE_SEGURO=false` — sem isso o cookie de sessão sai com `Secure`, o tablet
+acessa por `http://` e o navegador **descarta o cookie**: ela loga e volta para o login, sem erro
+visível. `caffeinate -dis` enquanto durar a sessão, ou o Mac dorme e derruba o servidor.

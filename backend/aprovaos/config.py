@@ -9,7 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -94,6 +94,40 @@ class Configuracoes(BaseSettings):
     google_oauth_client_secret: SecretStr | None = None
     mercado_pago_access_token: SecretStr | None = None
     mercado_pago_webhook_secret: SecretStr | None = None
+
+    @field_validator(
+        "web_dir",
+        "uploads_dir",
+        "documentos_dir",
+        "google_api_key",
+        "google_oauth_client_id",
+        "google_oauth_client_secret",
+        "mercado_pago_access_token",
+        "mercado_pago_webhook_secret",
+        mode="before",
+    )
+    @classmethod
+    def _vazio_e_ausente(cls, valor: object) -> object:
+        """Trata variável vazia (`WEB_DIR=` no `.env`) como variável ausente.
+
+        Sem isto, o pydantic-settings entrega a string vazia e cada campo opcional a converte
+        num valor que **parece** preenchido: `Path("")` vira `Path(".")` (truthy, então
+        `config.web_dir or raiz / "web"` em `main.py` nunca cai no padrão e o app morre com
+        `Directory 'static' does not exist`) e `SecretStr("")` não é `None` (então os agentes
+        montam `genai.Client(api_key="")` em vez de degradar para regras, e o billing sairia do
+        estado desligado com um token vazio). Cada linha do `.env.example` promete o contrário:
+        "vazio = …". Achado em 23/09/2026 ao subir o servidor pela raiz do repositório.
+
+        Args:
+            valor: o valor bruto do ambiente, do `.env` ou do construtor.
+
+        Returns:
+            `None` quando o valor é uma string só de espaços (ou vazia); o valor intacto no
+            resto dos casos — inclusive `Path` e `SecretStr` já construídos.
+        """
+        if isinstance(valor, str) and not valor.strip():
+            return None
+        return valor
 
 
 @lru_cache

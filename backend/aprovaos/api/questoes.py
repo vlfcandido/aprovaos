@@ -873,6 +873,9 @@ def obter_revisao(
     contexto = contexto_questao(
         db, topico, questao, acao_post="/revisar", campos_ocultos=[("cartao_id", str(cartao.id))]
     )
+    # ADR-0051 ("sessão com fim visível"): a fila não dizia o tamanho, então a aluna respondia
+    # sem saber se era o último cartão ou o vigésimo. Não saber onde termina é o que cansa.
+    contexto["restantes"] = len(vencidos)
     return renderizar(request, "questoes/revisao.html", contexto, usuario)
 
 

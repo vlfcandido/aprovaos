@@ -12,6 +12,14 @@
   <div class="stack">
     <span class="eyebrow">Revisão espaçada</span>
     <h1>Revisar hoje</h1>
+    {# ADR-0051: a fila tem fim, e a aluna precisa vê-lo. O número é o de cartões vencidos
+       agora, então ele cai a cada resposta — é a fila encolhendo, não uma meta a bater. -#}
+    {% if restantes %}
+      <p class="small muted" style="margin:0">
+        {{ restantes }} {{ "cartão" if restantes == 1 else "cartões" }} para revisar agora.
+        {%- if restantes > 1 %} Cada resposta tira um da fila.{% endif %}
+      </p>
+    {% endif %}
   </div>
   <div id="questao" aria-live="polite">
     {% if questao %}

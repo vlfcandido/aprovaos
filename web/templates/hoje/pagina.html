@@ -135,10 +135,22 @@
 
     <div class="stack dia__blocos">
     {% if not blocos %}
-      <div class="vazio">
-        <p>Nenhum bloco hoje.</p>
-        <p class="small">O porquê está explicado acima — não é um erro, é a decisão do agente para hoje.</p>
-      </div>
+      {# ADR-0051: descansar é recomendação válida (visão §4). Um dia em que o agente mandou
+         descansar é um dia **cumprido** — mostrá-lo como tela vazia ensinava a aluna que
+         descanso é falha, que é exatamente o que a ofensiva diária faz e o motivo de ela ter
+         ficado de fora. Recompensa discreta: uma frase, sem som, sem confete. -#}
+      {% if plano.modo == "descanso" %}
+        <div class="card stack">
+          <span class="chip good">Dia cumprido</span>
+          <p class="prosa" style="margin:0">Hoje o plano é descansar, e descansar conta. O agente
+            registra este dia como cumprido — você volta amanhã sem dívida nenhuma.</p>
+        </div>
+      {% else %}
+        <div class="vazio">
+          <p>Nenhum bloco hoje.</p>
+          <p class="small">O porquê está explicado acima — não é um erro, é a decisão do agente para hoje.</p>
+        </div>
+      {% endif %}
     {% endif %}
     {% for bloco in blocos %}
       <div class="card stack" data-bloco-id="{{ bloco.id }}"

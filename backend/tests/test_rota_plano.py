@@ -292,3 +292,31 @@ def test_hoje_sem_data_alvo_nao_mostra_selo_de_semana_da_prova(
     resposta = cliente.get("/hoje")
     assert resposta.status_code == 200
     assert "Semana da prova" not in resposta.text
+
+
+# ADR-0051: descansar é recomendação válida (visão §4), então o dia de descanso é um dia
+# **cumprido** — não uma tela vazia com "nenhum bloco hoje", que lê como falha. É o único dos
+# seis mecanismos de gamificação avaliados que nenhum concorrente da pesquisa §6 faz.
+def test_dia_de_descanso_aparece_como_cumprido_e_nao_como_vazio(
+    cliente: TestClient, db: Session
+) -> None:
+    """Energia no chão e sem cartão vencido: o agente manda descansar e o dia está cumprido."""
+    _preparar_conta_com_conteudo(cliente, db, "descanso-cumprido@exemplo.com")
+
+    corpo = cliente.post(
+        "/hoje/checkin", data={"energia": "1", "sono_h": "4", "tempo_min": "60"}
+    ).text
+
+    assert "Dia cumprido" in corpo
+    assert "Nenhum bloco hoje" not in corpo, "descanso não é ausência de plano, é o plano"
+
+
+def test_dia_de_descanso_explica_o_porque(cliente: TestClient, db: Session) -> None:
+    """Cumprido sem explicação viraria troféu vazio: o porquê do agente continua na tela."""
+    _preparar_conta_com_conteudo(cliente, db, "descanso-porque@exemplo.com")
+
+    corpo = cliente.post(
+        "/hoje/checkin", data={"energia": "1", "sono_h": "4", "tempo_min": "60"}
+    ).text
+
+    assert "Por quê?" in corpo

@@ -174,3 +174,38 @@ def test_get_revisar_de_outro_usuario_nao_ve_cartao_alheio(logado: TestClient, d
     resposta = logado.get("/revisar")
     assert resposta.status_code == 200
     assert "Nenhum cartão vencido" in resposta.text
+
+
+# ADR-0051, "sessão com fim visível": a fila de revisão não dizia quantos cartões faltam, então
+# a aluna respondia sem saber se era o último ou o vigésimo. Não saber onde termina é o que
+# cansa — foi por isso que ela largou o diagnóstico em 23/09/2026.
+def test_revisar_diz_quantos_cartoes_faltam(logado: TestClient, db: Session) -> None:
+    """Com dois cartões vencidos, a tela diz que faltam dois.
+
+    Os dois cartões precisam vir de questões **diferentes**: `registrar_erro` é idempotente por
+    `(usuario, questao)` e `salvar_questoes` deduplica por `hash_dedup`, então repetir o mesmo
+    enunciado devolveria um cartão só. `numero_item` é o que muda o hash.
+    """
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    for numero, marca in ((11, "rev-fila-1"), (22, "rev-fila-2")):
+        documento = _documento(db, marca)
+        questao = _criar_questao(db, topico, documento.id, gabarito="C", numero_item=numero)
+        assert registrar_erro(db, dona, questao, "duvida", agora_utc() - timedelta(days=1))
+    db.commit()
+
+    corpo = logado.get("/revisar").text
+
+    assert "2 cartões" in corpo
+
+
+def test_revisar_no_singular_quando_falta_um(logado: TestClient, db: Session) -> None:
+    """Concordância de número: "1 cartão", nunca "1 cartões"."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    _questao_e_cartao_vencido(db, dona, topico, hash_documento="rev-fila-unico")
+
+    corpo = logado.get("/revisar").text
+
+    assert "1 cartão" in corpo
+    assert "1 cartões" not in corpo

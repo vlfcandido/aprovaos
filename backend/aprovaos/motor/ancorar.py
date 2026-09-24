@@ -60,6 +60,17 @@ FIXTURES_OFFLINE: dict[str, str] = {
     "lei-11340-2006": "lei11340_planalto_compilada.htm",
     "lei-6830-1980": "lei6830_planalto_compilada.htm",
     "lei-13105-2015": "lei13105_planalto_compilada.htm",
+    # Ampliação de 23/09/2026 — as leis do edital real da piloto (TJ-PR/AOCP). Baixadas do
+    # Planalto na mesma data com UA de navegador (sem ele o site devolve 0 bytes, ver
+    # `LEIA-ME.md` das fixtures); tamanho e HTTP de cada uma registrados lá.
+    "codigo-penal": "del2848_planalto_compilada.htm",
+    "cpp": "del3689_planalto_compilada.htm",
+    "codigo-civil": "lei10406_planalto_compilada.htm",
+    "lgpd": "lei13709_planalto_compilada.htm",
+    "lei-9099-1995": "lei9099_planalto_compilada.htm",
+    "lei-12153-2009": "lei12153_planalto_compilada.htm",
+    "lindb": "del4657_planalto_compilada.htm",
+    "lei-12527-2011": "lei12527_planalto_compilada.htm",
 }
 """As normas do catálogo que esta rodada resolve — offline, do HTML medido em
 `knowledge/fixtures/juridico/` (ver `LEIA-ME.md` de lá). Uma norma nova no `CATALOGO` só entra

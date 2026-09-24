@@ -209,3 +209,35 @@ def test_revisar_no_singular_quando_falta_um(logado: TestClient, db: Session) ->
 
     assert "1 cartão" in corpo
     assert "1 cartões" not in corpo
+
+
+# ADR-0051, mecanismo 1: a frase "faltam N" diz o tamanho, mas não mostra o caminho andado. A
+# barra precisa de um denominador honesto — o total do dia é o que ainda vence mais o que ela já
+# revisou hoje. Sem somar os revisados, a barra nunca sairia do zero: a fila só encolhe.
+def test_revisar_mostra_barra_com_o_total_do_dia(logado: TestClient, db: Session) -> None:
+    """Depois de revisar um cartão, a barra mostra 1 de 2 — não "1 cartão" isolado."""
+    dona = _usuario_por_email(db, CADASTRO["email"])
+    _edital, topico = _edital_com_topico(db, dona.tenant_id, SLUG)
+    cartoes = []
+    for numero, marca in ((31, "rev-barra-1"), (32, "rev-barra-2")):
+        documento = _documento(db, marca)
+        questao = _criar_questao(db, topico, documento.id, gabarito="C", numero_item=numero)
+        cartao = registrar_erro(db, dona, questao, "duvida", agora_utc() - timedelta(days=1))
+        assert cartao is not None
+        cartoes.append((cartao, questao))
+    db.commit()
+
+    cartao, questao = cartoes[0]
+    logado.post(
+        "/revisar",
+        data={
+            "cartao_id": str(cartao.id),
+            "questao_id": str(questao.id),
+            "resposta": "C",
+            "confianca": "certeza",
+        },
+    )
+    corpo = logado.get("/revisar").text
+
+    assert 'role="progressbar"' in corpo
+    assert "de 2" in corpo

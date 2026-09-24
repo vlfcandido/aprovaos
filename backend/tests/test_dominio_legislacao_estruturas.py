@@ -1,9 +1,11 @@
-# O que é: testes red-first das quatro estruturas da P-40 (docs/PENDENCIAS.md) que
-# `dominio/legislacao.extrair_artigo` ainda não tratava — título de Seção/Capítulo em Title
-# Case, parágrafo com sufixo de letra, alínea direto sob o caput e anotação "Vigência
-# encerrada" órfã — contra os HTMLs reais em `knowledge/fixtures/juridico/`. Quando ler: ao
-# mexer em `_eh_titulo_estrutural`, `_PADRAO_PARAGRAFO`, `alvo_alinea` ou
-# `_PADRAO_VIGENCIA_SEM_PARENTESES`.
+# O que é: testes red-first das estruturas do Planalto que `dominio/legislacao.extrair_artigo`
+# não tratava — (a) título de Seção/Capítulo em Title Case, (b) parágrafo com sufixo de letra,
+# (c) alínea direto sob o caput e (d) anotação "Vigência encerrada" órfã (P-40, 19/09/2026); (e)
+# inciso sem travessão, (f) pontuação órfã do <strike>, (g) "Vide ..." sem parênteses e (h)
+# rubrica longa do artigo seguinte (23/09/2026) — contra os HTMLs reais em
+# `knowledge/fixtures/juridico/`. Quando ler: ao mexer em `_eh_titulo_estrutural`,
+# `_PADRAO_PARAGRAFO`, `_PADRAO_INCISO`, `alvo_alinea`, `_eh_residuo_de_revogado`,
+# `_eh_epigrafe_do_proximo_artigo` ou nos padrões de anotação sem parênteses.
 from pathlib import Path
 
 import pytest
@@ -14,6 +16,7 @@ from aprovaos.motor.fontes.planalto import decodificar_html
 
 RAIZ = Path(__file__).resolve().parents[2]
 _JURIDICO = RAIZ / "knowledge/fixtures/juridico"
+_ADCT = "Vide art. 96 - ADCT"
 
 
 def _ler(nome: str) -> str:
@@ -28,6 +31,9 @@ HTML_LEI_11340 = _ler("lei11340_planalto_compilada.htm")
 HTML_LEI_6404 = _ler("lei6404_planalto_compilada.htm")
 HTML_LEI_11101 = _ler("lei11101_planalto_compilada.htm")
 HTML_CLT = _ler("clt_planalto_compilada.htm")
+HTML_CF = _ler("constituicao_planalto_compilada.htm")
+HTML_CPP = _ler("del3689_planalto_compilada.htm")
+HTML_CP = _ler("del2848_planalto_compilada.htm")
 
 
 # --- (a) título de Seção/Capítulo em Title Case entre artigos --------------------------------
@@ -194,4 +200,116 @@ def test_inciso_truncado_sem_pontuacao_final_levanta_em_vez_de_sumir() -> None:
     html = _html_artigo_com_inciso_truncado()
 
     with pytest.raises(EstruturaNaoTratada):
+        extrair_artigo(html, "99")
+
+
+# --- (e) inciso que o Planalto grafa sem o travessão -------------------------------------------
+
+
+def test_inciso_sem_travessao_do_artigo_52_da_cf_e_lido_como_inciso() -> None:
+    """Na redação dada pela EC 45/2004, o Planalto perdeu o travessão do inciso II do art. 52 da
+    CF: o parágrafo vigente começa em `"II processar e julgar os Ministros do Supremo Tribunal
+    Federal, os membros do Conselho Nacional de Justiça..."` (a versão revogada, dentro do
+    `<strike>` logo acima, traz o `"II - "` certinho). Sem reconhecer essa forma, o art. 52
+    inteiro — competência privativa do Senado, pedido pela receita `noc-dir-con-06-6-organizacao`
+    — virava lacuna."""
+    artigo = extrair_artigo(HTML_CF, "52")
+
+    inciso_ii = next(i for i in artigo.incisos if i.identificador == "II")
+    assert inciso_ii.tipo == "inciso"
+    assert inciso_ii.texto.startswith("II processar e julgar os Ministros do Supremo Tribunal")
+    assert [i.identificador for i in artigo.incisos] == [
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII",
+        "IX", "X", "XI", "XII", "XIII", "XIV", "XV",
+    ]  # fmt: skip
+
+
+def test_inciso_com_sufixo_de_letra_e_sem_travessao_do_artigo_92_da_cf() -> None:
+    """Art. 92, I-A (CNJ, incluído pela EC 45/2004): as duas variações no mesmo parágrafo —
+    sufixo de letra no numeral **e** ausência do travessão (`"I-A o Conselho Nacional de
+    Justiça;"`)."""
+    artigo = extrair_artigo(HTML_CF, "92")
+
+    assert [i.identificador for i in artigo.incisos] == [
+        "I", "I-A", "II", "II-A", "III", "IV", "V", "VI", "VII",
+    ]  # fmt: skip
+    inciso_ia = next(i for i in artigo.incisos if i.identificador == "I-A")
+    assert inciso_ia.texto == "I-A o Conselho Nacional de Justiça;"
+    assert inciso_ia.redacao_de == "Incluído pela Emenda Constitucional nº 45, de 2004"
+
+
+def test_numeral_romano_com_l_minusculo_nao_vira_inciso_inventado() -> None:
+    """O contraponto que mantém a rede de segurança de pé: no CPP, art. 226, o Planalto escreveu
+    `"Il - a pessoa, cujo reconhecimento se pretender..."` com **L minúsculo** no lugar do
+    segundo `I`. Não é forma de inciso — é erro de digitação da fonte —, e o artigo continua
+    sendo `EstruturaNaoTratada`, jamais um inciso com identificador `"I"` inventado por nós."""
+    with pytest.raises(EstruturaNaoTratada, match="Il - a pessoa"):
+        extrair_artigo(HTML_CPP, "226")
+
+
+# --- (f) pontuação órfã que sobra fora do <strike> do trecho revogado --------------------------
+
+
+def test_ponto_e_virgula_orfao_do_artigo_102_da_cf_nao_vira_dispositivo() -> None:
+    """No art. 102, I, o `<p>` da alínea `c` revogada fecha o `;` **fora** do `<strike>`; tirado
+    o texto revogado, sobra um parágrafo cujo conteúdo é só `";"`. Não é dispositivo truncado
+    nem título: é resto de pontuação, e sumir é a única leitura honesta dele."""
+    artigo = extrair_artigo(HTML_CF, "102")
+
+    inciso_i = next(i for i in artigo.incisos if i.identificador == "I")
+    assert [a.identificador for a in inciso_i.alineas] == [
+        "a", "b", "c", "d", "e", "f", "g", "i", "j", "l", "m", "n", "o", "p", "q", "r",
+    ]  # fmt: skip
+    assert all(a.texto.strip() != ";" for a in inciso_i.alineas)
+
+
+# --- (g) anotação "Vide ..." sem parênteses colada ao fim do dispositivo -----------------------
+
+
+def test_vide_sem_parenteses_do_paragrafo_4_do_artigo_18_da_cf_vira_procedencia() -> None:
+    """O § 4º do art. 18 da CF termina em `"...publicados na forma da lei."` e o Planalto cola,
+    depois disso, um link sem parênteses: `"Vide art. 96 - ADCT"`. Grudada no texto, a nota
+    fazia o parágrafo parecer truncado (não terminava mais em `.`/`:`/`;`) e derrubava o artigo
+    inteiro — que a receita `noc-dir-con-05-5-organizacao` pede."""
+    artigo = extrair_artigo(HTML_CF, "18")
+
+    paragrafo_4 = next(p for p in artigo.paragrafos if p.identificador == "§ 4º")
+    assert paragrafo_4.texto.endswith("apresentados e publicados na forma da lei.")
+    assert _ADCT not in paragrafo_4.texto
+    assert _ADCT in (paragrafo_4.redacao_de or "")
+
+
+# --- (h) rubrica (nomen iuris) longa do artigo seguinte, colada ao fim deste -------------------
+
+
+def test_rubrica_do_proximo_tipo_penal_nao_entra_no_artigo_anterior() -> None:
+    """Entre os arts. 313 e 313-A do Código Penal, o Planalto põe a rubrica do próximo tipo —
+    `"Inserção de dados falsos em sistema de informações"`, sete palavras, acima do limite do
+    título curto. É rótulo do artigo seguinte, não dispositivo do art. 313 (peculato mediante
+    erro de outrem), pedido pela receita `noc-dir-pen-07-crimes-contra`."""
+    artigo = extrair_artigo(HTML_CP, "313")
+
+    assert artigo.caput.texto.startswith("Art. 313 - Apropriar-se")
+    textos = [
+        artigo.caput.texto,
+        *(i.texto for i in artigo.incisos),
+        *(p.texto for p in artigo.paragrafos),
+        *(p.texto for p in artigo.penas),
+    ]
+    assert not any("Inserção de dados falsos" in t for t in textos)
+
+
+def test_bloco_sem_pontuacao_no_meio_do_artigo_continua_levantando() -> None:
+    """A contraprova da regra (h): a tolerância vale **só** para o último bloco do artigo, onde a
+    técnica legislativa põe a rubrica do próximo. No meio do artigo, um bloco sem pontuação de
+    fechamento segue sendo `EstruturaNaoTratada` — é o que impede o heurístico de voltar a ser o
+    "qualquer texto sem ponto final é título" derrubado na revisão de 19/09/2026."""
+    html = (
+        "<p>Art. 99. É vedado ao servidor público, sob pena de demissão:</p>"
+        "<p>Rubrica Que Parece Titulo Mas Esta No Meio</p>"
+        "<p>II - receber vantagem indevida;</p>"
+        "<p>Art. 100. Outro artigo qualquer.</p>"
+    )
+
+    with pytest.raises(EstruturaNaoTratada, match="Rubrica Que Parece"):
         extrair_artigo(html, "99")

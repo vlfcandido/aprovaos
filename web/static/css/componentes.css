@@ -18,6 +18,11 @@
 .small { font-size: var(--texto-pequeno); }
 .mono { font-family: var(--fonte-mono); font-variant-numeric: tabular-nums; }
 
+/* Número que a aluna compara com outro número (tabela, painel, fila, contagem) usa algarismo de
+   largura fixa: sem `tabular-nums` o "1" é mais estreito que o "8" e a coluna dança a cada
+   recarga. Serve para dado dentro de frase; tabela e KPI já vêm com ele ligado. */
+.tabular { font-variant-numeric: tabular-nums; }
+
 /* Medida de leitura: sem isto o texto atravessa o conteúdo inteiro e fica ilegível. */
 .prosa { max-width: var(--medida); }
 .prosa-estreita { max-width: var(--medida-estreita); }
@@ -62,12 +67,16 @@
 
 /* ---- botões --------------------------------------------------------------------------- */
 
+/* A borda do controle usa `--cor-linha-forte` (3:1), não a decorativa `--cor-linha`
+   (1,38:1): dentro de um cartão o fundo do botão secundário é o fundo do cartão, e com a
+   borda fraca o limite do controle era imperceptível — critério 1.4.11 da WCAG 2.2.
+   Cartão e tabela continuam com a borda decorativa: lá a borda é moldura, não afordância. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--espaco-2);
-  border: 1px solid var(--cor-linha);
+  border: 1px solid var(--cor-linha-forte);
   background: var(--cor-superficie);
   color: var(--cor-texto);
   border-radius: 8px;
@@ -86,7 +95,7 @@
 .btn.ghost { background: transparent; }
 .btn.sm { padding: 5px 10px; font-size: var(--texto-pequeno); }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
-.btn[disabled]:hover { border-color: var(--cor-linha); filter: none; }
+.btn[disabled]:hover { border-color: var(--cor-linha-forte); filter: none; }
 
 /* ---- chip ----------------------------------------------------------------------------- */
 
@@ -105,7 +114,7 @@
 .chip.good { background: var(--cor-ok-suave); color: var(--cor-ok); }
 .chip.bad { background: var(--cor-erro-suave); color: var(--cor-erro); }
 .chip.warn { background: var(--cor-alerta-suave); color: var(--cor-alerta); }
-.chip.novo { background: var(--cor-porque-suave); color: var(--cor-porque); }
+.chip.novo { background: var(--cor-porque-suave); color: var(--cor-porque-texto); }
 
 /* ---- "por quê": o componente que carrega o princípio nº 1 do produto ------------------- */
 
@@ -182,7 +191,7 @@
      legível. */
   max-width: 100%;
   flex-wrap: wrap;
-  border: 1px solid var(--cor-linha);
+  border: 1px solid var(--cor-linha-forte);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -205,6 +214,9 @@
 
 .campo-rotulo { font-size: var(--texto-pequeno); font-weight: 500; color: var(--cor-texto-2); }
 
+/* A borda do campo é `--cor-linha-forte`, não `--cor-linha`: dentro de um cartão o fundo do
+   campo é o mesmo do cartão, então a borda é a única coisa que diz onde o campo começa — e a
+   WCAG 1.4.11 pede 3:1 para esse limite. Com `--cor-linha` (1,38:1) o campo sumia no cartão. */
 .entrada,
 select.entrada,
 textarea.entrada {
@@ -214,7 +226,7 @@ textarea.entrada {
   font-size: var(--texto-base);
   color: var(--cor-texto);
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-linha);
+  border: 1px solid var(--cor-linha-forte);
   border-radius: 8px;
   padding: 8px 10px;
 }
@@ -225,12 +237,187 @@ textarea.entrada {
 select.entrada {
   appearance: none;
   padding-right: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%237c86a2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23616b88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
 }
 
 .entrada:focus-visible { outline: 2px solid var(--cor-acao); outline-offset: 1px; }
+
+/* ---- os estados que todo controle precisa ter, e que faltavam ---------------------------------
+   Campo com erro: a borda vermelha é o segundo sinal, nunca o primeiro — o primeiro é a frase
+   em `.campo-erro`, que diz **o que fazer**. Marque o campo com `aria-invalid="true"` e ligue os
+   dois com `aria-describedby`; sem isso o leitor de tela anuncia um campo comum. */
+.entrada[aria-invalid="true"] { border-color: var(--cor-erro); }
+.entrada[aria-invalid="true"]:focus-visible { outline-color: var(--cor-erro); }
+
+.campo-erro {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-2);
+  color: var(--cor-erro);
+  font-size: var(--texto-pequeno);
+}
+
+/* O `::before` é decorativo (o texto já diz tudo), então fica fora do leitor de tela. */
+.campo-erro::before { content: "!"; font-weight: 700; }
+
+/* Desabilitado: some o cursor de digitação e baixa o contraste do fundo, mas o texto continua
+   legível — campo desabilitado que ninguém consegue ler é informação perdida, não desligada. */
+.entrada:disabled,
+.entrada[readonly] {
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  border-color: var(--cor-linha);
+  cursor: not-allowed;
+}
+
+/* Carregando. Duas formas, uma regra: o HTMX marca sozinho o elemento em voo com
+   `.htmx-request`; fora do HTMX, use `aria-busy="true"`. O `::after` é o anel girando; sob
+   `prefers-reduced-motion` ele para de girar e vira um ponto — o botão continua dizendo que
+   está ocupado pelo `aria-busy`, que é o que o leitor de tela anuncia. */
+.btn[aria-busy="true"],
+.btn.htmx-request {
+  cursor: progress;
+  color: transparent;
+  position: relative;
+}
+
+.btn[aria-busy="true"]::after,
+.btn.htmx-request::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--raio-total);
+  border: 2px solid currentcolor;
+  border-block-start-color: transparent;
+  color: var(--cor-texto-2);
+}
+
+.btn.primary[aria-busy="true"]::after,
+.btn.primary.htmx-request::after { color: var(--cor-acao-texto); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn[aria-busy="true"]::after,
+  .btn.htmx-request::after { animation: girar 700ms linear infinite; }
+}
+
+/* Esqueleto: o lugar do conteúdo enquanto ele não chegou. Use o tamanho do conteúdo real, não um
+   retângulo genérico — esqueleto de tamanho errado é a página pulando quando o conteúdo entra.
+   `aria-hidden="true"` no bloco e `aria-busy` na região: o leitor de tela não lê tijolos. */
+.esqueleto {
+  display: block;
+  background: var(--cor-superficie-2);
+  border-radius: var(--raio-pequeno);
+  min-height: 1rem;
+}
+
+.esqueleto + .esqueleto { margin-top: var(--espaco-2); }
+.esqueleto--titulo { height: var(--texto-kpi); max-width: 18ch; }
+.esqueleto--linha { height: var(--texto-base); }
+.esqueleto--curta { max-width: 40%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .esqueleto {
+    background-image: linear-gradient(
+      90deg,
+      transparent, rgb(255 255 255 / 0.18), transparent
+    );
+    background-size: 200% 100%;
+    animation: esqueleto-brilho 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes esqueleto-brilho {
+  from { background-position: 200% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* ---- progresso: a sessão com fim visível (ADR-0051) -------------------------------------------
+   A aluna abandonou o diagnóstico por não ver onde ele terminava ("tava cansada pra isso",
+   23/09/2026). Toda sessão declara o fim: barra com rótulo, ou anel quando o número precisa
+   caber ao lado de um título. O rótulo é obrigatório — barra sem número é decoração. */
+.progresso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.progresso__rotulo {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  font-size: var(--texto-pequeno);
+  color: var(--cor-texto-2);
+}
+
+/* O anel usa `--anel` (0 a 100) escrito no `style` do elemento — é dado, não espaçamento.
+   `conic-gradient` desenha o arco sem SVG e sem JS. */
+.anel {
+  --anel: 0;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--raio-total);
+  background:
+    conic-gradient(var(--cor-acao) calc(var(--anel) * 1%), var(--cor-superficie-2) 0);
+  font-size: var(--texto-pequeno);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.anel > span {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--raio-total);
+  background: var(--cor-superficie);
+}
+
+/* ---- tabela de contraste (existe só na amostra `GET /estilo`, que não vai para produção) ------ */
+
+.contraste-amostra {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: var(--espaco-1) var(--espaco-2);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-pequeno);
+  font-size: var(--texto-dado);
+}
+
+.contraste-razao {
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- cor por matéria ---------------------------------------------------------------------------
+   `data-materia` de 1 a 9 (a paleta de Okabe & Ito nos tokens). A marca é sempre acompanhada do
+   nome da matéria: cor não é o único sinal, nunca. Acima de nove matérias, repita os tons — cor
+   inventada na hora é cor que ninguém mediu contra o fundo. */
+.materia-marca {
+  display: inline-block;
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-texto-3);
+}
+
+.materia-marca[data-materia="1"] { background: var(--materia-1); }
+.materia-marca[data-materia="2"] { background: var(--materia-2); }
+.materia-marca[data-materia="3"] { background: var(--materia-3); }
+.materia-marca[data-materia="4"] { background: var(--materia-4); }
+.materia-marca[data-materia="5"] { background: var(--materia-5); }
+.materia-marca[data-materia="6"] { background: var(--materia-6); }
+.materia-marca[data-materia="7"] { background: var(--materia-7); }
+.materia-marca[data-materia="8"] { background: var(--materia-8); }
+.materia-marca[data-materia="9"] { background: var(--materia-9); }
 
 /* ---- estado vazio --------------------------------------------------------------------------- */
 
@@ -255,6 +442,7 @@ select.entrada {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--texto-pequeno);
+  font-variant-numeric: tabular-nums;
 }
 
 .tabela th {

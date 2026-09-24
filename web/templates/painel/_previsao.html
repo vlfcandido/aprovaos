@@ -1,11 +1,13 @@
 {# O que é: fragmento da previsão de nota v0 (RF-18) — sempre nota com intervalo, nunca um número
    sozinho (regra 11 do CLAUDE.md, ADR-0042). `previsao` é `None` quando `dominio.previsao
    .prever_nota` levanta `ValueError` (nenhuma matéria tem dado ainda): a tela declara a lacuna,
-   nunca mostra nota 0 %. A banda usa `.intervalo` da biblioteca (faixa + traço, sem alça — o
-   `<svg>` com `<circle>` de antes parecia um slider arrastável, defeito reproduzido no
-   navegador). `previsao.porque` já diz qual matéria pesa mais e quais estão sem dado — por isso
-   a lacuna de matérias sem dado não repete em parágrafo à parte (saía duplicada). Incluído por
-   `painel/pagina.html`. Quando ler: ao mudar o texto da previsão. #}
+   nunca mostra nota 0 %. Com `previsao.incerta` (confiança baixa) a manchete é a incerteza, não o
+   ponto estimado: "47,6 %" ao lado de uma faixa de 18 % a 85 % não informa nada, e dito grande
+   ainda parece promessa. O ponto continua escrito, em letra de detalhe, porque o desenho nunca é
+   a única fonte da informação (ADR-0042). A faixa usa `.intervalo` da biblioteca (faixa + traço,
+   sem alça — o `<svg>` com `<circle>` de antes parecia um slider arrastável). `o_que_falta` é o
+   caminho para a confiança subir e é onde as matérias em branco aparecem — uma vez só, como ação.
+   Incluído por `painel/pagina.html`. Quando ler: ao mudar o texto da previsão. #}
 <div class="card stack">
   <div class="row between">
     <span class="eyebrow">Previsão de nota</span>
@@ -16,23 +18,46 @@
     {% endif %}
   </div>
 
-  {% if pesos_lacuna %}<p class="small muted">{{ pesos_lacuna }}.</p>{% endif %}
-
   {% if previsao %}
-    <div class="kpi">
-      <span class="v">{{ previsao.nota_pct | pct }}
-        <small>— entre {{ previsao.nota_inferior_pct | pct }} e {{ previsao.nota_superior_pct | pct }}</small>
-      </span>
-    </div>
+    {% if previsao.incerta %}
+      <p class="prosa"><b>Ainda não dá para prever sua nota.</b> Com o que você respondeu até
+        agora, ela cabe em qualquer lugar entre {{ previsao.nota_inferior_pct | pct_int }} e
+        {{ previsao.nota_superior_pct | pct_int }}.</p>
+    {% else %}
+      <div class="kpi">
+        <span class="v">{{ previsao.nota_pct | pct_int }}</span>
+        <span class="small muted">entre {{ previsao.nota_inferior_pct | pct_int }} e
+          {{ previsao.nota_superior_pct | pct_int }}</span>
+      </div>
+    {% endif %}
+
     <div class="intervalo">
       <span class="faixa" style="left:{{ previsao.intervalo.esquerda }}%;width:{{ previsao.intervalo.largura }}%"></span>
       <span class="ponto" style="left:{{ previsao.intervalo.ponto }}%"></span>
     </div>
-    <p class="small muted">{{ previsao.porque }}.</p>
+
+    {% if previsao.incerta %}
+      <p class="small muted">O traço marca {{ previsao.nota_pct | pct_int }}, o ponto mais
+        provável hoje — com tão poucas respostas, ele ainda anda bastante.</p>
+    {% endif %}
+
+    {% if previsao.o_que_falta %}
+      <p class="prosa">{{ previsao.o_que_falta }}</p>
+    {% endif %}
+
+    <div class="why">
+      <b>Por quê?</b>
+      <p>{{ previsao.porque }}
+        {% if pesos_lacuna %}{{ pesos_lacuna[0] | upper }}{{ pesos_lacuna[1:] }}.{% endif %}</p>
+    </div>
+
     {% if previsao.probabilidade_lacuna %}
-      <p class="small muted">{{ previsao.probabilidade_lacuna }}.</p>
+      <p class="small muted">{{ previsao.probabilidade_lacuna }}</p>
     {% endif %}
   {% else %}
     <p class="small muted">{{ motivo_sem_previsao }}.</p>
+    {% if pesos_lacuna %}
+      <p class="small muted">{{ pesos_lacuna[0] | upper }}{{ pesos_lacuna[1:] }}.</p>
+    {% endif %}
   {% endif %}
 </div>

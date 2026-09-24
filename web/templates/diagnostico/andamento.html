@@ -55,7 +55,9 @@
                 {% if materia.estimativa_pct is none %}
                   <span class="small muted">sem dado ainda</span>
                 {% else %}
-                  <span class="mono small">{{ materia.estimativa_pct | pct }} <span class="muted">± {{ materia.margem | pct }}</span></span>
+                  <span class="small">{{ materia.estimativa_pct | pct_int }}
+                  <span class="muted">em {{ materia.n_itens }}
+                  {{ "item" if materia.n_itens == 1 else "itens" }}</span></span>
                 {% endif %}
               </div>
             {% endfor %}

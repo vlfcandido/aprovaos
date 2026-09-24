@@ -43,6 +43,9 @@ from aprovaos.motor.fontes.sumulas_offline import resolver_sumulas_offline
 _LEI_8429 = "lei-8429-1992"
 _LEI_13105 = "lei-13105-2015"
 _CF = "cf-1988"
+_CP = "codigo-penal"
+_CPP = "cpp"
+_CC = "codigo-civil"
 
 
 class ReceitaDossie(BaseModel):
@@ -59,6 +62,113 @@ class ReceitaDossie(BaseModel):
 
 
 RECEITAS: dict[str, ReceitaDossie] = {
+    # Ampliação de 23/09/2026 — os seis tópicos de maior peso medido do edital real da piloto
+    # (TJ-PR/AOCP) que não tinham dossiê: 36 questões publicáveis somadas, todas hoje sem
+    # explicação possível, porque justificativa só pode citar dispositivo já ligado à questão
+    # (`dominio.justificativa`) e é o dossiê do tópico que oferece esses dispositivos
+    # (`motor/ligar_por_topico.py`). Curadoria feita aqui, dispositivo a dispositivo, contra o
+    # texto do edital; o trecho literal vem da lei baixada do Planalto, sem LLM. Pedido que o
+    # extrator não resolver vira lacuna declarada — nunca trecho inventado.
+    "noc-dir-con-06-6-organizacao": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_CF, artigo="44"),  # Legislativo: composição
+            PedidoDispositivo(norma=_CF, artigo="49"),  # competência exclusiva do Congresso
+            PedidoDispositivo(norma=_CF, artigo="52"),  # competência privativa do Senado
+            PedidoDispositivo(norma=_CF, artigo="53"),  # imunidades parlamentares
+            PedidoDispositivo(norma=_CF, artigo="62"),  # medida provisória
+            PedidoDispositivo(norma=_CF, artigo="76"),  # Executivo: titularidade
+            PedidoDispositivo(norma=_CF, artigo="84"),  # competência privativa do Presidente
+            PedidoDispositivo(norma=_CF, artigo="92"),  # órgãos do Judiciário
+            PedidoDispositivo(norma=_CF, artigo="95"),  # garantias da magistratura
+            PedidoDispositivo(norma=_CF, artigo="102"),  # competência do STF
+            PedidoDispositivo(norma=_CF, artigo="105"),  # competência do STJ
+            PedidoDispositivo(norma=_CF, artigo="127"),  # MP: definição e princípios
+            PedidoDispositivo(norma=_CF, artigo="129"),  # funções institucionais do MP
+            PedidoDispositivo(norma=_CF, artigo="134"),  # Defensoria Pública
+        ]
+    ),
+    "noc-dir-con-05-5-organizacao": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_CF, artigo="18"),  # organização político-administrativa
+            PedidoDispositivo(norma=_CF, artigo="20"),  # bens da União
+            PedidoDispositivo(norma=_CF, artigo="21"),  # competência material da União
+            PedidoDispositivo(norma=_CF, artigo="22"),  # competência privativa para legislar
+            PedidoDispositivo(norma=_CF, artigo="23"),  # competência comum
+            PedidoDispositivo(norma=_CF, artigo="24"),  # competência concorrente
+            PedidoDispositivo(norma=_CF, artigo="25"),  # Estados
+            PedidoDispositivo(norma=_CF, artigo="30"),  # competência dos Municípios
+            PedidoDispositivo(norma=_CF, artigo="32"),  # Distrito Federal
+            PedidoDispositivo(norma=_CF, artigo="34"),  # intervenção federal
+        ]
+    ),
+    "noc-dir-adm-09-9-agentes": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_CF, artigo="37"),  # princípios e regras dos agentes
+            PedidoDispositivo(norma=_CF, artigo="37", inciso="II"),  # concurso público
+            PedidoDispositivo(norma=_CF, artigo="37", inciso="IX"),  # contratação temporária
+            PedidoDispositivo(norma=_CF, artigo="39"),  # regime jurídico
+            PedidoDispositivo(norma=_CF, artigo="40"),  # previdência do servidor
+            PedidoDispositivo(norma=_CF, artigo="41"),  # estabilidade
+            # O tópico funde "9 Agentes públicos" com "10 Bens Públicos" no edital da AOCP
+            # (mesmo defeito de fusão registrado na P-42): os dois entram no dossiê.
+            PedidoDispositivo(norma=_CC, artigo="98"),  # bens públicos: definição
+            PedidoDispositivo(norma=_CC, artigo="99"),  # classificação
+            PedidoDispositivo(norma=_CC, artigo="100"),  # inalienabilidade
+            PedidoDispositivo(norma=_CC, artigo="102"),  # imprescritibilidade
+        ]
+    ),
+    "noc-dir-pro-civ-06-procedimento-comum": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_LEI_13105, artigo="319"),  # petição inicial: requisitos
+            PedidoDispositivo(norma=_LEI_13105, artigo="321"),  # emenda da inicial
+            PedidoDispositivo(norma=_LEI_13105, artigo="330"),  # indeferimento
+            PedidoDispositivo(norma=_LEI_13105, artigo="332"),  # improcedência liminar
+            PedidoDispositivo(norma=_LEI_13105, artigo="334"),  # audiência de conciliação
+            PedidoDispositivo(norma=_LEI_13105, artigo="335"),  # prazo para contestar
+            PedidoDispositivo(norma=_LEI_13105, artigo="336"),  # ônus da impugnação especificada
+            PedidoDispositivo(norma=_LEI_13105, artigo="337"),  # preliminares
+            PedidoDispositivo(norma=_LEI_13105, artigo="343"),  # reconvenção
+            PedidoDispositivo(norma=_LEI_13105, artigo="344"),  # revelia
+            PedidoDispositivo(norma=_LEI_13105, artigo="345"),  # quando a revelia não produz efeito
+            PedidoDispositivo(norma=_LEI_13105, artigo="355"),  # julgamento antecipado
+            PedidoDispositivo(norma=_LEI_13105, artigo="357"),  # saneamento e organização
+            PedidoDispositivo(norma=_LEI_13105, artigo="373"),  # ônus da prova
+            PedidoDispositivo(norma=_LEI_13105, artigo="485"),  # sentença sem mérito
+            PedidoDispositivo(norma=_LEI_13105, artigo="487"),  # sentença com mérito
+            PedidoDispositivo(norma=_LEI_13105, artigo="502"),  # coisa julgada
+        ]
+    ),
+    "noc-dir-pro-pen-06-provas-6": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_CPP, artigo="155"),  # livre convicção e prova do inquérito
+            PedidoDispositivo(norma=_CPP, artigo="156"),  # ônus da prova
+            PedidoDispositivo(norma=_CPP, artigo="157"),  # provas ilícitas e derivadas
+            PedidoDispositivo(norma=_CPP, artigo="158"),  # exame de corpo de delito
+            PedidoDispositivo(norma=_CPP, artigo="159"),  # perito oficial
+            PedidoDispositivo(norma=_CPP, artigo="167"),  # prova testemunhal supletiva
+            PedidoDispositivo(norma=_CPP, artigo="185"),  # interrogatório
+            PedidoDispositivo(norma=_CPP, artigo="197"),  # valor da confissão
+            PedidoDispositivo(norma=_CPP, artigo="202"),  # quem pode ser testemunha
+            PedidoDispositivo(norma=_CPP, artigo="206"),  # recusa a depor
+            PedidoDispositivo(norma=_CPP, artigo="207"),  # proibição por sigilo profissional
+            PedidoDispositivo(norma=_CPP, artigo="226"),  # reconhecimento de pessoas
+            PedidoDispositivo(norma=_CPP, artigo="240"),  # busca e apreensão
+        ]
+    ),
+    "noc-dir-pen-07-crimes-contra": ReceitaDossie(
+        pedidos=[
+            PedidoDispositivo(norma=_CP, artigo="312"),  # peculato
+            PedidoDispositivo(norma=_CP, artigo="313"),  # peculato mediante erro de outrem
+            PedidoDispositivo(norma=_CP, artigo="316"),  # concussão
+            PedidoDispositivo(norma=_CP, artigo="317"),  # corrupção passiva
+            PedidoDispositivo(norma=_CP, artigo="319"),  # prevaricação
+            PedidoDispositivo(norma=_CP, artigo="321"),  # advocacia administrativa
+            PedidoDispositivo(norma=_CP, artigo="327"),  # conceito de funcionário público
+            PedidoDispositivo(norma=_CP, artigo="330"),  # desobediência
+            PedidoDispositivo(norma=_CP, artigo="331"),  # desacato
+            PedidoDispositivo(norma=_CP, artigo="333"),  # corrupção ativa
+        ]
+    ),
     "dir-adm-06-improbidade-administrativa": ReceitaDossie(
         pedidos=[
             PedidoDispositivo(norma=_LEI_8429, artigo="1"),

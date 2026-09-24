@@ -1,12 +1,12 @@
-{# O que é: formulário de rotina (`GET/POST /rotina`, fatia 7, F2.2) — horas por dia da semana,
-   horário preferido, energia típica, data-alvo, o concurso principal (P-23) e o consentimento de
-   dados de rotina/energia (R-01, LGPD). A caixa de consentimento nunca nasce marcada (I8,
-   19/09/2026, mesmo para quem já autorizou antes) — a data/versão do aceite anterior aparece em
-   texto ao lado dela. Erros esperados voltam aqui, 200. O protótipo validado não tem uma tela de
-   rotina própria — porte visual (fatia 14): montado só com componentes da biblioteca
-   (`card`/`entrada`/`grid-3`/`btn`), e a ilustração é a do check-in matinal (`s-checkin`), que é
-   a tela do protótipo mais próxima em assunto: energia e tempo do dia. Quando ler: ao mudar os campos da rotina ou o texto do
-   consentimento. -#}
+{# O que é: formulário de rotina (`GET/POST /rotina`, fatia 7, F2.2) — quatro perguntas que se
+   respondem **sem teclado**: quanto tempo por dia (atalho por grupo de dias, com o ajuste dia a
+   dia recolhido num `<details>`), que turno, como é a energia e, opcional, a data da prova. Mais
+   o consentimento de dados de rotina/energia (R-01, LGPD), que é obrigatório e nunca nasce
+   marcado (I8). Redesenhada em 23/09/2026 a pedido do dono ("tá péssima pra ficar digitando os
+   dados ali"): eram sete campos numéricos, dois `<select>` e um parágrafo de consentimento.
+   A precedência entre atalho e ajuste fino é decidida no servidor
+   (`dominio.rotina.horas_a_partir_das_escolhas`) — a tela inteira funciona sem JS. Quando ler:
+   ao mudar os campos da rotina ou o texto do consentimento. -#}
 {% extends "base.html" %}
 {% from "_arte.html" import arte_rotina %}
 {% block titulo %}Sua rotina — AprovaOS{% endblock %}
@@ -14,12 +14,11 @@
   <div class="screen-head">
     <span class="eyebrow">Rotina</span>
     <h1>Sua rotina</h1>
-    <p class="prosa muted">Quantas horas você tem em cada dia, a que horas rende mais e como
-      costuma estar a sua energia. É disto que o plano de cada dia é feito — e dá para mudar
-      quando quiser.</p>
+    <p class="prosa muted">Quatro perguntas, todas de um toque. É disto que o plano de cada dia é
+      feito — e dá para mudar quando quiser.</p>
     {{ arte_rotina() }}
   </div>
-  <form class="card stack" method="post" action="/rotina"
+  <form class="stack-6" method="post" action="/rotina"
         hx-post="/rotina" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
     {% if erros %}
       <div class="mensagem mensagem--erro" role="alert">
@@ -27,75 +26,158 @@
       </div>
     {% endif %}
 
-    <fieldset class="stack">
-      <legend class="campo-rotulo">Horas por dia da semana</legend>
-      <div class="grid-3">
-        {% for dia in dias %}
-          <label class="stack" style="gap:var(--espaco-2)">
-            <span class="small muted">{{ dia.rotulo }}</span>
-            <input class="entrada" id="hora_{{ dia.chave }}" name="hora_{{ dia.chave }}" type="number"
-                   min="0" max="16" step="0.5" value="{{ dia.horas }}" required>
+    <section class="card stack">
+      <h2>1. Quanto tempo por dia?</h2>
+      <div class="stack">
+        <span class="campo-rotulo" id="rot-uteis">De segunda a sexta</span>
+        <div class="seg" role="radiogroup" aria-labelledby="rot-uteis">
+          {% for opcao in atalhos_uteis %}
+            <label>
+              <input type="radio" data-atalho-tempo="uteis"
+                     name="preset_uteis" value="{{ opcao.valor }}"{% if opcao.escolhido %} checked{% endif %}>
+              {{ opcao.rotulo }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="stack">
+        <span class="campo-rotulo" id="rot-fds">Sábado e domingo</span>
+        <div class="seg" role="radiogroup" aria-labelledby="rot-fds">
+          {% for opcao in atalhos_fds %}
+            <label>
+              <input type="radio" data-atalho-tempo="fds"
+                     name="preset_fds" value="{{ opcao.valor }}"{% if opcao.escolhido %} checked{% endif %}>
+              {{ opcao.rotulo }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      {# O número de volta: ela vê o que a escolha significa sem precisar somar. É o servidor que
+         o calcula; a ilha só o atualiza enquanto ela toca. Não é meta, não é pontuação, não tem
+         cor de alerta — é a soma da semana dela (ADR-0051). -#}
+      <p class="small muted" style="margin:0">Isso dá
+        <b class="tabular" data-total-semanal>{{ total_semanal }}</b> h por semana.
+        <span data-aviso-preset hidden>“4 h+” grava 4 h por dia; para mais que isso, use o ajuste
+        dia a dia.</span></p>
+
+      <details class="ajuste-fino" {% if ajuste_aberto %}open{% endif %}>
+        <summary>Ajustar dia a dia</summary>
+        <p class="small muted">Para quem tem um dia diferente dos outros. Vale 0 a 16 h; aceita
+          meia hora (2,5). Ao salvar, o dia a dia vale para o grupo que estiver em
+          <b>Dia a dia</b> acima.</p>
+        <div class="grid-3">
+          {% for dia in dias %}
+            <label class="stack" style="gap:var(--espaco-2)">
+              <span class="small muted">{{ dia.rotulo }}</span>
+              <input class="entrada" id="hora_{{ dia.chave }}" name="hora_{{ dia.chave }}"
+                     type="text" inputmode="decimal" autocomplete="off"
+                     data-hora-dia="{{ dia.chave }}" value="{{ dia.horas }}">
+            </label>
+          {% endfor %}
+        </div>
+      </details>
+    </section>
+
+    <section class="card stack">
+      <h2>2. A que horas você rende mais?</h2>
+      <div class="seg" role="radiogroup" aria-label="Turno preferido">
+        {% for valor, curto, completo in opcoes_horario %}
+          <label title="{{ completo }}">
+            <input type="radio" name="horario_preferido" value="{{ valor }}"
+                   {% if valor == horario_preferido %}checked{% endif %}>
+            {{ curto }}
           </label>
         {% endfor %}
       </div>
-    </fieldset>
+      <p class="small muted" style="margin:0">Manhã quer dizer antes do trabalho. “Varia” também é
+        resposta: o plano se ajusta ao check-in de cada dia.</p>
+    </section>
 
-    <div class="grid-3">
+    <section class="card stack">
+      <h2>3. Como costuma estar a sua energia?</h2>
+      <div class="seg" role="radiogroup" aria-label="Energia típica">
+        {% for valor, rotulo in opcoes_energia %}
+          <label>
+            <input type="radio" name="energia_tipica" value="{{ valor }}"
+                   {% if valor == energia_tipica %}checked{% endif %}>
+            {{ rotulo }}
+          </label>
+        {% endfor %}
+      </div>
+      <p class="small muted" style="margin:0">É a média, não a regra — no dia a dia vale o que
+        você marcar no check-in.</p>
+    </section>
+
+    <section class="card stack">
+      <h2>4. Quando é a prova?</h2>
       <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Horário preferido</span>
-        <select class="entrada" id="horario_preferido" name="horario_preferido">
-          {% for valor, rotulo in opcoes_horario %}
-            <option value="{{ valor }}" {% if valor == horario_preferido %}selected{% endif %}>{{ rotulo }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Energia típica</span>
-        <select class="entrada" id="energia_tipica" name="energia_tipica">
-          {% for valor, rotulo in opcoes_energia %}
-            <option value="{{ valor }}" {% if valor == energia_tipica %}selected{% endif %}>{{ rotulo }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Data-alvo (opcional)</span>
+        <span class="campo-rotulo">Data da prova <span class="chip">opcional</span></span>
         <input class="entrada" id="data_alvo" name="data_alvo" type="date" value="{{ data_alvo }}">
       </label>
-    </div>
+      <p class="small muted" style="margin:0">Sem ela o plano funciona igual; com ela, o painel
+        consegue desenhar a curva do que falta. Pode deixar em branco e preencher depois.</p>
+    </section>
 
-    <label class="stack" style="gap:var(--espaco-2)">
-      <span class="campo-rotulo">Concurso principal</span>
-      {% if concursos %}
-        <select class="entrada" id="concurso_principal_id" name="concurso_principal_id">
-          <option value="">Manter a escolha automática (o último edital subido)</option>
+    <section class="card stack">
+      {% if concurso_unico %}
+        {# Um concurso só não é escolha, é fato: mostramos qual é e seguimos. O campo continua no
+           formulário, vazio — vazio quer dizer "mantenha a escolha automática", então nada é
+           gravado em nome dela. -#}
+        <h2>Seu concurso</h2>
+        <p class="row" style="margin:0">
+          <span class="chip accent">{{ concurso_unico.rotulo }}</span>
+        </p>
+        <p class="small muted" style="margin:0">É o único edital da sua conta, então é ele que o
+          plano segue. Subiu outro? Esta pergunta volta, para você escolher.</p>
+        <input type="hidden" name="concurso_principal_id" value="">
+      {% elif concursos %}
+        <h2>Qual concurso o plano deve seguir?</h2>
+        <div class="seg" role="radiogroup" aria-label="Concurso principal">
+          <label>
+            <input type="radio" name="concurso_principal_id" value=""
+                   {% if not concursos | selectattr("selecionado") | list %}checked{% endif %}>
+            O mais recente
+          </label>
           {% for c in concursos %}
-            <option value="{{ c.id }}" {% if c.selecionado %}selected{% endif %}>{{ c.rotulo }}</option>
+            <label>
+              <input type="radio" name="concurso_principal_id" value="{{ c.id }}"
+                     {% if c.selecionado %}checked{% endif %}>
+              {{ c.rotulo }}
+            </label>
           {% endfor %}
-        </select>
+        </div>
       {% else %}
-        <p class="small muted" style="margin:0">Nenhum concurso ainda —
-          <a href="/editais/subir">suba um edital</a> primeiro.</p>
+        <h2>Seu concurso</h2>
+        <p class="small muted" style="margin:0">Nenhum edital ainda —
+          <a href="/editais/subir">suba um edital</a> e o plano passa a seguir ele.</p>
         <input type="hidden" name="concurso_principal_id" value="">
       {% endif %}
-    </label>
+    </section>
 
-    <div class="stack">
+    <section class="card stack">
       <label class="row row-topo">
         <input type="checkbox" name="consentimento">
-        <span class="small cresce">Autorizo o uso da minha energia típica para ajustar o plano — dado
-          tratado como sensível por cautela (LGPD); usado só para o meu próprio plano, nunca em
-          ranking nem repassado a terceiros. Posso exportar ou excluir meus dados a qualquer
-          momento em <a href="/conta">Minha conta</a>.</span>
+        <span class="cresce">Autorizo usar a minha energia típica para ajustar o plano.</span>
       </label>
+      <details>
+        <summary class="small">O que isso quer dizer</summary>
+        <p class="small muted prosa">Energia é tratada como dado sensível por cautela (LGPD).
+          Usamos só para montar o seu próprio plano — nunca em ranking, nunca repassada a
+          terceiros. Você pode exportar ou excluir seus dados quando quiser em
+          <a href="/conta">Minha conta</a>.</p>
+      </details>
       {% if consentimento_anterior_em %}
-        <p class="small muted">Você autorizou em {{ consentimento_anterior_em }} (versão
-          {{ consentimento_anterior_versao }}). Marque de novo para confirmar e salvar.</p>
+        <p class="small muted" style="margin:0">Você autorizou em {{ consentimento_anterior_em }}
+          (versão {{ consentimento_anterior_versao }}). Marque de novo para confirmar e salvar.</p>
       {% endif %}
-    </div>
+    </section>
 
     <div class="row between">
       <button class="btn primary" type="submit">Salvar rotina</button>
       <a href="/diagnostico">Ir para o diagnóstico</a>
     </div>
   </form>
+{% endblock %}
+{% block script %}
+  <script src="{{ estatico('js/rotina-atalhos.js') }}" defer></script>
 {% endblock %}

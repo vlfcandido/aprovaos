@@ -1,9 +1,10 @@
-{# O que é: layout base de toda página HTML do AprovaOS — o shell de aplicação do protótipo
-   clicável (docs/evidencias/mockups/2026-09-14-prototipo-clicavel.html): barra lateral escura
-   fixa com a navegação (reflete `usuario_email`, injetado por `renderizar`) e a área de
-   conteúdo à direita. Blocos `titulo`/`conteudo`/`script` (este último para a ilha de JS de uma
-   tela específica, ex. os atalhos de teclado de `questoes/topico.html` — ADR-0019). Quando ler:
-   ao criar uma página nova (`{% extends "base.html" %}`). -#}
+{# O que é: o documento de toda página HTML do AprovaOS — `<head>` com os estáticos
+   versionados e os dois scripts síncronos do shell (tema e modo foco), a saída do modo foco, a
+   barra lateral (`_navegacao.html`) e a coluna de conteúdo com o rodapé da página. Blocos
+   `titulo`/`conteudo`/`script` (este último para a ilha de JS de uma tela específica, ex. os
+   atalhos de teclado de `questoes/topico.html` — ADR-0019). Quando ler: ao criar uma página
+   nova (`{% extends "base.html" %}`) ou ao mexer no que toda página carrega. A navegação em si
+   mora em `_navegacao.html`. -#}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -16,41 +17,19 @@
   <link rel="stylesheet" href="{{ estatico('css/componentes.css') }}">
   <link rel="stylesheet" href="{{ estatico('css/base.css') }}">
   <script src="{{ estatico('js/htmx.min.js') }}" defer></script>
-  {# Sem `defer`: o tema precisa valer antes da primeira pintura, senão a página pisca na
-     cor errada antes de corrigir. É o único script síncrono do shell. #}
+  {# Sem `defer`: tema e modo foco precisam valer antes da primeira pintura, senão a página
+     pisca na cor errada (ou mostra a navegação e a esconde) antes de corrigir. São os dois
+     únicos scripts síncronos do shell. #}
   <script src="{{ estatico('js/tema.js') }}"></script>
+  <script src="{{ estatico('js/foco.js') }}"></script>
 </head>
 <body>
+  {# A saída do modo foco vem antes de tudo no DOM de propósito: é a primeira parada do Tab
+     quando não há navegação na tela. Fica escondida (e fora do leitor de tela) enquanto o modo
+     está desligado; a ilha `foco.js` a revela. #}
+  <button class="foco-sair" type="button" data-sair-do-foco hidden>Sair do modo foco (Esc)</button>
   <div class="shell">
-    <nav class="lateral" aria-label="Principal">
-      <a class="marca" href="/">AprovaOS</a>
-      <div class="lateral__links">
-        <a href="/" {% if request.url.path == "/" %}aria-current="page"{% endif %}>Início</a>
-        <a href="/radar" {% if request.url.path.startswith("/radar") %}aria-current="page"{% endif %}>Radar</a>
-        {% if usuario_email %}
-          <a href="/hoje" {% if request.url.path == "/hoje" %}aria-current="page"{% endif %}>Hoje</a>
-          <a href="/painel" {% if request.url.path.startswith("/painel") %}aria-current="page"{% endif %}>Painel</a>
-          <a href="/editais" {% if request.url.path.startswith("/editais") or request.url.path.startswith("/concurso") %}aria-current="page"{% endif %}>Meus editais</a>
-          <a href="/diagnostico" {% if request.url.path == "/diagnostico" %}aria-current="page"{% endif %}>Diagnóstico</a>
-          <a href="/rotina" {% if request.url.path == "/rotina" %}aria-current="page"{% endif %}>Rotina</a>
-          <a href="/revisar" {% if request.url.path == "/revisar" %}aria-current="page"{% endif %}>Revisar hoje</a>
-          <a href="/conta" {% if request.url.path == "/conta" %}aria-current="page"{% endif %}>Minha conta</a>
-        {% else %}
-          <a href="/entrar" {% if request.url.path == "/entrar" %}aria-current="page"{% endif %}>Entrar</a>
-          <a href="/cadastro" {% if request.url.path == "/cadastro" %}aria-current="page"{% endif %}>Criar conta</a>
-        {% endif %}
-      </div>
-      <div class="lateral__rodape">
-        {# `hidden` por padrão: sem JS o botão não faria nada, e botão que não faz nada é pior
-           que botão ausente. A ilha `tema.js` o revela. #}
-        <button class="botao-link" type="button" data-alternar-tema hidden>Tema</button>
-        {% if usuario_email %}
-          <form method="post" action="/sair">
-            <button class="botao-link" type="submit">Sair</button>
-          </form>
-        {% endif %}
-      </div>
-    </nav>
+    {% include "_navegacao.html" %}
     <div class="coluna">
       <main id="conteudo" class="conteudo">
         {% block conteudo %}{% endblock %}

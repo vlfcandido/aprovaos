@@ -21,7 +21,7 @@
     {% for item in trilha %}
       <div data-slug="{{ item.slug }}" class="card stack">
         <div class="row between">
-          <span class="topico__texto"><b>{{ item.nome }}</b></span>
+          <span class="topico__texto" title="{{ item.nome }}"><b>{{ item.nome | curto }}</b></span>
           <span class="chip {{ 'good' if item.status == 'dominado' else '' }}">{{ item.status }}</span>
         </div>
         <p class="small muted" style="margin:0">{{ item.motivo }}</p>

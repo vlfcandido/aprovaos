@@ -73,7 +73,12 @@ from aprovaos.dados.modelos import (
 )
 from aprovaos.dados.repositorio_assinatura import tier_do_usuario
 from aprovaos.dados.repositorio_aula import aula_publicada_do_topico
-from aprovaos.dados.repositorio_cartao import cartoes_vencidos, registrar_erro, revisar_cartao
+from aprovaos.dados.repositorio_cartao import (
+    cartoes_vencidos,
+    registrar_erro,
+    revisados_hoje,
+    revisar_cartao,
+)
 from aprovaos.dados.repositorio_citacao import dispositivos_da_questao
 from aprovaos.dados.repositorio_fio_memoria import (
     estatisticas_topicos_vistos,
@@ -874,8 +879,13 @@ def obter_revisao(
         db, topico, questao, acao_post="/revisar", campos_ocultos=[("cartao_id", str(cartao.id))]
     )
     # ADR-0051 ("sessão com fim visível"): a fila não dizia o tamanho, então a aluna respondia
-    # sem saber se era o último cartão ou o vigésimo. Não saber onde termina é o que cansa.
+    # sem saber se era o último cartão ou o vigésimo. Não saber onde termina é o que cansa. O
+    # denominador da barra soma o que já foi revisado hoje — a fila só encolhe, e uma barra
+    # medida só por ela nunca sairia do zero.
+    feitos = revisados_hoje(db, usuario.id, agora_utc())
     contexto["restantes"] = len(vencidos)
+    contexto["feitos_hoje"] = feitos
+    contexto["total_do_dia"] = feitos + len(vencidos)
     return renderizar(request, "questoes/revisao.html", contexto, usuario)
 
 

@@ -95,19 +95,50 @@ a {
   padding-inline: var(--espaco-2);
 }
 
+/* Os onze links não têm o mesmo peso: `/hoje` é onde a aluna vive todo dia, `/diagnostico` ela
+   usa uma vez, `/conta` quase nunca — e uma lista plana esconde isso. Os grupos são por
+   **frequência de uso**, não por assunto: "O dia" (todo dia), "A medida" (de tempos em tempos),
+   "Meu concurso" (quando muda alguma coisa), "Ajustes" (raramente). Nada saiu do alcance: são
+   os mesmos links, na mesma barra, a um toque. */
 .lateral__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.lateral__grupo {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-1);
 }
 
+.lateral__rotulo {
+  margin: 0 0 var(--espaco-1);
+  padding-inline: var(--espaco-2);
+  font-size: var(--texto-rotulo);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-lateral-rotulo);
+}
+
 .lateral__links a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2-5);
   padding: var(--espaco-2);
+  /* A barra da esquerda é transparente no repouso e ganha cor na tela atual: sem reservar o
+     espaço aqui, o item ativo empurraria os outros 3px para a direita ao mudar de tela. */
+  border-left: 3px solid transparent;
   border-radius: var(--raio-pequeno);
   color: var(--cor-lateral-texto);
   text-decoration: none;
   font-size: var(--texto-pequeno);
+}
+
+.lateral__links a .icone {
+  flex: none;
+  opacity: 0.75;
 }
 
 .lateral__links a:hover,
@@ -116,9 +147,18 @@ a {
   color: var(--cor-lateral-texto-forte);
 }
 
+.lateral__links a:hover .icone,
+.lateral__links a:focus-visible .icone,
+.lateral__links a[aria-current="page"] .icone { opacity: 1; }
+
+/* A tela atual: barra de acento, fundo sutil e peso de fonte — três sinais, nenhum deles só
+   cor. O retângulo azul cheio saiu porque `--cor-acao` é **a ação da tela**, e gastar a cor da
+   ação na navegação faz o botão principal disputar atenção com um item de menu (contrato §1). */
 .lateral__links a[aria-current="page"] {
-  background: var(--cor-lateral-ativo);
+  background: var(--cor-lateral-hover);
+  border-left-color: var(--cor-lateral-acento);
   color: var(--cor-lateral-texto-forte);
+  font-weight: 600;
 }
 
 .lateral__rodape {
@@ -170,6 +210,60 @@ a {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-5-5);
+}
+
+/* ---- Modo foco: a sessão de estudo sem nada em volta (ilha `web/static/js/foco.js`) ----------
+   Esconde navegação e rodapé, estreita o conteúdo para a medida de leitura e deixa uma única
+   saída, fixa no canto e sempre no mesmo lugar. Só o `data-foco` no `<html>` liga tudo isto —
+   nenhuma tela precisa saber que o modo existe, e tirar o atributo devolve a página de sempre.
+   Não usa `display: none` na lateral por capricho: escondido de verdade tira também do leitor de
+   tela e da ordem de tabulação, que é o ponto do modo. */
+:root[data-foco="1"] .lateral,
+:root[data-foco="1"] .rodape {
+  display: none;
+}
+
+:root[data-foco="1"] .shell {
+  grid-template-columns: 1fr;
+}
+
+:root[data-foco="1"] .conteudo {
+  padding-top: var(--espaco-12);
+}
+
+/* A saída fica no DOM antes de tudo (primeira parada do Tab) e no canto superior direito na
+   tela. Fora do modo foco ela não existe para ninguém. */
+.foco-sair {
+  display: none;
+}
+
+:root[data-foco="1"] .foco-sair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  position: fixed;
+  top: var(--espaco-4);
+  right: var(--espaco-4);
+  z-index: var(--z-flutuante);
+  border: 1px solid var(--cor-linha-forte);
+  border-radius: var(--raio-total);
+  background: var(--cor-superficie);
+  color: var(--cor-texto-2);
+  font: inherit;
+  font-size: var(--texto-pequeno);
+  padding: var(--espaco-2) var(--espaco-4);
+  min-height: 2.75rem;
+  cursor: pointer;
+  box-shadow: var(--sombra);
+}
+
+.foco-sair:hover {
+  color: var(--cor-texto);
+}
+
+.foco-sair:focus-visible {
+  outline: 2px solid var(--cor-acao);
+  outline-offset: 2px;
 }
 
 /* Formulários isolados (login, cadastro, subir edital): não esticam pela largura toda.
@@ -326,10 +420,17 @@ input[type="radio"] {
     padding: var(--espaco-3) var(--espaco-4);
   }
 
+  /* Na faixa do topo os grupos saem do layout (`display: contents`) e os rótulos somem: os
+     links voltam a ser uma linha só, exatamente como o tablet da piloto já os via. Agrupar faz
+     sentido numa coluna alta; numa faixa de uma linha, só ocuparia espaço. */
   .lateral__links {
     flex-direction: row;
     flex-wrap: wrap;
+    gap: var(--espaco-1);
   }
+
+  .lateral__grupo { display: contents; }
+  .lateral__rotulo { display: none; }
 
   /* Na faixa horizontal o rodapé fica na mesma linha da navegação, encostado à direita — em
      coluna, "Tema" e "Sair" viravam duas linhas soltas embaixo de tudo. */
@@ -494,13 +595,40 @@ small.fonte {
   font-size: var(--texto-pequeno);
 }
 
+/* Grade de três colunas fixas, não `flex` com `space-between`: assim a contagem e o status
+   ficam alinhados entre linhas. Com flex, a contagem parava onde o nome terminasse — cada linha
+   num lugar — e a linha sem contagem empurrava o status para a coluna do meio (achado do dono no
+   verticalizado, 23/09/2026). A célula da contagem existe mesmo vazia, senão a grade desalinha
+   de novo. */
 .topicos li {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr 7rem 5.5rem;
+  align-items: baseline;
   gap: var(--espaco-3);
   padding-block: var(--espaco-2);
   border-top: 1px solid var(--cor-linha);
+}
+
+/* O nome ocupa a sobra e corta numa linha só: rótulo de altura variável quebraria o alinhamento
+   entre as colunas, que é justamente o que esta grade existe para dar. */
+.topicos .topico__texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  /* Em tela estreita 7rem + 5,5rem não sobram para o nome: contagem e status descem para a
+     segunda linha, alinhados à direita. */
+  .topicos li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .topicos .topico__texto {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
 }
 
 .status {
@@ -522,10 +650,11 @@ small.fonte {
 }
 
 .topico__contagem {
-  flex: none;
   color: var(--cor-texto-3);
   font-size: var(--texto-pequeno);
   white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Cabeçalho de grupo do edital (ex.: "CONHECIMENTOS ESPECÍFICOS" — P-26), acima das matérias */
@@ -595,19 +724,6 @@ small.fonte {
   margin-top: var(--espaco-4);
 }
 
-/* Três colunas lado a lado (rotina, fatia 7; check-in do plano do dia, fatia 8) — empilha numa
-   coluna só em telas estreitas. */
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--espaco-4);
-}
-
-@media (max-width: 640px) {
-  .grid-3 {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* ---- Resolver questão (V3): comando, apoio recolhível, origem, confiança e os dois botões ---- */
 .questao {

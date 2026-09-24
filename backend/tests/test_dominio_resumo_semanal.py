@@ -104,3 +104,25 @@ def test_fuso_de_brasilia_na_virada_do_dia() -> None:
     fora_por_fuso = datetime(2026, 9, 14, 2, tzinfo=UTC)
     resumo = montar_resumo([_resposta(TOPICO_A, True, fora_por_fuso)], NOMES, INICIO, FIM)
     assert resumo.respostas == 0
+
+
+# A tela da semana repetia o nome inteiro do tópico dentro da frase ("Ação penal e ação civil ex
+# delicto.: acertou 0 de 1 nesta semana — vale revisar."), o que produzia parede de texto e a
+# pontuação quebrada `.:` quando o nome já termina em ponto. Com os números em campo próprio, a
+# tela mostra nome e placar separados — e a `frase` continua existindo para quem a use.
+def test_item_para_rever_expoe_os_numeros_separados_do_nome() -> None:
+    """`acertos`/`total` são campos, não só texto dentro da frase."""
+    resumo = montar_resumo(
+        [
+            _resposta(TOPICO_A, acertou=False, quando=datetime(2026, 9, 22, 12, tzinfo=UTC)),
+            _resposta(TOPICO_A, acertou=True, quando=datetime(2026, 9, 23, 12, tzinfo=UTC)),
+        ],
+        {TOPICO_A: "Ação penal e ação civil ex delicto."},
+        date(2026, 9, 21),
+        date(2026, 9, 27),
+    )
+
+    (item,) = resumo.para_rever
+    assert item.acertos == 1
+    assert item.total == 2
+    assert item.topico_nome == "Ação penal e ação civil ex delicto."

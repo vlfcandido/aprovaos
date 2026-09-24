@@ -2,10 +2,10 @@
 
 O que é: `extrair_artigo(html, numero)`, função pura que recebe o HTML "texto compilado" que o
 Planalto publica para uma norma (CF/1988, leis ordinárias etc.) e devolve o artigo pedido —
-caput, incisos e parágrafos, cada um com o texto literal **vigente** e a procedência da redação
-("Redação dada pela Emenda Constitucional nº 19, de 1998", "Incluído pela...", "Vide Decreto
-nº...") quando o Planalto a informa. Não abre rede, não conhece banco, não sabe o que é uma
-`Aula` ou uma `Questao` — só interpreta o HTML.
+caput, incisos, parágrafos e penas, cada um com o texto literal **vigente** e a procedência da
+redação ("Redação dada pela Emenda Constitucional nº 19, de 1998", "Incluído pela...", "Vide
+Decreto nº...") quando o Planalto a informa. Não abre rede, não conhece banco, não sabe o que é
+uma `Aula` ou uma `Questao` — só interpreta o HTML.
 
 O ponto delicado (e o motivo deste módulo existir): o Planalto mostra, lado a lado, o texto
 **revogado** (dentro de uma tag `<strike>`) e o texto **vigente** (fora dela) — às vezes vários
@@ -19,12 +19,14 @@ Planalto, que se mostrou inconsistente entre versões revogadas e vigentes do me
 ex.: `art37xi`, `art37xi.` e `art37xi..` coexistem para três redações diferentes do mesmo inciso).
 
 Escopo desta rodada (documentado para não ser confundido com limitação escondida): o extrator
-devolve caput, incisos (`I`, `II`, ...) e parágrafos (`§ 1º`, ...), inclusive incisos aninhados
-dentro de um parágrafo (ex.: CF art. 37, § 3º, I a III). **Alíneas** (`a)`, `b)`, `c)`) são
-capturadas como filhas do inciso/parágrafo mais próximo, cada uma com sua própria procedência de
-redação — mas a tabela `dispositivo_legal` (`docs/04-modelo-de-dados.md` §3) não tem coluna para
-esse nível; decidir como uma alínea vira uma linha dessa tabela fica para quando alguém precisar
-citar uma alínea especificamente (registrado no relatório desta rodada, não decidido aqui).
+devolve caput, incisos (`I`, `II`, ...), parágrafos (`§ 1º`, ...) e o **preceito secundário** de
+tipo penal (`"Pena - reclusão, de dois a doze anos, e multa."`, em `ArtigoExtraido.penas`),
+inclusive incisos aninhados dentro de um parágrafo (ex.: CF art. 37, § 3º, I a III). **Alíneas**
+(`a)`, `b)`, `c)`) são capturadas como filhas do inciso/parágrafo mais próximo, cada uma com sua
+própria procedência de redação — mas a tabela `dispositivo_legal` (`docs/04-modelo-de-dados.md`
+§3) não tem coluna para esse nível; decidir como uma alínea vira uma linha dessa tabela fica para
+quando alguém precisar citar uma alínea especificamente (registrado no relatório desta rodada,
+não decidido aqui).
 
 Quando ler: antes de mudar como uma citação de aula/questão resolve para o texto de lei; ao
 investigar por que um trecho citado não bate com o que o Planalto publica.
@@ -38,17 +40,21 @@ from pydantic import BaseModel, Field
 
 from aprovaos.dominio.erros import DispositivoNaoEncontrado, EstruturaNaoTratada
 
-TipoTrecho = Literal["caput", "inciso", "paragrafo", "alinea"]
+TipoTrecho = Literal["caput", "inciso", "paragrafo", "alinea", "pena"]
 
 
 class TrechoDispositivo(BaseModel):
-    """Um trecho do artigo (caput, inciso, parágrafo ou alínea), com o texto literal vigente.
+    """Um trecho do artigo (caput, inciso, parágrafo, alínea ou pena), com o texto vigente.
 
     Attributes:
-        tipo: nível do trecho na hierarquia do artigo.
+        tipo: nível do trecho na hierarquia do artigo. `"pena"` é o **preceito secundário** de um
+            tipo penal — não é um nível da hierarquia, é o segundo membro do artigo incriminador
+            (ver `ArtigoExtraido.penas`).
         identificador: o rótulo do trecho como a lei o numera (`"caput"`, `"I"`, `"§ 3º"`,
             `"a"`). Para uma alínea, é só a letra — o pai (`alineas` de quem a contém) já dá o
-            contexto; não é preciso repetir "XVI, a" aqui.
+            contexto; não é preciso repetir "XVI, a" aqui. Para uma pena, é o rótulo do
+            dispositivo que ela pune (`"caput"`, `"§ 2º"`), não um número próprio — a pena não
+            tem numeração na lei.
         texto: texto literal do trecho, incluindo a própria numeração (ex.: `"I - os cargos,
             empregos..."`), exatamente como o Planalto publica a redação vigente — sem o texto
             revogado e sem a anotação de procedência (essa vai em `redacao_de`).
@@ -69,7 +75,7 @@ class TrechoDispositivo(BaseModel):
 
 
 class ArtigoExtraido(BaseModel):
-    """O artigo pedido, decomposto em caput + incisos + parágrafos, todos vigentes.
+    """O artigo pedido, decomposto em caput + incisos + parágrafos + penas, todos vigentes.
 
     Attributes:
         numero: o número do artigo como foi pedido (ex.: `"37"`, `"6"`) — sem o `"Art."` nem o
@@ -82,12 +88,25 @@ class ArtigoExtraido(BaseModel):
             filho, `"inciso"` ou `"alinea"`, preserva a distinção real).
         paragrafos: parágrafos do artigo, na ordem em que aparecem; cada um com seus próprios
             incisos/alíneas em `paragrafos[i].alineas`, quando houver.
+        penas: os preceitos secundários do artigo (`"Pena - reclusão, de dois a doze anos, e
+            multa."`), na ordem do documento; lista vazia em artigo que não comina pena — a
+            maioria fora do Código Penal. Campo próprio, e não uma linha a mais em `incisos`,
+            porque a pena **não é** um inciso: a técnica legislativa penal divide o artigo
+            incriminador em preceito primário (a conduta, no caput ou no parágrafo) e preceito
+            secundário (a pena); guardá-la como inciso daria ao trecho um identificador
+            (`"I"`, `"II"`) que a lei nunca escreveu, e um dossiê que cita "art. 312, I" estaria
+            citando dispositivo inexistente. Cada pena carrega em `identificador` o rótulo do
+            dispositivo que ela pune (`"caput"`, `"§ 2º"`), que é a única ligação que a lei de
+            fato estabelece — por posição, logo depois do preceito primário. Quando um mesmo
+            dispositivo tem mais de uma pena cominada, as duas ficam na lista, na ordem do
+            documento, com o mesmo `identificador`.
     """
 
     numero: str
     caput: TrechoDispositivo
     incisos: list[TrechoDispositivo] = Field(default_factory=list)
     paragrafos: list[TrechoDispositivo] = Field(default_factory=list)
+    penas: list[TrechoDispositivo] = Field(default_factory=list)
 
 
 _PADRAO_STRIKE = re.compile(r"<strike\b[^>]*>.*?</strike\s*>", re.IGNORECASE | re.DOTALL)
@@ -130,8 +149,48 @@ numerados, ex.: `"§ 4º-A"` — Lei 8.429/1992 art. 17, incluído pela Lei 14.2
 do identificador — hoje `"§ 4º-A"` e `"§ 4º"` resolveriam para o mesmo número em
 `localizar_trecho`; sem citação real a um `"§ Nº-<letra>"` na base ainda, fica registrado aqui
 como limitação conhecida, não resolvida nesta rodada (P-40)."""
-_PADRAO_INCISO = re.compile(r"^([IVXLCDM]+)\s*[-–]\s")
+_PADRAO_INCISO = re.compile(r"^([IVXLCDM]+(?:-[A-Z])?)(?:\s*[-–]\s+|\s+(?=[a-zà-ú]))")
+"""Reconhece `"I - o Supremo Tribunal Federal;"`, o inciso com sufixo de letra (`"I-A - às
+quantias..."`, Lei 11.101/2005 art. 84) e — segunda alternativa — o inciso que o Planalto grafa
+**sem o travessão**: `"I-A o Conselho Nacional de Justiça;"` (CF art. 92, EC 45/2004), `"II
+processar e julgar os Ministros do Supremo Tribunal Federal..."` (CF art. 52, EC 45/2004), `"IV
+as ilhas fluviais e lacustres..."` (CF art. 20, EC 46/2005). O separador some justamente nas
+redações dadas por emenda — medido: 11 incisos assim nas fixtures desta pasta, 7 deles na CF.
+
+A segunda alternativa é estreita de propósito, para não engolir o que não é inciso: exige espaço
+logo depois do numeral romano **e** letra minúscula em seguida. É o que separa `"IV as ilhas"`
+(inciso de verdade) de `"Ill - o fim para que é feita a citação"` (CPP art. 354 — o Planalto
+escreveu `Il`/`Ill`, com `L` minúsculo, onde a lei tem `II`/`III`): ali não há espaço depois do
+`"I"`, a forma não casa, e o artigo continua sendo `EstruturaNaoTratada` em vez de virar um
+inciso com identificador inventado."""
 _PADRAO_ALINEA = re.compile(r"^([a-z])\)\s")
+_PADRAO_PENA = re.compile(r"^Pena\s*[-–:]\s")
+"""Reconhece o **preceito secundário** de um tipo penal — a pena cominada logo depois do
+preceito primário (a conduta descrita no caput ou no parágrafo). Não é parágrafo, nem inciso,
+nem alínea: é o segundo membro do artigo incriminador, e sem esta forma o Código Penal inteiro
+era lacuna (medido em `del2848_planalto_compilada.htm`: 193 dos 350 artigos paravam aqui).
+
+As três grafias do separador são as medidas nas fixtures desta pasta, não um chute: **hífen**
+(`"Pena - reclusão, de dois a doze anos, e multa."`, CP art. 312, redação de 1940), **travessão**
+U+2013 (`"Pena – reclusão, de 2 (dois) a 12 (doze) anos, e multa."`, CP art. 317, redação da Lei
+10.763/2003) e **dois pontos** (`"Pena: detenção, de 3 (três) meses a 1 (um) ano."`, CP art.
+319-A, incluído pela Lei 11.466/2007). O espaço antes do separador é opcional (`\\s*`) e o de
+depois é obrigatório (`\\s`) — é isso que distingue a cominação da rubrica de mesma inicial
+(`"Pena de tentativa"`, CP art. 14; `"Penas restritivas de direitos"`, art. 43), que segue sendo
+título estrutural. O plural (`"Penas -"`) não aparece em nenhuma fixture desta pasta e por isso
+não entra no padrão: quando aparecer, vira `EstruturaNaoTratada` e alguém mede antes de aceitar."""
+
+_PADRAO_VIDE_SEM_PARENTESES = re.compile(r"(?<=[.;:])\s*Vide\b[^()]*$")
+"""A anotação "Vide ..." que o Planalto às vezes publica **sem parênteses**, como um link colado
+ao fim do dispositivo — irmã da já tratada `_PADRAO_VIGENCIA_SEM_PARENTESES`. Medido: `"...
+publicados na forma da lei. Vide art. 96 - ADCT"` (CF art. 18, § 4º) e `"... § 3º - Se resulta a
+morte: Vide Lei nº 8.072, de 25.7.90"` (CP art. 159). Sem tratá-la, a nota gruda no `texto` do
+dispositivo e ainda o faz parecer truncado (não termina mais em `.`/`:`/`;`), o que levanta
+`EstruturaNaoTratada` num dispositivo que está inteiro.
+
+Estreito de propósito: só casa no **fim** do parágrafo, logo depois da pontuação que fecha o
+dispositivo, e não atravessa parênteses (a forma entre parênteses já é de
+`_PADRAO_ANOTACAO`). Medido nas fixtures desta pasta: 6 ocorrências, todas anotação de verdade."""
 
 
 _PADRAO_FIM_DE_DISPOSITIVO = re.compile(r"[.:;]\s*(?:\([^()]*\)\s*)*(?:\b(?:e|ou)\b\s*)?$")
@@ -204,6 +263,59 @@ def _eh_titulo_estrutural(texto: str) -> bool:
     return sem_pontuacao_final and len(texto.split()) <= _LIMITE_PALAVRAS_TITULO_CURTO
 
 
+def _eh_epigrafe_do_proximo_artigo(texto: str) -> bool:
+    """Reconhece o *nomen iuris* que o Código Penal põe entre um artigo e o seguinte.
+
+    O CP (e as leis penais em geral) nomeia cada tipo com uma rubrica marginal antes do caput:
+    `"Peculato"`, `"Inserção de dados falsos em sistema de informações"` (entre os arts. 313 e
+    313-A), `"Desobediência a decisão judicial sobre perda ou suspensão de direito"` (entre os
+    arts. 358 e 359). Não é dispositivo de nenhum dos dois artigos — é o rótulo do próximo. As
+    curtas já caem em `_eh_titulo_estrutural` (heurístico 3, até
+    `_LIMITE_PALAVRAS_TITULO_CURTO` palavras); as longas, não, e faziam o artigo anterior virar
+    lacuna inteira: medido, 73 rubricas assim só no Código Penal.
+
+    **Só é chamada para o último bloco do artigo** — o que vem imediatamente antes do caput do
+    artigo seguinte, que é exatamente onde a técnica legislativa põe a rubrica do próximo tipo.
+    Essa exigência de posição é o que impede o heurístico de virar de novo o "qualquer texto sem
+    ponto final é título" que a revisão de 19/09/2026 derrubou: no meio do artigo, um bloco sem
+    pontuação de fechamento continua sendo `EstruturaNaoTratada`. Some-se a isso que o chamador
+    só chega aqui quando o bloco **não** casa com §, inciso, alínea nem pena — um dispositivo
+    numerado truncado (CF art. 17, § 8º; CF art. 155, alínea `e`) segue acusando a lacuna.
+
+    Args:
+        texto: o texto já limpo do último bloco do intervalo do artigo.
+
+    Returns:
+        `True` quando o bloco começa com maiúscula e não termina em pontuação de fechamento de
+        dispositivo — a forma de um rótulo, não a de uma frase da lei.
+    """
+    if not texto[:1].isupper():
+        return False
+    return _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None
+
+
+def _eh_residuo_de_revogado(texto: str) -> bool:
+    """Reconhece a pontuação órfã que sobra quando o `<strike>` de um trecho revogado é removido.
+
+    O Planalto às vezes fecha o trecho revogado **fora** da tag: na CF, art. 102, I, o `<p>` da
+    alínea `c` revogada é `"<strike>c) nas infrações penais comuns ... permanente</strike>;"` —
+    tirado o `<strike>`, sobra um parágrafo cujo conteúdo inteiro é `";"`. Não é dispositivo
+    truncado nem título: é resto de pontuação, sem uma letra ou dígito sequer.
+
+    Descartar isto não afrouxa a rede de segurança do módulo (a mina nº 5 do `docs/HANDOFF.md`):
+    um bloco sem nenhum caractere alfanumérico não tem conteúdo normativo para ser engolido em
+    silêncio. Medido: 12 ocorrências nas fixtures desta pasta (10 na CF, 1 na CLT, 1 na Lei
+    11.101/2005), todas restos de `<strike>`.
+
+    Args:
+        texto: o texto já limpo (sem tags, sem anotação reconhecida) de um parágrafo.
+
+    Returns:
+        `True` quando não sobrou nenhuma letra nem dígito no parágrafo.
+    """
+    return not any(c.isalnum() for c in texto)
+
+
 def _com_pontuacao_de_milhar(numero: str) -> str:
     """`"1009"` → `"1.009"`; `"37"` → `"37"` (sem alteração abaixo de 1.000).
 
@@ -247,6 +359,13 @@ def _texto_do_paragrafo(bloco_html: str) -> tuple[str, str | None] | None:
     sem_anotacao = _PADRAO_ANOTACAO.sub(" ", texto_bruto)
     sem_anotacao = _PADRAO_VIGENCIA_SEM_PARENTESES.sub(" ", sem_anotacao)
     texto = _PADRAO_ESPACOS.sub(" ", sem_anotacao).strip()
+    # O "Vide ..." sem parênteses só é reconhecível depois que as anotações entre parênteses
+    # saíram e os espaços foram normalizados — no HTML cru ele aparece encavalado com elas (na
+    # CF, art. 18, § 4º, a ordem é "(Redação dada...)", "Vide art. 96 - ADCT", "(Vide LC 230)").
+    vide = _PADRAO_VIDE_SEM_PARENTESES.search(texto)
+    if vide is not None:
+        anotacoes.append(vide.group(0))
+        texto = texto[: vide.start()].strip()
     if not texto:
         return None
     redacao_de = "; ".join(_PADRAO_ESPACOS.sub(" ", a).strip("() ").strip() for a in anotacoes)
@@ -282,18 +401,19 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
         numero: o número do artigo, sem `"Art."` nem `"º"` (ex.: `"37"`, `"6"`).
 
     Returns:
-        O artigo decomposto em caput, incisos e parágrafos vigentes, cada um com a procedência
-        de redação que o Planalto informou.
+        O artigo decomposto em caput, incisos, parágrafos e penas vigentes, cada um com a
+        procedência de redação que o Planalto informou.
 
     Raises:
         DispositivoNaoEncontrado: nenhum parágrafo do HTML começa com `"Art. {numero}"` vigente.
         EstruturaNaoTratada: um parágrafo vigente do corpo do artigo não é título estrutural
-            (`_eh_titulo_estrutural`) nem casa com parágrafo, inciso ou alínea reconhecidos — a
-            função para em vez de inventar a hierarquia (alínea direto sob o caput, sem
-            inciso/parágrafo antes dela, já resolve para o caput; não é mais este caso); ou casa
-            com parágrafo/inciso/alínea mas não termina em pontuação de fechamento de
-            dispositivo — sinal de que o bloco está truncado (revisão de 19/09/2026: aceitar um
-            dispositivo cortado como se fosse completo é pior do que declarar a lacuna).
+            (`_eh_titulo_estrutural`) nem resíduo de revogação (`_eh_residuo_de_revogado`) nem
+            casa com parágrafo, inciso, alínea ou pena reconhecidos — a função para em vez de
+            inventar a hierarquia (alínea direto sob o caput, sem inciso/parágrafo antes dela, já
+            resolve para o caput; não é mais este caso); ou casa com uma dessas formas mas não
+            termina em pontuação de fechamento de dispositivo — sinal de que o bloco está
+            truncado (revisão de 19/09/2026: aceitar um dispositivo cortado como se fosse
+            completo é pior do que declarar a lacuna).
     """
     paragrafos = _paragrafos_vigentes(html)
     padrao_caput = _padrao_caput(numero)
@@ -319,27 +439,44 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
     )
     incisos: list[TrechoDispositivo] = []
     paragrafos_do_artigo: list[TrechoDispositivo] = []
+    penas: list[TrechoDispositivo] = []
     contexto_incisos: list[TrechoDispositivo] = incisos
     # Uma alínea pode vir direto sob o caput, sem inciso/parágrafo antes dela (ex.: Lei
     # 6.404/1976 art. 116 — "a) é titular..." logo após o caput) — o caput é sempre um alvo
     # válido, então `alvo_alinea` nunca fica sem pai (o caput já foi montado acima).
     alvo_alinea: TrechoDispositivo = caput
+    # A pena é cominada por posição, não por numeração: pune o preceito primário imediatamente
+    # anterior (o caput, enquanto nenhum outro dispositivo apareceu — CP art. 312, "Pena -
+    # reclusão..."; o § 2º, quando é ele que vem antes — CP art. 312, "Peculato culposo").
+    dispositivo_punido: TrechoDispositivo = caput
 
-    for texto, redacao in paragrafos[inicio + 1 : fim]:
+    for posicao, (texto, redacao) in enumerate(paragrafos[inicio + 1 : fim], start=inicio + 1):
         if _eh_titulo_estrutural(texto):
             continue  # título de capítulo/seção entre este artigo e o próximo, não é dispositivo
+        if _eh_residuo_de_revogado(texto):
+            continue  # pontuação que sobrou fora do <strike>, sem conteúdo normativo nenhum
 
         m_paragrafo = _PADRAO_PARAGRAFO.match(texto)
         m_inciso = _PADRAO_INCISO.match(texto)
         m_alinea = _PADRAO_ALINEA.match(texto)
+        m_pena = _PADRAO_PENA.match(texto)
 
-        # Bater com o começo de §/inciso/alínea não basta: o corpo tem de terminar como todo
+        nenhuma_forma = (
+            m_paragrafo is None and m_inciso is None and m_alinea is None and m_pena is None
+        )
+        if nenhuma_forma and posicao == fim - 1 and _eh_epigrafe_do_proximo_artigo(texto):
+            continue  # rubrica (nomen iuris) do artigo seguinte, colada ao fim deste
+
+        # Bater com o começo de §/inciso/alínea/pena não basta: o corpo tem de terminar como todo
         # dispositivo termina (LC 95/1998, art. 11, III). Sem isso, um inciso truncado (linha
         # continuada, célula de tabela virando `<p>`, pontuação que sobrou dentro do `<strike>`
         # removido) seria aceito como se fosse completo — pior do que declarar a lacuna (revisão
         # de 19/09/2026).
         if (
-            m_paragrafo is not None or m_inciso is not None or m_alinea is not None
+            m_paragrafo is not None
+            or m_inciso is not None
+            or m_alinea is not None
+            or m_pena is not None
         ) and _PADRAO_FIM_DE_DISPOSITIVO.search(texto) is None:
             raise EstruturaNaoTratada(
                 f"Dispositivo sem pontuação de fechamento — pode estar truncado: {texto!r}"
@@ -355,12 +492,14 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
             paragrafos_do_artigo.append(item)
             contexto_incisos = item.alineas  # incisos após este § pertencem a ele
             alvo_alinea = item
+            dispositivo_punido = item
         elif m_inciso is not None:
             item = TrechoDispositivo(
                 tipo="inciso", identificador=m_inciso.group(1), texto=texto, redacao_de=redacao
             )
             contexto_incisos.append(item)
             alvo_alinea = item
+            dispositivo_punido = item
         elif m_alinea is not None:
             alvo_alinea.alineas.append(
                 TrechoDispositivo(
@@ -370,14 +509,27 @@ def extrair_artigo(html: str, numero: str) -> ArtigoExtraido:
                     redacao_de=redacao,
                 )
             )
+        elif m_pena is not None:
+            penas.append(
+                TrechoDispositivo(
+                    tipo="pena",
+                    identificador=dispositivo_punido.identificador,
+                    texto=texto,
+                    redacao_de=redacao,
+                )
+            )
         else:
             raise EstruturaNaoTratada(
-                f"Parágrafo vigente sem forma reconhecida (nem §, nem inciso, nem alínea): "
-                f"{texto!r}"
+                f"Parágrafo vigente sem forma reconhecida (nem §, nem inciso, nem alínea, nem "
+                f"pena): {texto!r}"
             )
 
     return ArtigoExtraido(
-        numero=numero, caput=caput, incisos=incisos, paragrafos=paragrafos_do_artigo
+        numero=numero,
+        caput=caput,
+        incisos=incisos,
+        paragrafos=paragrafos_do_artigo,
+        penas=penas,
     )
 
 

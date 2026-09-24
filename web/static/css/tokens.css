@@ -11,16 +11,27 @@
   --cor-superficie-2: #e9edf3;
   --cor-texto: #131b2e;
   --cor-texto-2: #4a5470;
-  --cor-texto-3: #7c86a2;
+  /* `--cor-texto-3` escureceu de #7c86a2 para #616b88 em 23/09/2026: no valor antigo o rótulo
+     (`.eyebrow`, 11px) media 3,32:1 contra o fundo da página, abaixo dos 4,5:1 da WCAG 2.2 AA.
+     Medido em `tests/test_contraste.py` — não mude sem rodar o teste. */
+  --cor-texto-3: #616b88;
   --cor-linha: #d6dce7;
+  /* Separador decorativo é `--cor-linha` (1,38:1, e está certo: cartão e divisória não carregam
+     informação). Limite que a aluna precisa enxergar para achar o controle — borda de campo — é
+     `--cor-linha-forte`, que cumpre os 3:1 da WCAG 1.4.11. */
+  --cor-linha-forte: #7589ae;
 
   /* Ação */
   --cor-acao: #2f46b8;
   --cor-acao-texto: #ffffff;
   --cor-acao-suave: #e4e9fa;
 
-  /* Semânticas: "por quê" (âmbar), acerto, erro, alerta */
+  /* Semânticas: "por quê" (âmbar), acerto, erro, alerta.
+     `--cor-porque` é a barra e o traço do âmbar (limite gráfico, 3:1 basta);
+     `--cor-porque-texto` é a versão que serve de TEXTO sobre o âmbar suave (4,5:1). Separar as
+     duas foi o que permitiu manter a cor de marca do protótipo e ainda passar em AA. */
   --cor-porque: #b7791f;
+  --cor-porque-texto: #98651a;
   --cor-porque-suave: #fbf3e3;
   --cor-ok: #1f7a4d;
   --cor-ok-suave: #e3f3ea;
@@ -35,8 +46,39 @@
   --cor-lateral-texto-forte: #ffffff;
   --cor-lateral-ativo: #2f46b8;
   --cor-lateral-hover: rgb(255 255 255 / 0.06);
+  /* O acento e o rótulo de grupo da barra lateral (23/09/2026). `--cor-lateral-ativo` mede
+     **2,2:1** contra o fundo da barra: servia como retângulo cheio (o contraste que valia era o
+     do texto branco por cima), mas não serve como a barrinha que marca a tela atual — limite
+     gráfico precisa de 3:1 (WCAG 1.4.11). `--cor-lateral-acento` existe para isso, e é medido
+     em `tests/test_contraste.py` como todos os outros. */
+  --cor-lateral-acento: #8ea0f0;
+  --cor-lateral-rotulo: #8a94ae;
 
   --sombra: 0 1px 2px rgb(19 27 46 / 0.06), 0 8px 24px rgb(19 27 46 / 0.06);
+
+  /* Cor por matéria — a paleta de Okabe & Ito ("Color Universal Design",
+     https://jfly.uni-koeln.de/color/), desenhada para ser distinguível nas três formas de
+     daltonismo, escurecida aqui até cada cor cumprir 3:1 contra as superfícies claras (WCAG
+     1.4.11). Nove porque o edital real em uso (TJ-PR/Instituto AOCP) tem nove matérias; a
+     sequência escala por repetição consciente, não por cor nova inventada na hora.
+     **Cor nunca é o único sinal**: toda marca de matéria vem com o nome dela escrito ao lado
+     (contrato §1). Quando existir um segundo exame (fase 2, visão §6), a escala vale igual —
+     o que muda é quantas matérias mapeiam para os mesmos nove tons. */
+  --materia-1: #b57d00;
+  --materia-2: #1b90d1;
+  --materia-3: #009b71;
+  --materia-4: #948b0c;
+  --materia-5: #0072b2;
+  --materia-6: #d55e00;
+  --materia-7: #c66a9d;
+  --materia-8: #888888;
+  --materia-9: #785ef0;
+
+  /* Camadas. Só três, e com nome: z-index inventado na tela é como um popover acaba atrás da
+     barra lateral e ninguém descobre por que. */
+  --z-conteudo: 1;
+  --z-lateral: 10;
+  --z-flutuante: 100;
 
   /* Espaço (gutter de celular = --espaco-4 = 16px). Os passos quebrados (2-5, 5-5, 7, 16) não
      são invenção: são os valores exatos que o protótipo validado usa e que a escala de 4 em 4
@@ -92,14 +134,24 @@
   --medida: 72ch;
   --medida-estreita: 52ch;
 
-  /* Movimento (só aplicado sob prefers-reduced-motion: no-preference) */
+  /* Movimento (só aplicado sob prefers-reduced-motion: no-preference). `--duracao-media` é a
+     faixa de 150–250 ms que o cérebro lê como "resposta ao que eu fiz" sem virar espera:
+     confirmação de acerto, bloco concluído, fim de sessão. Nada acima disso. */
   --duracao-curta: 120ms;
+  --duracao-media: 200ms;
   --curva-padrao: ease-out;
 }
 
-/* Tema escuro automático, a menos que a pessoa tenha fixado o claro */
+/* Tema claro fixado pela pessoa: sem `color-scheme: light` o navegador continua desenhando
+   barra de rolagem e controles nativos no escuro quando o sistema está escuro. */
+:root[data-theme="claro"] { color-scheme: light; }
+
+/* Tema escuro automático — só para quem NÃO fixou tema. O seletor era
+   `:root:not([data-theme="claro"])`, que alcançava também o sépia e vazava cor fria para dentro
+   do tema de leitura. Este bloco é cópia do `[data-theme="escuro"]` abaixo, e
+   `test_contraste.py::test_tema_escuro_automatico_espelha_o_fixado` vigia a divergência. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="claro"]) {
+  :root:not([data-theme]) {
     --cor-fundo: #0f1524;
     --cor-superficie: #171f33;
     --cor-superficie-2: #1f2940;
@@ -107,12 +159,14 @@
     --cor-texto-2: #b6bed3;
     --cor-texto-3: #7f89a6;
     --cor-linha: #2c3650;
+    --cor-linha-forte: #5c71a5;
 
     --cor-acao: #8ea0f0;
     --cor-acao-texto: #0f1524;
     --cor-acao-suave: #24305c;
 
     --cor-porque: #e0b15c;
+    --cor-porque-texto: #e0b15c;
     --cor-porque-suave: #3a2e15;
     --cor-ok: #6fcf97;
     --cor-ok-suave: #15321f;
@@ -125,6 +179,18 @@
     --cor-lateral-texto: #a9b3cc;
     --cor-lateral-texto-forte: #ffffff;
     --cor-lateral-ativo: #3a52c9;
+    --cor-lateral-acento: #9db0ff;
+    --cor-lateral-rotulo: #8a94ae;
+
+    --materia-1: #e69f00;
+    --materia-2: #56b4e9;
+    --materia-3: #009e73;
+    --materia-4: #f0e442;
+    --materia-5: #0078bb;
+    --materia-6: #d55e00;
+    --materia-7: #cc79a7;
+    --materia-8: #8b8b8b;
+    --materia-9: #785ef0;
 
     --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
   }
@@ -139,12 +205,14 @@
   --cor-texto-2: #b6bed3;
   --cor-texto-3: #7f89a6;
   --cor-linha: #2c3650;
+  --cor-linha-forte: #5c71a5;
 
   --cor-acao: #8ea0f0;
   --cor-acao-texto: #0f1524;
   --cor-acao-suave: #24305c;
 
   --cor-porque: #e0b15c;
+  --cor-porque-texto: #e0b15c;
   --cor-porque-suave: #3a2e15;
   --cor-ok: #6fcf97;
   --cor-ok-suave: #15321f;
@@ -157,6 +225,71 @@
   --cor-lateral-texto: #a9b3cc;
   --cor-lateral-texto-forte: #ffffff;
   --cor-lateral-ativo: #3a52c9;
+  --cor-lateral-acento: #9db0ff;
+  --cor-lateral-rotulo: #8a94ae;
+
+  --materia-1: #e69f00;
+  --materia-2: #56b4e9;
+  --materia-3: #009e73;
+  --materia-4: #f0e442;
+  --materia-5: #0078bb;
+  --materia-6: #d55e00;
+  --materia-7: #cc79a7;
+  --materia-8: #8b8b8b;
+  --materia-9: #785ef0;
 
   --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+/* ---- Tema sépia (leitura longa) -------------------------------------------------------------
+   O terceiro tema de primeira classe, e o único pedido pela forma de uso: a aluna estuda 2 a 6
+   horas seguidas, e texto longo em branco puro cansa. É papel, não interface: fundo creme, tinta
+   marrom-escura, a mesma gramática de cores do resto (azul = ação, âmbar = o porquê do agente,
+   verde = confirmação, vermelho = erro) rebaixada para o calor do papel.
+   Não é "escuro clarinho": `color-scheme: light` mantém controle nativo e barra de rolagem
+   claros. Todos os pares passam em AA — os números estão em `GET /estilo`. */
+:root[data-theme="sepia"] {
+  color-scheme: light;
+
+  --cor-fundo: #f0e7d6;
+  --cor-superficie: #faf3e6;
+  --cor-superficie-2: #e6dbc4;
+  --cor-texto: #33291c;
+  --cor-texto-2: #5a4b38;
+  --cor-texto-3: #6d5f49;
+  --cor-linha: #dbcdb2;
+  --cor-linha-forte: #907959;
+
+  --cor-acao: #2a4f9b;
+  --cor-acao-texto: #faf3e6;
+  --cor-acao-suave: #dfe3f2;
+
+  --cor-porque: #9a6a1c;
+  --cor-porque-texto: #7d5413;
+  --cor-porque-suave: #f6ead1;
+  --cor-ok: #1f6b42;
+  --cor-ok-suave: #dfeddd;
+  --cor-erro: #9d2a20;
+  --cor-erro-suave: #f6e0d7;
+  --cor-alerta: #8a5200;
+  --cor-alerta-suave: #f6e4c5;
+
+  --cor-lateral-fundo: #2e2519;
+  --cor-lateral-texto: #d8cbb2;
+  --cor-lateral-texto-forte: #fdf8ee;
+  --cor-lateral-ativo: #2a4f9b;
+  --cor-lateral-acento: #8ea0f0;
+  --cor-lateral-rotulo: #ad9f88;
+
+  --materia-1: #a77300;
+  --materia-2: #1983bf;
+  --materia-3: #008e67;
+  --materia-4: #887f0b;
+  --materia-5: #0072b2;
+  --materia-6: #cd5a00;
+  --materia-7: #c05992;
+  --materia-8: #7c7c7c;
+  --materia-9: #785ef0;
+
+  --sombra: 0 1px 2px rgb(51 41 28 / 0.08), 0 8px 24px rgb(51 41 28 / 0.08);
 }

@@ -199,3 +199,11 @@ def test_nome_de_materia_na_tabela_de_pesos_nao_capitaliza_conectivo() -> None:
     assert _nome_exibicao("NOÇÕES DE INFORMÁTICA") == "Noções de Informática"
     assert _nome_exibicao("MATEMÁTICA/RACIOCÍNIO LÓGICO") == "Matemática/Raciocínio Lógico"
     assert _nome_exibicao("LÍNGUA PORTUGUESA E REDAÇÃO") == "Língua Portuguesa e Redação"
+
+
+# "questõ" + "ão" = "questõão": o radical estava errado no template do verticalizado, e a linha
+# de um tópico com uma questão só saía quebrada na tela da aluna (achado dela em 23/09/2026).
+def test_verticalizado_nunca_escreve_plural_quebrado(pagina: str) -> None:
+    """O radical é "quest": "1 questão" e "2 questões" — nunca "questõão"."""
+    assert "questõão" not in pagina
+    assert "1 questões" not in pagina

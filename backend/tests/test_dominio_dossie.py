@@ -43,14 +43,18 @@ def test_dispositivo_que_o_extrator_le_vira_fonte_com_trecho_literal_e_url() -> 
 
 
 def test_dispositivo_que_o_extrator_nao_trata_vira_lacuna_com_trecho_literal_do_erro() -> None:
-    """Art. 19 (a linha solta "Pena: detenção de seis a dez meses e multa." entre o caput e o
-    parágrafo único, sem nenhum prefixo de §/inciso/alínea) vira lacuna, não invenção — estrutura
-    diferente das quatro tratadas pela P-40 nesta rodada (título Title Case, § com sufixo de
-    letra, alínea direto sob o caput, anotação "Vigência" órfã); a rede de segurança continua de
-    pé para o que não foi tratado."""
+    """Art. 17 (o § 6º-A tem, no HTML do Planalto, um parêntese aberto e nunca fechado antes da
+    anotação "(Incluído pela Lei nº 14.230, de 2021)") vira lacuna, não invenção: o dispositivo
+    fica sem pontuação de fechamento e o extrator recusa aceitá-lo como completo.
+
+    Até 23/09/2026 este teste usava o art. 19 ("Pena: detenção de seis a dez meses e multa.",
+    solto entre o caput e o parágrafo único) como exemplo de estrutura não tratada — o preceito
+    secundário passou a ser tratado (`dominio.legislacao.ArtigoExtraido.penas`) e o art. 19
+    resolve; o exemplo mudou, a regra não: o que o extrator não reconhece vira lacuna declarada,
+    nunca trecho inventado."""
     conteudo = montar_dossie(
         topico_slug="dir-adm-06-improbidade-administrativa",
-        pedidos=[PedidoDispositivo(norma="lei-8429-1992", artigo="19")],
+        pedidos=[PedidoDispositivo(norma="lei-8429-1992", artigo="17")],
         normas_html={"lei-8429-1992": HTML_LEI_8429},
         normas_url={"lei-8429-1992": URL_LEI_8429},
         hoje=HOJE,
@@ -59,12 +63,31 @@ def test_dispositivo_que_o_extrator_nao_trata_vira_lacuna_com_trecho_literal_do_
     assert conteudo.fontes == []
     assert len(conteudo.lacunas) == 1
     lacuna = conteudo.lacunas[0]
-    assert lacuna.dispositivo == "Lei 8.429/1992 art. 19"
-    assert "Pena" in lacuna.motivo
-    assert "detenção" in lacuna.motivo
+    assert lacuna.dispositivo == "Lei 8.429/1992 art. 17"
+    assert "§ 6º-A" in lacuna.motivo
+    assert "truncado" in lacuna.motivo
     # a lacuna é nomeada no conteúdo, mas nenhum trecho de artigo é inventado no lugar dela:
     assert "Lacunas declaradas" in conteudo.conteudo
     assert "[F1]" not in conteudo.conteudo
+
+
+def test_preceito_secundario_nao_impede_mais_o_artigo_de_virar_fonte() -> None:
+    """Art. 19 da Lei 8.429/1992: o caput (denunciação caluniosa) resolve como fonte mesmo com a
+    linha "Pena: detenção de seis a dez meses e multa." no corpo do artigo — a pena é lida como
+    pena (`ArtigoExtraido.penas`), e o que vira trecho da fonte continua sendo só o dispositivo
+    pedido, sem a pena colada nele."""
+    conteudo = montar_dossie(
+        topico_slug="dir-adm-06-improbidade-administrativa",
+        pedidos=[PedidoDispositivo(norma="lei-8429-1992", artigo="19")],
+        normas_html={"lei-8429-1992": HTML_LEI_8429},
+        normas_url={"lei-8429-1992": URL_LEI_8429},
+        hoje=HOJE,
+    )
+
+    assert conteudo.lacunas == []
+    assert len(conteudo.fontes) == 1
+    assert conteudo.fontes[0].trecho.startswith("Art. 19.")
+    assert "Pena:" not in conteudo.fontes[0].trecho
 
 
 def test_norma_sem_html_disponivel_tambem_vira_lacuna() -> None:
@@ -88,7 +111,10 @@ def test_log_de_buscas_registra_uma_entrada_por_pedido_inclusive_falhas() -> Non
         topico_slug="dir-adm-06-improbidade-administrativa",
         pedidos=[
             PedidoDispositivo(norma="lei-8429-1992", artigo="1", paragrafo="1"),
-            PedidoDispositivo(norma="lei-8429-1992", artigo="19"),
+            # art. 17: lacuna real (§ 6º-A com parêntese não fechado no HTML do Planalto) — era o
+            # art. 19 até 23/09/2026, que passou a resolver com o tratamento do preceito
+            # secundário.
+            PedidoDispositivo(norma="lei-8429-1992", artigo="17"),
         ],
         normas_html={"lei-8429-1992": HTML_LEI_8429},
         normas_url={"lei-8429-1992": URL_LEI_8429},

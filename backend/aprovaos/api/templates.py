@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import HTMLResponse, RedirectResponse
 
 from aprovaos.dados.modelos import Usuario
+from aprovaos.dominio.topico import nome_curto
 
 
 def criar_templates(web_dir: Path) -> Jinja2Templates:
@@ -28,11 +29,14 @@ def criar_templates(web_dir: Path) -> Jinja2Templates:
 
     Returns:
         O `Jinja2Templates` que a app guarda em `app.state.templates`, com o filtro `pct`
-        (`{{ valor | pct }}` → `12,5 %`) registrado em `env.filters`.
+        (`{{ valor | pct }}` → `12,5 %`), `brl` e `curto` (`dominio.topico.nome_curto`, o rótulo
+        legível de um item de edital) registrados em `env.filters`.
     """
     templates = Jinja2Templates(directory=web_dir / "templates")
     templates.env.filters["pct"] = formatar_pct
     templates.env.filters["brl"] = formatar_brl
+    templates.env.filters["curto"] = nome_curto
+    templates.env.filters["pct_int"] = formatar_pct_int
     templates.env.globals["estatico"] = criar_estatico(web_dir)
     return templates
 
@@ -81,6 +85,27 @@ def formatar_pct(valor: float | str) -> str:
     arredondado = Decimal(str(valor)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
     texto = f"{arredondado:f}".removesuffix(".0").replace(".", ",")
     return f"{texto} %"
+
+
+def formatar_pct_int(valor: float | str) -> str:
+    """Formata um percentual **sem casa decimal**, para número que a aluna lê na tela.
+
+    A casa decimal de `formatar_pct` serve ao DNA do concurso, onde o número vem de uma contagem
+    grande. Na tela da aluna ela finge exatidão: `"66,7 %"` sai de **2 acertos em 3 itens**, e a
+    fração de ponto percentual é ruído de arredondamento, não informação. Pior quando vem colada
+    a um `±`, que no diagnóstico mede **cobertura**, não precisão (mina nº 7 do `HANDOFF`) — a
+    leitora entende barra de erro estatística e não é isso. Achado no piloto de 23/09/2026: "não
+    dá pra entender 66,7 % ± 7,1 %".
+
+    Args:
+        valor: número (`66.666`, `47.4`) ou o texto `desconhecido`.
+
+    Returns:
+        `"67 %"`, `"47 %"`; textos voltam como estão.
+    """
+    if isinstance(valor, str):
+        return valor
+    return f"{Decimal(str(valor)).quantize(Decimal('1'), rounding=ROUND_HALF_UP):f} %"
 
 
 def formatar_brl(valor: Decimal) -> str:

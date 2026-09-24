@@ -102,14 +102,15 @@
             <li data-slug="{{ t.slug }}">
               <span class="topico__texto">
                 {% if t.questoes > 0 %}
-                  <a href="/topico/{{ t.slug }}/questoes">{{ t.texto_original }}</a>
+                  <a href="/topico/{{ t.slug }}/questoes"
+                     title="{{ t.texto_original }}">{{ t.texto_original | curto }}</a>
                 {% else %}
-                  {{ t.texto_original }}
+                  <span title="{{ t.texto_original }}">{{ t.texto_original | curto }}</span>
                 {% endif %}
               </span>
-              {% if t.questoes > 0 %}
-                <span class="topico__contagem">{{ t.questoes }} questõ{{ "es" if t.questoes != 1 else "ão" }}</span>
-              {% endif %}
+              <span class="topico__contagem">
+                {%- if t.questoes > 0 %}{{ t.questoes }} {{ "questão" if t.questoes == 1 else "questões" }}{% endif -%}
+              </span>
               <span class="status status--{{ 'visto' if t.status == 'visto' else 'nao-visto' }}">{{ t.status }}</span>
             </li>
           {% endfor %}

@@ -1,32 +1,48 @@
-{# O que é: fragmento dos padrões de erro com suporte estatístico (RF-17). `padroes` já vem
-   filtrado por `dominio.padroes.detectar_padroes` (n mínimo + bandas de Wilson sem sobreposição)
-   — nunca um limiar arbitrário. Sem padrão nenhum, a lacuna é dita, não escondida. Incluído por
+{# O que é: fragmento dos padrões de erro (RF-17). `padroes` já vem filtrado por
+   `dominio.padroes.detectar_padroes` (n mínimo + bandas de Wilson sem sobreposição) — nunca um
+   limiar arbitrário. O estado vazio não explica o critério estatístico: ele diz quantas respostas
+   faltam para o primeiro padrão poder aparecer (`respostas_para_primeiro_padrao`, calculado na
+   rota a partir de `MINIMO_RESPOSTAS_PADRAO`) e oferece o caminho para responder. Acima do
+   mínimo, a espera deixa de ser por quantidade e passa a ser por diferença — e as duas frases
+   são diferentes, porque prometer "faltam N" quando já há N seria mentira. Incluído por
    `painel/pagina.html`. Quando ler: ao mudar o texto ou a tabela dos padrões. #}
 <div class="card stack">
-  <span class="eyebrow">Padrões de erro com suporte estatístico</span>
+  <span class="eyebrow">Padrões de erro</span>
 
   {% if padroes %}
     <table class="tabela-justificativa">
       <thead>
-        <tr><th scope="col">Onde</th><th scope="col">O que</th><th scope="col">n</th></tr>
+        <tr><th scope="col">Onde</th><th scope="col">O que</th><th scope="col">Respostas</th></tr>
       </thead>
       <tbody>
         {% for padrao in padroes %}
           <tr>
             <th scope="row">{{ padrao.valor }}</th>
             <td>{{ padrao.frase }}</td>
-            <td class="mono small muted">n={{ padrao.n }}</td>
+            <td class="mono small muted">{{ padrao.n }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    <p class="small muted">Padrões com menos de {{ minimo_respostas_padrao }} respostas não
-      aparecem. Sem número, sem afirmação.</p>
+    <p class="small muted">Um padrão só entra aqui depois de {{ minimo_respostas_padrao }}
+      respostas no mesmo lugar. Com menos que isso, eu não afirmo nada.</p>
   {% else %}
     <div class="vazio">
-      <p>Ainda não há nenhum padrão com suporte estatístico mínimo.</p>
-      <p class="small">É preciso pelo menos {{ minimo_respostas_padrao }} respostas por grupo,
-        com bandas que não se sobrepõem à média geral — menos dado que isso, sem afirmação.</p>
+      <p>Ainda não dá para apontar um padrão nos seus erros.</p>
+      {% if respostas_para_primeiro_padrao > 0 %}
+        {# Concordância no singular: "1 questões" já apareceu na tela desta aluna uma vez. #}
+        <p class="small">{% if respostas_para_primeiro_padrao == 1 %}Falta 1 resposta{% else %}Faltam {{ respostas_para_primeiro_padrao }} respostas{% endif %}
+          para o primeiro padrão poder
+          aparecer: são {{ minimo_respostas_padrao }} no mesmo lugar — a mesma matéria, o mesmo
+          horário, a mesma banca — para eu separar o que se repete do que foi azar.</p>
+      {% else %}
+        <p class="small">Você já respondeu {{ total_respostas }} questões, e nenhuma matéria,
+          horário ou banca se destacou o bastante para eu chamar de padrão. Continue: quando a
+          diferença for de verdade, ela aparece aqui.</p>
+      {% endif %}
+      <div class="row acoes">
+        <a class="btn" href="/hoje">Responder o plano de hoje</a>
+      </div>
     </div>
   {% endif %}
 </div>

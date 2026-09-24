@@ -64,6 +64,9 @@ def criar_app(config: Configuracoes | None = None, engine: Engine | None = None)
     app.state.config = config
     app.state.fabrica_sessao = criar_fabrica_sessao(engine)
     app.state.templates = criar_templates(web_dir)
+    # Guardado porque `GET /estilo` lê `static/css/tokens.css` em tempo de requisição para medir
+    # o contraste das cores (nada é lido em import).
+    app.state.web_dir = web_dir
     app.state.uploads_dir = config.uploads_dir or raiz / "data" / "uploads"
     app.state.fonte_cebraspe = criar_fonte_cebraspe(config)
     app.state.cliente_google_oauth = httpx2.Client(timeout=10)

@@ -64,6 +64,46 @@ class NormaCatalogada(BaseModel):
 
 
 CATALOGO: dict[str, NormaCatalogada] = {
+    # As oito abaixo entraram em 23/09/2026 para o edital real da piloto (TJ-PR/AOCP, Técnico
+    # Judiciário): sem a lei no catálogo, `ancorar` não liga a questão a um dispositivo, e sem
+    # dispositivo ligado `dominio.justificativa` proíbe qualquer justificativa — 111 das 134
+    # questões sem explicação estavam órfãs por isso, não por falta de modelo. Cada URL foi
+    # conferida contra o Planalto na mesma data (HTTP 200 e o título da norma no corpo).
+    "codigo-penal": NormaCatalogada(
+        titulo="Código Penal — Decreto-Lei nº 2.848, de 7 de dezembro de 1940 (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+    ),
+    "cpp": NormaCatalogada(
+        titulo=(
+            "Código de Processo Penal — Decreto-Lei nº 3.689, de 3 de outubro de 1941 "
+            "(texto compilado)"
+        ),
+        url="https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm",
+    ),
+    "codigo-civil": NormaCatalogada(
+        titulo="Código Civil — Lei nº 10.406, de 10 de janeiro de 2002 (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+    ),
+    "lgpd": NormaCatalogada(
+        titulo="LGPD — Lei nº 13.709, de 14 de agosto de 2018 (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+    ),
+    "lei-9099-1995": NormaCatalogada(
+        titulo="Lei nº 9.099, de 26 de setembro de 1995 — Juizados Especiais (texto compilado)",
+        url="https://www.planalto.gov.br/ccivil_03/leis/l9099.htm",
+    ),
+    "lei-12153-2009": NormaCatalogada(
+        titulo=("Lei nº 12.153, de 22 de dezembro de 2009 — Juizados Especiais da Fazenda Pública"),
+        url="https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm",
+    ),
+    "lindb": NormaCatalogada(
+        titulo=("LINDB — Decreto-Lei nº 4.657, de 4 de setembro de 1942 (texto compilado)"),
+        url="https://www.planalto.gov.br/ccivil_03/decreto-lei/del4657compilado.htm",
+    ),
+    "lei-12527-2011": NormaCatalogada(
+        titulo="Lei nº 12.527, de 18 de novembro de 2011 — Acesso à Informação",
+        url="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm",
+    ),
     "cf-1988": NormaCatalogada(
         titulo="Constituição Federal de 1988 (texto compilado)",
         url="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",

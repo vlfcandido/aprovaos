@@ -74,3 +74,58 @@ def test_pendencia_interna_nunca_aparece_na_tela(cliente: TestClient, caminho: s
 def test_um_titulo_de_tela(cliente: TestClient, caminho: str) -> None:
     """Uma tela responde uma pergunta: um `<h1>`, nem zero nem dois."""
     assert cliente.get(caminho).text.count("<h1") == 1, f"{caminho}: deve ter exatamente um <h1>"
+
+
+# ---- shell: tema e modo foco (as duas ilhas que mexem no `<html>` antes da primeira pintura) ----
+
+BASE_HTML = RAIZ_WEB / "templates" / "base.html"
+NAVEGACAO_HTML = RAIZ_WEB / "templates" / "_navegacao.html"
+TEMA_JS = RAIZ_WEB / "static" / "js" / "tema.js"
+
+
+def test_ilhas_do_shell_sao_sincronas() -> None:
+    """Tema e modo foco valem antes da primeira pintura, senão a página pisca no estado errado.
+
+    São as duas únicas exceções ao `defer`: `tema.js` pintaria a cor errada por um quadro e
+    `foco.js` mostraria a navegação para escondê-la em seguida.
+    """
+    corpo = BASE_HTML.read_text(encoding="utf-8")
+    for ilha in ("js/tema.js", "js/foco.js"):
+        assert f"estatico('{ilha}') }}}}\"></script>" in corpo, f"{ilha}: deve carregar sem defer"
+
+
+@pytest.mark.parametrize(
+    ("arquivo", "atributo"),
+    [
+        # Os dois controles do shell moram com a navegação (`_navegacao.html`); a saída do modo
+        # foco mora no documento, porque precisa ser a primeira parada do Tab quando a navegação
+        # some da tela.
+        (NAVEGACAO_HTML, "data-alternar-tema"),
+        (NAVEGACAO_HTML, "data-modo-foco"),
+        (BASE_HTML, "data-sair-do-foco"),
+    ],
+    ids=lambda valor: valor if isinstance(valor, str) else valor.name,
+)
+def test_controle_que_depende_de_js_nasce_escondido(arquivo: Path, atributo: str) -> None:
+    """Sem JS o botão não faria nada, e botão que não faz nada é pior que botão ausente."""
+    corpo = arquivo.read_text(encoding="utf-8")
+    (linha,) = [trecho for trecho in corpo.split("<button") if atributo in trecho]
+    assert "hidden" in linha.split(">")[0], f"{atributo}: o botão precisa nascer `hidden`"
+
+
+def test_alternador_oferece_os_tres_temas_mais_o_do_sistema() -> None:
+    """Claro, sépia e escuro são de primeira classe (contrato §7) — e o sépia é o de leitura."""
+    corpo = TEMA_JS.read_text(encoding="utf-8")
+    assert 'CICLO = ["sistema", "claro", "sepia", "escuro"]' in corpo
+
+
+def test_a_navegacao_mora_no_proprio_arquivo() -> None:
+    """A barra lateral é parcial (`_navegacao.html`), como todo bloco reusável daqui.
+
+    Ela voltar para dentro do `base.html` é o que transformava dois trabalhos independentes —
+    uma tela e a navegação — em conflito no mesmo arquivo (23/09/2026).
+    """
+    assert NAVEGACAO_HTML.exists()
+    base = BASE_HTML.read_text(encoding="utf-8")
+    assert '{% include "_navegacao.html" %}' in base
+    assert '<nav class="lateral"' not in base

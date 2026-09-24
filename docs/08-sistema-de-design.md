@@ -72,6 +72,15 @@ aluna é o defeito que estamos consertando.
 ## 4. Componentes — quando usar, e quando não
 
 **Estrutura**
+- `_navegacao.html` — a barra lateral. Os links são agrupados por **frequência de uso**, não por
+  assunto (`.lateral__grupo` + `.lateral__rotulo`): "O dia" (todo dia), "A medida" (de tempos em
+  tempos), "Meu concurso" (quando algo muda), "Ajustes" (raramente). Visitante não tem grupo —
+  com quatro links, rótulo é ruído. Abaixo de 900px os grupos saem do layout
+  (`display: contents`) e a faixa do topo volta a ser uma linha de links.
+- `_icones.html` — os ícones da navegação, traço de 1,6 em `currentColor`. **Ícone nunca aparece
+  sozinho**: o rótulo escrito vem sempre ao lado. A tela atual é marcada por três sinais (barra
+  de acento `--cor-lateral-acento`, fundo sutil e peso de fonte) e nunca pela cor de ação — azul
+  cheio na navegação faz o botão principal da tela disputar atenção com um item de menu.
 - `.screen-head` — cabeçalho de tela: `eyebrow` + `h1` + uma frase + ilustração. Toda tela tem um.
 - `.stack` / `.row` / `.row.between` — empilhar e alinhar. `.row` quebra sozinha; não force largura.
 - `.grid-2` / `.grid-3` / `.grid-sb` — grades que colapsam para uma coluna **em 900px**.
@@ -91,8 +100,15 @@ aluna é o defeito que estamos consertando.
 **Controle**
 - `.btn` · `.btn.primary` · `.btn.sm` · `.btn.ghost` — o rótulo diz o que acontece ("Concluir",
   não "Concluí"; "Salvar rotina", não "Enviar").
-- `.seg` — escolha única e curta (energia, tipo de questão). Quebra em duas linhas quando a coluna
-  aperta; nunca deixe o rótulo quebrar letra a letra.
+- `.seg` — escolha única e curta (energia, turno, tempo por dia, tipo de questão). Quebra em duas
+  linhas quando a coluna aperta; nunca deixe o rótulo quebrar letra a letra. **É o padrão de
+  pergunta fechada do produto**: `<select>` só sobra para lista longa de verdade — em 23/09/2026
+  os dois `<select>` de `/rotina` viraram `.seg`, porque um menu que abre esconde as opções e
+  cobra dois toques onde um bastava.
+- **Pergunta fechada não se digita.** Quando a resposta cabe em cinco opções, a tela oferece as
+  cinco (`/rotina`: "1 h · 2 h · 3 h · 4 h+ · Não estudo") e deixa o campo numérico atrás de um
+  `<details>`, como exceção. A precedência entre o atalho e o campo é decidida **no servidor**
+  (`dominio/rotina.py`), nunca no navegador: a tela tem de funcionar sem JS.
 - `.entrada` · `.campo-rotulo` — campo e rótulo. Todo campo tem rótulo visível.
 - `.chip` (`accent` · `warn` · `good` · `novo`) — estado ou marca curta, nunca ação.
 - `.fchip` — filtro que é link de verdade: funciona sem JS.
@@ -116,7 +132,12 @@ aluna é o defeito que estamos consertando.
 - **Alvo de toque de 44px** sob `@media (pointer: coarse)` — o aparelho da piloto é tablet.
 - **Nada de rolagem horizontal**, em nenhuma largura, exceto faixa marcada como rolável.
 
-## 6. Texto de interface
+## 6. Voz e texto de interface
+
+**A voz é a de um mentor que já viu isso antes:** próximo, direto, sem euforia e sem sermão.
+Frase curta. Segunda pessoa ("você"), nunca "o usuário". O agente fala do que **fez** e do que
+**recomenda**, e assume a decisão em vez de empurrá-la para ela ("Comece por Improbidade", não
+"Você deveria considerar começar por Improbidade").
 
 - Nome de coisa é o que a aluna entende, não o que o sistema chama. Valor de domínio
   (`media`, `inscricoes_abertas`) **nunca** vai para a tela — traduza (era "Media", sem acento).
@@ -124,8 +145,99 @@ aluna é o defeito que estamos consertando.
 - Lacuna nossa é **uma linha**, nunca uma lista. 63 linhas dizendo "sem questão na base" é um
   relatório sobre nós, não um diagnóstico sobre ela.
 - Número sempre com unidade e, quando é previsão, com intervalo por extenso ("entre 18,5% e 84,7%").
+- **Erro diz o que fazer**, não o que aconteceu. Sem "inválido", sem "falha", sem código.
+- **Elogio só com fato atrás.** "Bom trabalho!" é ruído; "12 de 18 hoje — dois a mais que ontem"
+  é informação que também motiva.
+- **Nada de culpa.** Não existe "você perdeu", "não deixe a sequência cair", contador vermelho ou
+  alerta que cobra presença. Descansar é uma recomendação válida (visão §4).
 
-## 7. Como conferir antes de dizer que está pronto
+| em vez de | escreva |
+|---|---|
+| "Erro: campo inválido." | "Informe um número entre 1 e 16 — o dia não tem mais que isso." |
+| "Você não estudou ontem." | "Ontem foi dia de descanso, e descanso conta. Hoje são três blocos." |
+| "Nenhum resultado encontrado." | "Nenhum concurso com esse nome. Tente pela sigla do órgão (TJ-PR)." |
+| "Enviar" | "Salvar rotina" |
+| "Parabéns! Você arrasou! 🎉" | "Dia cumprido — 12 de 18 questões, dois acertos a mais que ontem." |
+| "Aguarde…" | "Procurando questões deste tópico…" |
+
+## 7. Temas e modo foco
+
+Três temas de **primeira classe**, no botão `Tema` da lateral (`web/static/js/tema.js`), mais a
+opção de seguir o sistema. O script é síncrono no `<head>` de propósito: tema aplicado depois da
+primeira pintura é a página piscando na cor errada.
+
+| tema | quando | como é |
+|---|---|---|
+| **claro** | dia, tela clara | fundo `#f3f5f8` — **nunca branco puro na página**; o branco é só do cartão |
+| **sépia** | leitura longa (aula, dossiê, lei) | papel: creme `#f0e7d6`, tinta `#33291c`, `color-scheme: light` |
+| **escuro** | à noite, depois do trabalho | `#0f1524` — **nunca preto puro** |
+
+Regras: **todo token de cor existe nos três**. Token declarado só no claro vaza para os outros e
+o defeito é invisível em revisão — por isso `test_contraste.py` reprova tema incompleto. O bloco
+`@media (prefers-color-scheme: dark)` vale só para quem **não** fixou tema (`:root:not([data-theme])`).
+
+**Modo foco** (`web/static/js/foco.js`, botão na lateral, `Esc` para sair): `data-foco="1"` no
+`<html>` esconde navegação e rodapé e deixa só o conteúdo da sessão. Nenhuma tela precisa saber
+que ele existe. Vale para a sessão do navegador (`sessionStorage`), não para sempre — e não há
+tecla para **entrar**, porque as telas de estudo já usam A–E e C/E.
+
+## 8. Os seis estados de todo controle
+
+Componente sem estado é componente pela metade: quem usa não sabe se clicou, se está esperando,
+ou por que não pode. Nenhum deles é só cor.
+
+| estado | como se escreve | regra |
+|---|---|---|
+| padrão · foco | `:focus-visible` com anel de 2px em `--cor-acao` | o anel nunca é removido |
+| **carregando** | `aria-busy="true"` (ou `.htmx-request`, que o HTMX põe sozinho) | o rótulo continua existindo para o leitor de tela |
+| **desabilitado** | `disabled` | texto continua legível; se dá para explicar por quê, explique ao lado |
+| **erro** | `aria-invalid="true"` + `.campo-erro` ligado por `aria-describedby` | **a frase é o primeiro sinal**, a borda vermelha é o segundo |
+| **vazio** | `.vazio` | sempre com a ação que resolve: tela vazia é convite |
+| **esqueleto** | `.esqueleto` + `aria-busy` na região | com o tamanho do conteúdo real, senão a página pula |
+
+**Progresso** (`.progresso`, `.bar`, `.anel`): toda sessão declara onde termina, com o número
+escrito ("Questão 7 de 12") — barra sem número é decoração. É o mecanismo aprovado na ADR-0051.
+
+## 9. Contraste: medido, não prometido
+
+`GET /estilo` mostra a tabela **calculada a partir do `tokens.css` na hora da requisição**, e
+`backend/tests/test_contraste.py` reprova a suíte inteira se um par cair. O contrato é a WCAG 2.2
+AA: **4,5:1** para texto (1.4.3) e **3:1** para limite gráfico e de controle (1.4.11).
+
+- Cor nova no sistema = par novo em `PARES_OBRIGATORIOS` (`aprovaos/dominio/contraste.py`). Cor
+  que ninguém mede é cor que ninguém garante.
+- Quando reprovar, **o conserto é o valor do token**, nunca o mínimo do teste.
+- Quando a cor de marca não alcança 4,5:1 como texto, ela não vira texto: nasce um token
+  irmão. É o caso de `--cor-porque` (a barra âmbar, 3,30:1) e `--cor-porque-texto` (o texto
+  sobre âmbar, 4,52:1). Assim a assinatura do produto fica de pé e o texto fica legível.
+- **Exceção declarada:** `--cor-linha` (1,38:1) é separador **decorativo** — cartão e divisória
+  não carregam informação. Limite que a aluna precisa enxergar para achar o controle usa
+  `--cor-linha-forte` (3:1), que é o que a borda de campo usa.
+
+## 10. Cor por matéria
+
+`--materia-1` a `--materia-9`, da paleta de Okabe & Ito ("Color Universal Design",
+<https://jfly.uni-koeln.de/color/>), desenhada para ser distinguível nas três formas de
+daltonismo e escurecida aqui até cumprir 3:1 contra as superfícies de cada tema. Uso:
+`<span class="materia-marca" data-materia="3"></span>` **sempre** ao lado do nome da matéria —
+cor nunca é o único sinal. Nove porque o edital real em uso (TJ-PR/Instituto AOCP) tem nove
+matérias; acima disso, repita os tons em vez de inventar cor não medida. Se um dia houver um
+segundo exame (fase 2, visão §6), a escala vale igual: muda quantas matérias caem em cada tom.
+
+## 11. O que este sistema não tem, de propósito
+
+- **Ofensiva/sequência diária: nunca** (ADR-0051). Ela existe para punir quem descansa, e
+  "descansar é uma recomendação válida" é princípio inegociável (visão §4). O que ocupa esse
+  lugar é **"Dia cumprido"** e a fila com tamanho declarado.
+- **Pontos, XP e medalhas:** pós-MVP. **Ranking e social:** fase 3 (visão §6). Não construa
+  agora; o sistema aceita os dois depois sem reforma, porque o progresso já é um componente.
+- **Modal:** não existe. Uma tela responde uma pergunta; decisão que merece interromper merece
+  tela. (A referência legal é popover, não modal.)
+- **Confete, som e animação de comemoração:** a recompensa é uma frase curta. Clima calmo.
+- **Componentes do lado B** (professor, turma, dashboard agregado) e de um segundo exame: fase
+  2/3. Nada deles entra na biblioteca antes de existir produto para eles.
+
+## 12. Como conferir antes de dizer que está pronto
 
 1. `GET /estilo` — a amostra viva de tudo que existe. Se o seu componente não está lá, ele não
    existe: acrescente à amostra no mesmo commit.

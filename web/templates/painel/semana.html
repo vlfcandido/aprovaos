@@ -41,8 +41,8 @@
           </div>
           <div class="kpi">
             <span class="eyebrow">Acerto</span>
-            <span class="v">{{ resumo.acertos.pct | pct }}
-              <small>entre {{ resumo.acertos.inferior_pct | pct }} e {{ resumo.acertos.superior_pct | pct }}</small>
+            <span class="v">{{ resumo.acertos.pct | pct_int }}
+              <small>entre {{ resumo.acertos.inferior_pct | pct_int }} e {{ resumo.acertos.superior_pct | pct_int }}</small>
             </span>
           </div>
           <div class="kpi">
@@ -56,25 +56,49 @@
         <div class="why"><b>Conquista da semana</b><span>{{ resumo.conquista }}</span></div>
       {% endif %}
 
-      {% if resumo.topicos_novos %}
-        <div class="card stack">
-          <h2>Tópicos novos esta semana</h2>
-          <ul class="stack" style="gap:var(--espaco-2);margin:0;padding-left:1.2em">
-            {% for nome in resumo.topicos_novos %}<li>{{ nome }}</li>{% endfor %}
-          </ul>
-        </div>
-      {% endif %}
+      {# Item de edital real chega a 60 palavras (o de Informática do TJ-PR lista sete leis
+         dentro do próprio nome), e as duas listas traziam o nome inteiro por linha — uma com
+         marcadores, outra com a frase colada no nome, que ainda produzia ".:" quando o nome
+         terminava em ponto. Vira lista com nome cortado em duas linhas (texto completo no
+         `title`) e o placar como selo, lado a lado em tela larga. -#}
+      <div class="grid-2">
+        {% if resumo.topicos_novos %}
+          <div class="card stack">
+            <h2>Você começou {{ resumo.topicos_novos | length }}
+              {{ "tópico novo" if resumo.topicos_novos | length == 1 else "tópicos novos" }}</h2>
+            <ul class="lista-limpa stack">
+              {% for nome in resumo.topicos_novos %}
+                <li class="small" title="{{ nome }}">{{ nome | curto }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
 
-      {% if resumo.para_rever %}
-        <div class="card stack">
-          <h2>Vale revisar</h2>
-          <ul class="stack" style="gap:var(--espaco-2);margin:0;padding-left:1.2em">
-            {% for item in resumo.para_rever %}<li>{{ item.frase }}</li>{% endfor %}
-          </ul>
-        </div>
-      {% endif %}
+        {% if resumo.para_rever %}
+          <div class="card stack">
+            <h2>Vale revisar</h2>
+            <p class="small muted">Onde você errou esta semana — é daqui que o plano de amanhã
+              puxa primeiro.</p>
+            <ul class="lista-limpa stack">
+              {% for item in resumo.para_rever %}
+                <li class="row between">
+                  <span class="small cresce" title="{{ item.topico_nome }}">{{ item.topico_nome | curto }}</span>
+                  <span class="chip {{ 'good' if item.acertos == item.total else 'warn' }}">
+                    {{ item.acertos }} de {{ item.total }}
+                  </span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
     {% endif %}
 
-    <p><a href="/painel">Voltar ao painel</a></p>
+    <div class="row acoes">
+      {% if resumo is defined and resumo.para_rever %}
+        <a class="btn primary" href="/revisar">Revisar o que errou</a>
+      {% endif %}
+      <a class="btn" href="/painel">Voltar ao painel</a>
+    </div>
   {% endif %}
 {% endblock %}

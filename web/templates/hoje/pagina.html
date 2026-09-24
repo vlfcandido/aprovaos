@@ -168,7 +168,7 @@
                 · {{ bloco.duracao_min }} min
               </span>
               <h3 class="titulo-bloco" {% if bloco.topico_nome %}title="{{ bloco.topico_nome }}"{% endif %}>
-                {% if bloco.topico_nome and bloco.tipo in ("aula", "questoes") %}{{ bloco.topico_nome }}
+                {% if bloco.topico_nome and bloco.tipo in ("aula", "questoes") %}{{ bloco.topico_nome | curto }}
                 {% elif bloco.tipo == "revisao" %}Cartões vencidos
                 {% elif bloco.tipo == "descanso" %}Descanso — recomendação do agente
                 {% else %}{{ bloco.tipo | capitalize }}

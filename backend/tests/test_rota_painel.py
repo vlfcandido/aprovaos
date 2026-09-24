@@ -194,7 +194,9 @@ def test_painel_sem_data_alvo_mostra_lacuna_em_vez_de_curva(
     assert "Previsão de nota" in resposta.text
 
 
-def test_painel_com_dado_mostra_banda_por_extenso(cliente: TestClient, db: Session) -> None:
+def test_painel_com_dado_mostra_a_faixa_por_extenso(cliente: TestClient, db: Session) -> None:
+    """Com uma resposta só a faixa é enorme, e a tela lidera pela incerteza — mas a faixa e a
+    confiança continuam escritas, que é a regra de produto (visão §4)."""
     email = "com-dado@exemplo.com"
     _entrar(cliente, email)
     edital_id, (topico,) = _cenario_com_edital(db, email)
@@ -206,9 +208,66 @@ def test_painel_com_dado_mostra_banda_por_extenso(cliente: TestClient, db: Sessi
     resposta = cliente.get("/painel")
 
     assert resposta.status_code == 200
-    assert "— entre" in resposta.text
+    assert "Ainda não dá para prever sua nota" in resposta.text
+    assert "em qualquer lugar entre" in resposta.text
     assert "confiança" in resposta.text
     assert edital_id  # o edital existe; a asserção acima é o que importa nesta tela
+
+
+def test_painel_nao_fala_a_lingua_de_quem_construiu_o_calculo(
+    cliente: TestClient, db: Session
+) -> None:
+    """O dono leu o painel e disse "ruim de ler": "banda de 66,1 p.p.", "78 % do peso da prova
+    medido", "bandas que não se sobrepõem à média geral" são termos de quem fez a conta."""
+    email = "sem-jargao@exemplo.com"
+    _entrar(cliente, email)
+    _, (topico,) = _cenario_com_edital(db, email)
+    usuario = _usuario_por_email(db, email)
+    questao = _gravar_questao(db, topico, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    for jargao in ("p.p.", "suporte estatístico", "se sobrepõem", "Wilson"):
+        assert jargao not in resposta.text, f"{jargao!r} continua na tela"
+
+
+def test_padroes_vazio_diz_quantas_respostas_faltam(cliente: TestClient, db: Session) -> None:
+    """Estado vazio que ensina estatística não ajuda: diga o que falta para o primeiro padrão."""
+    email = "faltam-respostas@exemplo.com"
+    _entrar(cliente, email)
+    _, (topico,) = _cenario_com_edital(db, email)
+    usuario = _usuario_por_email(db, email)
+    questao = _gravar_questao(db, topico, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    # 8 respostas no mesmo grupo (MINIMO_RESPOSTAS_PADRAO) menos a 1 já dada.
+    assert "Faltam 7 respostas" in resposta.text
+    assert "Responder o plano de hoje" in resposta.text
+
+
+def test_previsao_declara_a_materia_em_branco_como_proximo_passo(
+    cliente: TestClient, db: Session
+) -> None:
+    """Confiança sem caminho é só um rótulo ruim: o bloco diz o que sobe a confiança."""
+    email = "o-que-falta@exemplo.com"
+    _entrar(cliente, email)
+    _, (topico,) = _cenario_com_edital(db, email)
+    usuario = _usuario_por_email(db, email)
+    questao = _gravar_questao(db, topico, email, 1)
+    _resposta(db, usuario, questao, agora_utc())
+    db.commit()
+
+    resposta = cliente.get("/painel")
+
+    assert resposta.status_code == 200
+    assert "Responda mais questões" in resposta.text
 
 
 def test_painel_nao_vaza_codigo_interno_de_pendencia(cliente: TestClient, db: Session) -> None:
@@ -247,11 +306,15 @@ def test_previsao_usa_intervalo_da_biblioteca_sem_parecer_slider(
     resposta = cliente.get("/painel")
 
     assert resposta.status_code == 200
-    assert 'class="intervalo"' in resposta.text
-    assert "<circle" not in resposta.text
+    # A asserção olha o conteúdo da tela, não a página inteira: desde 23/09/2026 a barra lateral
+    # tem ícones em SVG (`_icones.html`), então "nenhum `<svg>` no HTML" deixou de ser uma
+    # propriedade verdadeira — e nunca foi a que este teste queria provar.
+    conteudo = resposta.text.split("<main", 1)[1]
+    assert 'class="intervalo"' in conteudo
+    assert "<circle" not in conteudo
     # sem data-alvo (`_cenario_com_edital` não define uma), a curva também cai no estado vazio —
-    # a página inteira fica sem nenhum `<svg>` neste cenário.
-    assert "<svg" not in resposta.text
+    # o conteúdo fica sem nenhum `<svg>` neste cenário.
+    assert "<svg" not in conteudo
 
 
 def test_previsao_nao_duplica_a_materia_sem_dado(cliente: TestClient, db: Session) -> None:

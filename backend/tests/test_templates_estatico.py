@@ -57,3 +57,24 @@ def test_templates_expoem_estatico_como_global(tmp_path: Path) -> None:
     renderizado = templates.env.from_string("{{ estatico('css/base.css') }}").render()
 
     assert renderizado.startswith("/static/css/base.css?v=")
+
+
+# "66,7 % ± 7,1 %" era ilegível para a aluna e, pior, desonesto: no diagnóstico o `±` mede
+# **cobertura**, não precisão (mina nº 7 do HANDOFF), e a casa decimal finge exatidão que 3
+# itens não têm. O filtro `pct_int` tira a precisão falsa; quem diz o tamanho da amostra é a
+# tela, em palavras.
+def test_pct_int_arredonda_para_inteiro() -> None:
+    """66,666… vira "67 %" — sem casa decimal, que em amostra pequena é ruído."""
+    from aprovaos.api.templates import formatar_pct_int
+
+    assert formatar_pct_int(66.666) == "67 %"
+    assert formatar_pct_int(0.0) == "0 %"
+    assert formatar_pct_int(100.0) == "100 %"
+    assert formatar_pct_int(47.4) == "47 %"
+
+
+def test_pct_int_devolve_texto_como_esta() -> None:
+    """`desconhecido` continua passando — o filtro não inventa número para lacuna declarada."""
+    from aprovaos.api.templates import formatar_pct_int
+
+    assert formatar_pct_int("desconhecido") == "desconhecido"

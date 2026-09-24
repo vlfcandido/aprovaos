@@ -41,14 +41,25 @@ MAXIMO_PARA_REVER: Final = 5
 
 
 class ItemResumo(BaseModel):
-    """Um tópico a revisar, com a frase pronta para a tela.
+    """Um tópico a revisar: o nome, o placar da semana e a frase pronta.
+
+    `acertos`/`total` existem separados da `frase` porque a tela precisa dos dois papéis em
+    lugares diferentes — o nome do tópico (que em edital real chega a 60 palavras) pede corte
+    visual, e o placar pede destaque. Antes só havia `frase`, que repetia o nome inteiro dentro
+    de si: além da parede de texto, produzia `".:"` quando o nome já terminava em ponto
+    ("Ação penal e ação civil ex delicto.: acertou 0 de 1..."). A `frase` continua aqui, para
+    quem precise de uma linha só.
 
     Attributes:
         topico_nome: nome de exibição do tópico.
+        acertos: quantas respostas desta semana neste tópico foram corretas.
+        total: quantas respostas desta semana neste tópico.
         frase: pt-BR, com os números reais desta semana — nunca genérica.
     """
 
     topico_nome: str
+    acertos: int
+    total: int
     frase: str
 
 
@@ -160,6 +171,8 @@ def montar_resumo(
     para_rever = [
         ItemResumo(
             topico_nome=_nome(nomes_por_topico, tid),
+            acertos=sum(1 for r in itens if r.acertou),
+            total=len(itens),
             frase=(
                 f"{_nome(nomes_por_topico, tid)}: acertou {sum(1 for r in itens if r.acertou)} "
                 f"de {len(itens)} nesta semana — vale revisar."

@@ -91,7 +91,7 @@ def test_sem_corte_historico_e_lacuna_declarada_sem_probabilidade() -> None:
     previsao = prever_nota([materia], corte_historico_pct=None)
     assert previsao.corte_historico_pct is None
     assert previsao.probabilidade_lacuna is not None
-    assert "corte histórico" in previsao.probabilidade_lacuna
+    assert "nota de corte" in previsao.probabilidade_lacuna
 
 
 def test_com_corte_a_comparacao_sai_pela_banda_nao_pelo_ponto() -> None:
@@ -114,7 +114,8 @@ def test_porque_usa_virgula_decimal_e_a_lacuna_comeca_maiuscula() -> None:
     Achado olhando o painel renderizado: no mesmo parágrafo saíam "61,6 %" (vírgula) e "banda de
     62.9 p.p." (ponto), e a lacuna da probabilidade começava em minúscula mesmo sendo a primeira
     palavra de um período. Detalhe pequeno que faz o produto parecer descuidado justamente onde
-    ele pede confiança.
+    ele pede confiança. A largura da banda saiu do texto (o jargão "p.p." não era lido pela
+    aluna), mas o corte histórico continua sendo um decimal escrito em português.
     """
     materias = [
         DesempenhoMateria(
@@ -124,9 +125,144 @@ def test_porque_usa_virgula_decimal_e_a_lacuna_comeca_maiuscula() -> None:
         ),
         DesempenhoMateria(materia="Noções de Informática", proporcao=None, peso_questoes=1),
     ]
+    previsao = prever_nota(materias, corte_historico_pct=61.6)
+
+    assert "61,6 %" in previsao.porque
+    assert not _TEM_PONTO_DECIMAL.search(previsao.porque), previsao.porque
+
+    sem_corte = prever_nota(materias)
+    assert sem_corte.probabilidade_lacuna is not None
+    assert sem_corte.probabilidade_lacuna[0].isupper(), sem_corte.probabilidade_lacuna
+
+
+# ---------------------------------------------------------------------------
+# O texto que a aluna lê (o dono leu o painel e disse "ruim de ler")
+# ---------------------------------------------------------------------------
+
+#: Vocabulário de quem construiu o cálculo — nenhum deles pode chegar à tela da aluna.
+_JARGAO = ("p.p.", "banda", "Wilson", "suporte estatístico", "intervalo de confiança", "n=")
+
+
+def _textos(previsao: object) -> str:
+    """Junta tudo que a previsão manda para a tela, para varrer jargão de uma vez só."""
+    partes = [
+        previsao.porque,  # type: ignore[attr-defined]
+        previsao.o_que_falta or "",  # type: ignore[attr-defined]
+        previsao.probabilidade_lacuna or "",  # type: ignore[attr-defined]
+    ]
+    return " ".join(partes)
+
+
+def test_previsao_sem_jargao_de_quem_construiu_o_calculo() -> None:
+    """O conteúdo estava certo e o vocabulário errado: "banda de 66,1 p.p." não é português dela."""
+    materias = [
+        DesempenhoMateria(
+            materia="Noções de Direito Administrativo",
+            proporcao=intervalo_wilson(2, 3),
+            peso_questoes=1,
+        ),
+        DesempenhoMateria(materia="Língua Portuguesa", proporcao=None, peso_questoes=1),
+    ]
     previsao = prever_nota(materias)
 
-    assert "p.p." in previsao.porque
-    assert not _TEM_PONTO_DECIMAL.search(previsao.porque), previsao.porque
-    assert previsao.probabilidade_lacuna is not None
-    assert previsao.probabilidade_lacuna[0].isupper(), previsao.probabilidade_lacuna
+    texto = _textos(previsao)
+    for termo in _JARGAO:
+        assert termo not in texto, f"{termo!r} vazou para a tela: {texto}"
+
+
+def test_faixa_larga_marca_a_previsao_como_incerta() -> None:
+    """Com banda larga o ponto estimado engana: quem lidera o bloco é a incerteza, não o número."""
+    pouco_dado = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Direito Administrativo", proporcao=intervalo_wilson(2, 3), peso_questoes=1
+            ),
+            DesempenhoMateria(materia="Língua Portuguesa", proporcao=None, peso_questoes=1),
+        ]
+    )
+    assert pouco_dado.incerta is True
+
+    muito_dado = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Direito Administrativo",
+                proporcao=intervalo_wilson(900, 1000),
+                peso_questoes=10,
+            )
+        ]
+    )
+    assert muito_dado.incerta is False
+
+
+def test_o_que_falta_nomeia_as_materias_em_branco_como_acao() -> None:
+    """A lacuna declarada continua declarada — dita como o próximo passo, não como reclamação."""
+    previsao = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Direito Administrativo", proporcao=intervalo_wilson(8, 10), peso_questoes=1
+            ),
+            DesempenhoMateria(materia="Língua Portuguesa", proporcao=None, peso_questoes=1),
+            DesempenhoMateria(materia="Matemática", proporcao=None, peso_questoes=1),
+        ]
+    )
+
+    assert previsao.o_que_falta is not None
+    assert "Língua Portuguesa e Matemática" in previsao.o_que_falta
+    assert previsao.o_que_falta.startswith("Responda")
+
+
+def test_o_que_falta_existe_mesmo_com_confianca_alta_se_falta_materia() -> None:
+    """Confiança alta não apaga a matéria em branco: a lacuna some do texto e o produto mente."""
+    previsao = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Direito Administrativo",
+                proporcao=intervalo_wilson(900, 1000),
+                peso_questoes=9,
+            ),
+            DesempenhoMateria(materia="Língua Portuguesa", proporcao=None, peso_questoes=1),
+        ]
+    )
+
+    assert previsao.confianca == "alta"
+    assert previsao.o_que_falta is not None
+    assert "Língua Portuguesa" in previsao.o_que_falta
+
+
+def test_sem_nada_faltando_o_caminho_nao_e_inventado() -> None:
+    """Confiança alta e prova inteira medida: não há o que pedir, e pedir seria ruído."""
+    previsao = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Direito Administrativo",
+                proporcao=intervalo_wilson(900, 1000),
+                peso_questoes=10,
+            )
+        ]
+    )
+
+    assert previsao.o_que_falta is None
+
+
+def test_porque_nao_diz_que_uma_materia_pesa_mais_quando_todas_pesam_igual() -> None:
+    """Com peso uniforme (P-39 no edital real), "pesa mais" era o primeiro nome da lista.
+
+    Dado errado com cara de certo (ADR-0036): a tela dizia "Noções de Direito Administrativo pesa
+    mais (1 questão)" quando as nove matérias pesavam 1 — a matéria não pesa mais, ela só foi a
+    primeira do `max()`.
+    """
+    previsao = prever_nota(
+        [
+            DesempenhoMateria(
+                materia="Noções de Direito Administrativo",
+                proporcao=intervalo_wilson(2, 3),
+                peso_questoes=1,
+            ),
+            DesempenhoMateria(
+                materia="Noções de Informática", proporcao=intervalo_wilson(1, 2), peso_questoes=1
+            ),
+        ]
+    )
+
+    assert "Noções de Direito Administrativo" not in previsao.porque
+    assert "mais questões na prova" not in previsao.porque

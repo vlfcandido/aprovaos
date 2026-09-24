@@ -13,7 +13,7 @@ sempre da rota. Quando ler: ao ligar o erro de uma questão ao nascimento do car
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from aprovaos.dados.modelos import Cartao, EventoEstudo, Questao, Usuario
@@ -184,3 +184,34 @@ def revisar_cartao(
     db.add(evento)
     db.flush()
     return evento
+
+
+def revisados_hoje(db: Session, usuario_id: UUID, agora: datetime) -> int:
+    """Quantos cartões este usuário já revisou no dia de `agora`.
+
+    Existe para dar denominador honesto à barra de `/revisar` (ADR-0051, "sessão com fim
+    visível"): a fila de vencidos só **encolhe**, então uma barra medida só por ela nunca sairia
+    do zero. O total do dia é o que ainda vence mais o que já foi revisado hoje.
+
+    O recorte de dia é feito sobre `ocorrido_em` em UTC, o mesmo critério (e a mesma limitação)
+    de `cartoes_vencidos` — fuso do usuário continua sendo a P-44.
+
+    Args:
+        db: sessão do request.
+        usuario_id: dono dos cartões.
+        agora: instante de referência (`dados/base.py::agora_utc`).
+
+    Returns:
+        O número de eventos `revisao_cartao` deste usuário no dia de `agora`.
+    """
+    inicio = agora.replace(hour=0, minute=0, second=0, microsecond=0)
+    consulta = (
+        select(func.count())
+        .select_from(EventoEstudo)
+        .where(
+            EventoEstudo.usuario_id == usuario_id,
+            EventoEstudo.tipo == "revisao_cartao",
+            EventoEstudo.ocorrido_em >= inicio,
+        )
+    )
+    return db.scalar(consulta) or 0

@@ -1,0 +1,59 @@
+{# O que é: a barra lateral do shell — marca, os links do produto agrupados por frequência de uso
+   (o que aparece depende de `usuario_email`, injetado por `renderizar`) e o rodapé da barra com
+   os controles do shell (tema e modo foco, que as ilhas revelam, e "Sair"). Quando ler: ao
+   acrescentar ou reordenar uma tela na navegação — o grupo diz **com que frequência** ela é
+   usada, não de que assunto ela trata. Extraída do `base.html` em 23/09/2026 (lá era o quinto
+   assunto de um arquivo só, e ponto de colisão entre trabalhos paralelos); o rodapé veio junto
+   porque quem procura "o botão Tema" procura na navegação, não no documento.
+
+   Os grupos existem só para quem entrou: com quatro links (visitante), rótulo de grupo é
+   ruído. Abaixo de 900px a barra vira faixa no topo e os grupos somem do layout
+   (`display: contents`), deixando os links em linha como sempre foram — o tablet da piloto não
+   muda. -#}
+{% from "_icones.html" import icone %}
+<nav class="lateral" aria-label="Principal">
+  <a class="marca" href="/">AprovaOS</a>
+  <div class="lateral__links">
+    <a href="/" {% if request.url.path == "/" %}aria-current="page"{% endif %}>{{ icone("inicio") }}Início</a>
+    {% if usuario_email %}
+      <div class="lateral__grupo">
+        <p class="lateral__rotulo">O dia</p>
+        <a href="/hoje" {% if request.url.path == "/hoje" %}aria-current="page"{% endif %}>{{ icone("hoje") }}Hoje</a>
+        <a href="/revisar" {% if request.url.path == "/revisar" %}aria-current="page"{% endif %}>{{ icone("revisar") }}Revisar hoje</a>
+      </div>
+      <div class="lateral__grupo">
+        <p class="lateral__rotulo">A medida</p>
+        <a href="/diagnostico" {% if request.url.path == "/diagnostico" %}aria-current="page"{% endif %}>{{ icone("diagnostico") }}Diagnóstico</a>
+        <a href="/painel" {% if request.url.path.startswith("/painel") %}aria-current="page"{% endif %}>{{ icone("painel") }}Painel</a>
+      </div>
+      <div class="lateral__grupo">
+        <p class="lateral__rotulo">Meu concurso</p>
+        <a href="/editais" {% if request.url.path.startswith("/editais") or request.url.path.startswith("/concurso") %}aria-current="page"{% endif %}>{{ icone("editais") }}Meus editais</a>
+        <a href="/radar" {% if request.url.path.startswith("/radar") %}aria-current="page"{% endif %}>{{ icone("radar") }}Radar</a>
+      </div>
+      <div class="lateral__grupo">
+        <p class="lateral__rotulo">Ajustes</p>
+        <a href="/rotina" {% if request.url.path == "/rotina" %}aria-current="page"{% endif %}>{{ icone("rotina") }}Rotina</a>
+        <a href="/conta" {% if request.url.path == "/conta" %}aria-current="page"{% endif %}>{{ icone("conta") }}Minha conta</a>
+      </div>
+    {% else %}
+      <a href="/radar" {% if request.url.path.startswith("/radar") %}aria-current="page"{% endif %}>{{ icone("radar") }}Radar</a>
+      <a href="/entrar" {% if request.url.path == "/entrar" %}aria-current="page"{% endif %}>{{ icone("entrar") }}Entrar</a>
+      <a href="/cadastro" {% if request.url.path == "/cadastro" %}aria-current="page"{% endif %}>{{ icone("cadastro") }}Criar conta</a>
+    {% endif %}
+  </div>
+  <div class="lateral__rodape">
+    {# `hidden` por padrão: sem JS o botão não faria nada, e botão que não faz nada é pior
+       que botão ausente. A ilha `tema.js` o revela. #}
+    <button class="botao-link" type="button" data-alternar-tema hidden>Tema</button>
+    {# Idem: sem JS o modo foco não existe, então o botão também não aparece. #}
+    <button class="botao-link" type="button" data-modo-foco aria-pressed="false" hidden>
+      Modo foco
+    </button>
+    {% if usuario_email %}
+      <form method="post" action="/sair">
+        <button class="botao-link" type="submit">Sair</button>
+      </form>
+    {% endif %}
+  </div>
+</nav>

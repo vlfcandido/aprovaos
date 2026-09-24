@@ -15,9 +15,13 @@
     {# ADR-0051: a fila tem fim, e a aluna precisa vê-lo. O número é o de cartões vencidos
        agora, então ele cai a cada resposta — é a fila encolhendo, não uma meta a bater. -#}
     {% if restantes %}
+      <div class="bar" role="progressbar" aria-valuenow="{{ feitos_hoje }}" aria-valuemin="0"
+           aria-valuemax="{{ total_do_dia }}" aria-label="Cartões revisados hoje">
+        <i style="width:{{ (feitos_hoje / total_do_dia * 100) | round(1) }}%"></i>
+      </div>
       <p class="small muted" style="margin:0">
+        Cartão {{ feitos_hoje + 1 }} de {{ total_do_dia }} —
         {{ restantes }} {{ "cartão" if restantes == 1 else "cartões" }} para revisar agora.
-        {%- if restantes > 1 %} Cada resposta tira um da fila.{% endif %}
       </p>
     {% endif %}
   </div>

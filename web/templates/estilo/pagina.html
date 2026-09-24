@@ -4,6 +4,7 @@
    acrescente a amostra dele aqui no mesmo commit. #}
 {% extends "base.html" %}
 {% from "_arte.html" import arte_radar, arte_diagnostico, arte_plano, arte_concurso, arte_rotina %}
+{% from "_icones.html" import icone %}
 {% block titulo %}Biblioteca — AprovaOS{% endblock %}
 {% block conteudo %}
 <h1>Biblioteca de componentes</h1>
@@ -26,7 +27,12 @@ classes são os mesmos do protótipo, de propósito: quem porta uma tela copia o
     <li><b>22px entre blocos</b> (<span class="mono">--espaco-5-5</span>), 10px dentro do cartão.
     Pixel escrito à mão em template significa que falta componente.</li>
     <li><b>Componente que não está nesta página não existe.</b> Acrescentou à biblioteca?
-    Acrescente a amostra aqui no mesmo commit.</li>
+    Acrescente a amostra aqui no mesmo commit — <span class="mono">tests/test_rota_estilo.py</span>
+    confere.</li>
+    <li><b>Contraste é medido, não prometido</b>: a tabela no fim da página sai do
+    <span class="mono">tokens.css</span> na hora, e o teste reprova quem cair abaixo de AA.</li>
+    <li><b>Não existe ofensiva, ponto nem contador vermelho</b> (ADR-0051). O que mede o dia é
+    "Dia cumprido" e a sessão com fim visível.</li>
   </ul>
 </div>
 
@@ -87,6 +93,10 @@ classes são os mesmos do protótipo, de propósito: quem porta uma tela copia o
       <div class="kpi"><span class="small muted">Respostas</span>
         <span class="v">18</span></div>
     </div>
+    <p class="small muted" style="margin:0">Número dentro de frase que a aluna compara com outro
+    número leva <span class="mono">.tabular</span>: <span class="tabular">137</span> questões
+    publicáveis em <span class="tabular">38</span> de <span class="tabular">99</span> tópicos.
+    Tabela e KPI já vêm com algarismo de largura fixa ligado.</p>
   </section>
 
   <section class="stack">
@@ -184,6 +194,154 @@ classes são os mesmos do protótipo, de propósito: quem porta uma tela copia o
       necessária — e inventar uma seria pior que não ter.</p>
       <div class="row acoes"><a class="btn primary" href="/rotina">Informar a data</a></div>
     </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Os outros estados de um controle</p>
+    <p class="small muted prosa" style="margin:0">Carregando, desabilitado e com erro. O HTMX
+    marca sozinho o elemento em voo com <span class="mono">htmx-request</span>; fora dele, use
+    <span class="mono">aria-busy="true"</span>. Erro de campo sempre tem frase: a borda vermelha é
+    o segundo sinal, nunca o primeiro.</p>
+    <div class="card stack">
+      <div class="row">
+        <button class="btn primary" aria-busy="true">Salvando</button>
+        <button class="btn" aria-busy="true">Carregando</button>
+        <button class="btn" disabled>Indisponível agora</button>
+      </div>
+      <div class="stack" style="max-width:28rem">
+        <label class="stack" style="gap:var(--espaco-2)">
+          <span class="campo-rotulo">Horas por dia</span>
+          <input class="entrada" value="26" aria-invalid="true" aria-describedby="erro-horas">
+        </label>
+        <p class="campo-erro" id="erro-horas" style="margin:0">Informe um número entre 1 e 16 —
+        o dia não tem mais que isso.</p>
+        <label class="stack" style="gap:var(--espaco-2)">
+          <span class="campo-rotulo">Banca (vem do edital)</span>
+          <input class="entrada" value="Instituto AOCP" disabled>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Esqueleto (o conteúdo que ainda não chegou)</p>
+    <p class="small muted prosa" style="margin:0">Com o tamanho do conteúdo real, senão a página
+    pula quando ele entra. A região leva <span class="mono">aria-busy="true"</span> e os tijolos
+    ficam fora do leitor de tela.</p>
+    <div class="card stack" aria-busy="true">
+      <span class="esqueleto esqueleto--titulo" aria-hidden="true"></span>
+      <span class="esqueleto esqueleto--linha" aria-hidden="true"></span>
+      <span class="esqueleto esqueleto--linha esqueleto--curta" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Progresso: a sessão com fim visível</p>
+    <p class="small muted prosa" style="margin:0">A piloto abandonou o diagnóstico por não ver
+    onde ele acabava (23/09/2026). Toda sessão declara o fim, e o rótulo com o número é
+    obrigatório — barra sem número é decoração. Não existe ofensiva, nem pontos, nem contador
+    vermelho: a régua é o dia cumprido (ADR-0051).</p>
+    <div class="card row" style="gap:var(--espaco-6)">
+      <div class="progresso cresce">
+        <span class="progresso__rotulo"><span>Questão 7 de 12</span><span>58 %</span></span>
+        <div class="bar" role="progressbar" aria-valuenow="7" aria-valuemin="0" aria-valuemax="12"
+             aria-label="Questões respondidas nesta sessão"><i style="width:58%"></i></div>
+      </div>
+      <div class="anel" style="--anel:58" role="img" aria-label="58 % da sessão concluída">
+        <span>58 %</span>
+      </div>
+      <span class="chip good">Dia cumprido</span>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Cor por matéria</p>
+    <p class="small muted prosa" style="margin:0">Paleta de Okabe &amp; Ito (Color Universal
+    Design), distinguível nas três formas de daltonismo e escurecida até cumprir 3:1 contra as
+    superfícies. <b>A marca nunca vem sozinha</b>: o nome da matéria está sempre ao lado.</p>
+    <div class="card stack">
+      {% for materia in ["Direito Administrativo", "Direito Constitucional", "Português",
+                         "Raciocínio Lógico", "Informática", "Direito Civil", "Direito Penal",
+                         "Legislação do TJ-PR", "Atualidades"] %}
+        <span class="row" style="gap:var(--espaco-2)">
+          <span class="materia-marca" data-materia="{{ loop.index }}"></span>
+          <span class="small">{{ materia }}</span>
+        </span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Ícones e navegação</p>
+    <p class="small muted prosa" style="margin:0">Traço de 1,6 em <span class="mono">currentColor</span>,
+    mesmo desenho de linha das ilustrações. <b>Ícone nunca aparece sozinho</b>: o rótulo escrito
+    vem sempre ao lado — a aluna ainda não usa o produto todo dia, e ícone sem palavra vira
+    adivinhação. Na barra lateral os links são agrupados por <b>frequência de uso</b>
+    (<span class="mono">.lateral__grupo</span> + <span class="mono">.lateral__rotulo</span>):
+    “O dia”, “A medida”, “Meu concurso”, “Ajustes”. Abaixo de 900px os grupos saem do layout e a
+    faixa do topo volta a ser uma linha de links.</p>
+    <div class="card row">
+      {% for nome in ["inicio", "hoje", "revisar", "diagnostico", "painel", "editais", "radar",
+                      "rotina", "conta", "entrar", "cadastro"] %}
+        <span class="row" style="gap:var(--espaco-2)">{{ icone(nome) }}<span class="small mono">{{ nome }}</span></span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Temas e modo foco</p>
+    <div class="card stack">
+      <p class="prosa" style="margin:0">Três temas de primeira classe, no botão <b>Tema</b> da
+      barra lateral: <b>claro</b>, <b>sépia</b> (papel — para as horas de leitura longa) e
+      <b>escuro</b> (a noite depois do trabalho), mais a opção de seguir o sistema. A troca vale
+      antes da primeira pintura, sem piscar, porque o script do tema é o único síncrono do shell.</p>
+      <p class="prosa" style="margin:0"><b>Modo foco</b> (botão na barra lateral, <span
+      class="mono">Esc</span> para sair) esconde navegação e rodapé e deixa só o conteúdo da
+      sessão. Vale para a sessão do navegador, não para sempre.</p>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2 style="margin:0">Contraste medido</h2>
+    <p class="small muted prosa" style="margin:0">Medido agora, lendo
+    <span class="mono">tokens.css</span> — não é uma tabela escrita à mão que envelhece. Mínimo
+    de 4,5:1 para texto e 3:1 para limite gráfico (WCAG 2.2 AA, critérios 1.4.3 e 1.4.11).
+    <span class="mono">tests/test_contraste.py</span> reprova a suíte inteira se um par cair.</p>
+    {% for rotulo, medidas in contraste %}
+      <div class="card stack">
+        <h3 style="margin:0">Tema {{ rotulo }}</h3>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead>
+              <tr><th>Onde</th><th>Texto</th><th>Fundo</th><th>Amostra</th><th>Razão</th>
+              <th>Mínimo</th><th>Situação</th></tr>
+            </thead>
+            <tbody>
+              {% for medida in medidas %}
+                <tr>
+                  <td>{{ medida.par.onde }}</td>
+                  <td class="mono">{{ medida.cor_texto }}</td>
+                  <td class="mono">{{ medida.cor_fundo }}</td>
+                  <td>
+                    <span class="contraste-amostra"
+                          style="color:{{ medida.cor_texto }};background:{{ medida.cor_fundo }}">Aa</span>
+                  </td>
+                  <td class="contraste-razao">{{ "%.2f"|format(medida.razao) }}:1</td>
+                  <td class="contraste-razao">{{ "%.1f"|format(medida.par.minimo) }}:1</td>
+                  <td>
+                    {% if medida.aprovado %}
+                      <span class="chip good">passa</span>
+                    {% else %}
+                      <span class="chip bad">reprova</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
   </section>
 </div>
 {% endblock %}

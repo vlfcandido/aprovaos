@@ -242,6 +242,8 @@ def _contexto_previsao(
         "nota_inferior_pct": previsao.nota_inferior_pct,
         "nota_superior_pct": previsao.nota_superior_pct,
         "confianca": previsao.confianca,
+        "incerta": previsao.incerta,
+        "o_que_falta": previsao.o_que_falta,
         "materias_sem_dado": previsao.materias_sem_dado,
         "probabilidade_lacuna": previsao.probabilidade_lacuna,
         "porque": previsao.porque,
@@ -308,6 +310,7 @@ def painel(
 
     respostas_padroes = respostas_classificadas(db, usuario.id, edital.id)
     padroes = detectar_padroes(respostas_padroes)
+    faltam_para_padrao = max(0, MINIMO_RESPOSTAS_PADRAO - len(respostas_padroes))
 
     pesos = pesos_por_materia(db, edital.id)
     desempenho = _desempenho_por_materia(respostas_padroes, pesos.pesos)
@@ -324,6 +327,10 @@ def painel(
         "curva": _contexto_curva(curva, total, alerta_ctx),
         "padroes": _contexto_padroes(padroes),
         "minimo_respostas_padrao": MINIMO_RESPOSTAS_PADRAO,
+        # Quantas respostas ainda faltam para um padrão poder existir: o estado vazio diz o que
+        # fazer ("Faltam 7 respostas"), não o critério estatístico que ninguém pediu para aprender.
+        "respostas_para_primeiro_padrao": faltam_para_padrao,
+        "total_respostas": len(respostas_padroes),
         "previsao": previsao_ctx,
         "motivo_sem_previsao": motivo_sem_previsao,
         "pesos_lacuna": pesos.lacuna,

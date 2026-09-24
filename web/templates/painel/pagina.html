@@ -1,5 +1,5 @@
 {# O que é: a tela "Painel" (`GET /painel`, fatia 10, §8) — curva de domínio com o alerta de
-   atraso (RF-10), padrões de erro com suporte estatístico (RF-17) e previsão de nota v0 (RF-18).
+   atraso (RF-10), padrões de erro (RF-17) e previsão de nota v0 (RF-18).
    `sem_concurso=True` quando o usuário ainda não tem concurso principal/edital resolvível (P-23)
    — a tela mostra o caminho para `/rotina`/`/editais/subir`, nunca um erro. Markup portado de
    `docs/evidencias/mockups/telas/s-painel.html` ("Você está na curva de aprovação?"), fatia 14.
@@ -11,8 +11,8 @@
     <span class="eyebrow">Painel e previsão</span>
     <h1>Você está na curva de aprovação?</h1>
     <p class="prosa muted">Toda resposta vira um evento: acerto, tempo, horário, energia. O
-      painel cruza isso com o peso da prova e o corte histórico e diz onde você está — sempre com
-      o intervalo e a confiança.</p>
+      painel cruza isso com o peso da prova e diz onde você está — sempre com a faixa inteira e
+      com o quanto dá para confiar nela.</p>
   </div>
 
   {% if sem_concurso %}
@@ -31,21 +31,26 @@
       </div>
       <div class="card kpi">
         <span class="eyebrow">Nota líquida prevista</span>
-        {% if previsao %}
-          <span class="v">{{ previsao.nota_pct | pct }}</span>
-          <span class="small muted">entre {{ previsao.nota_inferior_pct | pct }} e
-            {{ previsao.nota_superior_pct | pct }}</span>
+        {% if previsao and not previsao.incerta %}
+          <span class="v">{{ previsao.nota_pct | pct_int }}</span>
+          <span class="small muted">entre {{ previsao.nota_inferior_pct | pct_int }} e
+            {{ previsao.nota_superior_pct | pct_int }}</span>
+        {% elif previsao %}
+          {# Faixa larga: o número grande aqui viraria manchete de novo, logo acima do cartão que
+             explica que ele não vale como manchete. #}
+          <span class="v small">ainda não dá</span>
+          <span class="small muted">a faixa vai de {{ previsao.nota_inferior_pct | pct_int }} a
+            {{ previsao.nota_superior_pct | pct_int }}</span>
         {% else %}
           <span class="v small muted">sem dado ainda</span>
         {% endif %}
       </div>
       <div class="card kpi">
-        <span class="eyebrow">Padrões com suporte estatístico</span>
+        <span class="eyebrow">Padrões no seu erro</span>
         {% if padroes %}
           <span class="v">{{ padroes | length }}</span>
         {% else %}
-          <span class="small muted">nenhum ainda — um padrão só entra aqui quando há
-            respostas suficientes para ele não ser coincidência</span>
+          <span class="v small muted">nenhum ainda</span>
         {% endif %}
       </div>
     </div>

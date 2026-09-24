@@ -32,7 +32,8 @@
             {% for m in mais_fortes %}
               <div class="row between">
                 <span><b>{{ m.materia }}</b>
-                  <span class="mono small muted">{{ m.estimativa_pct | pct }} ± {{ m.margem | pct }}</span></span>
+                  <span class="small muted">{{ m.estimativa_pct | pct_int }} em {{ m.n_itens }}
+                    {{ "item" if m.n_itens == 1 else "itens" }}</span></span>
                 {% if m.fechado %}
                   <a class="btn sm ghost" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
                 {% endif %}
@@ -52,7 +53,8 @@
             {% for m in mais_fracas %}
               <div class="row between">
                 <span><b>{{ m.materia }}</b>
-                  <span class="mono small muted">{{ m.estimativa_pct | pct }} ± {{ m.margem | pct }}</span></span>
+                  <span class="small muted">{{ m.estimativa_pct | pct_int }} em {{ m.n_itens }}
+                    {{ "item" if m.n_itens == 1 else "itens" }}</span></span>
                 {% if m.fechado %}
                   <a class="btn sm ghost" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
                 {% endif %}

@@ -7,8 +7,16 @@
 // Quando ler: ao mexer no tema ou ao investigar um "flash" de cor na carga da página.
 (function () {
   var CHAVE = "aprovaos:tema";
-  var CICLO = ["sistema", "claro", "escuro"];
-  var ROTULO = { sistema: "Tema: do sistema", claro: "Tema: claro", escuro: "Tema: escuro" };
+  // A ordem do ciclo é a da luz: sistema → claro → sépia (papel, para leitura longa) → escuro.
+  // O sépia entrou em 23/09/2026 com o sistema de design: quem estuda 2 a 6 horas seguidas lê
+  // texto longo, e branco puro cansa.
+  var CICLO = ["sistema", "claro", "sepia", "escuro"];
+  var ROTULO = {
+    sistema: "Tema: do sistema",
+    claro: "Tema: claro",
+    sepia: "Tema: sépia",
+    escuro: "Tema: escuro",
+  };
 
   function lerPreferencia() {
     // `localStorage` pode lançar (janela anônima, cookies bloqueados) — o tema do sistema é um

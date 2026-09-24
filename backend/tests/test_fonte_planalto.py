@@ -220,3 +220,34 @@ def test_rede() -> None:
     artigo = extrair_artigo(html, "37")
 
     assert artigo.caput.redacao_de == "Redação dada pela Emenda Constitucional nº 19, de 1998"
+
+
+# As leis do edital real da piloto (TJ-PR/AOCP): sem elas no catálogo, `ancorar` não liga
+# questão a dispositivo, e sem dispositivo ligado a justificativa é proibida por
+# `dominio.justificativa` ("só se cita o que foi oferecido"). Medido em 23/09/2026: das 134
+# questões publicáveis sem justificativa, só 23 tinham dispositivo — as outras 111 estavam
+# órfãs porque a lei delas não existia aqui. URLs conferidas uma a uma contra o Planalto na
+# mesma data (200 + marca do título no corpo).
+NORMAS_DO_EDITAL_DA_PILOTO = {
+    "codigo-penal",
+    "cpp",
+    "codigo-civil",
+    "lgpd",
+    "lei-9099-1995",
+    "lei-12153-2009",
+    "lindb",
+    "lei-12527-2011",
+}
+
+
+def test_catalogo_cobre_as_leis_do_edital_da_piloto() -> None:
+    """O catálogo precisa das leis que o concurso dela cobra, não só das que já estavam aqui."""
+    faltando = NORMAS_DO_EDITAL_DA_PILOTO - set(CATALOGO)
+    assert not faltando, f"normas do edital ausentes do catálogo: {sorted(faltando)}"
+
+
+def test_toda_norma_do_catalogo_aponta_para_o_planalto() -> None:
+    """URL de norma é fonte primária: só planalto.gov.br, sempre https."""
+    for chave, norma in CATALOGO.items():
+        assert norma.url.startswith("https://www.planalto.gov.br/"), f"{chave}: {norma.url}"
+        assert norma.titulo.strip(), f"{chave}: título vazio"

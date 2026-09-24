@@ -21,6 +21,43 @@ tópicos do edital real; o diagnóstico gastou 81% da tela dizendo o que não te
   as duas aulas continuam abrindo por `/topico/noc-*/aula`. Ela vê **1 edital, e ele é real**.
 - **Tentativa de reclassificar as 98 sem tópico: falhou e foi revertida.** Ver §2.
 
+## 1b. O que foi executado em 23/09/2026 (medido antes e depois)
+
+**O catálogo de leis passou de 9 para 17 normas.** Entraram Código Penal, CPP, Código Civil,
+LGPD, Juizados (9.099 e 12.153), LINDB e Acesso à Informação — as leis que o edital da piloto
+cobra e que não existiam aqui. Cada URL foi conferida uma a uma contra o Planalto na mesma data
+(HTTP 200 e o título da norma no corpo); a do Código Civil que seria a óbvia devolve **404** e
+foi trocada pela que responde. Os oito HTMLs estão em `knowledge/fixtures/juridico/`.
+
+**A ancoragem sozinha rendeu quase nada, e o relatório dela explica o porquê:**
+
+```
+total=251  resolvidas=4  lacuna_norma=4  catalogada_nao_resolvida=44  sem_citacao=199
+```
+
+**199 das 251 questões não citam lei nenhuma no texto** — questão de banca cobra o conceito, não
+o número do artigo. Como `dominio/justificativa` só permite citar dispositivo **já ligado à
+questão**, questão sem citação não tem o que oferecer ao gerador: nenhum modelo pode justificá-la
+sem inventar fonte, e o código proíbe. Isso virou a **P-80**.
+
+**O elo que destrava é o dossiê**, via `motor/ligar_por_topico.py`: o dossiê de um tópico oferece
+os dispositivos para as questões daquele tópico. Seis receitas foram curadas à mão nesta sessão
+(74 dispositivos escolhidos contra o texto do edital) para os seis tópicos de maior peso medido
+sem dossiê. Resultado das cinco que rodaram (a sexta, Crimes contra a Administração, esperava o
+conserto do extrator):
+
+| medida | antes | depois |
+|---|---|---|
+| dossiês | 5 | **10** |
+| dispositivos com texto literal | 27 | **84** |
+| questões com dispositivo ligado | 23 | **54** |
+
+Nenhuma chamada de LLM foi usada: a curadoria é humana (qual artigo o tópico cobra) e o trecho
+literal sai da lei baixada do Planalto por extração determinística. **Esta é a regra que fica:**
+modelo escolhe *o que* citar; o texto do que é citado vem sempre do arquivo. Transcrever a lei
+com um modelo tornaria circular a checagem de substring do validador — ele passaria a conferir a
+transcrição contra a própria transcrição.
+
 ## 2. O que a tentativa de reclassificação ensinou (medido, não suposto)
 
 `uv run python -m aprovaos.motor.curar --evento … --reclassificar` contra o vocabulário do TJ-PR,

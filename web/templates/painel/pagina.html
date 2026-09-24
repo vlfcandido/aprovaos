@@ -32,16 +32,21 @@
       <div class="card kpi">
         <span class="eyebrow">Nota líquida prevista</span>
         {% if previsao %}
-          <span class="v">{{ previsao.nota_pct | pct }}
-            <small>{{ previsao.nota_inferior_pct | pct }}–{{ previsao.nota_superior_pct | pct }}</small>
-          </span>
+          <span class="v">{{ previsao.nota_pct | pct }}</span>
+          <span class="small muted">entre {{ previsao.nota_inferior_pct | pct }} e
+            {{ previsao.nota_superior_pct | pct }}</span>
         {% else %}
           <span class="v small muted">sem dado ainda</span>
         {% endif %}
       </div>
       <div class="card kpi">
         <span class="eyebrow">Padrões com suporte estatístico</span>
-        <span class="v">{{ padroes | length }}</span>
+        {% if padroes %}
+          <span class="v">{{ padroes | length }}</span>
+        {% else %}
+          <span class="small muted">nenhum ainda — um padrão só entra aqui quando há
+            respostas suficientes para ele não ser coincidência</span>
+        {% endif %}
       </div>
     </div>
 

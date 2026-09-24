@@ -160,7 +160,12 @@ a {
    de 23/09/2026). */
 .conteudo {
   width: 100%;
-  max-width: 67.5rem;
+  /* Medido no monitor do dono (1920px, 23/09/2026): a coluna de conteúdo tem 1657px e a caixa
+     estava travada em 1344px — 313px de sobra à direita em toda tela. O teto agora é 110rem
+     (1760px), que preenche esse monitor e ainda impede que um ultrawide estique a composição
+     sem limite. O texto **não** acompanha a caixa: parágrafo e cabeçalho têm medida própria
+     (`--medida-estreita`), senão a linha passaria dos 80 caracteres confortáveis de leitura. */
+  max-width: 110rem;
   padding: var(--espaco-7) var(--espaco-8) var(--espaco-16);
   display: flex;
   flex-direction: column;
@@ -956,6 +961,14 @@ kbd {
 .chart-curva,
 .chart-previsao {
   margin: var(--espaco-3) 0 var(--espaco-4);
+}
+/* O `<svg>` é fluido e, numa tela de 1568px, esticava até ~380px de altura para desenhar dois
+   pontos e uma reta pontilhada — uma tela inteira de gráfico quase vazio (23/09/2026). Teto de
+   altura e proporção preservada. */
+.chart-curva svg,
+.chart-previsao svg {
+  max-height: 16rem;
+  width: 100%;
 }
 
 .form-reportar label {

@@ -28,6 +28,7 @@
         {% endif %}
       </div>
     </div>
+    <div class="stack">
     <div class="card lift stack">
       <span class="eyebrow">Regras que o produto não quebra</span>
       <ol class="principles lista-limpa">
@@ -38,16 +39,18 @@
         <li><i>05</i><span>Questões no padrão real da banca, não "no estilo de".</span></li>
       </ol>
     </div>
-  </div>
 
-  <div class="stack">
-    <div class="row between">
-      <span class="eyebrow">Onde fica cada coisa</span>
-      {% if not usuario_email %}
-        <span class="small muted">o resto abre depois que você cria a conta</span>
-      {% endif %}
-    </div>
-    <div class="tour">
+    {# A numeração aqui não é enfeite: é a ordem em que as telas se usam, e é o que a piloto
+       não descobriu sozinha no primeiro acesso (23/09/2026). Some quando o assistente da
+       ADR-0049 existir — aí a ordem é conduzida, não listada. -#}
+    <div class="stack">
+      <div class="row between">
+        <span class="eyebrow">Por onde se anda, na ordem</span>
+        {% if not usuario_email %}
+          <span class="small muted">o resto abre depois que você cria a conta</span>
+        {% endif %}
+      </div>
+      <div class="tour">
       <a href="/radar"><span class="n">1</span><b>Editais e radar</b><span class="small muted">o catálogo público de concursos; escolha o que estudar</span></a>
       {% if usuario_email %}
         <a href="/editais"><span class="n">2</span><b>Meus editais</b><span class="small muted">o que cai, com que peso, como a banca pergunta</span></a>
@@ -57,6 +60,8 @@
         <a href="/revisar"><span class="n">6</span><b>Questões e revisão</b><span class="small muted">itens reais da banca e os cartões de erro do dia</span></a>
         <a href="/painel"><span class="n">7</span><b>Painel e previsão</b><span class="small muted">onde você está e onde precisaria estar</span></a>
       {% endif %}
+      </div>
+    </div>
     </div>
   </div>
 {% endblock %}

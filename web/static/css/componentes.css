@@ -176,11 +176,18 @@
 .seg {
   display: inline-flex;
   align-self: start;
+  /* Sem `max-width` e sem encolher os rótulos, numa coluna estreita (o check-in ao lado dos
+     blocos, 23/09/2026) o flex espremia cada label até a palavra quebrar letra por letra:
+     "E/x/a/u/s/t/a" na vertical. Agora ele quebra em duas linhas de botões, que continua
+     legível. */
+  max-width: 100%;
+  flex-wrap: wrap;
   border: 1px solid var(--cor-linha);
   border-radius: 8px;
   overflow: hidden;
 }
 .seg > label {
+  white-space: nowrap;
   padding: 7px 14px;
   font-size: var(--texto-pequeno);
   font-weight: 500;
@@ -356,7 +363,38 @@ input[type="file"].entrada::file-selector-button:hover {
 
 /* ---- porta de entrada: herói, princípios e atalhos ------------------------------------------ */
 
-.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--espaco-6); align-items: start; }
+/* A porta de entrada ocupa a tela: as duas colunas crescem até a altura disponível e
+   distribuem o que têm, em vez de empilhar no topo e deixar o pé da direita vazio (achado do
+   dono em 23/09/2026). Em tela baixa ou estreita o `min-height` sai do caminho e tudo volta a
+   ser fluxo normal. */
+.hero {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  gap: var(--espaco-6);
+  align-items: stretch;
+}
+@media (min-width: 900px) and (min-height: 620px) {
+  .hero { min-height: calc(100dvh - var(--espaco-7) - var(--espaco-16)); }
+  .hero > .stack { justify-content: space-between; }
+}
+/* A coluna da direita carrega as regras E os atalhos: antes os atalhos vinham abaixo, em três
+   colunas, e a direita do herói ficava vazia da altura do cartão de regras para baixo. */
+.hero .tour { grid-template-columns: 1fr; gap: 6px; align-content: space-between; }
+/* Na coluna estreita do herói os sete atalhos são uma lista, não sete cartões: número, título e
+   explicação na mesma linha, sem moldura por item. Assim a porta de entrada cabe numa tela — o
+   pedido do dono em 23/09/2026 ("não precisar de rolagem"). */
+.hero .tour > a {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  border: 0;
+  background: none;
+  padding: 7px 10px;
+  border-radius: var(--raio-pequeno, 8px);
+}
+.hero .tour > a:hover { background: var(--cor-superficie); }
+.hero .tour > a .small { text-align: right; }
 .hero h1 { max-width: 18ch; }
 .hero .lead { font-size: var(--texto-medio); max-width: var(--medida-estreita); color: var(--cor-texto-2); }
 
@@ -466,4 +504,26 @@ table.editais td:first-child { white-space: normal; min-width: 220px; }
   .btn.sm { min-height: 2.25rem; }
   .seg > label { padding-block: 12px; }
   .fchip { min-height: 2.25rem; }
+}
+
+/* O dia da aluna em duas colunas (23/09/2026): os blocos ocupam a coluna larga e o contexto
+   — situação, porquê do dia e check-in — fica ao lado, grudado no topo enquanto ela rola os
+   blocos. Empilha abaixo de 900px, com o contexto primeiro, que é a ordem de leitura no tablet
+   em retrato. */
+.dia { display: grid; grid-template-columns: 1fr; gap: var(--espaco-5-5); }
+.dia__contexto, .dia__blocos { min-width: 0; }
+@media (min-width: 900px) {
+  .dia { grid-template-columns: 1.45fr 0.9fr; align-items: start; }
+  .dia__blocos { order: 1; }
+  .dia__contexto { order: 2; position: sticky; top: var(--espaco-7); }
+}
+
+/* Item de edital vira título de bloco, e item de edital pode ter 60 palavras: o de Informática
+   do TJ-PR lista sete leis dentro do próprio nome. Duas linhas e reticências; o texto inteiro
+   fica no `title` e no "por quê" logo abaixo, então nada se perde. */
+.titulo-bloco {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

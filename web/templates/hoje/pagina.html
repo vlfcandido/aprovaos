@@ -47,6 +47,12 @@
       {{ arte_plano() }}
     </div>
 
+    {# Duas colunas em tela larga: o dia (blocos) à esquerda, o contexto — situação, porquê e
+       check-in — à direita. Em uma coluna só, a aluna rolava uma tela inteira de contexto antes
+       de chegar no primeiro bloco (achado do dono em 23/09/2026). Abaixo de 900px volta a
+       empilhar, com o contexto primeiro. -#}
+    <div class="dia">
+    <div class="stack dia__contexto">
     <div class="row">
       {% if plano.modo == "semana_prova" and plano.dias_para_prova is not none %}
         <span class="chip accent">
@@ -65,10 +71,14 @@
       {% if plano.energia %}<span class="chip">Energia {{ plano.energia }}/5</span>{% endif %}
     </div>
 
+    {# O âmbar (`.why`) é a voz do agente explicando uma decisão — é a assinatura do produto.
+       Um alerta de atraso não é uma explicação, e pintar os dois de âmbar fazia a tela inteira
+       gritar igual: três blocos âmbar empilhados e nenhum com destaque de verdade
+       (23/09/2026). O alerta agora é cartão com selo; o âmbar fica só para o porquê. -#}
     {% if alerta_curva %}
-      <div class="why">
-        <b>{{ alerta_curva.titulo }}</b>
-        <p>{{ alerta_curva.porque }} <b>{{ alerta_curva.ajuste }}</b></p>
+      <div class="card stack" style="gap:var(--espaco-2)">
+        <span class="chip warn">{{ alerta_curva.titulo }}</span>
+        <p class="small">{{ alerta_curva.porque }} <b>{{ alerta_curva.ajuste }}</b></p>
       </div>
     {% endif %}
 
@@ -121,7 +131,9 @@
         <button class="btn primary" type="submit" style="align-self:start">Reajustar o plano</button>
       </form>
     </details>
+    </div>
 
+    <div class="stack dia__blocos">
     {% if not blocos %}
       <div class="vazio">
         <p>Nenhum bloco hoje.</p>
@@ -143,7 +155,7 @@
                 {% endif %}
                 · {{ bloco.duracao_min }} min
               </span>
-              <h3>
+              <h3 class="titulo-bloco" {% if bloco.topico_nome %}title="{{ bloco.topico_nome }}"{% endif %}>
                 {% if bloco.topico_nome and bloco.tipo in ("aula", "questoes") %}{{ bloco.topico_nome }}
                 {% elif bloco.tipo == "revisao" %}Cartões vencidos
                 {% elif bloco.tipo == "descanso" %}Descanso — recomendação do agente
@@ -197,7 +209,7 @@
           {% if bloco.status in ("pendente", "iniciado") %}
             <form method="post" action="/hoje/bloco/{{ bloco.id }}/concluir"
                   hx-post="/hoje/bloco/{{ bloco.id }}/concluir" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
-              <button class="btn sm" type="submit">Concluí</button>
+              <button class="btn sm" type="submit">Concluir</button>
             </form>
             <form method="post" action="/hoje/bloco/{{ bloco.id }}/pular"
                   hx-post="/hoje/bloco/{{ bloco.id }}/pular" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
@@ -207,6 +219,8 @@
         </div>
       </div>
     {% endfor %}
+    </div>
+    </div>
   {% endif %}
 {% endblock %}
 {% block script %}

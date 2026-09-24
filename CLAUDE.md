@@ -59,6 +59,7 @@ data/uploads/                 # PDFs de edital subidos pela aluna               
 mobile/                       # só se a fase 3 aprovar app
 eval/                         # suíte DeepEval — ainda não existe (pendência da fatia 5)
 docs/05-playbook-seo.md · 07-playbook-lancamento.md                                      (fase 6)
+docs/08-sistema-de-design.md  # contrato dos componentes: qual usar, o que cada destaque significa (fatia 14)
 docs/HANDOFF.md                                                                          (fase 7)
 ```
 

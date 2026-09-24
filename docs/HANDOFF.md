@@ -112,6 +112,9 @@ As regras completas estão no `CLAUDE.md` e são inegociáveis. As quatro que ma
   implemente. "Eu sei que ia falhar" não conta.
 - **Português do Brasil** em tudo: código, docstring, commit, UI, resposta.
 - **Nenhum efeito colateral em import.** Existe um passo do `checar.sh` só para provar isso.
+- **Antes de mexer em qualquer tela, leia `docs/08-sistema-de-design.md`** — o contrato dos
+  componentes. Ele diz qual usar, o que cada destaque significa (âmbar é o agente explicando
+  uma decisão, e só isso) e o que nunca fazer. A amostra viva é `GET /estilo`.
 - **O que não der para fazer vai para `docs/PENDENCIAS.md`** com o motivo. Nunca improvise no
   lugar — improviso vira dado errado com cara de certo, que é a mina nº 1.
 

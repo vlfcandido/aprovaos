@@ -120,7 +120,7 @@
         <label class="campo-rotulo" for="tempo_min">Tempo real disponível hoje (min)</label>
         <input id="tempo_min" class="entrada" name="tempo_min" type="number" min="0" max="600" step="5"
                value="{{ plano.tempo_min }}" required>
-        <div class="card stack" style="gap:4px">
+        <div class="card stack" style="gap:var(--espaco-1)">
           <label class="row" style="gap:var(--espaco-2)">
             <input type="checkbox" name="quero_descansar" value="on">
             <b>Hoje quero descansar</b>
@@ -146,7 +146,7 @@
         <div class="row between row-topo">
           <div class="row row-topo">
             <span class="mono small muted">{{ bloco.hora_sugerida or "—" }}</span>
-            <div class="stack" style="gap:2px">
+            <div class="stack" style="gap:var(--espaco-1)">
               <span class="small muted">
                 {% if bloco.tipo == "revisao" %}Revisão espaçada
                 {% elif bloco.tipo == "aula" %}Aula
@@ -178,7 +178,7 @@
           <b>Por quê?</b>
           <p>{{ bloco.porque }}</p>
           {% if bloco.status in ("pendente", "iniciado") %}
-            <form class="row" style="gap:6px" method="post" action="/hoje/bloco/{{ bloco.id }}/discordar"
+            <form class="row" style="gap:var(--espaco-2)" method="post" action="/hoje/bloco/{{ bloco.id }}/discordar"
                   hx-post="/hoje/bloco/{{ bloco.id }}/discordar" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
               <select name="motivo" class="entrada" required aria-label="Por que você quer trocar este bloco">
                 <option value="">Por quê?</option>

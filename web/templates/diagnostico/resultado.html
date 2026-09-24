@@ -28,7 +28,7 @@
       <div class="card stack">
         <h2>Onde você está mais forte</h2>
         {% if mais_fortes %}
-          <div class="stack" style="gap:10px">
+          <div class="stack" style="gap:var(--espaco-2-5)">
             {% for m in mais_fortes %}
               <div class="row between">
                 <span><b>{{ m.materia }}</b>
@@ -48,7 +48,7 @@
         {% if mais_fracas %}
           <p class="small muted" style="margin:0">É por aqui que o plano do dia vai puxar
             primeiro.</p>
-          <div class="stack" style="gap:10px">
+          <div class="stack" style="gap:var(--espaco-2-5)">
             {% for m in mais_fracas %}
               <div class="row between">
                 <span><b>{{ m.materia }}</b>

@@ -172,9 +172,11 @@ a {
   gap: var(--espaco-5-5);
 }
 
-/* Formulários isolados (login, cadastro, subir edital): não esticam pela largura toda */
+/* Formulários isolados (login, cadastro, subir edital): não esticam pela largura toda.
+   `min(...)` e não `26rem` seco: 26rem são 416px, então em qualquer tela mais estreita que isso
+   o cartão estouraria. Não é hipótese de laboratório — telefone pequeno em pé tem 360px. */
 .formulario {
-  max-width: 26rem;
+  max-width: min(26rem, 100%);
 }
 
 .frase {

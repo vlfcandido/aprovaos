@@ -48,7 +48,7 @@
         {{ item_atual }}
         <div class="card stack">
           <span class="eyebrow">Estimativa até agora</span>
-          <div class="stack" style="gap:8px">
+          <div class="stack" style="gap:var(--espaco-2)">
             {% for materia in estimativa_por_materia %}
               <div class="row between">
                 <span class="small">{{ materia.nome }}</span>

@@ -129,7 +129,13 @@ aluna é o defeito que estamos consertando.
 
 1. `GET /estilo` — a amostra viva de tudo que existe. Se o seu componente não está lá, ele não
    existe: acrescente à amostra no mesmo commit.
-2. Abra a tela em **1920, 834 e 400px**, nos dois temas. As três, sempre.
-3. `bash scripts/checar.sh` verde.
+2. `bash scripts/capturar.sh` — captura as telas públicas em três larguras com o Chrome do
+   sistema. Olhe as imagens: sobrou faixa vazia? rolagem horizontal? âmbar repetido na mesma
+   região? (O macOS não deixa a janela descer de ~600px: abaixo disso a captura **corta** e
+   parece estouro de layout sem ser. Telefone pequeno se confere no aparelho.)
+3. `bash scripts/checar.sh` verde — inclui `tests/test_contrato_design.py`, que vigia sozinho o
+   que dá para verificar sem olho humano: pixel de espaçamento escrito à mão, estático sem
+   versão, template sem cabeçalho, mais de uma ação principal por tela, pendência interna
+   vazando para a tela e `<h1>` faltando ou duplicado.
 4. Pergunta final, que é a que importa: **a aluna sabe o que fazer nesta tela sem ninguém do
    lado?** Se a resposta depende de explicar, a tela ainda não está pronta.

@@ -130,7 +130,11 @@ def test_radar_marca_combina_por_uf_sem_esconder_os_outros(
     corpo = resposta.text
     assert "AGEPAR PR 26" in corpo
     assert "SEFAZ AL 26" in corpo
-    assert "combina: PR" in corpo
+    # Na passada visual de 23/09/2026 o catálogo virou tabela: o motivo do casamento saiu do
+    # texto do cartão ("combina: PR") e virou o chip da coluna "Combina". A regra medida é a
+    # mesma — marca quem combina, não esconde quem não combina.
+    assert "Combina" in corpo
+    assert '<span class="chip accent">PR</span>' in corpo
 
 
 def test_radar_detalhe_404_para_evento_desconhecido(cliente: TestClient) -> None:
@@ -328,3 +332,68 @@ def test_radar_afunda_encerrado_mesmo_com_ordem_alfabetica_favoravel(
     )
     corpo = cliente.get("/radar").text
     assert corpo.index("ZZZ CONCURSO ABERTO") < corpo.index("AAA CONCURSO ENCERRADO")
+
+
+# --- o radar depois da passada visual de 23/09/2026 -----------------------------------------
+# O dono, vendo a piloto usar: "o radar está péssimo". Os 495 concursos do catálogo público
+# apareciam como se fossem os concursos dela, sem busca e sem filtro decente.
+
+
+def test_radar_diz_que_o_catalogo_e_publico_e_nao_dela(cliente: TestClient, db: Session) -> None:
+    _semear_catalogo(db, _concurso())
+    corpo = cliente.get("/radar").text
+    assert "Catálogo público" in corpo
+    assert "não são os seus concursos" in corpo
+
+
+def test_radar_busca_por_texto_no_nome(cliente: TestClient, db: Session) -> None:
+    _semear_catalogo(
+        db,
+        _concurso("AGEPAR_PR_26"),
+        _concurso("SEFAZ_AL_26", nome="SEFAZ AL 26", uf="AL"),
+    )
+    corpo = cliente.get("/radar", params={"q": "sefaz"}).text
+    assert "SEFAZ AL 26" in corpo
+    assert "AGEPAR PR 26" not in corpo
+
+
+def test_radar_busca_ignora_acento(cliente: TestClient, db: Session) -> None:
+    _semear_catalogo(db, _concurso("POLICIA_26", nome="POLÍCIA FEDERAL 26"))
+    assert "POLÍCIA FEDERAL 26" in cliente.get("/radar", params={"q": "policia"}).text
+
+
+def test_radar_busca_sem_resultado_oferece_saida(cliente: TestClient, db: Session) -> None:
+    _semear_catalogo(db, _concurso())
+    corpo = cliente.get("/radar", params={"q": "nao-existe-nada-assim"}).text
+    assert "nao-existe-nada-assim" in corpo
+    assert "Limpar busca e filtros" in corpo
+
+
+def test_radar_mostra_um_lote_por_vez_e_oferece_mostrar_mais(
+    cliente: TestClient, db: Session
+) -> None:
+    """495 concursos numa página só foi o que afundou a piloto: o catálogo sai em lotes."""
+    _semear_catalogo(
+        db,
+        *[
+            _concurso(f"EVENTO_{n:03d}", nome=f"CONCURSO {n:03d}", fase="inscricoes_abertas")
+            for n in range(60)
+        ],
+    )
+    corpo = cliente.get("/radar", params={"limite": "10"}).text
+    assert "Mostrar mais" in corpo
+    assert corpo.count("<tr data-concurso=") == 10
+    assert "60 concursos" in corpo
+
+
+def test_radar_poe_inscricao_aberta_na_frente(cliente: TestClient, db: Session) -> None:
+    """Sem data de inscrição (o caso de quase todos), a ordem caía no alfabeto do banco e um
+    concurso já em andamento aparecia antes de um com inscrição aberta — que é o único em que a
+    aluna ainda pode entrar. A situação passa a desempatar antes do nome."""
+    _semear_catalogo(
+        db,
+        _concurso("AAA_ANDAMENTO", nome="AAA EM ANDAMENTO", fase="em_andamento"),
+        _concurso("ZZZ_ABERTO", nome="ZZZ INSCRICOES ABERTAS", fase="inscricoes_abertas"),
+    )
+    corpo = cliente.get("/radar").text
+    assert corpo.index("ZZZ INSCRICOES ABERTAS") < corpo.index("AAA EM ANDAMENTO")

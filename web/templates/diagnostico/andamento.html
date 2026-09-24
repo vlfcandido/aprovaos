@@ -7,13 +7,16 @@
    principal resolvível. Quando ler: ao mudar o que aparece antes de responder um item do
    diagnóstico. -#}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_diagnostico %}
 {% block titulo %}Diagnóstico — AprovaOS{% endblock %}
 {% block conteudo %}
-  <div class="stack">
+  <div class="screen-head">
     <span class="eyebrow">Diagnóstico</span>
     <h1>Trinta questões, no máximo. O agente para quando já sabe.</h1>
-    <p class="prosa muted">Simulado adaptativo: cada item é escolhido pelo que ainda está incerto
-      sobre você. No fim, uma proficiência por matéria — com a margem de erro à mostra.</p>
+    <p class="prosa muted">Cada item é escolhido pelo que ainda está incerto sobre você — por
+      isso o diagnóstico acaba antes quando já dá para concluir. No fim, o seu nível em cada
+      matéria, com a margem de erro à mostra.</p>
+    {{ arte_diagnostico() }}
   </div>
 
   {% if sem_concurso %}

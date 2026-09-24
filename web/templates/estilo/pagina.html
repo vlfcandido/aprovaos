@@ -3,6 +3,7 @@
    telas. Só existe em `AMBIENTE=dev`. Quando ler: ao acrescentar componente à biblioteca —
    acrescente a amostra dele aqui no mesmo commit. #}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_radar, arte_diagnostico, arte_plano, arte_concurso, arte_rotina %}
 {% block titulo %}Biblioteca — AprovaOS{% endblock %}
 {% block conteudo %}
 <h1>Biblioteca de componentes</h1>
@@ -128,6 +129,31 @@ classes são os mesmos do protótipo, de propósito: quem porta uma tela copia o
           <tr><td>Matemática/Raciocínio Lógico</td><td class="mono">17</td><td class="mono">11,1 %</td></tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Ilustrações</p>
+    <p class="small muted" style="margin:0">Uma por tela, em SVG inline
+    (<span class="mono">web/templates/_arte.html</span>), com as cores em token — mudam de tema
+    junto com o resto. O movimento só roda sob
+    <span class="mono">prefers-reduced-motion: no-preference</span>.</p>
+    <div class="grid-3">
+      <div class="card">{{ arte_radar() }}</div>
+      <div class="card">{{ arte_diagnostico() }}</div>
+      <div class="card">{{ arte_plano() }}</div>
+      <div class="card">{{ arte_concurso() }}</div>
+      <div class="card">{{ arte_rotina() }}</div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <p class="eyebrow">Chip de filtro</p>
+    <div class="card row" style="gap:6px">
+      <a class="chip fchip" href="#" aria-current="true">Todos</a>
+      <a class="chip fchip" href="#">Inscrições abertas</a>
+      <a class="chip fchip" href="#">Em andamento</a>
+      <a class="chip fchip" href="#">Encerrado</a>
     </div>
   </section>
 

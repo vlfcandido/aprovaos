@@ -153,11 +153,18 @@ a {
   flex-direction: column;
 }
 
-/* Largura de leitura confortável no desktop; vira largura cheia com gutter de 16px no mobile */
+/* Largura de leitura confortável no desktop; vira largura cheia com gutter de 16px no mobile.
+   O `gap` é o ritmo vertical entre os blocos de uma tela — é o `.screen { display: flex;
+   flex-direction: column; gap: 22px }` do protótipo, que não tinha sido portado: sem ele, dois
+   cartões seguidos encostavam um no outro e a página inteira ficava sem respiro (passada visual
+   de 23/09/2026). */
 .conteudo {
   width: 100%;
   max-width: 67.5rem;
-  padding: var(--espaco-8) var(--espaco-8) var(--espaco-12);
+  padding: var(--espaco-7) var(--espaco-8) var(--espaco-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5-5);
 }
 
 /* Formulários isolados (login, cadastro, subir edital): não esticam pela largura toda */
@@ -209,6 +216,16 @@ a {
 a:focus-visible {
   outline: 3px solid var(--cor-acao-suave);
   outline-offset: 2px;
+}
+
+/* Caixa de marcar e rádio nativos: sem `accent-color` eles saem na cor do sistema — cinza no
+   tema claro, quase invisíveis no escuro — e num tablet o alvo fica pequeno demais. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--cor-acao);
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
 }
 
 /* Campo de formulário */
@@ -280,9 +297,16 @@ a:focus-visible {
 }
 
 /* Barra lateral colapsa em telas estreitas — o padrão é a visão de desktop acima */
-@media (max-width: 720px) {
+/* 900px, como no protótipo: um tablet de 820px não tem largura para a lateral de 248px mais
+   o conteúdo. Era 720px, e a piloto via tudo espremido. */
+@media (max-width: 900px) {
+  /* `grid-template-rows` explícito: sem ele as duas linhas do grid são `auto` e dividem entre si
+     a sobra do `min-height: 100dvh` — numa página curta, a faixa escura da navegação esticava
+     até a metade da tela, com "Sair" boiando no meio do nada. A navegação ocupa o que precisa; a
+     sobra é toda do conteúdo. */
   .shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
 
   .lateral {
@@ -300,8 +324,14 @@ a:focus-visible {
     flex-wrap: wrap;
   }
 
+  /* Na faixa horizontal o rodapé fica na mesma linha da navegação, encostado à direita — em
+     coluna, "Tema" e "Sair" viravam duas linhas soltas embaixo de tudo. */
   .lateral__rodape {
     margin-top: 0;
+    margin-left: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--espaco-4);
   }
 
   .conteudo {

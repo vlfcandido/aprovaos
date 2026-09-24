@@ -115,3 +115,12 @@ def test_post_rotina_rejeita_concurso_de_outro_tenant(cliente: TestClient, db: S
     resposta = cliente.post("/rotina", data=dados)
     assert resposta.status_code == 200
     assert "inválido" in resposta.text.lower() or "concurso" in resposta.text.lower()
+
+
+def test_rotina_mostra_energia_com_acento_e_sem_valor_cru(cliente: TestClient) -> None:
+    """Passada visual de 23/09/2026: o `<select>` de energia mostrava "Media", sem acento — o
+    valor cru do domínio passado por `capitalize`. Rótulo é texto de interface, não enum."""
+    _entrar(cliente, "f@exemplo.com")
+    corpo = cliente.get("/rotina").text
+    assert ">Média<" in corpo
+    assert ">Media<" not in corpo

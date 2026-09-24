@@ -347,3 +347,57 @@ def test_diagnostico_respeita_o_teto_de_30_mesmo_insistindo(
     assert "diagnóstico concluído" in resultado.text.lower()
     assert f"parei em {MAXIMO_ITENS} itens" in resultado.text.lower()
     assert f"atingi o máximo de {MAXIMO_ITENS}" in resultado.text.lower()
+
+
+# --- o resultado enxuto (passada visual de 23/09/2026) -------------------------------------
+# Medida na tela da piloto: 1.777 palavras, 101 linhas de tópico, das quais 63 diziam "sem
+# questão na base" e 19 "sem dado ainda" — 81% do resultado falava de lacuna nossa, não dela.
+# Decisão do dono: a lista tópico a tópico sai (ela já tem casa no edital verticalizado, que
+# ganha um link), o resultado passa a ser 3 matérias mais fortes + 3 mais fracas + um botão
+# "começar por aqui", e a lacuna vira UMA linha com a contagem.
+
+
+def test_resultado_nao_lista_os_topicos_um_a_um(logado: TestClient, db: Session) -> None:
+    """A lista de tópicos sai do resultado e vira link para o edital verticalizado."""
+    tenant_id = _tenant_id(db)
+    edital, com_questao, sem_questao = _edital_com_topicos(db, tenant_id)
+    db.commit()
+
+    corpo = logado.get("/diagnostico").text
+    assert "Estado por tópico" not in corpo
+    # os nomes dos tópicos (não das matérias) não aparecem mais um a um
+    assert com_questao.nome not in corpo
+    assert sem_questao.nome not in corpo
+    assert f'href="/concurso/{edital.concurso_id}"' in corpo
+
+
+def test_resultado_diz_a_lacuna_em_uma_linha_so(logado: TestClient, db: Session) -> None:
+    """ "1 dos 2 tópicos ainda não tem questão" — uma frase, não uma linha por tópico."""
+    tenant_id = _tenant_id(db)
+    _edital, _com_questao, _sem_questao = _edital_com_topicos(db, tenant_id)
+    db.commit()
+
+    corpo = logado.get("/diagnostico").text
+    assert "de 2 tópicos do seu edital ainda não têm questão" in corpo
+    assert corpo.count("ainda não têm questão") == 1
+
+
+def test_resultado_mostra_mais_fortes_mais_fracas_e_o_botao_de_comecar(
+    logado: TestClient, db: Session
+) -> None:
+    """3 mais fortes, 3 mais fracas e um caminho único para continuar."""
+    tenant_id = _tenant_id(db)
+    _edital, com_questao, _sem_questao = _edital_com_topicos(db, tenant_id)
+    documento_prova = _documento(db, "prova-resultado-enxuto")
+    salvar_questoes(db, [_questao(com_questao, documento_prova.id, n) for n in range(1, 6)])
+    db.commit()
+
+    usuario = db.scalars(select(Usuario).where(Usuario.email == CADASTRO["email"])).one()
+    for _ in range(3):
+        _responder_proxima(logado, db, usuario.id, com_questao)
+
+    corpo = logado.get("/diagnostico").text
+    assert "Onde você está mais forte" in corpo
+    assert "Por onde começar" in corpo
+    assert "Começar por aqui" in corpo
+    assert com_questao.materia in corpo

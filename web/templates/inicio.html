@@ -1,24 +1,27 @@
-{# O que é: landing mínima (`GET /`) — nome, uma frase e o botão de criar conta. Markup guiado
-   por `docs/evidencias/mockups/telas/s-inicio.html` ("Um agente que assume a responsabilidade
-   pela sua aprovação."), fatia 14: a ilustração (`art-hero`, SVG grande desenhado à mão) fica
-   fora de escopo por decisão do plano (`docs/fatias/14-ui.md` §4); o "tour" de 10 botões do
-   protótipo (uma SPA de demonstração) vira navegação real para as telas que já existem no
-   produto — `.tour`/`.hero`/`.principles` do protótipo ainda não existem na biblioteca
-   (`web/static/css/componentes.css`); esta tela usa `card`/`grid-3`/`row` no lugar (relatado no
-   porte). A landing definitiva com SEO é da Fase 6. Quando ler: ao mudar a primeira impressão do
-   produto. -#}
+{# O que é: a porta de entrada (`GET /`) — a tela `s-inicio` do protótipo validado
+   ("Um agente que assume a responsabilidade pela sua aprovação."): ilustração larga
+   (`art-hero`), as cinco regras que o produto não quebra e os atalhos para as telas reais.
+   Markup copiado de `docs/evidencias/mockups/telas/s-inicio.html`; a ilustração vem da macro
+   `heroi_inicio` de `_arte.html` (portada em 23/09/2026, quando o dono reverteu o "fora de
+   escopo" do plano da fatia 14 §4). O "tour" do protótipo é uma SPA de demonstração; aqui os
+   dez botões viram links de verdade para o que já existe, e quem não entrou vê só o caminho de
+   criar conta. A landing pública com SEO é outra tela (Fase 6). Quando ler: ao mudar a primeira
+   impressão do produto. -#}
 {% extends "base.html" %}
+{% from "_arte.html" import heroi_inicio %}
 {% block titulo %}AprovaOS — quem assume a sua aprovação{% endblock %}
 {% block conteudo %}
-  <div class="grid-sb">
+  <div class="hero">
     <div class="stack">
+      {{ heroi_inicio() }}
       <span class="eyebrow">O que é</span>
       <h1>Um agente que assume a responsabilidade pela sua aprovação.</h1>
-      <p class="prosa muted">Não é mais um banco de questões. O agente monta o seu estudo, executa
+      <p class="lead">Não é mais um banco de questões. O agente monta o seu estudo, executa
         com você todo dia, mede se está funcionando e reajusta — e explica cada decisão que toma.</p>
       <div class="row">
         {% if usuario_email %}
-          <a class="btn primary" href="/conta">Ir para minha conta</a>
+          <a class="btn primary" href="/hoje">Ver o plano de hoje</a>
+          <span class="small muted">é por aqui que o seu dia começa</span>
         {% else %}
           <a class="btn primary" href="/cadastro">Criar conta</a>
           <a href="/entrar">Já tenho conta — entrar</a>
@@ -27,26 +30,32 @@
     </div>
     <div class="card lift stack">
       <span class="eyebrow">Regras que o produto não quebra</span>
-      <ol class="lista-limpa stack" style="gap:8px">
-        <li><span class="mono small muted">01</span> O agente decide; você discorda em um toque. Ele nunca esconde o porquê.</li>
-        <li><span class="mono small muted">02</span> Nada gerado chega a você sem validação. Toda afirmação de lei tem fonte.</li>
-        <li><span class="mono small muted">03</span> Previsão sempre com intervalo e nível de confiança. Nunca promete o que não mede.</li>
-        <li><span class="mono small muted">04</span> Descansar é uma recomendação válida.</li>
-        <li><span class="mono small muted">05</span> Questões no padrão real da banca, não "no estilo de".</li>
+      <ol class="principles lista-limpa">
+        <li><i>01</i><span>O agente decide; você discorda em um toque. Ele nunca esconde o porquê.</span></li>
+        <li><i>02</i><span>Nada gerado chega a você sem validação. Toda afirmação de lei tem fonte.</span></li>
+        <li><i>03</i><span>Previsão sempre com intervalo e nível de confiança. Nunca promete o que não mede.</span></li>
+        <li><i>04</i><span>Descansar é uma recomendação válida.</span></li>
+        <li><i>05</i><span>Questões no padrão real da banca, não "no estilo de".</span></li>
       </ol>
     </div>
   </div>
 
   <div class="stack">
-    <span class="eyebrow">Para onde ir</span>
-    <div class="grid-3">
-      <a class="card stack" href="/radar"><b>Editais e radar</b><span class="small muted">os editais chegam sozinhos; escolha o que estudar</span></a>
+    <div class="row between">
+      <span class="eyebrow">Onde fica cada coisa</span>
+      {% if not usuario_email %}
+        <span class="small muted">o resto abre depois que você cria a conta</span>
+      {% endif %}
+    </div>
+    <div class="tour">
+      <a href="/radar"><span class="n">1</span><b>Editais e radar</b><span class="small muted">o catálogo público de concursos; escolha o que estudar</span></a>
       {% if usuario_email %}
-        <a class="card stack" href="/editais"><b>Concurso e DNA</b><span class="small muted">o que cai, com que peso, como a banca pergunta</span></a>
-        <a class="card stack" href="/diagnostico"><b>Diagnóstico</b><span class="small muted">até 30 questões e um questionário de rotina</span></a>
-        <a class="card stack" href="/hoje"><b>Plano de hoje</b><span class="small muted">blocos com justificativa; pode pular</span></a>
-        <a class="card stack" href="/revisar"><b>Questões e revisão</b><span class="small muted">certo/errado Cebraspe + flashcards</span></a>
-        <a class="card stack" href="/painel"><b>Painel e previsão</b><span class="small muted">curva atual × necessária</span></a>
+        <a href="/editais"><span class="n">2</span><b>Meus editais</b><span class="small muted">o que cai, com que peso, como a banca pergunta</span></a>
+        <a href="/diagnostico"><span class="n">3</span><b>Diagnóstico</b><span class="small muted">até 30 questões para o agente saber por onde começar</span></a>
+        <a href="/rotina"><span class="n">4</span><b>Sua rotina</b><span class="small muted">horas, horário e energia — é o que molda o plano</span></a>
+        <a href="/hoje"><span class="n">5</span><b>Plano de hoje</b><span class="small muted">blocos com a justificativa de cada um; pode pular</span></a>
+        <a href="/revisar"><span class="n">6</span><b>Questões e revisão</b><span class="small muted">itens reais da banca e os cartões de erro do dia</span></a>
+        <a href="/painel"><span class="n">7</span><b>Painel e previsão</b><span class="small muted">onde você está e onde precisaria estar</span></a>
       {% endif %}
     </div>
   </div>

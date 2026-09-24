@@ -24,10 +24,14 @@
 
 /* ---- estrutura ------------------------------------------------------------------------ */
 
-.stack { display: flex; flex-direction: column; gap: var(--espaco-3); }
+.stack { display: flex; flex-direction: column; gap: var(--espaco-2-5); }
 .stack-6 { display: flex; flex-direction: column; gap: var(--espaco-6); }
-.row { display: flex; align-items: center; gap: var(--espaco-3); flex-wrap: wrap; }
+.row { display: flex; align-items: center; gap: var(--espaco-2-5); flex-wrap: wrap; }
 .row-topo { align-items: flex-start; }
+
+/* Dentro de um `.row`, o item que deve ficar com a sobra da linha em vez de empurrar os outros
+   para a linha de baixo — é o caso do texto longo ao lado de uma caixa de marcar. */
+.cresce { flex: 1 1 0; min-width: 16rem; }
 .between { justify-content: space-between; }
 .divider { height: 1px; background: var(--cor-linha); border: 0; margin: 0; }
 
@@ -35,7 +39,10 @@
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--espaco-4); }
 .grid-sb { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--espaco-4); align-items: start; }
 
-@media (max-width: 760px) {
+/* 900px é a quebra do protótipo: abaixo dela a lateral também sai, e o conteúdo fica com a
+   largura toda. Em 760px (o valor antigo) um tablet de 820px ainda tentava três colunas ao lado
+   da lateral de 248px. */
+@media (max-width: 900px) {
   .grid-2, .grid-3, .grid-sb { grid-template-columns: 1fr; }
 }
 
@@ -67,16 +74,17 @@
   padding: 8px 14px;
   font-family: inherit;
   font-weight: 500;
-  font-size: var(--texto-pequeno);
+  font-size: var(--texto-controle);
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn:hover { border-color: var(--cor-texto-3); }
 .btn.primary { background: var(--cor-acao); color: var(--cor-acao-texto); border-color: var(--cor-acao); }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn.ghost { background: transparent; }
-.btn.sm { padding: 5px 10px; font-size: var(--texto-rotulo); }
+.btn.sm { padding: 5px 10px; font-size: var(--texto-pequeno); }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 .btn[disabled]:hover { border-color: var(--cor-linha); filter: none; }
 
@@ -87,7 +95,7 @@
   align-items: center;
   padding: 3px 9px;
   border-radius: var(--raio-pequeno);
-  font-size: var(--texto-rotulo);
+  font-size: var(--texto-dado);
   font-weight: 500;
   background: var(--cor-superficie-2);
   color: var(--cor-texto-2);
@@ -137,7 +145,7 @@
   color: var(--cor-texto-2);
 }
 
-@media (max-width: 760px) { .kpis { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .kpis { grid-template-columns: 1fr; } }
 
 /* ---- barra e intervalo ------------------------------------------------------------------ */
 
@@ -290,4 +298,172 @@ input[type="file"].entrada::file-selector-button {
 
 input[type="file"].entrada::file-selector-button:hover {
   border-color: var(--cor-acao);
+}
+
+/* ---- ilustrações --------------------------------------------------------------------------- */
+
+/* Portado de `_estilo-do-prototipo.css` (§ilustrações). A decisão de deixar as ilustrações de
+   fora (plano da fatia 14 §4) foi revertida pelo dono em 23/09/2026, vendo a piloto usar: sem
+   elas o produto ficou "seco". O desenho em si é SVG inline, em `web/templates/_arte.html`.
+
+   `.screen-head` é a grade do cabeçalho de tela do protótipo: texto à esquerda, ilustração à
+   direita, ocupando as três linhas (rótulo, título, parágrafo). Abaixo de 900px ela vira uma
+   coluna e a ilustração encolhe — nunca rola de lado. */
+.screen-head {
+  display: grid;
+  grid-template-columns: 1fr 230px;
+  gap: var(--espaco-3) 28px;
+  align-items: center;
+}
+
+.screen-head > .eyebrow,
+.screen-head > h1,
+.screen-head > p { grid-column: 1; }
+.screen-head > .art { grid-column: 2; grid-row: 1 / span 3; margin: 0; }
+
+.art svg { width: 100%; height: auto; display: block; }
+.art-hero { width: 100%; height: auto; display: block; border-radius: 16px; }
+
+@media (max-width: 900px) {
+  .screen-head { grid-template-columns: 1fr; }
+  .screen-head > .art { grid-column: 1; grid-row: auto; max-width: 220px; }
+}
+
+/* Movimento: nenhuma animação fora de `prefers-reduced-motion: no-preference`, como no
+   protótipo. Sem a preferência declarada, o desenho fica parado e continua legível. */
+@keyframes flutuar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes girar { to { transform: rotate(360deg); } }
+@keyframes girar-ao-contrario { to { transform: rotate(-360deg); } }
+@keyframes varrer-linha { to { stroke-dashoffset: -400; } }
+@keyframes crescer-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes vapor { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@keyframes raios { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes desenhar { to { stroke-dashoffset: 0; } }
+@keyframes varredura { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .art .float,
+  .art-hero .float { animation: flutuar 4s ease-in-out infinite; }
+  .art .spin { transform-origin: center; transform-box: fill-box; animation: girar 24s linear infinite; }
+  .art .spin-r { transform-origin: center; transform-box: fill-box; animation: girar-ao-contrario 30s linear infinite; }
+  .art .scan { animation: varrer-linha 6s linear infinite; }
+  .art .grow { transform-origin: left center; transform-box: fill-box; animation: crescer-x 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .art .steam { animation: vapor 2.2s ease-in-out infinite; }
+  .art .rays { animation: raios 3s ease-in-out infinite; }
+  .art .draw-art { stroke-dasharray: 200; stroke-dashoffset: 200; animation: desenhar 1.6s ease-out forwards; }
+  .art .sweep { transform-origin: 120px 84px; animation: varredura 5s linear infinite; }
+}
+
+/* ---- porta de entrada: herói, princípios e atalhos ------------------------------------------ */
+
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--espaco-6); align-items: start; }
+.hero h1 { max-width: 18ch; }
+.hero .lead { font-size: var(--texto-medio); max-width: var(--medida-estreita); color: var(--cor-texto-2); }
+
+.principles { display: flex; flex-direction: column; gap: 10px; }
+
+.principles > li,
+.principles > div {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: var(--texto-pequeno);
+}
+
+.principles i {
+  font-style: normal;
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-rotulo);
+  color: var(--cor-acao);
+  padding-top: 3px;
+}
+
+/* Os atalhos da porta de entrada. No protótipo são `<button>` de uma SPA; aqui são `<a>` de
+   verdade — mesma aparência, navegação real. */
+.tour { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.tour > a,
+.tour > button {
+  text-align: left;
+  border: 1px solid var(--cor-linha);
+  background: var(--cor-superficie);
+  color: inherit;
+  border-radius: var(--raio);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tour > a:hover,
+.tour > button:hover { border-color: var(--cor-acao); }
+.tour .n { font-family: var(--fonte-mono); font-size: var(--texto-rotulo); color: var(--cor-texto-3); }
+.tour b { font-family: var(--fonte-titulo); font-weight: 600; font-size: var(--texto-pequeno); }
+
+@media (max-width: 900px) {
+  .hero, .tour { grid-template-columns: 1fr; }
+}
+
+/* ---- catálogo de editais -------------------------------------------------------------------- */
+
+/* Portado de `_estilo-do-prototipo.css` (§editais e radar). `.fchip` é o chip que filtra: no
+   protótipo é um `<button>` com `aria-pressed`; aqui é um `<a>` com `aria-current`, porque o
+   filtro é navegação de verdade e precisa funcionar sem JS. Os dois estados são suportados. */
+.fchip {
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fchip:hover { border-color: var(--cor-texto-3); }
+
+.fchip[aria-pressed="true"],
+.fchip[aria-current="true"] {
+  background: var(--cor-texto);
+  color: var(--cor-fundo);
+}
+
+/* A tabela do catálogo: só a primeira coluna quebra linha; o resto é dado curto e alinhado. */
+table.editais th,
+table.editais td { white-space: nowrap; }
+table.editais td:first-child { white-space: normal; min-width: 220px; }
+
+/* As preferências de perfil ficam recolhidas: elas marcam o selo "combina", não escondem
+   ninguém (Ruling 40), e abertas ocupavam mais tela que a própria lista. */
+.detalhe-filtros > summary {
+  cursor: pointer;
+  color: var(--cor-texto-2);
+  width: fit-content;
+}
+
+.detalhe-filtros > summary:focus-visible { outline: 2px solid var(--cor-acao); outline-offset: 2px; }
+
+/* Busca no canto do cabeçalho de uma seção (o `<input>` ao lado do título, como no protótipo).
+   Em tela larga ela não encolhe nem quebra — o que partia a palavra do botão ao meio ("Bus /
+   car"). Em tela estreita ela desce para a própria linha: mantida numa linha só, o mínimo dos
+   três controles passava dos 390px e cortava a página inteira. */
+.busca-cabecalho { flex: none; flex-wrap: nowrap; }
+.busca-cabecalho .campo-rotulo { white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .busca-cabecalho { flex: 1 1 100%; flex-wrap: wrap; }
+}
+
+/* O parágrafo do cabeçalho de tela tem medida própria no protótipo (62ch) — mais estreita que a
+   medida de leitura geral, porque ele divide a linha com a ilustração. */
+.screen-head p { max-width: 62ch; color: var(--cor-texto-2); }
+
+/* ---- alvo de toque --------------------------------------------------------------------------- */
+
+/* O protótipo foi desenhado no desktop, com mouse. A piloto usa tablet: com `pointer: coarse` o
+   botão ganha altura de alvo de toque sem mudar de aparência no desktop, onde o tamanho aprovado
+   continua valendo. */
+@media (pointer: coarse) {
+  .btn { min-height: 2.75rem; }
+  .btn.sm { min-height: 2.25rem; }
+  .seg > label { padding-block: 12px; }
+  .fchip { min-height: 2.25rem; }
 }

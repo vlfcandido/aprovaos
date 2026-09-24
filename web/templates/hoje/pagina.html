@@ -16,12 +16,16 @@
    (`dominio/plano.py`) — esta tela só mostra o que a regra decidiu. Quando ler: ao mudar o que
    aparece na tela "Hoje" ou o texto do check-in/discordar. #}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_plano %}
 {% block titulo %}Hoje — AprovaOS{% endblock %}
 {% block conteudo %}
   {% if sem_rotina %}
-    <div class="stack">
+    <div class="screen-head">
       <span class="eyebrow">Plano de hoje</span>
-      <h1>Hoje</h1>
+      <h1>Ainda falta uma coisa para montar o seu dia</h1>
+      <p class="prosa muted">O plano do dia é feito de duas coisas: o edital que você vai
+        prestar e quanto tempo você tem. Com as duas, ele aparece aqui todo dia, já pronto.</p>
+      {{ arte_plano() }}
     </div>
     <div class="vazio">
       <p>{{ motivo | replace(" em /rotina", "") }}</p>
@@ -32,7 +36,7 @@
     </div>
   {% else %}
     {% set total_min = blocos | sum(attribute="duracao_min") %}
-    <div class="stack">
+    <div class="screen-head">
       <span class="eyebrow">Plano de hoje</span>
       <h1>
         {{ plano.data_extenso }}.
@@ -40,6 +44,7 @@
       </h1>
       <p class="muted prosa">Cada bloco diz o que fazer, quanto tempo leva e por que está aí. Pule
       ou troque o que quiser — o agente registra, recalcula e mostra o impacto.</p>
+      {{ arte_plano() }}
     </div>
 
     <div class="row">

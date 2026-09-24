@@ -1,15 +1,21 @@
-{# O que é: resultado do diagnóstico adaptativo (fatia 7, F2.1) — proficiência ± margem por
-   matéria, o porquê da parada (a tese do produto: "o agente para quando já sabe") e o sinal de
-   domínio por tópico (o que o plano do dia, fatia 8, vai consumir). Cada matéria fechada tem
-   "Insistir" — o "discordar" desta fatia (§6 do plano): um item a mais, mesmo com a margem já
-   fechada, sempre respeitando o teto de 30. `.why` (fatia 14) carrega o porquê — antes era texto
-   corrido. Quando ler: ao mudar o que aparece quando o diagnóstico termina. -#}
+{# O que é: o resultado do diagnóstico adaptativo (fatia 7, F2.1) — o porquê da parada, as três
+   matérias mais fortes, as três mais fracas e um caminho para continuar. Passada visual de
+   23/09/2026: a lista "Estado por tópico" saiu daqui. Ela tinha 101 linhas, 63 delas dizendo
+   "sem questão na base", e fazia 81% do resultado falar de uma lacuna nossa em vez do estudo da
+   aluna; o lugar dela é o edital verticalizado, para onde esta tela aponta. A lacuna virou uma
+   linha com a contagem, e cada matéria fechada mantém "Insistir" — o "discordar" desta fatia
+   (§6 do plano): um item a mais mesmo com a margem já fechada, sempre dentro do teto de 30.
+   Quando ler: ao mudar o que aparece quando o diagnóstico termina. -#}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_diagnostico %}
 {% block titulo %}Resultado do diagnóstico — AprovaOS{% endblock %}
 {% block conteudo %}
-  <div class="stack">
+  <div class="screen-head">
     <span class="eyebrow">Diagnóstico</span>
     <h1>Diagnóstico concluído</h1>
+    <p class="prosa muted">É daqui que o agente parte para montar o seu estudo. Tudo isto é
+      revisável: refaça o diagnóstico quando quiser.</p>
+    {{ arte_diagnostico() }}
   </div>
 
   <div class="why">
@@ -17,61 +23,72 @@
     <span>{{ motivo }}</span>
   </div>
 
-  <div class="card stack">
-    <h2 id="titulo-materias">Proficiência por matéria</h2>
-    <table class="tabela-pesos" aria-labelledby="titulo-materias">
-      <thead>
-        <tr><th scope="col">Matéria</th><th scope="col">Estimativa</th><th scope="col">Itens</th><th scope="col"></th></tr>
-      </thead>
-      <tbody>
-        {% for m in materias %}
-          <tr>
-            <th scope="row">{{ m.materia }}</th>
-            <td>
-              {% if not m.tem_questao %}
-                <span class="chip">sem questão na base</span>
-              {% elif m.estimativa_pct is none %}
-                <span class="chip">sem dado ainda</span>
-              {% else %}
-                <span class="mono">{{ m.estimativa_pct | pct }} <span class="muted">± {{ m.margem | pct }}</span></span>
-              {% endif %}
-            </td>
-            <td class="mono">{{ m.n_itens }}</td>
-            <td>
-              {% if m.fechado %}
-                <a class="btn sm" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {% if mais_fortes or mais_fracas %}
+    <div class="grid-2">
+      <div class="card stack">
+        <h2>Onde você está mais forte</h2>
+        {% if mais_fortes %}
+          <div class="stack" style="gap:10px">
+            {% for m in mais_fortes %}
+              <div class="row between">
+                <span><b>{{ m.materia }}</b>
+                  <span class="mono small muted">{{ m.estimativa_pct | pct }} ± {{ m.margem | pct }}</span></span>
+                {% if m.fechado %}
+                  <a class="btn sm ghost" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small muted">Nenhuma matéria mediu o suficiente ainda.</p>
+        {% endif %}
+      </div>
+      <div class="card stack">
+        <h2>Por onde começar</h2>
+        {% if mais_fracas %}
+          <p class="small muted" style="margin:0">É por aqui que o plano do dia vai puxar
+            primeiro.</p>
+          <div class="stack" style="gap:10px">
+            {% for m in mais_fracas %}
+              <div class="row between">
+                <span><b>{{ m.materia }}</b>
+                  <span class="mono small muted">{{ m.estimativa_pct | pct }} ± {{ m.margem | pct }}</span></span>
+                {% if m.fechado %}
+                  <a class="btn sm ghost" href="/diagnostico?insistir={{ m.materia | urlencode }}">Insistir</a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small muted">Ainda não dá para dizer: responda mais alguns itens e eu volto
+            com as matérias mais fracas.</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
   <div class="card stack">
-    <h2 id="titulo-topicos">Estado por tópico</h2>
-    <p class="small muted">É este estado, tópico a tópico, que o plano do dia vai usar para
-      decidir o que entra no seu dia.</p>
-    <div class="stack" style="gap:8px">
-      {% for t in topicos %}
-        <div class="row between">
-          <span class="small"><b>{{ t.nome }}</b> <span class="muted">({{ t.materia }})</span></span>
-          {% if t.situacao == "dominado" %}
-            <span class="chip good">dominado</span>
-          {% elif t.situacao == "a_estudar" %}
-            <span class="chip warn">a estudar</span>
-          {% elif t.situacao == "sem_dado" %}
-            <span class="chip">sem dado ainda</span>
-          {% else %}
-            <span class="chip">sem questão na base</span>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
+    <span class="eyebrow">O que ainda não deu para medir</span>
+    <p class="small" style="margin:0">{# a frase fica numa linha só: é ela que o teste mede #}
+      {{ topicos_sem_questao }} de {{ topicos_total }} tópicos do seu edital ainda não têm questão na base
+      — estamos coletando, e cada questão que chega entra no seu plano automaticamente.</p>
+    {% if materias_sem_medida %}
+      <p class="small muted" style="margin:0">Ficaram sem medida por enquanto:
+        {{ materias_sem_medida | join(", ") }} — sem questão na base ainda.</p>
+    {% endif %}
+    <p class="small muted" style="margin:0">O estado tópico a tópico fica no
+      <a href="/concurso/{{ concurso_id }}">edital verticalizado</a>, onde você vê o edital
+      inteiro na ordem em que ele cai.</p>
   </div>
 
   <div class="row acoes">
-    <a class="btn primary" href="/rotina">Ir para a rotina</a>
-    <a class="btn" href="/editais">Meus editais</a>
+    {% if tem_rotina %}
+      <a class="btn primary" href="/hoje">Começar por aqui</a>
+      <span class="small muted">abre o plano de hoje, já com este diagnóstico</span>
+    {% else %}
+      <a class="btn primary" href="/rotina">Começar por aqui</a>
+      <span class="small muted">primeiro a sua rotina: sem saber suas horas, não dá para montar
+        o plano do dia</span>
+    {% endif %}
   </div>
 {% endblock %}

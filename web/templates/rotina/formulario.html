@@ -4,16 +4,20 @@
    19/09/2026, mesmo para quem já autorizou antes) — a data/versão do aceite anterior aparece em
    texto ao lado dela. Erros esperados voltam aqui, 200. O protótipo validado não tem uma tela de
    rotina própria — porte visual (fatia 14): montado só com componentes da biblioteca
-   (`card`/`entrada`/`grid-3`/`btn`). Quando ler: ao mudar os campos da rotina ou o texto do
+   (`card`/`entrada`/`grid-3`/`btn`), e a ilustração é a do check-in matinal (`s-checkin`), que é
+   a tela do protótipo mais próxima em assunto: energia e tempo do dia. Quando ler: ao mudar os campos da rotina ou o texto do
    consentimento. -#}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_rotina %}
 {% block titulo %}Sua rotina — AprovaOS{% endblock %}
 {% block conteudo %}
-  <div class="stack">
+  <div class="screen-head">
     <span class="eyebrow">Rotina</span>
     <h1>Sua rotina</h1>
-    <p class="prosa muted">Horas por dia, horário preferido e energia típica — editável quando
-      quiser; muda o plano do dia seguinte.</p>
+    <p class="prosa muted">Quantas horas você tem em cada dia, a que horas rende mais e como
+      costuma estar a sua energia. É disto que o plano de cada dia é feito — e dá para mudar
+      quando quiser.</p>
+    {{ arte_rotina() }}
   </div>
   <form class="card stack" method="post" action="/rotina"
         hx-post="/rotina" hx-select="#conteudo" hx-target="#conteudo" hx-swap="outerHTML">
@@ -48,8 +52,8 @@
       <label class="stack" style="gap:var(--espaco-2)">
         <span class="campo-rotulo">Energia típica</span>
         <select class="entrada" id="energia_tipica" name="energia_tipica">
-          {% for valor in opcoes_energia %}
-            <option value="{{ valor }}" {% if valor == energia_tipica %}selected{% endif %}>{{ valor|capitalize }}</option>
+          {% for valor, rotulo in opcoes_energia %}
+            <option value="{{ valor }}" {% if valor == energia_tipica %}selected{% endif %}>{{ rotulo }}</option>
           {% endfor %}
         </select>
       </label>
@@ -78,7 +82,7 @@
     <div class="stack">
       <label class="row row-topo">
         <input type="checkbox" name="consentimento">
-        <span class="small">Autorizo o uso da minha energia típica para ajustar o plano — dado
+        <span class="small cresce">Autorizo o uso da minha energia típica para ajustar o plano — dado
           tratado como sensível por cautela (LGPD); usado só para o meu próprio plano, nunca em
           ranking nem repassado a terceiros. Posso exportar ou excluir meus dados a qualquer
           momento em <a href="/conta">Minha conta</a>.</span>

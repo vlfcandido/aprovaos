@@ -38,14 +38,27 @@
 
   --sombra: 0 1px 2px rgb(19 27 46 / 0.06), 0 8px 24px rgb(19 27 46 / 0.06);
 
-  /* Espaço (gutter de celular = --espaco-4 = 16px) */
+  /* Espaço (gutter de celular = --espaco-4 = 16px). Os passos quebrados (2-5, 5-5, 7, 16) não
+     são invenção: são os valores exatos que o protótipo validado usa e que a escala de 4 em 4
+     não alcançava — 10px no `.stack`/`.row`, 22px entre os blocos de uma tela, 28px de topo do
+     conteúdo, 64px de respiro no fim da página. Sem eles, cada tela arredondava para o passo
+     mais próximo e o ritmo saía diferente do aprovado (passada visual de 23/09/2026). */
   --espaco-1: 0.25rem;
   --espaco-2: 0.5rem;
+  --espaco-2-5: 0.625rem;
   --espaco-3: 0.75rem;
   --espaco-4: 1rem;
+  --espaco-5-5: 1.375rem;
   --espaco-6: 1.5rem;
+  --espaco-7: 1.75rem;
   --espaco-8: 2rem;
   --espaco-12: 3rem;
+  --espaco-16: 4rem;
+
+  /* Nota de quebra (não é token: `@media` não lê custom property). O ponto em que a lateral e as
+     grades de três colunas deixam de caber é **900px**, o do protótipo. O produto usava 720px
+     para o shell e 760px para as grades, e o resultado era um tablet de 820px com três colunas
+     espremidas em 508px ao lado da lateral de 248px — foi o que a piloto viu. */
 
   /* Raio */
   --raio: 10px;
@@ -59,9 +72,15 @@
   --fonte-corpo: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --fonte-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Escala do protótipo (Elements of Typographic Style): rótulo · dado · corpo · KPI · título */
+  /* Escala do protótipo (Elements of Typographic Style): rótulo · dado · corpo · KPI · título.
+     `--texto-dado` (12px) e `--texto-controle` (14px) estavam no plano da fatia 14 ("11px
+     eyebrow · 12–13px dado/mono · 14px corpo pequeno") mas não tinham virado token: sem eles, o
+     chip caía para 11px e o botão para 13px, menores que o aprovado — e num tablet isso é a
+     diferença entre ler e apertar os olhos. */
   --texto-rotulo: 0.6875rem;
+  --texto-dado: 0.75rem;
   --texto-pequeno: 0.8125rem;
+  --texto-controle: 0.875rem;
   --texto-base: 0.9375rem;
   --texto-medio: 1.0625rem;
   --texto-kpi: 1.625rem;

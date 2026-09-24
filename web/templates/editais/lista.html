@@ -4,11 +4,15 @@
    dos antigos `concursos`/`concurso`/`selo`. Quando ler: ao ligar o concurso principal ao
    `perfil_estudo` (fatia 7, P-23). -#}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_concurso %}
 {% block titulo %}Meus editais — AprovaOS{% endblock %}
 {% block conteudo %}
-  <div class="stack">
+  <div class="screen-head">
     <span class="eyebrow">Concurso e DNA</span>
     <h1>Meus editais</h1>
+    <p class="prosa muted">Os editais que você subiu, já lidos: o que cai, com que peso e como a
+      banca costuma perguntar. Abra um para ver o edital verticalizado, tópico a tópico.</p>
+    {{ arte_concurso() }}
   </div>
   {% if concursos %}
     <p class="small muted">O concurso principal é o último que você subiu.</p>

@@ -1,26 +1,31 @@
-{# O que é: catálogo do radar (`GET /radar`, F1.1) — todos os concursos vistos, filtro por
-   fase/UF e selo "combina com você" (Ruling 40: o filtro nunca esconde, só ordena e marca).
-   Markup portado de `docs/evidencias/mockups/telas/s-editais.html` ("Os editais chegam até
-   você. Não o contrário."), fatia 14 — a tabela `.editais`/`.meus`/`.cat` do protótipo ainda não
-   existe na biblioteca (`web/static/css/componentes.css`); esta tela usa `card`/`grid-2`/`chip`
-   no lugar (relatado no porte). Porte visual (fatia 14, §2.2) corrigiu, com os 495 concursos
-   reais no banco: salário em formato brasileiro (filtro `brl`, não o `Decimal` cru), o valor de
-   enum da fase traduzido (`FASE_LABEL`, nunca "inscricoes_abertas" na tela), o código interno de
-   pendência tirado do aviso da FGV, a lacuna "data da prova" dita uma vez no cabeçalho da lista
-   em vez de repetida nos 495 cartões, e a ordenação (`api/radar.py::radar`) que agora afunda
-   encerrado sempre, depois combina primeiro, depois inscrição fechando mais cedo. Quando ler: ao
+{# O que é: o radar de editais (`GET /radar`, F1.1) — em cima, os concursos da aluna; embaixo, o
+   catálogo público da Cebraspe, com busca, abas de situação e preferências. Markup portado de
+   `docs/evidencias/mockups/telas/s-editais.html` ("Os editais chegam até você. Não o
+   contrário."), inclusive a tabela `editais` com busca ao lado do título.
+
+   Passada visual de 23/09/2026 ("o radar está péssimo" — o dono, vendo a piloto usar): os 495
+   concursos do catálogo público saíam como cartões, sem busca e sem cabeçalho, logo abaixo de
+   "Meus concursos" — e pareciam os concursos dela. Agora o catálogo tem título e frase próprios
+   dizendo o que é, busca por nome/UF, situação em abas (links de verdade, funcionam sem JS) e
+   sai em lotes de `LOTE_DO_CATALOGO`, com o total sempre dito para o corte nunca virar "só
+   existe isto". As preferências (UF, salário, área) foram para um `<details>`: elas marcam o
+   selo "combina", não escondem ninguém (Ruling 40), e ocupavam a tela inteira antes da lista.
+
+   A fatia 14 §2.2 já tinha corrigido aqui: salário em formato brasileiro (filtro `brl`), o valor
+   de enum da fase traduzido (`FASE_LABEL`), o código interno de pendência fora do aviso da FGV,
+   a lacuna "data da prova" dita uma vez só e a ordenação que afunda encerrado. Quando ler: ao
    mexer no catálogo, em "meus concursos" ou no aviso da FGV vetada. -#}
 {% extends "base.html" %}
+{% from "_arte.html" import arte_radar %}
 {% block titulo %}Radar de editais — AprovaOS{% endblock %}
 {% block conteudo %}
-  <div class="stack">
+  <div class="screen-head">
     <span class="eyebrow">Radar de editais</span>
     <h1>Os editais chegam até você. Não o contrário.</h1>
     <p class="prosa muted">O radar varre o catálogo da Cebraspe e traz o que já saiu, com o que
-      cada concurso tem de público hoje — vagas, salário, prazo de inscrição.</p>
+      cada concurso tem de público hoje — vagas, salário e prazo de inscrição.</p>
+    {{ arte_radar() }}
   </div>
-
-  <p class="small muted">{{ nota_fgv_vetada }}</p>
 
   {% if meus_concursos %}
     <div class="card stack">
@@ -68,67 +73,122 @@
     </div>
   {% endif %}
 
-  <form method="get" action="/radar" class="card stack" aria-label="Filtrar o radar">
-    <div class="grid-3">
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Fase</span>
-        <select class="entrada" id="fase" name="fase">
-          <option value="" {% if not filtros.fase %}selected{% endif %}>Todas</option>
-          {% for valor, rotulo in fase_opcoes %}
-            <option value="{{ valor }}" {% if filtros.fase == valor %}selected{% endif %}>{{ rotulo }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">UF de interesse (não esconde as outras)</span>
-        <input class="entrada" id="uf" name="uf" type="text" maxlength="2" value="{{ filtros.uf or '' }}">
-      </label>
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Salário mínimo (R$)</span>
-        <input class="entrada" id="salario_min" name="salario_min" type="text" inputmode="decimal" value="{{ filtros.salario_min or '' }}">
-      </label>
-      <label class="stack" style="gap:var(--espaco-2)">
-        <span class="campo-rotulo">Área</span>
-        <select class="entrada" id="area" name="area">
-          <option value="qualquer" {% if filtros.area == "qualquer" %}selected{% endif %}>Qualquer</option>
-          <option value="direito" {% if filtros.area == "direito" %}selected{% endif %}>Direito</option>
-        </select>
-      </label>
+  <div class="card stack">
+    <div class="row between">
+      <div class="stack" style="gap:2px">
+        <h2 style="margin:0">Catálogo público de concursos</h2>
+        <span class="small muted">tudo o que a Cebraspe já publicou — não são os seus concursos,
+          é o que existe lá fora.</span>
+      </div>
+      <form method="get" action="/radar" class="row busca-cabecalho" style="gap:var(--espaco-2)" role="search">
+        {% if filtros.fase %}<input type="hidden" name="fase" value="{{ filtros.fase }}">{% endif %}
+        <label class="campo-rotulo" for="q">Buscar</label>
+        <input class="entrada" id="q" name="q" type="search" style="max-width:15rem"
+               placeholder="Órgão, concurso ou UF" value="{{ filtros.q or '' }}">
+        <button class="btn" type="submit">Buscar</button>
+      </form>
     </div>
-    <button class="btn primary" type="submit" style="align-self:start">Filtrar</button>
-  </form>
 
-  {% if linhas %}
-    <p class="small muted">{{ linhas | length }} concurso(s) no radar. {{ nota_data_prova }}</p>
-    <div class="grid-2">
-      {% for c in linhas %}
-        <div class="card stack">
-          <div class="row between">
-            <a href="/radar/{{ c.evento_url }}"><b>{{ c.nome }}</b></a>
-            <span class="chip">{{ c.fase_label }}</span>
-          </div>
-          {% if c.combina or c.novo_para_voce %}
-            <div class="row">
-              {% if c.combina %}<span class="chip accent">combina: {{ c.motivos | join(", ") }}</span>{% endif %}
-              {% if c.novo_para_voce %}<span class="chip novo">novo para você</span>{% endif %}
-            </div>
-          {% endif %}
-          <p class="small muted" style="margin:0">
-            {% if c.uf %}{{ c.uf }} · {% endif %}{% if c.vagas %}{{ c.vagas }} vaga(s) · {% endif -%}
-            {% if c.salario_max_brl %}até {{ c.salario_max_brl | brl }}{% endif %}
-          </p>
-          {% if c.lacunas_linha %}
-            <p class="small muted" style="margin:0">{{ c.lacunas_linha | join(" · ") }}</p>
-          {% endif %}
-        </div>
+    <div class="row" style="gap:6px">
+      <span class="small muted">Situação:</span>
+      {% for aba in abas_fase %}
+        <a class="chip fchip" href="{{ aba.url }}" {% if aba.ativa %}aria-current="true"{% endif %}>{{ aba.rotulo }}</a>
       {% endfor %}
     </div>
-  {% else %}
-    <div class="vazio">
-      <p>Nenhum concurso encontrado com esses filtros.</p>
-      <p class="small">A UF, o salário e a área só marcam o selo "combina" — mudar a fase é o
-        único filtro que esconde.</p>
-      <div class="row acoes"><a class="btn primary" href="/radar">Limpar filtros</a></div>
-    </div>
-  {% endif %}
+
+    <details class="detalhe-filtros">
+      <summary class="small">Afinar pelo seu perfil (marca o selo "combina"; não esconde nada)</summary>
+      <form method="get" action="/radar" class="stack" style="margin-top:var(--espaco-3)">
+        {% if filtros.q %}<input type="hidden" name="q" value="{{ filtros.q }}">{% endif %}
+        <div class="grid-3">
+          <label class="stack" style="gap:var(--espaco-2)">
+            <span class="campo-rotulo">Situação</span>
+            <select class="entrada" id="fase" name="fase">
+              <option value="" {% if not filtros.fase %}selected{% endif %}>Todas</option>
+              {% for valor, rotulo in fase_opcoes %}
+                <option value="{{ valor }}" {% if filtros.fase == valor %}selected{% endif %}>{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="stack" style="gap:var(--espaco-2)">
+            <span class="campo-rotulo">UF de interesse</span>
+            <input class="entrada" id="uf" name="uf" type="text" maxlength="2" value="{{ filtros.uf or '' }}">
+          </label>
+          <label class="stack" style="gap:var(--espaco-2)">
+            <span class="campo-rotulo">Salário mínimo (R$)</span>
+            <input class="entrada" id="salario_min" name="salario_min" type="text" inputmode="decimal" value="{{ filtros.salario_min or '' }}">
+          </label>
+          <label class="stack" style="gap:var(--espaco-2)">
+            <span class="campo-rotulo">Área</span>
+            <select class="entrada" id="area" name="area">
+              <option value="qualquer" {% if filtros.area == "qualquer" %}selected{% endif %}>Qualquer</option>
+              <option value="direito" {% if filtros.area == "direito" %}selected{% endif %}>Direito</option>
+            </select>
+          </label>
+        </div>
+        <button class="btn primary" type="submit" style="align-self:start">Aplicar</button>
+      </form>
+    </details>
+
+    {% if linhas %}
+      <p class="small" style="margin:0">
+        {{ total }} concurso{{ "s" if total != 1 else "" }}
+        {%- if filtros.q %} para “{{ filtros.q }}”{% endif %}
+        {%- if mostrando < total %} · mostrando os {{ mostrando }} primeiros{% endif %}.
+      </p>
+      <p class="small muted" style="margin:0">{{ nota_data_prova }}</p>
+      <div class="tabela-rolagem">
+        <table class="tabela editais">
+          <thead>
+            <tr>
+              <th scope="col">Concurso</th>
+              <th scope="col">Situação</th>
+              <th scope="col">UF</th>
+              <th scope="col">Vagas</th>
+              <th scope="col">Salário até</th>
+              <th scope="col">Combina</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in linhas %}
+              <tr data-concurso="{{ c.evento_url }}">
+                <td>
+                  <a href="/radar/{{ c.evento_url }}"><b>{{ c.nome }}</b></a>
+                  {% if c.novo_para_voce %}<span class="chip novo">novo para você</span>{% endif %}
+                  {% if c.lacunas_linha %}
+                    <div class="small muted">{{ c.lacunas_linha | join(" · ") }}</div>
+                  {% endif %}
+                </td>
+                <td><span class="chip {{ 'good' if c.fase == 'inscricoes_abertas' else '' }}">{{ c.fase_label }}</span></td>
+                <td class="mono">{{ c.uf or "—" }}</td>
+                <td class="mono">{{ c.vagas if c.vagas else "—" }}</td>
+                <td class="mono">{% if c.salario_max_brl %}{{ c.salario_max_brl | brl }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if c.combina %}
+                    <span class="chip accent">{{ c.motivos | join(", ") }}</span>
+                  {% else %}
+                    <span class="small muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if url_mostrar_mais %}
+        <a class="btn" href="{{ url_mostrar_mais }}" style="align-self:start">Mostrar mais {{ proximo_lote }}</a>
+      {% endif %}
+    {% else %}
+      <div class="vazio">
+        <p>Nenhum concurso
+          {%- if filtros.q %} para “{{ filtros.q }}”{% endif %}
+          {%- if filtros.fase %} nesta situação{% endif %}.</p>
+        <p class="small">A busca procura no nome do concurso e na UF. As preferências de perfil
+          (UF, salário, área) só marcam o selo "combina" — quem esconde é a situação.</p>
+        <div class="row acoes"><a class="btn primary" href="/radar">Limpar busca e filtros</a></div>
+      </div>
+    {% endif %}
+
+    <p class="small muted" style="margin:0">{{ nota_fgv_vetada }}</p>
+  </div>
 {% endblock %}

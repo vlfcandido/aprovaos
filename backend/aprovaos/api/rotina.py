@@ -41,6 +41,11 @@ MENSAGEM_CONSENTIMENTO_OBRIGATORIO = (
 MENSAGEM_CONCURSO_INVALIDO = "Concurso principal inválido — escolha um dos seus concursos."
 MENSAGEM_DATA_INVALIDA = "Data-alvo inválida."
 
+#: Rótulo de energia para o formulário. O valor do domínio (`ENERGIAS_VALIDAS`) é identificador,
+#: não texto de tela: passado por `capitalize` no template ele saía "Media", sem acento (passada
+#: visual de 23/09/2026).
+ROTULO_ENERGIA: dict[str, str] = {"alta": "Alta", "media": "Média", "baixa": "Baixa"}
+
 #: Rótulo do dia para o formulário — mesma ordem de `DIAS_SEMANA`.
 ROTULO_DIA: dict[str, str] = {
     "seg": "Segunda",
@@ -96,7 +101,7 @@ def _contexto_formulario(
         "dias": _dias_para_formulario(horas),
         "opcoes_horario": OPCOES_HORARIO,
         "horario_preferido": horario_preferido,
-        "opcoes_energia": ENERGIAS_VALIDAS,
+        "opcoes_energia": [(valor, ROTULO_ENERGIA[valor]) for valor in ENERGIAS_VALIDAS],
         "energia_tipica": energia_tipica,
         "data_alvo": data_alvo,
         "concursos": _concursos_para_formulario(db, usuario, concurso_principal_id),

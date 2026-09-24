@@ -49,16 +49,15 @@ from aprovaos.dados.modelos import (
 from aprovaos.dados.repositorio_cartao import registrar_erro
 from aprovaos.dados.repositorio_diagnostico import respostas_diagnostico, topicos_do_diagnostico
 from aprovaos.dados.repositorio_edital import concurso_principal, edital_atual
+from aprovaos.dados.repositorio_perfil import perfil_atual
 from aprovaos.dados.repositorio_questao import proxima_questao, registrar_resposta
 from aprovaos.dominio.diagnostico import (
     MAXIMO_ITENS,
     EstadoAgregado,
-    ItemDiagnostico,
     TopicoDisponivel,
     agrupar_por_materia,
     motivo_geral,
     ordenar_candidatos,
-    sinais_por_topico,
 )
 from aprovaos.dominio.revisao import Confianca
 
@@ -128,19 +127,38 @@ def _contexto_estimativa(estados: dict[str, EstadoAgregado]) -> list[dict[str, o
     ]
 
 
+#: Quantas matérias entram em cada coluna do resultado (passada visual de 23/09/2026).
+MATERIAS_POR_COLUNA = 3
+
+
 def _contexto_resultado(
     total_itens: int,
     topicos: list[TopicoDisponivel],
-    respostas: list[ItemDiagnostico],
     estados_por_materia: dict[str, EstadoAgregado],
+    concurso_id: UUID,
+    *,
+    tem_rotina: bool,
 ) -> dict[str, object]:
-    """Monta o contexto de `diagnostico/resultado.html` — por matéria e por tópico.
+    """Monta o contexto de `diagnostico/resultado.html`: as mais fortes, as mais fracas e a lacuna.
+
+    O resultado media 1.777 palavras na tela da piloto (23/09/2026), com 101 linhas de tópico —
+    63 delas dizendo "sem questão na base". Oitenta e um por cento da tela falava de uma lacuna
+    nossa, não do estudo dela. Por decisão do dono, a lista tópico a tópico saiu (ela tem casa
+    própria no edital verticalizado, para onde a tela agora aponta) e o resultado virou três
+    números para cima, três para baixo e um caminho: `MATERIAS_POR_COLUNA` matérias mais fortes,
+    as mesmas tantas mais fracas (sem repetir as já listadas como fortes) e a lacuna em uma linha
+    com a contagem — nunca uma linha por tópico.
+
+    Só entra na ordenação matéria com estimativa: ranquear quem não foi medido seria inventar
+    número. As demais saem por nome em `materias_sem_medida`, que a tela diz numa frase.
 
     Args:
         total_itens: quantos itens o diagnóstico usou ao todo.
         topicos: todos os tópicos do edital do concurso principal.
-        respostas: todas as respostas marcadas do diagnóstico.
         estados_por_materia: `agrupar_por_materia(respostas)`.
+        concurso_id: o concurso principal — vira o link para o edital verticalizado.
+        tem_rotina: se a aluna já salvou a rotina; decide para onde vai "Começar por aqui"
+            (sem rotina, o plano do dia não tem do que ser feito).
 
     Returns:
         O contexto para `renderizar`, com `finalizado=True`.
@@ -149,39 +167,42 @@ def _contexto_resultado(
     materias_com_questao = {t.materia for t in topicos if t.tem_questao}
     materias_sem_questao = todas_materias - materias_com_questao
 
-    materias = []
+    medidas = []
     for materia in sorted(todas_materias):
         estado = estados_por_materia.get(materia)
-        materias.append(
+        if estado is None or estado.estimativa_pct is None:
+            continue
+        medidas.append(
             {
                 "materia": materia,
-                "tem_questao": materia in materias_com_questao,
-                "n_itens": estado.n_itens if estado else 0,
-                "estimativa_pct": estado.estimativa_pct if estado else None,
-                "margem": estado.margem if estado else None,
-                "fechado": bool(estado and estado.fechado),
+                "n_itens": estado.n_itens,
+                "estimativa_pct": estado.estimativa_pct,
+                "margem": estado.margem,
+                "fechado": estado.fechado,
             }
         )
 
-    nomes_por_topico = {t.topico_id: t.nome for t in topicos}
-    sinais = [
-        {
-            "materia": sinal.materia,
-            "nome": nomes_por_topico.get(sinal.topico_id, ""),
-            "situacao": sinal.situacao,
-            "estimativa_pct": sinal.estimativa_pct,
-            "margem": sinal.margem,
-            "n_itens": sinal.n_itens,
-        }
-        for sinal in sinais_por_topico(respostas, topicos)
+    por_estimativa = sorted(medidas, key=lambda m: cast(float, m["estimativa_pct"]), reverse=True)
+    mais_fortes = por_estimativa[:MATERIAS_POR_COLUNA]
+    nomes_fortes = {m["materia"] for m in mais_fortes}
+    mais_fracas = [m for m in reversed(por_estimativa) if m["materia"] not in nomes_fortes][
+        :MATERIAS_POR_COLUNA
     ]
+
+    nomes_medidos = {m["materia"] for m in medidas}
+    topicos_sem_questao = sum(1 for t in topicos if not t.tem_questao)
 
     return {
         "finalizado": True,
         "total_itens": total_itens,
         "motivo": motivo_geral(total_itens, estados_por_materia, materias_sem_questao),
-        "materias": materias,
-        "topicos": sinais,
+        "mais_fortes": mais_fortes,
+        "mais_fracas": mais_fracas,
+        "materias_sem_medida": sorted(todas_materias - nomes_medidos),
+        "topicos_sem_questao": topicos_sem_questao,
+        "topicos_total": len(topicos),
+        "concurso_id": str(concurso_id),
+        "tem_rotina": tem_rotina,
     }
 
 
@@ -241,7 +262,13 @@ def diagnostico(
             contexto["estimativa_por_materia"] = _contexto_estimativa(estados)
             return renderizar(request, "diagnostico/andamento.html", contexto, usuario)
 
-    contexto_final = _contexto_resultado(total_itens, topicos, respostas, estados)
+    contexto_final = _contexto_resultado(
+        total_itens,
+        topicos,
+        estados,
+        edital.concurso_id,
+        tem_rotina=perfil_atual(db, usuario.id) is not None,
+    )
     return renderizar(request, "diagnostico/resultado.html", contexto_final, usuario)
 
 

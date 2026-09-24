@@ -8,9 +8,11 @@ botão "Analisar este edital"), `POST /radar/{evento_url}/acompanhar` e `POST /p
 ler: ao mexer no radar ou em "meus concursos".
 """
 
+import unicodedata
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Any
+from urllib.parse import urlencode
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
@@ -76,6 +78,20 @@ MENSAGEM_FONTE_INDISPONIVEL = (
     "Não deu para consultar a Cebraspe agora. Tente de novo em alguns instantes."
 )
 MENSAGEM_SEM_ROTINA = "Configure sua rotina antes de escolher ou acompanhar concursos."
+
+#: Ordem de interesse da situação, para desempatar quando não há data de inscrição — que é o caso
+#: de quase todo o catálogo. Sem ela a ordem caía no alfabeto do banco e um concurso já em
+#: andamento aparecia antes de um com inscrição aberta, o único em que a aluna ainda pode entrar.
+ORDEM_DA_FASE: dict[str, int] = {
+    "inscricoes_abertas": 0,
+    "novos": 1,
+    "em_andamento": 2,
+    "encerrado": 3,
+}
+
+#: Quantos concursos o catálogo público mostra de cada vez. São 495 no banco em 23/09/2026, e
+#: despejar os 495 de uma vez foi metade do que fez a piloto se perder no radar.
+LOTE_DO_CATALOGO = 40
 
 
 def _preferencia_da_query(uf: str | None, salario_min: str | None, area: str) -> PreferenciaRadar:
@@ -161,6 +177,20 @@ def _meus_concursos(db: Session, usuario: Usuario) -> dict[str, Any]:
     }
 
 
+def _normalizar(texto: str) -> str:
+    """Caixa baixa e sem acento, para a busca do catálogo casar "policia" com "POLÍCIA"."""
+    decomposto = unicodedata.normalize("NFKD", texto)
+    return "".join(c for c in decomposto if not unicodedata.combining(c)).casefold()
+
+
+def _url_do_radar(parametros: dict[str, Any]) -> str:
+    """Monta `/radar?...` só com os parâmetros que têm valor — sem `?fase=&uf=` vazio na barra."""
+    presentes = {
+        chave: str(valor) for chave, valor in parametros.items() if valor not in (None, "")
+    }
+    return "/radar?" + urlencode(presentes) if presentes else "/radar"
+
+
 @router.get("/radar")
 def radar(
     request: Request,
@@ -170,6 +200,8 @@ def radar(
     uf: str | None = None,
     salario_min: str | None = None,
     area: str = "qualquer",
+    q: str | None = None,
+    limite: int = LOTE_DO_CATALOGO,
 ) -> Response:
     """Catálogo do radar: todos os concursos vistos, com selo "combina com você" (Ruling 40).
 
@@ -177,6 +209,13 @@ def radar(
     andamento"). `uf`/`salario_min`/`area` são a **preferência**, não um filtro — Ruling 40
     ("combina com o perfil" ordena e marca, nunca esconde): um concurso de outra UF continua na
     lista, só sem o selo e mais abaixo na ordenação.
+
+    `q` e `limite` nasceram na passada visual de 23/09/2026 ("o radar está péssimo", o dono,
+    vendo a piloto usar): os 495 concursos do catálogo público saíam de uma vez, sem busca,
+    parecendo os concursos dela. `q` é busca de texto no nome e na UF — **não** é preferência:
+    quem digita um nome quer aquele nome, e a Ruling 40 fala de perfil, não de busca explícita.
+    `limite` corta a lista num lote; o total real continua dito na tela, para o corte nunca
+    passar por "só existe isto".
 
     Args:
         request: a requisição atual.
@@ -186,6 +225,8 @@ def radar(
         uf: preferência de UF para o selo "combina" — nunca esconde outra UF.
         salario_min: preferência de salário mínimo (texto — convertido com cautela).
         area: preferência de área (`"direito"`/`"qualquer"`).
+        q: busca livre por nome do concurso ou UF; vazia, não filtra nada.
+        limite: quantos concursos mostrar nesta página (mínimo de um lote).
 
     Returns:
         O HTML de `radar/index.html`.
@@ -197,6 +238,14 @@ def radar(
         _linha_do_catalogo(c, casar_com_perfil(_para_dominio(c), preferencia, cargos=[]), agora)
         for c in concursos
     ]
+    busca = (q or "").strip()
+    if busca:
+        alvo = _normalizar(busca)
+        linhas = [
+            linha
+            for linha in linhas
+            if alvo in _normalizar(str(linha["nome"]) + " " + str(linha["uf"] or ""))
+        ]
     # Defeito do radar (fatia 14, §2.2): sem a chave de "encerrado", o desempate por
     # `inscricao_fim` (quase sempre ausente) deixava a ordem alfabética do banco aparecer por
     # trás — e como 424 dos 495 concursos medidos em 19/09/2026 estão encerrados, o resultado
@@ -207,15 +256,34 @@ def radar(
         key=lambda linha: (
             linha["fase"] == "encerrado",
             not linha["combina"],
+            ORDEM_DA_FASE.get(str(linha["fase"]), len(ORDEM_DA_FASE)),
             linha["inscricao_fim"] or longe_no_futuro,
         )
     )
+    total = len(linhas)
+    mostrando = max(limite, 1)
+    filtros = {"fase": fase, "uf": uf, "salario_min": salario_min, "area": area, "q": busca}
     contexto: dict[str, Any] = {
-        "linhas": linhas,
-        "filtros": {"fase": fase, "uf": uf, "salario_min": salario_min, "area": area},
+        "linhas": linhas[:mostrando],
+        "filtros": filtros,
+        "total": total,
+        "mostrando": min(mostrando, total),
+        "url_mostrar_mais": _url_do_radar({**filtros, "limite": mostrando + LOTE_DO_CATALOGO})
+        if total > mostrando
+        else None,
+        "proximo_lote": min(LOTE_DO_CATALOGO, total - mostrando) if total > mostrando else 0,
         "nota_fgv_vetada": NOTA_FGV_VETADA,
         "nota_data_prova": NOTA_DATA_PROVA,
         "fase_opcoes": list(FASE_LABEL.items()),
+        "abas_fase": [
+            {
+                "rotulo": rotulo,
+                "valor": valor,
+                "ativa": (fase or "") == valor,
+                "url": _url_do_radar({**filtros, "fase": valor}),
+            }
+            for valor, rotulo in [("", "Todos"), *FASE_LABEL.items()]
+        ],
     }
     if usuario is not None:
         contexto["meus_concursos"] = _meus_concursos(db, usuario)

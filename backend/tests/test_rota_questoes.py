@@ -413,8 +413,8 @@ def test_topico_tela_referencia_atalhos_de_teclado(logado: TestClient, db: Sessi
     _criar_questao(db, topico, documento.id)
 
     corpo = logado.get(f"/topico/{topico.slug}/questoes").text
-    assert '<script src="/static/js/atalhos-estudo.js" defer></script>' in corpo
-    assert '<script src="/static/js/confianca-questao.js" defer></script>' in corpo
+    assert '<script src="/static/js/atalhos-estudo.js?v=' in corpo
+    assert '<script src="/static/js/confianca-questao.js?v=' in corpo
     assert 'data-atalho="certo"' in corpo
     assert 'data-atalho="errado"' in corpo
     assert 'id="questao" aria-live="polite"' in corpo

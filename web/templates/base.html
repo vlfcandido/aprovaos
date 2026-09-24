@@ -11,14 +11,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{% block titulo %}AprovaOS{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/fontes.css">
-  <link rel="stylesheet" href="/static/css/tokens.css">
-  <link rel="stylesheet" href="/static/css/componentes.css">
-  <link rel="stylesheet" href="/static/css/base.css">
-  <script src="/static/js/htmx.min.js" defer></script>
+  <link rel="stylesheet" href="{{ estatico('css/fontes.css') }}">
+  <link rel="stylesheet" href="{{ estatico('css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ estatico('css/componentes.css') }}">
+  <link rel="stylesheet" href="{{ estatico('css/base.css') }}">
+  <script src="{{ estatico('js/htmx.min.js') }}" defer></script>
   {# Sem `defer`: o tema precisa valer antes da primeira pintura, senão a página pisca na
      cor errada antes de corrigir. É o único script síncrono do shell. #}
-  <script src="/static/js/tema.js"></script>
+  <script src="{{ estatico('js/tema.js') }}"></script>
 </head>
 <body>
   <div class="shell">

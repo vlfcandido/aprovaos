@@ -19,7 +19,7 @@ def test_landing(cliente: TestClient) -> None:
     assert '<html lang="pt-BR"' in corpo
     assert 'name="viewport"' in corpo
     assert "color-scheme" in corpo
-    assert 'src="/static/js/htmx.min.js"' in corpo
+    assert 'src="/static/js/htmx.min.js?v=' in corpo
 
 
 def test_estaticos(cliente: TestClient) -> None:

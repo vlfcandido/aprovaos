@@ -12,9 +12,9 @@
   <meta name="description" content="{{ pagina.descricao }}">
   {% if pagina.canonica %}<link rel="canonical" href="{{ pagina.canonica }}">{% endif %}
   <title>{{ pagina.titulo }}</title>
-  <link rel="stylesheet" href="/static/css/tokens.css">
-  <link rel="stylesheet" href="/static/css/base.css">
-  <link rel="stylesheet" href="/static/css/publico.css">
+  <link rel="stylesheet" href="{{ estatico('css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ estatico('css/base.css') }}">
+  <link rel="stylesheet" href="{{ estatico('css/publico.css') }}">
   {% for bloco in jsonld %}
     {# `bloco` é sempre JSON montado em `api/publico.py::_bloco_jsonld` — nunca texto de LLM;
        o `| safe` aqui não reabre o defeito C3 da fatia 6 (ver docstring do módulo). -#}

@@ -70,7 +70,7 @@ def test_get_revisar_mostra_a_questao_do_cartao_vencido(logado: TestClient, db: 
     assert f'value="{cartao.id}"' in corpo
     assert f'value="{questao.id}"' in corpo
     assert 'id="questao" aria-live="polite"' in corpo
-    assert '<script src="/static/js/confianca-questao.js" defer></script>' in corpo
+    assert '<script src="/static/js/confianca-questao.js?v=' in corpo
 
 
 def test_post_revisar_grava_evento_revisao_e_atualiza_due(logado: TestClient, db: Session) -> None:

@@ -990,3 +990,30 @@ kbd {
   font: inherit;
   resize: vertical;
 }
+
+/* Telefone: a navegação em três linhas empilhadas comia ~130px do topo de toda tela antes de
+   qualquer conteúdo (medido em 400px, 23/09/2026). Vira uma faixa de uma linha que rola na
+   horizontal — todo link continua alcançável, sem JS e sem menu escondido. A rolagem para em
+   cada item (`scroll-snap`) para o dedo não deixar um link pela metade. */
+@media (max-width: 640px) {
+  .lateral {
+    flex-wrap: nowrap;
+    gap: var(--espaco-2);
+  }
+
+  /* Sem isto o `nowrap` espreme a marca até ela quebrar no meio da palavra: "Apro/vaOS". */
+  .lateral .marca { white-space: nowrap; flex-shrink: 0; }
+
+  .lateral__links {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    min-width: 0;
+  }
+
+  .lateral__links::-webkit-scrollbar { display: none; }
+  .lateral__links > a { white-space: nowrap; scroll-snap-align: start; }
+  .lateral__rodape { flex-shrink: 0; }
+}

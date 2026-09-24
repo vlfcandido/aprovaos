@@ -7,8 +7,9 @@ lê disco; registra o filtro `pct`), `formatar_pct`, `renderizar(request, nome, 
 `Jinja2Templates` fora da fábrica.
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from decimal import ROUND_HALF_UP, Decimal
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +33,38 @@ def criar_templates(web_dir: Path) -> Jinja2Templates:
     templates = Jinja2Templates(directory=web_dir / "templates")
     templates.env.filters["pct"] = formatar_pct
     templates.env.filters["brl"] = formatar_brl
+    templates.env.globals["estatico"] = criar_estatico(web_dir)
     return templates
+
+
+def criar_estatico(web_dir: Path) -> Callable[[str], str]:
+    """Cria o `estatico(caminho)` que versiona o endereço de uma folha de estilo ou ilha de JS.
+
+    O `<link>` sem versão faz o navegador servir a folha do cache: uma correção de estilo pode
+    não chegar ao aparelho da aluna sem recarga forçada, e ninguém descobre isso olhando a tela
+    — descobre depois de perder uma hora achando que o CSS não foi aplicado (23/09/2026). A
+    versão vem do `mtime` e do tamanho do arquivo, então muda quando o arquivo muda e só quando
+    ele muda.
+
+    Args:
+        web_dir: pasta `web/` do repositório (ou `WEB_DIR` no container).
+
+    Returns:
+        A função `estatico(caminho)` — `caminho` é relativo a `web/static` (ex.: `css/base.css`)
+        — que devolve `/static/<caminho>?v=<versão>`. Estático inexistente volta sem versão, em
+        vez de derrubar a página: um endereço velho quebra o estilo, uma exceção quebra tudo.
+    """
+
+    def estatico(caminho: str) -> str:
+        arquivo = web_dir / "static" / caminho
+        try:
+            informacao = arquivo.stat()
+        except OSError:
+            return f"/static/{caminho}"
+        marca = f"{informacao.st_mtime_ns}-{informacao.st_size}".encode()
+        return f"/static/{caminho}?v={sha256(marca).hexdigest()[:10]}"
+
+    return estatico
 
 
 def formatar_pct(valor: float | str) -> str:

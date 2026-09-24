@@ -93,7 +93,10 @@ Estão aqui porque cada uma **já explodiu** e custou caro. Não são hipóteses
    léxico** (frase normativa sem citação reprova).
 5. **Rede de segurança que vira descarte silencioso.** O extrator de lei passou a jogar fora, sem
    erro, uma classe inteira de entrada. Preferimos **falhar alto** (`EstruturaNaoTratada`) a
-   entregar um inciso engolido com aparência de texto correto.
+   entregar um inciso engolido com aparência de texto correto. **Aconteceu de novo em 23/09/2026** (P-76): `curar --reclassificar` estoura um erro de
+   contexto assíncrono, trata o crash como "não consegui classificar" e **apaga a
+   classificação já gravada** — publicáveis caíram de 138 para 39 numa rodada. Falha de
+   classificação tem de **preservar** o que já estava lá.
 6. **Dois nomes para o mesmo conceito.** "Dominado" tinha duas definições (uma exigia 3
    respostas, a outra nenhuma), em módulos que se alimentam. Antes de criar um limiar, procure se
    ele já existe.

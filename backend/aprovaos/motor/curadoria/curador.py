@@ -190,6 +190,50 @@ class ResultadoCuradoria(BaseModel):
     problemas: list[str]
 
 
+def segmentar_e_parear(
+    texto_prova: str, texto_gabarito: str, tipo_item: TipoItem
+) -> tuple[list[_ItemNormalizado], dict[int, _EntradaNormalizada]] | ResultadoCuradoria:
+    """Segmenta a prova, lê o gabarito e confere que os dois casam — tudo antes da classificação.
+
+    Extraída de `curar` em 24/09/2026 para que o passo de **exportar itens** (ADR-0054, curar com
+    a classificação feita fora do pipeline) use exatamente a mesma segmentação, e não uma cópia
+    que possa divergir. `curar` continua chamando esta função; nenhum comportamento mudou.
+
+    Args:
+        texto_prova: texto extraído do caderno de prova.
+        texto_gabarito: texto extraído do gabarito definitivo.
+        tipo_item: `"certo_errado"` ou `"multipla_escolha"`.
+
+    Returns:
+        `(itens, gabarito)` quando os dois foram lidos e têm o mesmo tamanho; um
+        `ResultadoCuradoria` com `pendente_revisao=True` e o problema, quando não — é o mesmo
+        contrato de recusa que `curar` sempre teve: nada é gravado com dúvida.
+    """
+    try:
+        if tipo_item == "certo_errado":
+            itens = _normalizar_itens_certo_errado(segmentar_cebraspe(texto_prova))
+        else:
+            itens = _normalizar_itens_multipla_escolha(segmentar_multipla_escolha(texto_prova))
+    except SegmentacaoAmbigua as erro:
+        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
+
+    try:
+        if tipo_item == "certo_errado":
+            gabarito = _normalizar_gabarito_certo_errado(ler_gabarito_cebraspe(texto_gabarito))
+        else:
+            gabarito = _normalizar_gabarito_multipla_escolha(
+                ler_gabarito_multipla_escolha(texto_gabarito)
+            )
+    except GabaritoNaoReconhecido as erro:
+        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
+
+    if len(itens) != len(gabarito):
+        problema = f"itens ({len(itens)}) ≠ gabarito ({len(gabarito)})"
+        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[problema])
+
+    return itens, gabarito
+
+
 async def curar(
     texto_prova: str,
     texto_gabarito: str,
@@ -234,27 +278,10 @@ async def curar(
         `ResultadoCuradoria` com uma `QuestaoCurada` por item do caderno, ou `pendente_revisao`
         com a lista de problemas encontrados.
     """
-    try:
-        if tipo_item == "certo_errado":
-            itens = _normalizar_itens_certo_errado(segmentar_cebraspe(texto_prova))
-        else:
-            itens = _normalizar_itens_multipla_escolha(segmentar_multipla_escolha(texto_prova))
-    except SegmentacaoAmbigua as erro:
-        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
-
-    try:
-        if tipo_item == "certo_errado":
-            gabarito = _normalizar_gabarito_certo_errado(ler_gabarito_cebraspe(texto_gabarito))
-        else:
-            gabarito = _normalizar_gabarito_multipla_escolha(
-                ler_gabarito_multipla_escolha(texto_gabarito)
-            )
-    except GabaritoNaoReconhecido as erro:
-        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[str(erro)])
-
-    if len(itens) != len(gabarito):
-        problema = f"itens ({len(itens)}) ≠ gabarito ({len(gabarito)})"
-        return ResultadoCuradoria(questoes=[], pendente_revisao=True, problemas=[problema])
+    preparado = segmentar_e_parear(texto_prova, texto_gabarito, tipo_item)
+    if isinstance(preparado, ResultadoCuradoria):
+        return preparado
+    itens, gabarito = preparado
 
     itens_para_classificar = [
         ItemParaClassificar(

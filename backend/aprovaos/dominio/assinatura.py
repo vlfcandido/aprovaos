@@ -98,18 +98,22 @@ class Veredito(BaseModel):
     convite: str | None = None
 
 
-def pode_responder(tier: Tier, uso: UsoDoDia) -> Veredito:
+def pode_responder(tier: Tier, uso: UsoDoDia, *, billing_ativo: bool = True) -> Veredito:
     """Decide se o usuário pode receber mais uma questão hoje (Ruling 47).
 
     Args:
         tier: o tier efetivo do usuário (`tier_efetivo`).
         uso: quantas questões ele já respondeu hoje.
+        billing_ativo: `False` (sem `MERCADO_PAGO_ACCESS_TOKEN`) libera sem conferir
+            limite — sem caminho para assinar, o teto do Free seria parede sem porta.
 
     Returns:
         `Veredito(permitido=True)` sob o limite (ou sem limite, Pro); acima dele,
         `permitido=False` com `motivo`/`quanto_falta`/`convite` prontos para a tela onde a
         próxima questão apareceria — sem erro, sem modal, sem perder resposta em curso.
     """
+    if not billing_ativo:
+        return Veredito(permitido=True)
     limite = LIMITES[tier].questoes_por_dia
     if limite is None or uso.questoes_respondidas < limite:
         return Veredito(permitido=True)
@@ -121,17 +125,27 @@ def pode_responder(tier: Tier, uso: UsoDoDia) -> Veredito:
     )
 
 
-def pode_criar_edital(tier: Tier, editais_com_dna_existentes: int) -> Veredito:
+# `billing_ativo=False` (sem `MERCADO_PAGO_ACCESS_TOKEN`) desliga TODO limite de tier: sem as
+# chaves, `/assinar` é 404 e ninguém consegue sair do Free — o limite viraria uma parede sem
+# porta. Foi o que travou a piloto ao subir o segundo edital em 24/09/2026. Com o billing
+# ligado, os limites da fatia 12 valem exatamente como antes.
+def pode_criar_edital(
+    tier: Tier, editais_com_dna_existentes: int, *, billing_ativo: bool = True
+) -> Veredito:
     """Decide se o tenant pode processar o DNA de mais um edital (ADR-0015: Free = 1 concurso).
 
     Args:
         tier: o tier efetivo do tenant dono do edital.
+        billing_ativo: `False` (sem `MERCADO_PAGO_ACCESS_TOKEN`) libera sem conferir limite
+            — sem caminho para assinar, o teto do Free seria parede sem porta.
         editais_com_dna_existentes: quantos concursos deste tenant já têm `dna_concurso`
             (contagem total do tenant, não diária — é um teto de recurso, não uma cota do dia).
 
     Returns:
         `Veredito` no mesmo formato de `pode_responder`.
     """
+    if not billing_ativo:
+        return Veredito(permitido=True)
     limite = LIMITES[tier].editais_com_dna
     if limite is None or editais_com_dna_existentes < limite:
         return Veredito(permitido=True)

@@ -36,6 +36,16 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 
 @pytest.fixture
+def config_com_billing(config_teste: Configuracoes) -> Configuracoes:
+    """`config_teste` com o billing LIGADO — os limites de tier só existem quando há caminho
+    para assinar. Sem a chave do Mercado Pago, `/assinar` é 404 e o teto do Free seria parede
+    sem porta (achado com a piloto em 24/09/2026); por isso `pode_criar_edital`/`pode_responder`
+    recebem `billing_ativo`. Teste de limite tem de ligar o billing para o limite existir.
+    """
+    return config_teste.model_copy(update={"mercado_pago_access_token": SecretStr("teste")})
+
+
+@pytest.fixture
 def config_teste(tmp_path: Path) -> Configuracoes:
     # `google_api_key` fica None de propósito: testes de rota seguem o caminho por regras.
     return Configuracoes(
@@ -64,6 +74,19 @@ def engine() -> Iterator[Engine]:
 @pytest.fixture
 def app(config_teste: Configuracoes, engine: Engine) -> FastAPI:
     return criar_app(config_teste, engine=engine)
+
+
+@pytest.fixture
+def app_com_billing(config_com_billing: Configuracoes, engine: Engine) -> FastAPI:
+    """App com o billing ligado — para os testes que precisam dos limites de tier de pé."""
+    return criar_app(config_com_billing, engine=engine)
+
+
+@pytest.fixture
+def cliente_com_billing(app_com_billing: FastAPI) -> Iterator[TestClient]:
+    """Cliente do `app_com_billing`."""
+    with TestClient(app_com_billing) as cliente:
+        yield cliente
 
 
 @pytest.fixture

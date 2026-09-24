@@ -29,7 +29,9 @@ saiu `pendente_revisao` ou com poucos tópicos identificados.
 
 import argparse
 import asyncio
+import json
 import re
+from pathlib import Path
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -45,16 +47,33 @@ from aprovaos.dados.repositorio_questao import atualizar_classificacao, salvar_q
 from aprovaos.dados.repositorio_traco import registrar_traco
 from aprovaos.dominio.pdf import extrair_texto
 from aprovaos.dominio.questao import RegraProva
-from aprovaos.motor.coletar import resolver_documentos_dir
+from aprovaos.motor.coletar import Caderno, arquivos_do_cargo, resolver_documentos_dir
 from aprovaos.motor.curadoria.classificacao import ClassificadorDeTopico, TopicoVocabulario
-from aprovaos.motor.curadoria.curador import OrigemBase, TipoItem, curar, verificar_curadoria
+from aprovaos.motor.curadoria.classificador_arquivo import (
+    ClassificadorDeArquivo,
+    carregar_classificacoes,
+)
+from aprovaos.motor.curadoria.curador import (
+    OrigemBase,
+    ResultadoCuradoria,
+    TipoItem,
+    curar,
+    segmentar_e_parear,
+    verificar_curadoria,
+)
+from aprovaos.motor.fontes.base import Novidade
 from aprovaos.roteador.custo import ChamadaLlm
 from aprovaos.roteador.teto import TetoDiario
 
 BANCA = "cebraspe"
 """Única banca que este comando cura (decisão J do plano da V3 — C/E e A–E, nunca FGV)."""
 
-_PADRAO_CARGO_NA_DESCRICAO = re.compile(r"CARGO\s+(\d+)\s*$", re.IGNORECASE)
+#: O escopo de cargo tal como a descrição do caderno o escreve. Quatro formas reais,
+#: medidas no `dev.db` em 24/09/2026: "CARGO 9", "CARGOS 1 E 2",
+#: "CARGOS 1, 2, 6, 8, 9, 18 E 22" e "TODOS OS CARGOS" / "CARGOS DE NÍVEL MÉDIO".
+#: Um caderno de básicos serve vários cargos, e o rótulo que vai para a origem da questão
+#: tem de dizer o que a descrição diz — nem inventar número, nem recusar o caderno.
+_PADRAO_CARGO_NA_DESCRICAO = re.compile(r"((?:TODOS\s+OS\s+)?CARGOS?\b.*)$", re.IGNORECASE)
 _PADRAO_TOKEN_DE_ANO = re.compile(r"^\d{2}$")
 
 # A Cebraspe C/E costuma anular por erro (resposta errada zera uma certa), mas essa regra é do
@@ -203,15 +222,16 @@ def _cargo_da_descricao(descricao: str) -> str:
         descricao: `documento.metadados["descricao"]` do `Documento` da prova.
 
     Returns:
-        `"CARGO <número>"`.
-
-    Raises:
-        ValueError: a descrição não termina em `"CARGO <número>"`.
+        O escopo como a descrição o escreve: `"CARGO 9"`, `"CARGOS 1 E 2"`,
+        `"TODOS OS CARGOS"`; `"CADERNO GERAL"` quando a descrição não nomeia cargo nenhum.
     """
-    encontrado = _PADRAO_CARGO_NA_DESCRICAO.search(descricao)
+    encontrado = _PADRAO_CARGO_NA_DESCRICAO.search(descricao.strip())
     if encontrado is None:
-        raise ValueError(f"descrição sem cargo reconhecível: {descricao!r}")
-    return f"CARGO {encontrado.group(1)}"
+        # Caderno que não nomeia cargo nenhum ("CONHECIMENTOS GERAIS" seco) existe nos dados.
+        # Rotular de "CARGO 1" porque foi assim que o operador pediu seria inventar; o rótulo
+        # honesto é dizer que o caderno é geral.
+        return "CADERNO GERAL"
+    return " ".join(encontrado.group(1).split()).upper()
 
 
 def _origem_base(documento_prova: Documento) -> OrigemBase:
@@ -290,6 +310,88 @@ def _conferir_par(documento_prova: Documento, documento_gabarito: Documento) -> 
         )
 
 
+def exportar_itens(
+    db: Session,
+    config: Configuracoes,
+    documento_prova_id: UUID,
+    documento_gabarito_id: UUID,
+    edital_id: UUID,
+    destino: Path,
+    *,
+    tipo_item: TipoItem = "certo_errado",
+) -> int:
+    """Segmenta o caderno e grava itens + vocabulário num JSON, sem classificar nem salvar.
+
+    Primeiro passo do caminho da ADR-0054: a decisão de tópico é tomada fora do pipeline e volta
+    pelo `--classificacao`. O que sai daqui é exatamente o que o classificador veria — mesma
+    segmentação, mesmo pareamento com o gabarito, mesmo vocabulário —, porque as duas rotas
+    chamam `curadoria.curador.segmentar_e_parear`.
+
+    Args:
+        db: sessão de banco (só leitura).
+        config: configurações do backend (`documentos_dir`).
+        documento_prova_id: `Documento` da prova.
+        documento_gabarito_id: `Documento` do gabarito definitivo.
+        edital_id: edital cujo vocabulário será oferecido.
+        destino: caminho do JSON a escrever.
+        tipo_item: `"certo_errado"` ou `"multipla_escolha"`.
+
+    Returns:
+        Quantos itens foram exportados; `0` quando a segmentação recusou (o motivo vai para a
+        saída padrão, e nada é escrito — mesma disciplina de `curar`: na dúvida, não entrega).
+    """
+    documento_prova = db.get(Documento, documento_prova_id)
+    if documento_prova is None:
+        raise DocumentoNaoEncontrado(f"documento {documento_prova_id} não encontrado")
+    documento_gabarito = db.get(Documento, documento_gabarito_id)
+    if documento_gabarito is None:
+        raise DocumentoNaoEncontrado(f"documento {documento_gabarito_id} não encontrado")
+    _conferir_par(documento_prova, documento_gabarito)
+    documentos_dir = resolver_documentos_dir(config)
+    texto_prova = extrair_texto((documentos_dir / documento_prova.caminho).read_bytes())
+    texto_gabarito = extrair_texto((documentos_dir / documento_gabarito.caminho).read_bytes())
+
+    preparado = segmentar_e_parear(texto_prova, texto_gabarito, tipo_item)
+    if isinstance(preparado, ResultadoCuradoria):
+        print("; ".join(preparado.problemas))
+        return 0
+    itens, gabarito = preparado
+
+    vocabulario = _vocabulario_do_edital(db, edital_id)
+    destino.write_text(
+        json.dumps(
+            {
+                "evento": documento_prova.metadados.get("evento"),
+                "descricao": documento_prova.metadados.get("descricao"),
+                "tipo_item": tipo_item,
+                "edital_id": str(edital_id),
+                "documento_prova_id": str(documento_prova_id),
+                "documento_gabarito_id": str(documento_gabarito_id),
+                "classificado_por": "",
+                "vocabulario": [topico.model_dump() for topico in vocabulario],
+                "itens": [
+                    {
+                        "numero_item": item.numero_item,
+                        "comando": item.comando,
+                        "enunciado": item.enunciado,
+                        "gabarito": (
+                            entrada.model_dump(mode="json")
+                            if (entrada := gabarito.get(item.numero_item)) is not None
+                            else None
+                        ),
+                    }
+                    for item in itens
+                ],
+                "classificacoes": [],
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return len(itens)
+
+
 async def curar_documento(
     db: Session,
     config: Configuracoes,
@@ -299,6 +401,7 @@ async def curar_documento(
     *,
     reclassificar: bool = False,
     tipo_item: TipoItem = "certo_errado",
+    classificador: ClassificadorDeTopico | None = None,
 ) -> RelatorioCuradoria:
     """Cura um caderno já coletado e grava as questões publicáveis (passo 12 da V3; passo 2 da V3b).
 
@@ -327,6 +430,8 @@ async def curar_documento(
             `topico_id`/`topico_confianca`/`topico_evidencia`/`publicavel`/
             `motivo_nao_publicavel` mudam, o texto/gabarito/origem gravados na curadoria
             original continuam os mesmos.
+        classificador: classificador pronto a usar no lugar do escolhido por configuração —
+            é por aqui que entra a classificação decidida fora do pipeline (ADR-0054).
         tipo_item: `"certo_errado"` (padrão, Cebraspe C/E) ou `"multipla_escolha"` (Cebraspe
             A–E, nível médio) — decide a segmentação, a leitura do gabarito e a regra de prova
             padrão (`_REGRA_PROVA_PADRAO`/`_REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA`).
@@ -352,7 +457,13 @@ async def curar_documento(
 
     vocabulario = _vocabulario_do_edital(db, edital_id)
     origem_base = _origem_base(documento_prova)
-    classificador_ia, motivo_sem_ia = _escolher_classificador(db, config)
+    if classificador is not None:
+        # Classificação decidida fora do pipeline (ADR-0054): não há chamada de modelo, então
+        # não há motivo de fallback a declarar.
+        classificador_ia: ClassificadorDeTopico | None = classificador
+        motivo_sem_ia: str | None = None
+    else:
+        classificador_ia, motivo_sem_ia = _escolher_classificador(db, config)
     regra_prova = (
         _REGRA_PROVA_PADRAO if tipo_item == "certo_errado" else _REGRA_PROVA_PADRAO_MULTIPLA_ESCOLHA
     )
@@ -403,7 +514,9 @@ async def curar_documento(
     )
 
 
-def _documento_do_par(db: Session, evento: str, cargo: int, tipo: str) -> Documento:
+def _documento_do_par(
+    db: Session, evento: str, cargo: int, tipo: str, caderno: Caderno = "especificos"
+) -> Documento:
     """Acha, em `documento`, o `tipo` (`"prova"`/`"gabarito"`) do evento/cargo pedidos.
 
     Mesma filtragem do passo 5 (`motor.coletar.arquivos_do_cargo`), sobre o que já está
@@ -415,6 +528,9 @@ def _documento_do_par(db: Session, evento: str, cargo: int, tipo: str) -> Docume
         evento: `eventoURL` (o mesmo usado na coleta, passo 5).
         cargo: número do cargo (o mesmo usado na coleta).
         tipo: `"prova"` ou `"gabarito"`.
+        caderno: `"especificos"` (padrão) ou `"basicos"` — a mesma distinção que o
+            coletor faz no título, sem a qual os dois cadernos do STJ_24 (ambos
+            terminando em "CARGO 19") ficam ambíguos.
 
     Returns:
         O `Documento` encontrado.
@@ -422,14 +538,41 @@ def _documento_do_par(db: Session, evento: str, cargo: int, tipo: str) -> Docume
     Raises:
         DocumentoNaoEncontrado: nenhum `Documento` desse tipo casa o evento/cargo pedidos.
     """
-    terminacao = re.compile(rf"CARGO\s+{cargo}\s*$", re.IGNORECASE)
-    candidatos = db.scalars(select(Documento).where(Documento.tipo == tipo)).all()
-    for documento in candidatos:
-        if documento.metadados.get("evento") != evento:
-            continue
-        if terminacao.search(documento.metadados.get("descricao", "")):
-            return documento
-    raise DocumentoNaoEncontrado(f"{evento} (cargo {cargo}): nenhum documento {tipo} encontrado")
+    candidatos = [
+        documento
+        for documento in db.scalars(select(Documento).where(Documento.tipo == tipo)).all()
+        if documento.metadados.get("evento") == evento
+    ]
+    # `arquivos_do_cargo` é a mesma regra que o coletor usa sobre o título — reaproveitada aqui
+    # para que "o que foi baixado" e "o que é curado" não possam divergir. Sem ela, os dois
+    # cadernos do STJ_24 terminam em "CARGO 19" ("ESPECÍFICOS – CARGO 19" e "BÁSICOS PARA O
+    # CARGO 19") e a escolha caía na ordem de inserção: curar o caderno errado é silencioso.
+    por_titulo = {_chave_do_titulo(documento): documento for documento in candidatos}
+    escolhidos = arquivos_do_cargo(
+        [
+            Novidade(
+                id=_chave_do_titulo(documento),
+                tipo=tipo,
+                titulo=documento.metadados.get("descricao", ""),
+                url="",
+                evento=evento,
+                publicado_em=None,
+            )
+            for documento in candidatos
+        ],
+        cargo_numero=cargo,
+        caderno=caderno,
+    )
+    if escolhidos:
+        return por_titulo[escolhidos[0].id]
+    raise DocumentoNaoEncontrado(
+        f"{evento} (cargo {cargo}, caderno {caderno}): nenhum documento {tipo} encontrado"
+    )
+
+
+def _chave_do_titulo(documento: Documento) -> str:
+    """Chave estável para casar a `Novidade` sintética de volta com o `Documento` de origem."""
+    return str(documento.id)
 
 
 def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
@@ -455,6 +598,32 @@ def _analisar_argumentos(argv: list[str] | None) -> argparse.Namespace:
         help=(
             "certo_errado (padrão, Cebraspe C/E) ou multipla_escolha (Cebraspe A–E, nível "
             "médio) — passo 2 da fatia V3b"
+        ),
+    )
+    parser.add_argument(
+        "--exportar-itens",
+        metavar="ARQUIVO",
+        help=(
+            "não cura: segmenta o caderno e grava itens + vocabulário do edital neste JSON, "
+            "para a classificação ser decidida fora do pipeline (ADR-0054)"
+        ),
+    )
+    parser.add_argument(
+        "--classificacao",
+        metavar="ARQUIVO",
+        help=(
+            "cura usando a classificação já decidida neste JSON, em vez de chamar o modelo — "
+            "zero cota de LLM; a procedência fica gravada em `topico_evidencia`"
+        ),
+    )
+    parser.add_argument(
+        "--caderno",
+        choices=("especificos", "basicos"),
+        default="especificos",
+        help=(
+            "qual caderno curar: `especificos` (padrão) ou `basicos` — o de conhecimentos "
+            "básicos/gerais, onde ficam Língua Portuguesa, Matemática e Informática. O coletor "
+            "descartava os básicos desde a V3, quando se supunha um edital só de Direito"
         ),
     )
     parser.add_argument(
@@ -507,8 +676,33 @@ def main(argv: list[str] | None = None, config: Configuracoes | None = None) -> 
     engine = criar_engine(config.database_url)
     fabrica_sessao = criar_fabrica_sessao(engine)
     with fabrica_sessao() as db:
-        documento_prova = _documento_do_par(db, argumentos.evento, argumentos.cargo, "prova")
-        documento_gabarito = _documento_do_par(db, argumentos.evento, argumentos.cargo, "gabarito")
+        documento_prova = _documento_do_par(
+            db, argumentos.evento, argumentos.cargo, "prova", caderno=argumentos.caderno
+        )
+        documento_gabarito = _documento_do_par(
+            db, argumentos.evento, argumentos.cargo, "gabarito", caderno=argumentos.caderno
+        )
+
+        if argumentos.exportar_itens:
+            destino = Path(argumentos.exportar_itens)
+            quantos = exportar_itens(
+                db,
+                config,
+                documento_prova.id,
+                documento_gabarito.id,
+                UUID(str(argumentos.edital)),
+                destino,
+                tipo_item=argumentos.tipo_item,
+            )
+            print(f"{argumentos.evento} (cargo {argumentos.cargo}): {quantos} itens em {destino}")
+            return 0
+
+        classificador = None
+        if argumentos.classificacao:
+            classificador = ClassificadorDeArquivo(
+                carregar_classificacoes(Path(argumentos.classificacao))
+            )
+
         relatorio = asyncio.run(
             curar_documento(
                 db,
@@ -517,6 +711,7 @@ def main(argv: list[str] | None = None, config: Configuracoes | None = None) -> 
                 documento_gabarito.id,
                 argumentos.edital,
                 reclassificar=argumentos.reclassificar,
+                classificador=classificador,
                 tipo_item=argumentos.tipo_item,
             )
         )

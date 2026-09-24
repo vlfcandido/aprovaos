@@ -30,7 +30,12 @@ from aprovaos.motor.curadoria.classificacao import (
     ItemParaClassificar,
     MotivosRejeicao,
 )
-from aprovaos.motor.curar import ParDivergente, curar_documento
+from aprovaos.motor.curar import (
+    ParDivergente,
+    _cargo_da_descricao,
+    _documento_do_par,
+    curar_documento,
+)
 from aprovaos.roteador.custo import ChamadaLlm
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -569,3 +574,70 @@ async def test_curar_documento_mesmo_evento_cargo_diferente_levanta_erro(
         await curar_documento(
             db, config_teste, documento_prova.id, documento_gabarito_outro_cargo.id, edital.id
         )
+
+
+# Depois da coleta dos cadernos de básicos (24/09/2026), o STJ_24 passou a ter DOIS documentos
+# de prova cujo título termina em "CARGO 19": "CONHECIMENTOS ESPECÍFICOS – CARGO 19" e
+# "CONHECIMENTOS BÁSICOS PARA O CARGO 19". `_documento_do_par` casava os dois e devolvia o
+# primeiro que o banco entregasse — ordem de inserção, não regra. Curar o caderno errado é
+# silencioso: as questões entram, só não são as que o operador pediu.
+def test_documento_do_par_distingue_basicos_de_especificos(db: Session) -> None:
+    """Com os dois cadernos do mesmo cargo no banco, cada `caderno` devolve o seu."""
+    especificos = _documento_prova(
+        db,
+        caminho="STJ_24/especificos.pdf",
+        evento="STJ_24",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 19",
+    )
+    basicos = _documento_prova(
+        db,
+        caminho="STJ_24/basicos.pdf",
+        evento="STJ_24",
+        descricao="PROVA OBJETIVA – CONHECIMENTOS BÁSICOS PARA O CARGO 19",
+    )
+    db.commit()
+
+    achado_esp = _documento_do_par(db, "STJ_24", 19, "prova", caderno="especificos")
+    achado_bas = _documento_do_par(db, "STJ_24", 19, "prova", caderno="basicos")
+
+    assert achado_esp.id == especificos.id
+    assert achado_bas.id == basicos.id
+
+
+def test_documento_do_par_acha_basicos_de_varios_cargos(db: Session) -> None:
+    """`PARA OS CARGOS 12 E 13` é caderno do cargo 12 — a âncora de fim não achava."""
+    basicos = _documento_prova(
+        db,
+        caminho="TRT10_24/basicos.pdf",
+        evento="TRT10_24",
+        descricao="PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA OS CARGOS 12 E 13",
+    )
+    db.commit()
+
+    assert _documento_do_par(db, "TRT10_24", 12, "prova", caderno="basicos").id == basicos.id
+
+
+# `origem.cargo` vai para a tela da aluna ("Cebraspe · TJ-CE · 2023 · CARGO 1"). Caderno de
+# básicos serve vários cargos, e a descrição diz isso — o rótulo tem de dizer o que a descrição
+# diz, nem mais nem menos. Formas reais, medidas no `dev.db` em 24/09/2026.
+@pytest.mark.parametrize(
+    ("descricao", "esperado"),
+    [
+        ("PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9", "CARGO 9"),
+        ("PROVA OBJETIVA – CONHECIMENTOS BÁSICOS PARA O CARGO 19", "CARGO 19"),
+        ("PROVA OBJETIVA - CONHECIMENTOS GERAIS PARA OS CARGOS 1 E 2", "CARGOS 1 E 2"),
+        (
+            "PROVA OBJETIVA – CONHECIMENTOS GERAIS PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22",
+            "CARGOS 1, 2, 6, 8, 9, 18 E 22",
+        ),
+        ("PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA TODOS OS CARGOS", "TODOS OS CARGOS"),
+        (
+            "PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA OS CARGOS DE NÍVEL MÉDIO",
+            "CARGOS DE NÍVEL MÉDIO",
+        ),
+        ("PROVA OBJETIVA - CONHECIMENTOS GERAIS", "CADERNO GERAL"),
+    ],
+)
+def test_cargo_da_descricao_diz_o_que_a_descricao_diz(descricao: str, esperado: str) -> None:
+    """Nunca inventa número de cargo que a descrição não tem."""
+    assert _cargo_da_descricao(descricao) == esperado

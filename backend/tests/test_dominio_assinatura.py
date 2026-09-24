@@ -87,3 +87,31 @@ def test_calcular_fim_do_periodo_anual() -> None:
 def test_calcular_fim_do_periodo_ajusta_dia_para_mes_mais_curto() -> None:
     # 31/jan + 1 mês não existe (fevereiro tem, no máximo, 29 dias) — cai no último dia de fev.
     assert calcular_fim_do_periodo("mensal", date(2026, 1, 31)) == date(2026, 2, 28)
+
+
+# A piloto foi subir um edital em 24/09/2026 e levou "o plano Free processa o DNA de 1
+# concurso". O billing nasce DESLIGADO (sem as chaves do Mercado Pago, `/assinar` é 404 e
+# ninguém consegue assinar), então o limite do Free virava uma parede sem porta: não havia
+# caminho para levantá-lo. Limite que não pode ser levantado não é limite, é defeito.
+def test_sem_billing_ativo_nao_ha_limite_de_edital() -> None:
+    """Com o billing desligado o produto se comporta como antes de a fatia 12 existir."""
+    veredito = pode_criar_edital("free", editais_com_dna_existentes=5, billing_ativo=False)
+
+    assert veredito.permitido is True
+    assert veredito.motivo is None
+
+
+def test_sem_billing_ativo_nao_ha_limite_de_questoes() -> None:
+    """Mesma regra para a cota diária de questões — a porta é a mesma."""
+    uso = UsoDoDia(questoes_respondidas=9_999, ineditas_servidas=0)
+    veredito = pode_responder("free", uso, billing_ativo=False)
+
+    assert veredito.permitido is True
+
+
+def test_com_billing_ativo_o_limite_do_free_continua_valendo() -> None:
+    """Quando existe caminho para assinar, o limite volta a ser limite — a fatia 12 intacta."""
+    veredito = pode_criar_edital("free", editais_com_dna_existentes=1, billing_ativo=True)
+
+    assert veredito.permitido is False
+    assert veredito.motivo is not None

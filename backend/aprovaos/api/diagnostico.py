@@ -36,6 +36,7 @@ from aprovaos.api.questoes import (
 )
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
+from aprovaos.config import Configuracoes
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Edital,
@@ -237,7 +238,10 @@ def diagnostico(
     materias_forcadas = frozenset({insistir}) if insistir else frozenset()
 
     if total_itens < MAXIMO_ITENS:
-        veredito = veredito_de_limite(db, usuario)
+        config_limite: Configuracoes = request.app.state.config
+        veredito = veredito_de_limite(
+            db, usuario, billing_ativo=config_limite.mercado_pago_access_token is not None
+        )
         if not veredito.permitido:
             contexto_limite = {"limite": {"motivo": veredito.motivo, "convite": veredito.convite}}
             return renderizar(request, "diagnostico/andamento.html", contexto_limite, usuario)

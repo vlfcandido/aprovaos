@@ -1,3 +1,5 @@
+# Nota (24/09/2026): usa `cliente_com_billing` — sem billing não há limite de tier, porque
+# não há caminho para assinar (ver `dominio.assinatura.pode_responder`).
 # O que é: teste do passo 4 do plano `docs/fatias/12-billing.md` — o limite de 20 questões/dia do
 # Free também vale para `GET /diagnostico` (evita que o diagnóstico vire um jeito de contornar o
 # limite de prática do dia), sempre sem erro (Ruling 47). Quando ler: ao mexer no aviso de limite
@@ -24,12 +26,12 @@ LIMITE_FREE: int = _limite_free_ou_none
 
 
 @pytest.fixture
-def logado(cliente: TestClient) -> TestClient:
+def logado(cliente_com_billing: TestClient) -> TestClient:
     # Fixture própria (não importada) — mesma convenção de `test_rota_concurso.py`: importar um
     # nome de fixture usado como parâmetro dispara F811 no ruff.
-    resposta = cliente.post("/cadastro", data=CADASTRO, follow_redirects=False)
+    resposta = cliente_com_billing.post("/cadastro", data=CADASTRO, follow_redirects=False)
     assert resposta.status_code == 303
-    return cliente
+    return cliente_com_billing
 
 
 def _tenant_id(db: Session) -> UUID:

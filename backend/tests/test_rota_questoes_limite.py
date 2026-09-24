@@ -1,3 +1,7 @@
+# Nota (24/09/2026): estes testes usam `cliente_com_billing` porque o limite de tier só
+# existe quando há caminho para assinar. Com o billing desligado (o padrão do produto
+# hoje), `pode_criar_edital`/`pode_responder` liberam — senão o teto do Free seria parede
+# sem porta, que foi o que travou a piloto ao subir o segundo edital.
 # O que é: testes do passo 4 do plano `docs/fatias/12-billing.md` — o limite de 20 questões/dia
 # do Free é conferido ao montar a próxima questão (`GET /topico/{slug}/questoes`), nunca no meio
 # de uma resposta, e nunca em `/revisar` nem `/topico/{slug}/aula` (Ruling 47 — "por construção,
@@ -31,10 +35,10 @@ LIMITE_FREE: int = _limite_free_ou_none
 
 
 @pytest.fixture
-def logado(cliente: TestClient) -> TestClient:
-    resposta = cliente.post("/cadastro", data=CADASTRO, follow_redirects=False)
+def logado(cliente_com_billing: TestClient) -> TestClient:
+    resposta = cliente_com_billing.post("/cadastro", data=CADASTRO, follow_redirects=False)
     assert resposta.status_code == 303
-    return cliente
+    return cliente_com_billing
 
 
 def _responder_n_questoes(db: Session, usuario: Usuario, topico: Topico, n: int) -> None:

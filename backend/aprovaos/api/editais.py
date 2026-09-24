@@ -176,8 +176,13 @@ async def processar_edital(
         o limite do Free (ADR-0015: DNA de 1 concurso — `dominio.assinatura.pode_criar_edital`,
         conferido **antes** de gastar o pipeline de PDF/DNA num upload que não vai ser aceito).
     """
+    config: Configuracoes = request.app.state.config
     tier = tier_do_usuario(db, usuario.id, agora_utc().date())
-    veredito = pode_criar_edital(tier, contagem_editais_com_dna(db, usuario.tenant_id))
+    veredito = pode_criar_edital(
+        tier,
+        contagem_editais_com_dna(db, usuario.tenant_id),
+        billing_ativo=config.mercado_pago_access_token is not None,
+    )
     if not veredito.permitido:
         contexto = {"erros": [f"{veredito.motivo} {veredito.convite}"]}
         return renderizar(request, "editais/subir.html", contexto, usuario)

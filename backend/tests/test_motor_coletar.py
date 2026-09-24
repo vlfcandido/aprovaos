@@ -332,3 +332,83 @@ def test_main_pula_cargo_sem_par_completo(
     assert "falta gabarito" in saida
     assert "pulado" in saida
     assert not config_teste.documentos_dir.exists()  # type: ignore[union-attr]
+
+
+# Os treze títulos abaixo são reais: saíram de `documento.metadados` do `dev.db` em 24/09/2026,
+# depois da coleta dos cadernos de básicos. A Cebraspe escreve o cargo de quatro jeitos
+# diferentes, e é por isso que a âncora de fim de string (`CARGO <n>$`) não serve para básicos:
+# ela só acerta quando o caderno é de um cargo só.
+TITULOS_REAIS = {
+    "basicos_um_cargo": "PROVA OBJETIVA – CONHECIMENTOS BÁSICOS PARA O CARGO 19",
+    "basicos_dois_cargos": "PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA OS CARGOS 12 E 13",
+    "basicos_todos": "PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA TODOS OS CARGOS",
+    "basicos_nivel": "PROVA OBJETIVA - CONHECIMENTOS BÁSICOS PARA OS CARGOS DE NÍVEL MÉDIO",
+    "gerais_lista": "PROVA OBJETIVA – CONHECIMENTOS GERAIS PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22",
+    "gerais_dois": "PROVA OBJETIVA - CONHECIMENTOS GERAIS PARA OS CARGOS 1 E 2",
+    "gerais_sem_cargo": "PROVA OBJETIVA - CONHECIMENTOS GERAIS",
+    "especificos_cargo": "PROVA OBJETIVA – CONHECIMENTOS ESPECÍFICOS – CARGO 9",
+    "especificos_sem_cargo": "PROVA OBJETIVA - CONHECIMENTOS ESPECÍFICOS",
+}
+
+
+def _nov(titulo: str) -> Novidade:
+    """Uma `Novidade` de prova com o título dado — o resto não importa para o filtro."""
+    return Novidade(
+        id=f"X/{titulo}.pdf",
+        tipo="prova",
+        titulo=titulo,
+        url=f"https://cdn.cebraspe.org.br/concursos/X/arquivos/{titulo}.pdf",
+        evento="X",
+        publicado_em=None,
+    )
+
+
+def test_caderno_de_basicos_de_um_cargo_so() -> None:
+    """`PARA O CARGO 19` é o caso que a âncora antiga já pegava — continua pegando."""
+    achados = arquivos_do_cargo(
+        [_nov(TITULOS_REAIS["basicos_um_cargo"])], cargo_numero=19, caderno="basicos"
+    )
+    assert len(achados) == 1
+
+
+def test_caderno_de_basicos_de_varios_cargos_pela_lista() -> None:
+    """`PARA OS CARGOS 12 E 13` serve o cargo 12 — era o que a âncora de fim matava."""
+    novidade = _nov(TITULOS_REAIS["basicos_dois_cargos"])
+    assert len(arquivos_do_cargo([novidade], cargo_numero=12, caderno="basicos")) == 1
+    assert len(arquivos_do_cargo([novidade], cargo_numero=13, caderno="basicos")) == 1
+    assert arquivos_do_cargo([novidade], cargo_numero=14, caderno="basicos") == []
+
+
+def test_caderno_de_basicos_com_lista_longa() -> None:
+    """`PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22` serve o 9 e não serve o 3."""
+    novidade = _nov(TITULOS_REAIS["gerais_lista"])
+    assert len(arquivos_do_cargo([novidade], cargo_numero=9, caderno="basicos")) == 1
+    assert arquivos_do_cargo([novidade], cargo_numero=3, caderno="basicos") == []
+
+
+def test_caderno_sem_numero_de_cargo_serve_qualquer_um() -> None:
+    """`PARA TODOS OS CARGOS`, `DE NÍVEL MÉDIO` e `CONHECIMENTOS GERAIS` não nomeiam número.
+
+    Quem pediu o evento e o cargo foi o operador; um caderno que não nomeia cargo nenhum é o
+    caderno daquele evento. É a leitura conservadora possível — o título simplesmente não tem a
+    informação, e recusar deixaria de fora os três casos mais comuns.
+    """
+    for chave in ("basicos_todos", "basicos_nivel", "gerais_sem_cargo"):
+        achados = arquivos_do_cargo([_nov(TITULOS_REAIS[chave])], cargo_numero=7, caderno="basicos")
+        assert len(achados) == 1, chave
+
+
+def test_pedir_basicos_nunca_devolve_especificos() -> None:
+    """As duas famílias não se misturam: é o que evita curar duas vezes o mesmo caderno."""
+    especificos = [
+        _nov(TITULOS_REAIS["especificos_cargo"]),
+        _nov(TITULOS_REAIS["especificos_sem_cargo"]),
+    ]
+    assert arquivos_do_cargo(especificos, cargo_numero=9, caderno="basicos") == []
+
+
+def test_pedir_especificos_nunca_devolve_basicos() -> None:
+    """O comportamento antigo continua intacto — é o padrão de quem não passa `caderno`."""
+    basicos = [_nov(TITULOS_REAIS["basicos_um_cargo"]), _nov(TITULOS_REAIS["gerais_lista"])]
+    assert arquivos_do_cargo(basicos, cargo_numero=19) == []
+    assert arquivos_do_cargo(basicos, cargo_numero=19, caderno="especificos") == []

@@ -23,6 +23,7 @@ import argparse
 import re
 import unicodedata
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -46,6 +47,13 @@ _RAIZ_DO_REPOSITORIO = Path(__file__).resolve().parents[3]
 _TERMOS_CARGO_DE_DIREITO = ("DIREITO", "JUDICIARIA", "JURIDICA", "JURIDICO")
 _TERMOS_NIVEL_SUPERIOR = ("ANALISTA", "PROCURADOR")
 _TERMO_ESPECIFICOS = "ESPECIFICOS"
+#: Como a Cebraspe chama o caderno que não é de conhecimentos específicos. As duas palavras
+#: aparecem nos títulos reais medidos em 24/09/2026 ("CONHECIMENTOS BÁSICOS PARA O CARGO 19",
+#: "CONHECIMENTOS GERAIS PARA OS CARGOS 1 E 2").
+_TERMOS_BASICOS = ("BASICOS", "GERAIS")
+
+#: Caderno pedido: o de conhecimentos específicos do cargo, ou o de básicos/gerais.
+Caderno = Literal["especificos", "basicos"]
 
 
 class ParDeProva(BaseModel):
@@ -158,20 +166,59 @@ def _termina_no_cargo(titulo: str, cargo_numero: int) -> bool:
     return re.search(rf"CARGO\s+{cargo_numero}\s*$", titulo.strip()) is not None
 
 
-def arquivos_do_cargo(novidades: list[Novidade], cargo_numero: int) -> list[Novidade]:
-    """Filtra os arquivos de prova/gabarito de conhecimentos específicos de um cargo.
+def _cargo_na_lista(titulo: str, cargo_numero: int) -> bool:
+    """`True` quando o título nomeia números de cargo e `cargo_numero` está entre eles.
+
+    Caderno de básicos serve vários cargos e a Cebraspe escreve isso de quatro jeitos, todos
+    medidos em títulos reais (24/09/2026): `"PARA O CARGO 19"`, `"PARA OS CARGOS 12 E 13"`,
+    `"PARA OS CARGOS 1, 2, 6, 8, 9, 18 E 22"` e `"PARA TODOS OS CARGOS"`. A âncora de fim de
+    string de `_termina_no_cargo` só acerta o primeiro — por isso os outros três eram
+    descartados, e com eles as matérias básicas inteiras (Português, Matemática, Informática).
+
+    Título que **não nomeia número nenhum** (`"PARA TODOS OS CARGOS"`, `"DE NÍVEL MÉDIO"`,
+    `"CONHECIMENTOS GERAIS"` seco) casa com qualquer cargo: quem pediu evento e cargo foi o
+    operador, e o título simplesmente não tem a informação para contradizê-lo. Recusar deixaria
+    de fora os três casos mais comuns.
+    """
+    normalizado = _normalizar(titulo)
+    numeros = re.findall(r"\b\d+\b", normalizado)
+    if not numeros:
+        return True
+    return str(cargo_numero) in numeros
+
+
+def arquivos_do_cargo(
+    novidades: list[Novidade], cargo_numero: int, caderno: Caderno = "especificos"
+) -> list[Novidade]:
+    """Filtra os arquivos de prova/gabarito de um cargo, no caderno pedido.
 
     Args:
         novidades: arquivos do evento (`FonteCebraspe.arquivos_do_evento`).
         cargo_numero: o número do cargo (achado por `cargo_de_direito` ou passado por `--cargo`).
+        caderno: `"especificos"` (padrão, o comportamento da V3) ou `"basicos"`.
 
     Returns:
-        Os arquivos `tipo in ("prova", "gabarito")` cujo título termina em `"CARGO
-        <cargo_numero>"` **e** contém "ESPECÍFICOS" — nunca os cadernos de conhecimentos gerais
-        (mesmo que citem o cargo) nem os de "conhecimentos básicos para o cargo N" (achado real
-        no STJ_24: o cargo 19 tem um caderno básico e um específico, os dois terminando em
-        "CARGO 19"; só o específico é o que a V3 quer).
+        Com `caderno="especificos"`: os arquivos cujo título termina em `"CARGO <cargo_numero>"`
+        **e** contêm "ESPECÍFICOS" — nunca os cadernos gerais, mesmo que citem o cargo (achado
+        real no STJ_24: o cargo 19 tem um básico e um específico, os dois terminando em
+        "CARGO 19").
+
+        Com `caderno="basicos"`: os que contêm "BÁSICOS" ou "GERAIS" e cujo cargo casa por
+        `_cargo_na_lista`. As duas famílias nunca se misturam, e é isso que impede curar duas
+        vezes o mesmo caderno.
+
+        O filtro de básicos existe desde 24/09/2026: a V3 supunha um edital só de Direito e
+        descartava os gerais de propósito. Medido no edital real da piloto, isso jogava fora
+        **170 itens já baixados**, dos quais 74 nas três matérias com cobertura zero.
     """
+    if caderno == "basicos":
+        return [
+            novidade
+            for novidade in novidades
+            if novidade.tipo in _ARQUIVOS_DO_CARGO_TIPOS
+            and any(termo in _normalizar(novidade.titulo) for termo in _TERMOS_BASICOS)
+            and _cargo_na_lista(novidade.titulo, cargo_numero)
+        ]
     return [
         novidade
         for novidade in novidades

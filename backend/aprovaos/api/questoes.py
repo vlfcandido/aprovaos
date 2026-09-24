@@ -56,6 +56,7 @@ from sqlalchemy.orm import Session
 from aprovaos.api.db import obter_db
 from aprovaos.api.sessao import exigir_usuario
 from aprovaos.api.templates import renderizar
+from aprovaos.config import Configuracoes
 from aprovaos.dados.base import agora_utc
 from aprovaos.dados.modelos import (
     Alternativa,
@@ -531,7 +532,7 @@ def contexto_evento(
     }
 
 
-def veredito_de_limite(db: Session, usuario: Usuario) -> Veredito:
+def veredito_de_limite(db: Session, usuario: Usuario, *, billing_ativo: bool = True) -> Veredito:
     """O `Veredito` de `dominio.assinatura.pode_responder` para este usuário, agora (Ruling 47).
 
     Conferido só ao **montar** a próxima questão (`GET /topico/{slug}/questoes` e
@@ -542,6 +543,9 @@ def veredito_de_limite(db: Session, usuario: Usuario) -> Veredito:
     Args:
         db: sessão do request.
         usuario: o usuário logado.
+        billing_ativo: `False` (sem chave do Mercado Pago) desliga o limite — sem caminho
+            para assinar, o teto do Free seria parede sem porta (achado com a piloto em
+            24/09/2026, ao subir o segundo edital).
 
     Returns:
         O `Veredito` (`permitido=True` para Pro ou Free abaixo do limite diário).
@@ -549,7 +553,7 @@ def veredito_de_limite(db: Session, usuario: Usuario) -> Veredito:
     hoje = agora_utc().date()
     tier = tier_do_usuario(db, usuario.id, hoje)
     uso = uso_do_dia(db, usuario.id, hoje)
-    return pode_responder(tier, uso)
+    return pode_responder(tier, uso, billing_ativo=billing_ativo)
 
 
 def _proximo_item_intercalado(
@@ -615,7 +619,10 @@ def obter_questao(
     """
     topico = _exigir_topico_do_tenant(db, slug, usuario)
 
-    veredito = veredito_de_limite(db, usuario)
+    config_limite: Configuracoes = request.app.state.config
+    veredito = veredito_de_limite(
+        db, usuario, billing_ativo=config_limite.mercado_pago_access_token is not None
+    )
     if not veredito.permitido:
         contexto = contexto_questao(db, topico, None)
         contexto["limite"] = {"motivo": veredito.motivo, "convite": veredito.convite}

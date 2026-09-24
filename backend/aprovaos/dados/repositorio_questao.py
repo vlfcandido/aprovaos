@@ -126,7 +126,7 @@ def salvar_questoes(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, in
     return novas, repetidas
 
 
-def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, int]:
+def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple[int, int, int]:
     """Reclassifica questões já gravadas (passo 12b), sem duplicar e sem tocar no resto da linha.
 
     Localiza cada questão existente por `hash_dedup` e atualiza **só**
@@ -136,17 +136,24 @@ def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple
     classificador melhor (ex.: IA depois de ter rodado por regras) não pode virar `salvar_questoes`
     de novo — aquilo só conta repetidas, nunca atualiza uma linha existente.
 
+    **Reclassificar nunca rebaixa (P-76).** Se a nova classificação vier **sem** tópico e a linha
+    existente já tiver um, a linha fica intacta e é contada como *preservada*. Sem essa regra, uma
+    rodada que caia para regras (ou cuja chamada de IA falhe — o `_classificar_um_lote` degrada em
+    vez de bloquear, arquitetura §8) apaga o trabalho do classificador anterior: foi o que
+    aconteceu em 23/09/2026, quando 138 publicáveis viraram 39 numa rodada só.
+
     Args:
         db: sessão do request/comando.
         questoes: a nova saída do curador para o mesmo caderno (mesmos `hash_dedup` de antes;
             só a classificação de tópico deve ter mudado).
 
     Returns:
-        `(quantidade atualizada, quantidade ignorada)` — ignorada é toda `QuestaoCurada` cujo
-        `hash_dedup` não bate com nenhuma linha existente (nunca cria uma nova).
+        `(atualizadas, ignoradas, preservadas)` — *ignorada* é toda `QuestaoCurada` cujo
+        `hash_dedup` não bate com nenhuma linha existente (nunca cria uma nova); *preservada* é
+        toda linha que já tinha tópico e cuja nova classificação veio sem nenhum.
     """
     if not questoes:
-        return 0, 0
+        return 0, 0, 0
 
     hashes = [questao.hash_dedup for questao in questoes]
     existentes: dict[str, Questao] = {
@@ -161,10 +168,16 @@ def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple
 
     atualizadas = 0
     ignoradas = 0
+    preservadas = 0
     for questao in questoes:
         existente = existentes.get(questao.hash_dedup)
         if existente is None:
             ignoradas += 1
+            continue
+        if questao.topico_slug is None and existente.topico_id is not None:
+            # P-76: a nova rodada não soube classificar o que a anterior já tinha classificado.
+            # Preservar é a única saída honesta — sobrescrever aqui é perder trabalho pago.
+            preservadas += 1
             continue
         existente.topico = (
             topicos_por_slug.get(questao.topico_slug) if questao.topico_slug else None
@@ -175,7 +188,7 @@ def atualizar_classificacao(db: Session, questoes: list[QuestaoCurada]) -> tuple
         existente.motivo_nao_publicavel = questao.motivo_nao_publicavel
         atualizadas += 1
     db.flush()
-    return atualizadas, ignoradas
+    return atualizadas, ignoradas, preservadas
 
 
 def contagem_por_topico(db: Session, edital_id: UUID) -> dict[UUID, int]:

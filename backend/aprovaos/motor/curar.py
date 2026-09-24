@@ -119,6 +119,9 @@ class RelatorioCuradoria(BaseModel):
             ou `reclassificar=True`.
         atualizadas: quantas linhas `atualizar_classificacao` (passo 12b) mudou de
             tópico/publicável; `0` fora do modo `reclassificar=True`.
+        preservadas: quantas linhas mantiveram a classificação anterior porque a nova rodada
+            veio **sem** tópico (P-76 — reclassificar nunca rebaixa); `0` fora do modo
+            `reclassificar=True`.
         nao_encontradas: quantas `hash_dedup` do lote reclassificado não bateram com nenhuma
             linha existente (nada foi criado para elas); `0` fora do modo `reclassificar=True`.
     """
@@ -132,6 +135,7 @@ class RelatorioCuradoria(BaseModel):
     novas: int
     repetidas: int
     atualizadas: int = 0
+    preservadas: int = 0
     nao_encontradas: int = 0
 
 
@@ -379,11 +383,11 @@ async def curar_documento(
 
     problemas = verificar_curadoria(resultado.questoes, total_itens=len(resultado.questoes))
     if reclassificar:
-        atualizadas, nao_encontradas = atualizar_classificacao(db, resultado.questoes)
+        atualizadas, nao_encontradas, preservadas = atualizar_classificacao(db, resultado.questoes)
         novas, repetidas = 0, 0
     else:
         novas, repetidas = salvar_questoes(db, resultado.questoes)
-        atualizadas, nao_encontradas = 0, 0
+        atualizadas, nao_encontradas, preservadas = 0, 0, 0
     return RelatorioCuradoria(
         total=len(resultado.questoes),
         publicaveis=sum(1 for questao in resultado.questoes if questao.publicavel),
@@ -394,6 +398,7 @@ async def curar_documento(
         novas=novas,
         repetidas=repetidas,
         atualizadas=atualizadas,
+        preservadas=preservadas,
         nao_encontradas=nao_encontradas,
     )
 
@@ -469,7 +474,8 @@ def _relatar(evento: str, cargo: int, relatorio: RelatorioCuradoria) -> None:
         f"{evento} (cargo {cargo}): total={relatorio.total} publicaveis={relatorio.publicaveis} "
         f"anuladas={relatorio.anuladas} sem_topico={relatorio.sem_topico} "
         f"novas={relatorio.novas} repetidas={relatorio.repetidas} "
-        f"atualizadas={relatorio.atualizadas} nao_encontradas={relatorio.nao_encontradas}"
+        f"atualizadas={relatorio.atualizadas} preservadas={relatorio.preservadas} "
+        f"nao_encontradas={relatorio.nao_encontradas}"
     )
     if relatorio.pendente_revisao:
         print(f"{evento} (cargo {cargo}): PENDENTE_REVISAO — " + "; ".join(relatorio.problemas))

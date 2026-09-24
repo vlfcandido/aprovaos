@@ -497,10 +497,10 @@ def test_atualizar_classificacao_muda_topico_sem_tocar_texto_gabarito_ou_origem(
     reclassificada = _questao_curada(
         1, "Enunciado original.", topico_novo.slug, documento.id, publicavel=True
     )
-    atualizadas, ignoradas = atualizar_classificacao(db, [reclassificada])
+    atualizadas, ignoradas, preservadas = atualizar_classificacao(db, [reclassificada])
     db.commit()
 
-    assert (atualizadas, ignoradas) == (1, 0)
+    assert (atualizadas, ignoradas, preservadas) == (1, 0, 0)
     db.refresh(salva)
     assert salva.topico_id == topico_novo.id
     assert salva.topico_confianca == "alta"
@@ -519,10 +519,10 @@ def test_atualizar_classificacao_ignora_hash_inexistente(db: Session) -> None:
     documento = _documento(db, "d8")
     inexistente = _questao_curada(99, "Este enunciado nunca foi gravado.", None, documento.id)
 
-    atualizadas, ignoradas = atualizar_classificacao(db, [inexistente])
+    atualizadas, ignoradas, preservadas = atualizar_classificacao(db, [inexistente])
     db.commit()
 
-    assert (atualizadas, ignoradas) == (0, 1)
+    assert (atualizadas, ignoradas, preservadas) == (0, 1, 0)
     assert db.scalar(select(func.count()).select_from(Questao)) == 0
 
 
@@ -695,3 +695,75 @@ class TestSalvarQuestaoInedita:
         corretas = [a for a in gravadas if a.correta]
         assert len(corretas) == 1
         assert corretas[0].letra == "B"
+
+
+# P-76: reclassificar nunca pode rebaixar. Em 23/09/2026 uma rodada de `curar --reclassificar`
+# caiu para regras (a chamada de IA estourou) e a saída sem tópico foi gravada por cima da
+# classificação que a IA já tinha feito: 138 publicáveis viraram 39. Falha de classificação
+# preserva o que já estava lá — a rede de segurança não pode virar descarte.
+def test_atualizar_classificacao_preserva_topico_quando_a_nova_vem_sem_topico(
+    db: Session,
+) -> None:
+    """Nova classificação sem tópico **não** apaga a que já existe; conta como preservada."""
+    documento = _documento(db, "d9")
+    topico = _topico(db, "dir-adm-06-improbidade-administrativa")
+    salvar_questoes(
+        db,
+        [_questao_curada(1, "Enunciado classificado.", topico.slug, documento.id, publicavel=True)],
+    )
+    db.commit()
+    salva = db.scalars(select(Questao)).one()
+    assert salva.topico_id == topico.id
+    evidencia_antes, confianca_antes = salva.topico_evidencia, salva.topico_confianca
+
+    sem_topico = _questao_curada(1, "Enunciado classificado.", None, documento.id, publicavel=False)
+    atualizadas, ignoradas, preservadas = atualizar_classificacao(db, [sem_topico])
+    db.commit()
+
+    assert (atualizadas, ignoradas, preservadas) == (0, 0, 1)
+    db.refresh(salva)
+    assert salva.topico_id == topico.id
+    assert salva.publicavel is True
+    assert salva.motivo_nao_publicavel is None
+    assert salva.topico_evidencia == evidencia_antes
+    assert salva.topico_confianca == confianca_antes
+
+
+def test_atualizar_classificacao_troca_um_topico_por_outro(db: Session) -> None:
+    """Reclassificar de um tópico para outro continua valendo — o que não vale é rebaixar."""
+    documento = _documento(db, "d10")
+    antigo = _topico(db, "dir-con-02-direitos-garantias")
+    novo = _topico(db, "dir-pro-civ-03-atos-processuais")
+    salvar_questoes(
+        db,
+        [_questao_curada(1, "Enunciado a remanejar.", antigo.slug, documento.id, publicavel=True)],
+    )
+    db.commit()
+    salva = db.scalars(select(Questao)).one()
+
+    atualizadas, ignoradas, preservadas = atualizar_classificacao(
+        db, [_questao_curada(1, "Enunciado a remanejar.", novo.slug, documento.id, publicavel=True)]
+    )
+    db.commit()
+
+    assert (atualizadas, ignoradas, preservadas) == (1, 0, 0)
+    db.refresh(salva)
+    assert salva.topico_id == novo.id
+
+
+def test_atualizar_classificacao_sem_topico_dos_dois_lados_nao_conta_preservada(
+    db: Session,
+) -> None:
+    """Sem tópico antes e sem tópico depois não é rebaixamento: é atualização normal."""
+    documento = _documento(db, "d11")
+    salvar_questoes(
+        db, [_questao_curada(1, "Enunciado sem tópico.", None, documento.id, publicavel=False)]
+    )
+    db.commit()
+
+    atualizadas, ignoradas, preservadas = atualizar_classificacao(
+        db, [_questao_curada(1, "Enunciado sem tópico.", None, documento.id, publicavel=False)]
+    )
+    db.commit()
+
+    assert (atualizadas, ignoradas, preservadas) == (1, 0, 0)

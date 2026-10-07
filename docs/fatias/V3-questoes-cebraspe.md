@@ -4,7 +4,7 @@
 **Spec desta fatia:** linha V3 da tabela do PRD `docs/02-produto.md` §6; contratos em `.claude/skills/monitor-de-fontes/SKILL.md` e `.claude/skills/ingestao-de-provas/SKILL.md`; dados em `docs/04-modelo-de-dados.md` §2–§4; decisões da abertura em ADR-0027, ADR-0028 e ADR-0030.
 
 ## 1. Objetivo
-A Linda abre um tópico do edital dela e resolve **questões de verdade da Cebraspe** daquele tópico, vê o gabarito com a **origem completa** (órgão, cargo, ano, número do item, caderno, link do PDF), declara **certeza ou dúvida** antes de responder e pode **reportar erro**. Nada de questão inédita, nada de FSRS — só o conteúdo original chegando à tela com procedência.
+A Ana abre um tópico do edital dela e resolve **questões de verdade da Cebraspe** daquele tópico, vê o gabarito com a **origem completa** (órgão, cargo, ano, número do item, caderno, link do PDF), declara **certeza ou dúvida** antes de responder e pode **reportar erro**. Nada de questão inédita, nada de FSRS — só o conteúdo original chegando à tela com procedência.
 
 O caminho inteiro fica de pé: API da Cebraspe → PDF de prova e gabarito guardados com hash → segmentação determinística dos itens → classificação no vocabulário de tópicos do edital dela → `questao` publicada sob regra explícita → tela.
 
@@ -283,7 +283,7 @@ uv run alembic upgrade head
 | risco | probabilidade | mitigação |
 |---|---|---|
 | **Segmentação do PDF falha** num caderno (layout em duas colunas, cabeçalho diferente) | alta | A regra da skill: contagem de itens ≠ contagem do gabarito → `pendente_revisao`, nada gravado, problema no relatório. Nunca gravar item pela metade. |
-| **Classificação erra o tópico** e a Linda estuda a coisa errada | média | `topico_evidencia` obrigatório e visível; `confianca == "baixa"` não publica; o botão "reportar erro" é a válvula. |
+| **Classificação erra o tópico** e a Ana estuda a coisa errada | média | `topico_evidencia` obrigatório e visível; `confianca == "baixa"` não publica; o botão "reportar erro" é a válvula. |
 | **Sem `GOOGLE_API_KEY`**, a classificação por regras cobre pouco | média | O relatório de curadoria diz quantos ficaram sem tópico; recurar é barato (o PDF já está no repo) quando a chave existir. |
 | **API da Cebraspe muda** de formato ou sai do ar | baixa | Snapshots versionados: a suíte inteira roda offline; só os testes `rede` quebram, e eles não estão no CI. |
 | **Poucos tópicos do edital dela com questão** (concursos municipais vs. federais) | média | O relatório mostra a cobertura por tópico; a página diz "ainda não temos questões deste tópico" em vez de fingir. Se a cobertura for ruim, o dono decide se entram mais concursos. |

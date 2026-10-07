@@ -144,7 +144,7 @@ sem IA → "sem_ia"; reprovada → motivos do validador, nada gravado; aprovada 
 grava com `publicada=True`. `main()` (argparse: `--topico` repetível, `--usuario-email`,
 `--edital-id`, `--tempo-alvo-min`, `--dry-run`) resolve o usuário por e-mail
 (`repositorio_conta.buscar_por_email`) — é assim que a rodada real vai chamar o comando contra a
-conta de verdade da Linda (`linda.piloto@exemplo.com`).
+conta de verdade da Ana (`linda.piloto@exemplo.com`).
 
 ## 10. Geração real (cota)
 Free tier: poucas requisições/dia por modelo, e `gemini-3.6-flash` já foi usado hoje por

@@ -12,7 +12,7 @@
 `discriminacao_est`, `publicavel`, `publicada`, `despublicada_em`, `validada_em` — as cinco
 últimas vazias em 100 % da base hoje). Skill: `.claude/skills/calibracao-de-questoes/SKILL.md`.
 
-**Realidade dos dados (não inventar volume):** `dev.db` da Linda tem ~19 `evento_estudo` de uma
+**Realidade dos dados (não inventar volume):** `dev.db` da Ana tem ~19 `evento_estudo` de uma
 única aluna. Nenhuma questão real terá `n ≥ 30` — a execução contra `dev.db` é honesta sobre isso
 e não fabrica evento nenhum lá (mesma cautela da fatia 7). O mecanismo é validado com séries
 sintéticas **declaradas como tais**: a fixture de referência é a mesma que testou a skill na fase

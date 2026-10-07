@@ -8,7 +8,7 @@
 §2 dá os nomes de campo.
 
 ## 1. Objetivo
-Quando a Linda erra uma questão, nasce um `cartao` daquele tópico/questão com `origem="auto_erro"`
+Quando a Ana erra uma questão, nasce um `cartao` daquele tópico/questão com `origem="auto_erro"`
 e o FSRS já aplicado (o erro é a primeira revisão). Uma tela nova (`GET/POST /revisar`) mostra os
 cartões vencidos (`due <= agora`) na ordem do FSRS, reaproveitando a tela de questão para os
 cartões ligados a uma `questao`. Cada revisão grava `evento_estudo(tipo="revisao_cartao")` **e**
@@ -53,7 +53,7 @@ não coleta (tempo de resposta é candidato futuro, não usado aqui para não in
 
 ## 4. Fuso (declarado, não resolvido)
 Toda a camada de dados é UTC (`dados/base.py::DataHoraUtc`); `due` é comparado com
-`agora_utc()`. Sem o fuso da Linda (não coletado em nenhuma fatia até aqui), um cartão "vence hoje
+`agora_utc()`. Sem o fuso da Ana (não coletado em nenhuma fatia até aqui), um cartão "vence hoje
 de manhã" pode aparecer um pouco cedo ou tarde no horário dela. **Limitação aceita e registrada**
 — corrigir exige capturar fuso no perfil (fatia 7, `perfil_estudo`), fora do escopo desta fatia.
 

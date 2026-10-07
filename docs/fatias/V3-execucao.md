@@ -469,11 +469,11 @@ Executado em 18/09/2026. Sem código de produção — só docs, decisões e pen
 ### Erro cometido e corrigido no próprio fechamento: o edital usado na curadoria é fictício
 Conferindo a tela do concurso no fechamento da fatia, um rascunho deste passo leu
 `knowledge/fixtures/editais/edital-assessor-gabinete.pdf` (o mesmo PDF cujo `edital_id` foi usado
-em toda a execução real do passo 12/12b/12c) como se fosse o edital **real** da Linda: §1.1 diz
+em toda a execução real do passo 12/12b/12c) como se fosse o edital **real** da Ana: §1.1 diz
 banca "Fundação de Apoio à Unioeste"; §6.1 diz "50 questões de múltipla escolha com 5 alternativas
 (A a E), sem desconto". Com base nisso, a P-17 chegou a ser marcada como fechada e três outros
 arquivos (`docs/DECISOES.md`, `docs/02-produto.md` §6, `CLAUDE.md`) chegaram a afirmar que a banca
-real da Linda é a Unioeste/COGEPS com prova A–E — **está errado, e o erro é meu**. O arquivo é
+real da Ana é a Unioeste/COGEPS com prova A–E — **está errado, e o erro é meu**. O arquivo é
 **fictício**: gerado por `scripts/gerar_fixture_pdf.py` a partir de
 `docs/evidencias/2026-09-17-fase4-skills/fixtures/edital-assessor-gabinete.md`, cujo próprio
 cabeçalho diz "Fixture — trecho de edital (**fictício**, no formato usual de câmaras municipais do
@@ -481,13 +481,13 @@ PR)… **Não é um edital real; os números e datas são inventados para o test
 PDF e não li o cabeçalho da fonte que o gera. Corrigido no mesmo dia: P-17 **reaberta** em
 `docs/PENDENCIAS.md` (com o relato do engano registrado nela, para não se repetir); as três
 afirmações erradas removidas de `docs/DECISOES.md` (adendo da ADR-0035), `docs/02-produto.md` §6 e
-`CLAUDE.md`. O que se sabe de verdade sobre a banca da Linda continua sendo só o da Fase 4: ela
+`CLAUDE.md`. O que se sabe de verdade sobre a banca da Ana continua sendo só o da Fase 4: ela
 presta concursos locais em Cascavel-PR, cargo de assessor de gabinete, área de Direito — **banca
 desconhecida**.
 
 **O limite honesto do que a V3 entregou, dito com todas as letras (agora corrigido):** a curadoria
 real (passos 12/12b/12c) rodou contra o `edital_id` gerado a partir desse **edital de teste
-fictício**, não contra o edital real da Linda — os 36 tópicos e a cobertura de 63/210 publicáveis
+fictício**, não contra o edital real da Ana — os 36 tópicos e a cobertura de 63/210 publicáveis
 valem para esse edital de teste, e ainda não sabemos se valem para o dela. As **210 questões** em
 si são reais (prova e gabarito de verdade, baixados da API da Cebraspe); o que é fictício é o
 edital contra o qual elas foram classificadas. Além disso, as 210 questões são **certo/errado da
@@ -498,12 +498,12 @@ curador → gate de publicação → telas) é agnóstico de banca e de formato 
 que permite a V3b ser uma fatia pequena quando a banca real for conhecida, reaproveitando tudo que
 a V3 construiu em vez de recomeçar do zero. Mas quem ler este diário daqui a um mês precisa saber,
 sem precisar garimpar: **a V3 valida o cano com conteúdo real da Cebraspe, sobre um edital de
-teste; falta plugar o edital real da Linda quando ele chegar (P-17)**.
+teste; falta plugar o edital real da Ana quando ele chegar (P-17)**.
 
 ### Consequência para a V3b (registrada em P-30, `docs/PENDENCIAS.md`)
 A V3b (múltipla escolha A–E) é decisão do dono de 18/09/2026 pelo formato **dominante no mercado
 de concursos brasileiro** (certo/errado é marca da Cebraspe, a exceção) — **não** porque se
-conheça o formato do concurso real da Linda, que continua indefinido (P-17). O caderno e o
+conheça o formato do concurso real da Ana, que continua indefinido (P-17). O caderno e o
 gabarito do `TJ_CE_23_SERVIDOR` (A–E, real, coletado no passo 5 desta fatia e fora do escopo por
 decisão J do plano) são o **primeiro fixture** para o segmentador A–E. Quando o edital real dela
 chegar e a banca for identificada, mapear essa fonte específica com a skill `monitor-de-fontes`
@@ -523,7 +523,7 @@ fechamento documental não altera nem depende desse redesenho, que segue em anda
 agente.
 
 ### O que este passo fechou, abriu e não tentou fechar
-Fechada: **P-26** (grupo com acento). **P-17** (banca e formato da Linda) **continua aberta** — um
+Fechada: **P-26** (grupo com acento). **P-17** (banca e formato da Ana) **continua aberta** — um
 rascunho deste passo chegou a marcá-la como fechada com base num fixture fictício lido por engano
 como edital real; corrigido no mesmo dia (ver "Erro cometido e corrigido…" acima). Abertas:
 **P-30** (V3b — A–E, pelo formato dominante no mercado, não pela banca real dela), **P-31**
@@ -559,7 +559,7 @@ tópicos, que vem do parser/`registrar_edital`, não do DNA. Segundo concurso na
 JUSTIÇA DO ESTADO DO PARANÁ" / cargo `desconhecido` (o parser por regras não confirma o cargo sem
 prova de conceito na cláusula, ADR-0036) / banca "Instituto AOCP" — o fictício (`edital-assessor-
 gabinete.pdf`) continua na base, intocado (P-17 segue aberta; o TJ-PR **não** é o edital real da
-Linda, é o primeiro edital real disponível para testar o vocabulário contra as 250 questões).
+Ana, é o primeiro edital real disponível para testar o vocabulário contra as 250 questões).
 
 **Passo 2 — reclassificar as 250 questões.** `curar_documento(db, config, prova_id, gabarito_id,
 edital_id=<TJ-PR>, reclassificar=True, tipo_item=...)` para os 4 pares já curados no passo 12

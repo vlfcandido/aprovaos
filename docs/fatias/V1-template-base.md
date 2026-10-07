@@ -101,7 +101,7 @@ Todo arquivo `.py`, `.html`, `.css`, `.sh`, `.yaml` começa com o cabeçalho de 
 **Testes red** (engine local no teste: `create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)` + `Base.metadata.create_all`):
 - `test_tabelas_da_v1`: `set(Base.metadata.tables) == {"tenant","usuario","sessao","traco"}`.
 - `test_colunas_padrao`: `Tenant`, `Usuario`, `Sessao` têm `id`, `criado_em`, `atualizado_em`; `Traco` tem `id`, `criado_em`.
-- `test_insere_tenant_usuario_sessao`: cria `Tenant(tipo="pf", nome="Linda")`, `Usuario(email=…, senha_hash="h", tenant=…)`, `Sessao(usuario=…, token_hash="a"*64, expira_em=aware)`; após `commit`, `usuario.id` é `uuid.UUID`, `criado_em.tzinfo is not None`.
+- `test_insere_tenant_usuario_sessao`: cria `Tenant(tipo="pf", nome="Ana")`, `Usuario(email=…, senha_hash="h", tenant=…)`, `Sessao(usuario=…, token_hash="a"*64, expira_em=aware)`; após `commit`, `usuario.id` é `uuid.UUID`, `criado_em.tzinfo is not None`.
 - `test_email_unico`: segundo `Usuario` com o mesmo e-mail → `sqlalchemy.exc.IntegrityError`.
 - `test_tipo_do_tenant_restrito`: `Tenant(tipo="xx")` → `IntegrityError` (CHECK).
 - `test_datahora_volta_aware_do_sqlite`: `sessao.expira_em` lido de volta é aware e igual ao gravado (em UTC).
@@ -172,7 +172,7 @@ Todo arquivo `.py`, `.html`, `.css`, `.sh`, `.yaml` começa com o cabeçalho de 
 - `test_gerar_hash_e_argon2id`: `gerar_hash("segredo123")` começa com `$argon2id$` e difere da senha.
 - `test_dois_hashes_diferem`: sal aleatório → `gerar_hash(s) != gerar_hash(s)`.
 - `test_verificar`: `verificar(hash, "segredo123") is True`; `verificar(hash, "outra") is False`; `verificar("lixo", "x") is False` (hash inválido não estoura).
-- `test_dados_cadastro_normaliza_email`: `DadosCadastro(email="Linda@Exemplo.com", senha="12345678")` → `email == "linda@exemplo.com"`.
+- `test_dados_cadastro_normaliza_email`: `DadosCadastro(email="Ana@Exemplo.com", senha="12345678")` → `email == "linda@exemplo.com"`.
 - `test_dados_cadastro_rejeita`: senha com 7 chars → `ValidationError`; e-mail sem `@` → `ValidationError`.
 - `test_dados_login`: mesmos campos, sem regra de tamanho mínimo além de `min_length=1`.
 - `test_erros_de_dominio`: `EmailJaCadastrado` e `CredenciaisInvalidas` são `ErroDominio` (subclasse de `Exception`).
@@ -332,7 +332,7 @@ uv run alembic revision --autogenerate -m "descricao" && uv run alembic upgrade 
 Q1 → (a) `COOKIE_SEGURO=false` no `.env` do piloto, anotado em `docs/RISCOS.md`. Q2 → 8–128, sem outras regras. Q3 → `tenant.nome` = e-mail. Q4 → `system-ui`. Q5 → sim, 404 em JSON na V1.
 
 
-- **Q1 (passo 11/15):** no piloto pela rede local (ADR-0030), a Linda vai acessar por `http://<ip-da-máquina>:8000`. Cookie `Secure` não funciona aí. Opções: (a) `COOKIE_SEGURO=false` no `.env` do piloto, anotado em RISCOS; (b) Caddy local com TLS interno já na V1 (contraria "sem Caddy" da ADR-0030); (c) acesso só por `localhost` (túnel SSH/Tailscale). Recomendado: (a).
+- **Q1 (passo 11/15):** no piloto pela rede local (ADR-0030), a Ana vai acessar por `http://<ip-da-máquina>:8000`. Cookie `Secure` não funciona aí. Opções: (a) `COOKIE_SEGURO=false` no `.env` do piloto, anotado em RISCOS; (b) Caddy local com TLS interno já na V1 (contraria "sem Caddy" da ADR-0030); (c) acesso só por `localhost` (túnel SSH/Tailscale). Recomendado: (a).
 - **Q2 (passo 9):** política de senha = mínimo 8, máximo 128, sem outras regras. OK?
 - **Q3 (passo 3):** `tenant.nome` no cadastro = o próprio e-mail (não há campo "nome" no formulário). OK, ou incluir campo "nome" opcional?
 - **Q4 (passo 8):** landing e páginas com fonte do sistema (`system-ui`) até a Fase 6, ou vendorizar Sora/IBM Plex já? Recomendado: sistema.

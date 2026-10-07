@@ -177,5 +177,5 @@ existe; um item que falhou antes de nascer não tem o que julgar).
 - Aderência por **embedding** e a extensão `vector` (Ruling 43) — `docs/PENDENCIAS.md` P-66.
 - Suíte DeepEval em `eval/` — depende de cota e de amostra rotulada que ainda não existem —
   `docs/PENDENCIAS.md` P-67.
-- Geração em escala para banca desconhecida (P-17, continua aberta — a banca real da Linda
+- Geração em escala para banca desconhecida (P-17, continua aberta — a banca real da Ana
   ainda não chegou).

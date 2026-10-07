@@ -190,7 +190,7 @@ configuração, 404 e nenhum botão.
 
 Rodar `varrer` de verdade contra a API e registrar no diário o que entrou: quantos concursos por
 fase, quantos com UF confirmada, quantos sem salário, e quantos "combinam" com o perfil real da
-Linda (Direito, PR). Se nenhum combinar, é isso que o diário diz.
+Ana (Direito, PR). Se nenhum combinar, é isso que o diário diz.
 
 ## 9. Fora de escopo (vai para `docs/PENDENCIAS.md`)
 

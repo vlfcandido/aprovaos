@@ -5,7 +5,7 @@
 
 **Ponto de partida:** 656 testes verdes. `evento_estudo` (append-only, `confianca_declarada`
 obrigatória), `cartao`/FSRS (V4), `fio_memoria` (V5), `questao` com `topico_id`/`publicavel`,
-`repositorio_questao.proxima_questao`/`contagem_por_topico` já existem. `dev.db` da Linda tem dois
+`repositorio_questao.proxima_questao`/`contagem_por_topico` já existem. `dev.db` da Ana tem dois
 concursos: TJ-PR/AOCP (99 tópicos, **137 questões publicáveis**) e Cascavel/Unioeste — o edital
 real dela, fictício por enquanto (P-17) — **com 0 questões publicáveis** hoje (a reclassificação
 do passo 16 da V3 moveu a base inteira para o vocabulário do TJ-PR, P-31). Isso não é bug desta

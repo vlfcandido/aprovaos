@@ -142,8 +142,8 @@ renderizado, não por captura de tela.
 
 ## 6. Fora do grupo A: o defeito que apareceu ao servir a piloto na rede local (23/09/2026)
 
-Não é trabalho da fatia 14 — está aqui porque apareceu ao pôr o produto no ar para a Linda
-testar do tablet dela (ADR-0030: "a Linda usa o produto na máquina/rede do dono") e não tinha
+Não é trabalho da fatia 14 — está aqui porque apareceu ao pôr o produto no ar para a Ana
+testar do tablet dela (ADR-0030: "a Ana usa o produto na máquina/rede do dono") e não tinha
 diário próprio onde morar.
 
 **O sintoma:** subir o servidor pela raiz do repositório (`uvicorn aprovaos.main:criar_app`,

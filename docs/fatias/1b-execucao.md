@@ -163,7 +163,7 @@ Consulta direta ao banco resultante:
 `encerrado` deu 423, não 424 (o número bruto medido no §1 do plano) — a diferença é exatamente o
 `INSS_22` duplicado, deduplicado no passo 3.
 
-**Combina com o perfil real da Linda (Direito, PR):** rodando `casar_com_perfil` com
+**Combina com o perfil real da Ana (Direito, PR):** rodando `casar_com_perfil` com
 `PreferenciaRadar(ufs=["PR"], salario_minimo_brl=None, area="direito")` contra os 495 concursos
 persistidos, `cargos=[]` (a listagem não abre o detalhe de cada evento — P-71):
 

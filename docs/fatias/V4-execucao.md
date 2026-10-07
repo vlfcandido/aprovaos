@@ -108,7 +108,7 @@ markers `postgres`/`llm`/`rede`, nenhum tocado por esta fatia). Partindo de 493 
 
 `dev.db` (SQLite local, sem Docker) estava parado na migração `0006` (da fundação jurídica);
 `alembic upgrade head` aplicou a `0007` sem erro. Rodei um script solto (não commitado) contra o
-banco de verdade, usando a conta real da Linda (`linda.piloto@exemplo.com`, criada na V3) e uma
+banco de verdade, usando a conta real da Ana (`linda.piloto@exemplo.com`, criada na V3) e uma
 questão publicável de verdade (Direito Administrativo, "O poder da administração pública de rever
 os próprios atos é absoluto…", gabarito `E`):
 

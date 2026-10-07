@@ -10,7 +10,7 @@ horário preferido, energia típica, concurso principal, consentimento de dados 
 `cartao`/`cartoes_vencidos` (V4), `dossie_topico`/`aula` com trilha (fatias 4 e 6),
 `topico_relacao` (equivalência entre vocabulários de edital, ADR-0041), `evento_estudo` append-only
 com `dados` (JSON) e `confianca_declarada`, `motor.dossie.topicos_de_maior_peso` (peso medido),
-`dominio.trilha.montar_trilha` (ordem por peso medido + histórico). `dev.db` da Linda: concurso
+`dominio.trilha.montar_trilha` (ordem por peso medido + histórico). `dev.db` da Ana: concurso
 principal TJ-PR/AOCP com 137 questões publicáveis, 2 aulas publicadas, 4 dossiês.
 
 ## 1. O que a spec pede (contrato desta fatia)
@@ -284,6 +284,6 @@ tela que a aluna abre todo dia, J2). Templates: `web/templates/hoje/pagina.html`
 
 ## 11. Diário
 
-Vai para `docs/fatias/8-execucao.md`, com o plano do dia real gerado para a conta da Linda (dev.db)
+Vai para `docs/fatias/8-execucao.md`, com o plano do dia real gerado para a conta da Ana (dev.db)
 colado inteiro — a régua desta fatia (visão §4: "nunca esconder o porquê"; PRD §6 métrica do
 piloto completo).

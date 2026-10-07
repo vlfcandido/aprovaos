@@ -6,7 +6,7 @@
 ## Estado de partida
 Branch `main`, 703 testes verdes (fim da fatia 7 — diagnóstico + rotina). `perfil_estudo`,
 `cartao`/FSRS, `dossie_topico`/`aula` com trilha, `topico_relacao` (equivalência de vocabulário),
-`evento_estudo.dados` (JSON) já existiam. `dev.db` da Linda: TJ-PR/AOCP (99 tópicos, 137 questões
+`evento_estudo.dados` (JSON) já existiam. `dev.db` da Ana: TJ-PR/AOCP (99 tópicos, 137 questões
 publicáveis, 2 aulas, 4 dossiês via `topico_relacao`) e Cascavel/Unioeste (0 questões). Sem
 `perfil_estudo` gravado ainda (a fatia 7 restaurou o `dev.db` ao estado real depois da
 demonstração, sem deixar rotina configurada).
@@ -90,7 +90,7 @@ inválido (400), bloco inexistente (404) e bloco de outro usuário (404 — isol
 ### 7. Aviso de distração (`web/static/js/distracao.js`, novo)
 Ilha de JS vanilla isolada (ADR-0019): a cada 15 s, e ao voltar de aba escondida
 (`visibilitychange`), confere se algum bloco com `data-bloco-iniciado` passou de 4 min (a frase
-literal da entrevista da Linda); se sim, mostra o aviso discreto já presente no HTML (nasce
+literal da entrevista da Ana); se sim, mostra o aviso discreto já presente no HTML (nasce
 `hidden`) e grava `POST /api/distracao` uma vez por bloco. Nunca bloqueia (`alert`/`confirm`
 nunca), nunca desabilita botão; se o script não carregar ou o `fetch` falhar (sessão expirada,
 rede), os botões Iniciar/Concluir/Pular continuam funcionando normalmente. Sem teste automatizado
@@ -119,9 +119,9 @@ inteiro e eu preciso do `checar.sh` verde para poder commitar. Registrado aqui p
 o diff desta fatia não estranhar um arquivo de aula aparecendo no meio de um commit sobre plano do
 dia.
 
-## Demonstração real contra `dev.db` (Linda) — em cópia, não no arquivo real
+## Demonstração real contra `dev.db` (Ana) — em cópia, não no arquivo real
 Mesmo cuidado da fatia 7: rodei a demonstração numa **cópia** de `dev.db` (`/tmp/demo-fatia8.db`,
-migrada para 0012 e apagada ao final) — configurar uma rotina de verdade para a Linda sem ela ter
+migrada para 0012 e apagada ao final) — configurar uma rotina de verdade para a Ana sem ela ter
 escolhido os valores seria inventar dado pessoal em nome dela, ainda que não seja uma resposta de
 questão fabricada como a fatia 7 evitou. **O `dev.db` real não foi tocado** (confirmado por
 `git status`/hash do arquivo antes e depois).
@@ -131,7 +131,7 @@ Passos, contra a cópia:
 2. `salvar_perfil` com uma rotina hipotética (2h seg–qui, 1h sex, 3h sáb, 0h dom; horário manhã;
    energia média) e concurso principal = TJ-PR/AOCP (137 questões publicáveis, 2 aulas, 4
    dossiês via `topico_relacao`).
-3. `cartoes_vencidos`: **0** (a Linda nunca errou uma questão no histórico real dela — 19 eventos,
+3. `cartoes_vencidos`: **0** (a Ana nunca errou uma questão no histórico real dela — 19 eventos,
    todos de diagnóstico/estudo sem cartão vencido hoje).
 4. `gerar_ou_obter_plano_noturno` para segunda-feira (2h no perfil acima) — **o plano real**:
 

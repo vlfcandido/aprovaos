@@ -4,7 +4,7 @@
 
 ## Estado de partida
 Branch `main`, 656 testes verdes (fim da fatia "trilha + aulas" + correção estrutural
-`topico_relacao`, ADR-0041). `dev.db` da Linda com dois concursos: TJ-PR/AOCP (99 tópicos, 137
+`topico_relacao`, ADR-0041). `dev.db` da Ana com dois concursos: TJ-PR/AOCP (99 tópicos, 137
 questões publicáveis) e Cascavel/Unioeste (36 tópicos, edital real dela — P-17 — mas 0 questões
 publicáveis hoje, porque a reclassificação do passo 16 da V3 moveu a base inteira para o
 vocabulário do TJ-PR, P-31). Reaproveitado sem mudança: `evento_estudo.dados` (JSON, V5),
@@ -83,7 +83,7 @@ rotina, 6+3 modelo/repositório perfil, 2 repositório diagnóstico, 6 rota diag
 rotina). `bash scripts/checar.sh` verde (ruff check, ruff format, mypy --strict, import sem
 efeito colateral, pytest).
 
-## Demonstração real contra `dev.db` (Linda)
+## Demonstração real contra `dev.db` (Ana)
 Migração 0011 aplicada (`alembic upgrade head`). Login via sessão aberta diretamente pelo
 repositório (`abrir_sessao`) — sem senha em texto — contra o `TestClient` apontando para
 `backend/dev.db` de verdade (não um banco de teste).
@@ -106,13 +106,13 @@ repositório (`abrir_sessao`) — sem senha em texto — contra o `TestClient` a
    (0 questões publicáveis) apareceram como "sem questão na base", nunca com uma estimativa
    inventada. O link "Insistir" apareceu nas matérias fechadas.
 3. **P-23 ao vivo:** `POST /rotina` trocando o concurso principal para Cascavel/Unioeste (o
-   edital real da Linda) — `GET /diagnostico` imediatamente passou a mostrar **0 itens**, motivo
+   edital real da Ana) — `GET /diagnostico` imediatamente passou a mostrar **0 itens**, motivo
    *"Parei em 0 itens: não sobrou mais questão nova para as matérias em aberto. Sem questão
    suficiente na base ainda para: DIREITO ADMINISTRATIVO, DIREITO CIVIL, ... RACIOCÍNIO LÓGICO."*
    — nenhuma tela quebrou, nenhuma cobertura fingida.
 
 **Decisão sobre `dev.db`:** as respostas do passo 2 são sintéticas (fabricadas para provar o
-motor, não a Linda estudando de verdade) — ao contrário das fatias anteriores (V2–6), que
+motor, não a Ana estudando de verdade) — ao contrário das fatias anteriores (V2–6), que
 deixaram saídas reais de pipeline (aulas, questões curadas) em `dev.db`, aqui deixar 26 eventos de
 "resposta" inventados em nome dela poluiria o histórico que a fatia 8 (plano do dia) vai ler.
 Depois da demonstração, `dev.db` foi restaurado ao estado anterior (histórico real dela: 19

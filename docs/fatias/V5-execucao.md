@@ -96,7 +96,7 @@ em `test_rota_fio_memoria.py`).
 
 `dev.db` (SQLite local) estava na migração `0007`; `alembic upgrade head` aplicou a `0008` sem
 erro (backup tirado antes, descartado depois de confirmar). Script solto (não commitado) abriu
-uma sessão de servidor de verdade para a conta real da Linda
+uma sessão de servidor de verdade para a conta real da Ana
 (`linda.piloto@exemplo.com`, `c22ce889-…`) via `repositorio_sessao.abrir_sessao` (mesmo mecanismo
 do login — sem precisar da senha dela) e usou `TestClient` contra a `criar_app` apontada para o
 `dev.db` real, não um banco de teste:

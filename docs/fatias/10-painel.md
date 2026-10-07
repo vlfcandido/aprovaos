@@ -15,7 +15,7 @@ são a matéria-prima desta fatia: `evento_estudo` (append-only, com `acertou`,
 `dominio/trilha.py` (`LIMIAR_DOMINADO`, `MINIMO_PARA_DOMINADO` — a definição única de
 "dominado" do produto, unificada em `aecf2ca`).
 
-**Realidade dos dados (não inventar volume):** o `dev.db` da Linda tem **18 respostas reais** de
+**Realidade dos dados (não inventar volume):** o `dev.db` da Ana tem **18 respostas reais** de
 uma única aluna, sem `data_alvo` preenchida. Nenhum cruzamento de RF-17 vai atingir o piso de
 suporte estatístico, e a previsão vai sair com confiança **baixa**. Isso é o resultado honesto e
 é o que a execução real deve registrar — como nas fatias 7 e 11, **nenhum evento é fabricado no
@@ -294,7 +294,7 @@ questão despublicada não entra em nenhum número (regressão da P-34); o alert
 
 ## 9. Execução real (honesta, sem fabricar dado)
 
-Rodar contra uma **cópia** de `dev.db` (fatias 7 e 11): abrir o painel da Linda e registrar no
+Rodar contra uma **cópia** de `dev.db` (fatias 7 e 11): abrir o painel da Ana e registrar no
 diário o que sai de verdade — 18 respostas, previsão de confiança **baixa**, nenhum padrão acima
 do piso, curva sem necessária (ela não informou `data_alvo`). Se algum número sair bonito demais,
 desconfiar antes de comemorar: é o defeito que mais custou nesta semana.

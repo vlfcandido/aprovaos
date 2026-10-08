@@ -2,6 +2,10 @@
 
 > `AprovaOS` é codinome de desenvolvimento; o nome comercial ainda não foi definido.
 
+![Diagnóstico adaptativo do AprovaOS, com dados ilustrativos](docs/prints/aprovaos.png)
+
+<sub>Tela do protótipo clicável em docs/evidencias/mockups, com persona e números ilustrativos. O plano do dia está em [docs/prints/aprovaos-plano.png](docs/prints/aprovaos-plano.png).</sub>
+
 ## Problema
 
 Quem estuda para concurso perde a maior parte da energia decidindo o que estudar e,

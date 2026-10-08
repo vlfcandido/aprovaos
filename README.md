@@ -35,6 +35,12 @@ Principais capacidades do backend hoje:
 
 ## Arquitetura
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/marca/diagrama-escuro.svg">
+  <img alt="Diagrama: o edital vira o DNA do concurso, que gera o plano do dia com o porquê; questão só chega ao aluno validada; a previsão sai com margem de erro" src="docs/marca/diagrama-claro.svg" width="100%">
+</picture>
+
+
 Backend em FastAPI com domínio isolado da infraestrutura (domínio puro, repositórios
 sobre SQLAlchemy 2.0, rotas finas). O conhecimento é alimentado por um motor que ingere
 fontes oficiais e públicas, sem depender de professor para nascer. O front é

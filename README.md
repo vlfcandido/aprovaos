@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/marca/cabecalho-escuro.svg">
+  <img alt="AprovaOS" src="docs/marca/cabecalho-claro.svg" width="100%">
+</picture>
+
 # AprovaOS
 
 > `AprovaOS` é codinome de desenvolvimento; o nome comercial ainda não foi definido.
